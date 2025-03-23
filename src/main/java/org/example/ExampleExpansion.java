@@ -4,7 +4,9 @@ import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
 import com.ssomar.score.variables.manager.VariablesManager;
+import de.tr7zw.nbtapi.NBTContainer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import de.tr7zw.nbtapi.NBTItem;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
@@ -12,10 +14,10 @@ import net.luckperms.api.model.user.User;
 import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
 import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
-import org.bukkit.block.Hopper;
+import org.bukkit.block.*;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -23,7 +25,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -33,8 +37,10 @@ import org.bukkit.boss.BarFlag;
 
 import java.io.*;
 import java.util.*;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 /**
@@ -44,6 +50,17 @@ import java.util.stream.IntStream;
  */
 public class ExampleExpansion extends PlaceholderExpansion {
     private final File entityStorageDir;
+    private final File backpackDir;
+    private final File databaseFile;
+    private final File doubleDatabaseFile;
+    private final File viewOnlyChestDatabaseFile;
+    private YamlConfiguration doubleDatabaseConfig;
+    private final File viewOnlyChestDir;
+    private YamlConfiguration databaseConfig;
+    private final Map<Location, BlockData> trackedBlockData = new HashMap<>();
+    private YamlConfiguration viewOnlyChestConfig;
+
+
 
     private final File ftLeaderboardFile;
     private final Map<UUID, Integer> ftLeaderboard;
@@ -64,6 +81,45 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     public ExampleExpansion() {
+        this.viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
+        if (!viewOnlyChestDir.exists()) {
+            viewOnlyChestDir.mkdirs();
+        }
+
+        this.viewOnlyChestDatabaseFile = new File(viewOnlyChestDir, "viewonlychests.yml");
+        if (!viewOnlyChestDatabaseFile.exists()) {
+            try {
+                viewOnlyChestDatabaseFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.viewOnlyChestConfig = YamlConfiguration.loadConfiguration(viewOnlyChestDatabaseFile);
+        this.backpackDir = new File("plugins/Archistructures/backpacks/");
+        if (!backpackDir.exists()) {
+            backpackDir.mkdirs();
+        }
+        this.databaseFile = new File(backpackDir, "database.yml");
+        if (!databaseFile.exists()) {
+            try {
+                databaseFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.databaseConfig = YamlConfiguration.loadConfiguration(databaseFile);
+
+        // Double chest database
+        this.doubleDatabaseFile = new File(backpackDir, "database2.yml");
+        if (!doubleDatabaseFile.exists()) {
+            try {
+                doubleDatabaseFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.doubleDatabaseConfig = YamlConfiguration.loadConfiguration(doubleDatabaseFile);
+        
         entityStorageDir = new File("plugins/Archistructures/saved-entities/");
         if (!entityStorageDir.exists()) {
             entityStorageDir.mkdirs();
@@ -98,7 +154,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     /**
      * The placeholder identifier should go here
-     * This is what tells PlaceholderAPI to call our onPlaceholderRequest method to obtain
+     * This is what tells PlaceholderAPI to call our onpr method to obtain
      * a value if a placeholder starts with our identifier.
      * This must be unique and can not contain % or _
      */
@@ -270,8 +326,531 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
+    /**
+     * Get the next available coordinates in a chunk-efficient manner
+     */
+    private int[] getNextAvailableCoordinates(World world) {
+        int chunkX = 5;  // Fixed X-coordinate (do not change)
+        int chunkZ = databaseConfig.getInt("last_chunk_z", 0);
+        int xIndex = 0;
+        int zIndex = 0;
+        int yIndex = databaseConfig.getInt("last_y", world.getMinHeight());
+        int chunkHeight = world.getMaxHeight(); // Typically 256
+        int chunkMin = world.getMinHeight();    // Typically -64
+
+        while (true) {
+            int x = (chunkX * 16) + xIndex;  // x-coordinate within the chunk (0-15)
+            int z = (chunkZ * 16) + zIndex;  // z-coordinate within the chunk (0-15)
+            int y = yIndex;
+
+            Location loc = new Location(world, x, y, z);
+            if (loc.getBlock().getType() == Material.AIR) {
+                // Save the new chunk coordinates
+                databaseConfig.set("last_chunk_z", chunkZ);
+                databaseConfig.set("last_y", yIndex);
+                saveDatabaseConfig();
+                return new int[]{x, y, z};
+            }
+
+            // Increment Y first (fill from bottom to top)
+            yIndex++;
+            if (yIndex >= chunkHeight) {
+                yIndex = chunkMin;
+                zIndex++;
+                if (zIndex >= 16) {
+                    zIndex = 0;
+                    xIndex++;
+                    if (xIndex >= 16) {
+                        xIndex = 0;
+                        chunkZ++;  // Move to the next chunk in the Z direction
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Save the database configuration
+     */
+    private void saveDatabaseConfig() {
+        try {
+            databaseConfig.save(databaseFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
+    /**
+     * Save the database configuration for double chests
+     */
+    private void saveDoubleDatabaseConfig() {
+        try {
+            doubleDatabaseConfig.save(doubleDatabaseFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Save the contents of the backpack chest
+     */
+    private void saveChestContents(String chestID, ItemStack[] contents) {
+        File file = new File(backpackDir, chestID + ".yml");
+        YamlConfiguration config = new YamlConfiguration();
+        for (int i = 0; i < contents.length; i++) {
+            config.set("slot" + i, contents[i]);
+        }
+        try {
+            config.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Load the contents of the backpack chest
+     */
+    private ItemStack[] loadChestContents(String chestID) {
+        File file = new File(backpackDir, chestID + ".yml");
+        if (!file.exists()) return null;
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        ItemStack[] contents = new ItemStack[27];
+        for (int i = 0; i < contents.length; i++) {
+            contents[i] = config.getItemStack("slot" + i);
+        }
+        return contents;
+    }
+
+
+    /**
+     * Get the next available coordinates in a chunk-efficient manner for double chests
+     */
+    private int[] getNextAvailableCoordinatesForDoubleChest(World world) {
+        int chunkX = 6;  // Fixed X-coordinate (do not change)
+        int chunkZ = databaseConfig.getInt("last_chunk_z", 0);
+        int xIndex = 0;
+        int zIndex = 0;
+        int yIndex = databaseConfig.getInt("last_y", world.getMinHeight());
+        int chunkHeight = world.getMaxHeight(); // Typically 256
+        int chunkMin = world.getMinHeight();    // Typically -64
+
+        while (true) {
+            int x = (chunkX * 16) + xIndex;  // Absolute X-coordinate
+            int z = (chunkZ * 16) + zIndex;  // Absolute Z-coordinate
+            int y = yIndex;
+
+            Location loc1 = new Location(world, x, y, z);
+            Location loc2 = new Location(world, x + 1, y, z);  // Adjacent block for double chest
+
+            // Check if both locations are available and form a valid double chest
+            if (loc1.getBlock().getType() == Material.AIR && loc2.getBlock().getType() == Material.AIR) {
+                // Save the new chunk coordinates
+                databaseConfig.set("last_chunk_z", chunkZ);
+                databaseConfig.set("last_y", yIndex);
+                saveDatabaseConfig();
+                return new int[]{x, y, z};
+            }
+
+            // Increment Y first (fill from bottom to top)
+            yIndex++;
+            if (yIndex >= chunkHeight) {
+                yIndex = chunkMin;
+                zIndex++;  // Move to next Z (within chunk)
+                if (zIndex >= 16) {
+                    zIndex = 0;
+                    xIndex++;
+                    if (xIndex >= 16) {
+                        xIndex = 0;
+                        chunkZ++;  // Move to the next chunk in the Z direction
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Save the contents of the double chest
+     */
+    private void saveDoubleChestContents(String chestID, ItemStack[] contents) {
+        File file = new File(backpackDir, chestID + ".yml");
+        YamlConfiguration config = new YamlConfiguration();
+        for (int i = 0; i < contents.length; i++) {
+            config.set("slot" + i, contents[i]);
+        }
+        try {
+            config.save(file);
+            Bukkit.getLogger().info("Double chest contents saved for chest ID: " + chestID);
+        } catch (IOException e) {
+            Bukkit.getLogger().severe("Failed to save double chest contents for chest ID: " + chestID);
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Load the contents of the double chest
+     */
+    private ItemStack[] loadDoubleChestContents(String chestID) {
+        File file = new File(backpackDir, chestID + ".yml");
+        if (!file.exists()) return null;
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        ItemStack[] contents = new ItemStack[54]; // Double chest size
+        for (int i = 0; i < contents.length; i++) {
+            contents[i] = config.getItemStack("slot" + i);
+        }
+        return contents;
+    }
+
+    /**
+     * Convert all blocks within the radius to falling entities while preserving block states and orientations
+     */
+    private void convertBlocksToFallingEntities(World world, Location center, int radius) {
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+
+        for (int x = cx - radius; x <= cx + radius; x++) {
+            for (int y = cy - radius; y <= cy + radius; y++) {
+                for (int z = cz - radius; z <= cz + radius; z++) {
+                    Location loc = new Location(world, x, y, z);
+                    double distance = loc.distance(center);
+
+                    // Check if within radius
+                    if (distance <= radius) {
+                        Block block = loc.getBlock();
+                        if (block.getType() != Material.AIR) {
+                            try {
+                                // Get the block data (preserves state and orientation)
+                                BlockData blockData = block.getBlockData();
+
+                                // Spawn the falling block with the correct data and state
+                                FallingBlock fallingBlock = world.spawnFallingBlock(loc, blockData);
+                                fallingBlock.setDropItem(true); // Prevent block drops
+
+                                // Set fall damage immunity for specific block types (like Anvils)
+                                if (fallingBlock.getType().toString().contains("ANVIL")) {
+                                    fallingBlock.setHurtEntities(false);
+                                }
+
+                                // Remove the original block after spawning the falling entity
+                                block.setType(Material.AIR);
+
+                            } catch (IllegalArgumentException e) {
+                                Bukkit.getLogger().warning("Failed to convert block at " + loc + ": " + e.getMessage());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Attract entities towards the black hole center
+     */
+    private void attractEntities(World world, Location center, int radius) {
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+
+        for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (entity.getCustomName() != null && entity.getCustomName().equals("BlackHolev2")) {
+                continue; // Skip entities named "BlackHolev2"
+            }
+
+            double distance = entity.getLocation().distance(center);
+
+            if (distance > 0 && distance <= radius) {
+                // Calculate the attraction strength (1 to 4) with linear falloff
+                double strength = 4 - 3 * (distance / radius);
+
+                // Calculate the vector towards the center
+                Vector direction = center.toVector().subtract(entity.getLocation().toVector()).normalize();
+                Vector velocity = direction.multiply(strength);
+
+                // Apply the velocity to the entity
+                entity.setVelocity(velocity);
+            }
+        }
+    }
+
+    private String handleViewChestPlaceholder(Player p, String identifier) {
+        try {
+            // Expected format: viewChest_world,x,y,z
+            String params = identifier.substring("viewChest_".length());
+            String[] parts = params.split(",");
+            if (parts.length != 4) {
+                return "Invalid viewChest format!";
+            }
+            String originalWorldName = parts[0];
+            int origX = Integer.parseInt(parts[1]);
+            int origY = Integer.parseInt(parts[2]);
+            int origZ = Integer.parseInt(parts[3]);
+
+            World originalWorld = Bukkit.getWorld(originalWorldName);
+            if (originalWorld == null) {
+                return "Original world not found!";
+            }
+
+            // Read the original chest from the passed‐in location.
+            Location originalLoc = new Location(originalWorld, origX, origY, origZ);
+            Block originalBlock = originalLoc.getBlock();
+            if (!(originalBlock.getState() instanceof Chest)) {
+                return "No chest found at original location!";
+            }
+            Chest originalChest = (Chest) originalBlock.getState();
+            ItemStack[] originalContents = originalChest.getInventory().getContents();
+
+            // Determine if the passed‐in chest is part of a double chest.
+            // (We check adjacent blocks in all four cardinal directions.)
+            boolean passedInIsDouble = Stream.of(BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST).map(face -> originalLoc.getBlock().getRelative(face)).anyMatch(adjacent -> adjacent.getState() instanceof Chest);
+
+            // Get or create the replica world ("mcydatabase").
+            World replicaWorld = Bukkit.getWorld("mcydatabase");
+            if (replicaWorld == null) {
+                replicaWorld = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                        .environment(World.Environment.NORMAL)
+                        .generateStructures(false)
+                        .type(org.bukkit.WorldType.FLAT));
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+            }
+
+            // Look up the player's stored replica location from viewOnlyChestConfig.
+            String uuid = p.getUniqueId().toString();
+            String storedCoords = viewOnlyChestConfig.getString(uuid);
+            int repX, repY, repZ;
+            if (storedCoords != null && !storedCoords.isEmpty()) {
+                String[] repParts = storedCoords.split(" ");
+                repX = Integer.parseInt(repParts[0]);
+                repY = Integer.parseInt(repParts[1]);
+                repZ = Integer.parseInt(repParts[2]);
+            } else {
+                // No entry yet: allocate new coordinates for a full 2×2 area.
+                int[] coords = getNextAvailableCoordinatesForViewChest(replicaWorld);
+                repX = coords[0];
+                repY = coords[1];
+                repZ = coords[2];
+                viewOnlyChestConfig.set(uuid, repX + " " + repY + " " + repZ);
+                try {
+                    viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            // Create the replica chests in mcydatabase.
+            // The allocation always reserves a 2×2 block area.
+            // The single chest is created at the base coordinate.
+            Location replicaBase = new Location(replicaWorld, repX, repY, repZ);
+            Block baseBlock = replicaBase.getBlock();
+            if (!(baseBlock.getState() instanceof Chest)) {
+                baseBlock.setType(Material.CHEST);
+            }
+            Chest replicaChestBase = (Chest) baseBlock.getState();
+
+            // Create the double chest part in the allocated 2×2 area.
+            // Per your specification, the double chest occupies:
+            //   (repX, repY, repZ+1) and (repX+1, repY, repZ+1)
+            Location replicaDouble1 = new Location(replicaWorld, repX, repY, repZ + 1);
+            Location replicaDouble2 = new Location(replicaWorld, repX + 1, repY, repZ + 1);
+            Block doubleBlock1 = replicaDouble1.getBlock();
+            Block doubleBlock2 = replicaDouble2.getBlock();
+            if (!(doubleBlock1.getState() instanceof Chest)) {
+                doubleBlock1.setType(Material.CHEST);
+            }
+            if (!(doubleBlock2.getState() instanceof Chest)) {
+                doubleBlock2.setType(Material.CHEST);
+            }
+            Chest replicaChestDouble1 = (Chest) doubleBlock1.getState();
+            Chest replicaChestDouble2 = (Chest) doubleBlock2.getState();
+
+            // Link the two double chest halves by giving them the same custom name.
+            String linkName = "linked_" + uuid;
+            replicaChestDouble1.setCustomName(linkName);
+            replicaChestDouble2.setCustomName(linkName);
+
+            // Clear inventories immediately.
+            replicaChestBase.getInventory().clear();
+            replicaChestDouble1.getInventory().clear();
+            replicaChestDouble2.getInventory().clear();
+
+            // Schedule a task one tick later to populate the replica.
+            Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                p.sendMessage(ChatColor.AQUA + "[DEBUG] Starting replica chest population task...");
+
+                // Make sure the chunk is loaded before accessing the chest
+                if (!replicaBase.getChunk().isLoaded()) {
+                    replicaBase.getChunk().load(true);
+                    p.sendMessage(ChatColor.AQUA + "[DEBUG] Chunk loaded for chest.");
+                }
+
+                // Re-fetch the chest state after ensuring the chunk is loaded
+                Chest updatedChest = (Chest) baseBlock.getState();
+                Inventory replicaInventory = updatedChest.getInventory();
+
+                // Close any existing inventory the player has open (force a refresh)
+                p.closeInventory();
+
+                for (int slot = 0; slot < 27; slot++) {
+                    try {
+                        ItemStack item;
+                        if (slot == 26) {  // Force a dirt block in the last slot for testing
+                            item = new ItemStack(Material.DIRT, 1);
+                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": forcibly set to DIRT.");
+                        } else if (slot < originalContents.length && originalContents[slot] != null && originalContents[slot].getType() != Material.AIR) {
+                            item = convertToNoClick(originalContents[slot], p);
+                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": copied item " + item.getType().name());
+                        } else {
+                            item = getNoClickItem();
+                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": no item found, using GUINoClick item.");
+                        }
+
+                        // Log item before setting
+                        p.sendMessage(ChatColor.AQUA + "[DEBUG] Item being set in slot " + slot + ": " + (item != null ? item.getType().name() : "NULL"));
+
+                        // Set the item in the inventory
+                        replicaInventory.setItem(slot, item);
+
+                        // Double-check the item after setting it
+                        ItemStack checkItem = replicaInventory.getItem(slot);
+                        p.sendMessage(ChatColor.AQUA + "[DEBUG] Final chest slot " + slot + ": " + (checkItem != null ? checkItem.getType().name() : "NULL"));
+                    } catch (Exception e) {
+                        p.sendMessage(ChatColor.RED + "[DEBUG] Exception at slot " + slot + ": " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
+
+                // Force an update to make sure the changes are saved
+                updatedChest.update(true);
+                p.sendMessage(ChatColor.AQUA + "[DEBUG] Finished populating replica chest.");
+
+                // Force the player to open the chest to refresh the client view
+                p.openInventory(replicaInventory);
+            });
+
+
+
+
+
+
+
+
+            // Finally, return the appropriate coordinate.
+            // If the passed–in chest is double, return the double chest location (base + (0,0,1));
+            // otherwise, return the base coordinate.
+            if (passedInIsDouble) {
+                return repX + " " + repY + " " + (repZ + 1);
+            } else {
+                return repX + " " + repY + " " + repZ;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error processing viewChest!";
+        }
+    }
+
+    private ItemStack convertToNoClick(ItemStack original, Player p) {
+        // Clone the original item
+        ItemStack clone = original.clone();
+        YamlConfiguration tempConfig = new YamlConfiguration();
+        tempConfig.set("item", clone);
+        String serialized = tempConfig.saveToString();
+        p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Original serialized item: " + serialized);
+
+        // Replace the value for "executableitems:ei-id" with "GUINoClick"
+        String modified = serialized.replaceAll("(?m)(\"executableitems:ei-id\"\\s*:\\s*\")([^\"]*)(\")", "$1GUINoClick$3");
+        p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Modified serialized item: " + modified);
+
+        YamlConfiguration modConfig = new YamlConfiguration();
+        try {
+            modConfig.loadFromString(modified);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ItemStack result = modConfig.getItemStack("item");
+        if(result == null) {
+            p.sendMessage(ChatColor.RED + "[DEBUG] convertToNoClick - Resulting item is null!");
+        } else {
+            p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Resulting item type: " + result.getType().name());
+        }
+        return result;
+    }
+
+
+    private ItemStack getNoClickItem() {
+        ItemStack noClick = new ItemStack(Material.WHITE_STAINED_GLASS_PANE, 1);
+        YamlConfiguration tempConfig = new YamlConfiguration();
+        tempConfig.set("item", noClick);
+        String serialized = tempConfig.saveToString();
+        Bukkit.getLogger().info("[DEBUG] getNoClickItem - Original serialized noClick item: " + serialized);
+
+        String modified = serialized.replaceAll("(?<=\\\"executableitems:ei-id\\\": \\\")[^\"]*(?=\\\")", "GUINoClick");
+        Bukkit.getLogger().info("[DEBUG] getNoClickItem - Modified serialized noClick item: " + modified);
+
+        YamlConfiguration modConfig = new YamlConfiguration();
+        try {
+            modConfig.loadFromString(modified);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        ItemStack result = modConfig.getItemStack("item");
+        if(result == null) {
+            Bukkit.getLogger().info("[DEBUG] getNoClickItem - Resulting item is null!");
+        } else {
+            Bukkit.getLogger().info("[DEBUG] getNoClickItem - Resulting item type: " + result.getType().name());
+        }
+        return result;
+    }
+
+    
+
+    /**
+     * Helper method to get the next available coordinates for view-only chests in the replica world.
+     * Allocation starts at chunk x=9, chunk z=0, relative (0,0) at world minimum,
+     * and reserves a 2×2 area for each player.
+     * The pointer is updated by increasing z by 2 until the chunk edge, then x by 2, then y, etc.
+     */
+    private int[] getNextAvailableCoordinatesForViewChest(World world) {
+        int chunkX = 9; // Reserved chunk X
+        int lastX = viewOnlyChestConfig.getInt("last_x", 0);
+        int lastZ = viewOnlyChestConfig.getInt("last_z", 0);
+        int lastY = viewOnlyChestConfig.getInt("last_y", world.getMinHeight());
+        int chunkZ = viewOnlyChestConfig.getInt("last_chunk_z", 0);
+
+        int baseX = (chunkX * 16) + lastX;
+        int baseZ = (chunkZ * 16) + lastZ;
+        int y = lastY;
+
+        // Update pointer: increase lastZ by 2 (each allocation uses 2 columns).
+        lastZ += 2;
+        if (lastZ >= 16) {
+            lastZ = 0;
+            lastX += 2;
+            if (lastX >= 16) {
+                lastX = 0;
+                lastY++;
+                if (lastY >= world.getMaxHeight()) {
+                    lastY = world.getMinHeight();
+                    chunkZ++;
+                }
+            }
+        }
+        viewOnlyChestConfig.set("last_x", lastX);
+        viewOnlyChestConfig.set("last_z", lastZ);
+        viewOnlyChestConfig.set("last_y", lastY);
+        viewOnlyChestConfig.set("last_chunk_z", chunkZ);
+        try {
+            viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new int[]{baseX, y, baseZ};
+    }
+
+    
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -280,6 +859,207 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public String onPlaceholderRequest(Player p, String identifier) {
 
 
+        if (identifier.startsWith("viewChest_")) {
+            return handleViewChestPlaceholder(p, identifier);
+        }
+
+        
+        if (identifier.startsWith("blackHole_")) {
+            try {
+                String[] parts = identifier.substring("blackHole_".length()).split(",");
+                if (parts.length != 5) {
+                    return "Invalid format!";
+                }
+
+                String worldName = parts[0];
+                int x = Integer.parseInt(parts[1]);
+                int y = Integer.parseInt(parts[2]);
+                int z = Integer.parseInt(parts[3]);
+                int radius = Integer.parseInt(parts[4]);
+
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) {
+                    return "World not found!";
+                }
+
+                Location center = new Location(world, x, y, z);
+
+                // Convert blocks to falling blocks
+                convertBlocksToFallingEntities(world, center, radius);
+
+                // Attract entities to the center
+                attractEntities(world, center, radius);
+
+                return x + " " + y + " " + z;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Error: " + e.getMessage();
+            }
+        }
+
+        if (identifier.startsWith("openBackpack2_")) {
+            long id = Long.parseLong(identifier.substring("openBackpack2_".length()));
+
+            // Get or create the world
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) {
+                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                        .environment(World.Environment.NORMAL)
+                        .generateStructures(false)
+                        .type(org.bukkit.WorldType.FLAT));
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+            }
+
+            // Get player UUID
+            String uuid = p.getUniqueId().toString();
+
+            // Load or assign coordinates from the double chest database
+            int x, y, z;
+            String coordinates = doubleDatabaseConfig.getString(uuid);
+            if (coordinates != null) {
+                String[] coords = coordinates.split(" ");
+                x = Integer.parseInt(coords[0]);
+                y = Integer.parseInt(coords[1]);
+                z = Integer.parseInt(coords[2]);
+            } else {
+                // Assign new coordinates in a chunk-efficient way
+                int[] newCoords = getNextAvailableCoordinatesForDoubleChest(world);
+                x = newCoords[0];
+                y = newCoords[1];
+                z = newCoords[2];
+
+                // Save the assigned coordinates to the double chest database
+                String newCoordinates = x + " " + y + " " + z;
+                doubleDatabaseConfig.set(uuid, newCoordinates);
+                saveDoubleDatabaseConfig();
+            }
+
+            // Create the double chest at the given coordinates if not already present
+            Location loc1 = new Location(world, x, y, z);
+            Location loc2 = new Location(world, x + 1, y, z); // Adjacent chest for double chest pair
+
+            Block block1 = loc1.getBlock();
+            Block block2 = loc2.getBlock();
+
+            if (!(block1.getState() instanceof Chest) || !(block2.getState() instanceof Chest)) {
+                block1.setType(Material.CHEST);
+                block2.setType(Material.CHEST);
+
+                // Wait for the world to register the chest placement
+                Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                    Chest chest1 = (Chest) block1.getState();
+                    Chest chest2 = (Chest) block2.getState();
+
+                    // Update the block data to link them as a double chest
+                    chest1.setCustomName(String.valueOf(id));
+                    chest1.update(true);
+                    chest2.setCustomName(String.valueOf(id));
+                    chest2.update(true);
+
+                    Bukkit.getLogger().info("Double chest created at " + x + ", " + y + ", " + z);
+                }, 1L);
+                }
+
+            Chest chest1 = (Chest) block1.getState();
+            Chest chest2 = (Chest) block2.getState();
+
+            // Save current chest contents if the chest is already named
+            String currentChestName = chest1.getCustomName();
+            if (currentChestName != null && !currentChestName.isEmpty()) {
+                saveDoubleChestContents(currentChestName, chest1.getInventory().getContents());
+            }
+
+            // Set the new chest name and update it
+            chest1.setCustomName(String.valueOf(id));
+            chest1.update(true);
+            chest1.getInventory().clear();
+
+            // Load the new chest contents from the file if available
+            ItemStack[] savedContents = loadDoubleChestContents(String.valueOf(id));
+            if (savedContents != null) {
+                chest1.getInventory().setContents(savedContents);
+                Bukkit.getLogger().info("Loaded double chest contents for chest ID: " + id);
+            } else {
+                Bukkit.getLogger().info("No previous contents found for double chest ID: " + id);
+            }
+
+            return x + " " + y + " " + z;
+        }
+
+        
+        
+        if (identifier.startsWith("openBackpack_")) {
+            long id = Long.parseLong(identifier.substring("openBackpack_".length()));
+
+            // Get or create the world
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) {
+                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                        .environment(World.Environment.NORMAL)
+                        .generateStructures(false)
+                        .type(org.bukkit.WorldType.FLAT));
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+            }
+
+            // Get player UUID
+            String uuid = p.getUniqueId().toString();
+
+            // Load or assign coordinates from the database
+            int x, y, z;
+            String coordinates = databaseConfig.getString(uuid);
+            if (coordinates != null) {
+                String[] coords = coordinates.split(" ");
+                x = Integer.parseInt(coords[0]);
+                y = Integer.parseInt(coords[1]);
+                z = Integer.parseInt(coords[2]);
+            } else {
+                // Assign new coordinates in a chunk-efficient way
+                int[] newCoords = getNextAvailableCoordinates(world);
+                x = newCoords[0];
+                y = newCoords[1];
+                z = newCoords[2];
+
+                // Save the assigned coordinates to the database
+                String newCoordinates = x + " " + y + " " + z;
+                databaseConfig.set(uuid, newCoordinates);
+                saveDatabaseConfig();
+            }
+
+            // Create the chest at the given coordinates if not already present
+            Location loc = new Location(world, x, y, z);
+            Block block = loc.getBlock();
+            if (!(block.getState() instanceof Chest)) {
+                block.setType(Material.CHEST);
+                Bukkit.getLogger().info("Backpack chest created at " + x + ", " + y + ", " + z);
+            }
+
+            Chest chest = (Chest) block.getState();
+
+// Check if the chest already has a name and save its contents before updating
+            String currentChestName = chest.getCustomName();
+            if (currentChestName != null && !currentChestName.isEmpty()) {
+                // Save the existing chest contents to a file based on its current name
+                saveChestContents(currentChestName, chest.getInventory().getContents());
+            }
+
+// Update the chest name and clear its contents
+            chest.setCustomName(String.valueOf(id));
+            chest.update(true);
+            chest.getInventory().clear();
+
+// Load the new chest contents from the file if available
+            ItemStack[] savedContents = loadChestContents(String.valueOf(id));
+            if (savedContents != null) {
+                chest.getInventory().setContents(savedContents);
+                Bukkit.getLogger().info("Loaded backpack contents for chest ID: " + id);
+            } else {
+                Bukkit.getLogger().info("No previous contents found for chest ID: " + id);
+            }
+
+            return x + " " + y + " " + z;
+        }
+        
+        
         if (identifier.startsWith("vacuumCleaner_")) {
             String[] parts = identifier.substring("vacuumCleaner_".length()).split(",");
             if (parts.length < 8) {
@@ -461,7 +1241,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int duration = Integer.parseInt(args[1]) * 20; // Convert seconds to ticks
 
                 activateXRay(p, radius, duration);
-                return "X-Ray Activated!";
+                return "X-Ray v2 Activated!";
             } catch (NumberFormatException e) {
                 return "Invalid numbers!";
             }
@@ -1291,6 +2071,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         Location playerLoc = player.getLocation();
         UUID playerUUID = player.getUniqueId();
 
+        // Store block states instead of just locations
         trackedBlocks.put(playerUUID, new HashSet<>());
 
         // Scan surrounding blocks
@@ -1304,8 +2085,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     );
 
                     if (shouldTurnToGlass(block)) {
+                        // Save the original block data (including state)
+                        BlockData originalData = block.getBlockData();
                         trackedBlocks.get(playerUUID).add(block.getLocation());
-                        sendBlockChange(player, block.getLocation(), Material.GLASS);
+
+                        // Send block change to player while preserving state
+                        player.sendBlockChange(block.getLocation(), Material.GLASS.createBlockData());
+
+                        // Store the block data in the tracked blocks map
+                        trackedBlockData.put(block.getLocation(), originalData);
                     }
                 }
             }
@@ -1319,14 +2107,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 for (Location loc : trackedBlocks.get(playerUUID)) {
                     Block currentBlock = world.getBlockAt(loc);
-                    sendBlockChange(player, loc, currentBlock.getType()); // Get live block type
+                    BlockData originalData = trackedBlockData.get(loc);
+
+                    // Restore the block data with preserved state
+                    player.sendBlockChange(loc, originalData);
                 }
 
                 // Cleanup
                 trackedBlocks.remove(playerUUID);
+                trackedBlockData.clear();
             }
         }.runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), duration);
     }
+
 
     private boolean shouldTurnToGlass(Block block) {
         return block.getType() != Material.AIR
