@@ -17,6 +17,8 @@ import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -49,6 +51,11 @@ import java.util.stream.Stream;
  *
  */
 public class ExampleExpansion extends PlaceholderExpansion {
+    private static final boolean viewChestDebugLogging = false;
+
+
+
+
     private final File entityStorageDir;
     private final File backpackDir;
     private final File databaseFile;
@@ -576,281 +583,173 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private String handleViewChestPlaceholder(Player p, String identifier) {
-        try {
-            // Expected format: viewChest_world,x,y,z
-            String params = identifier.substring("viewChest_".length());
-            String[] parts = params.split(",");
-            if (parts.length != 4) {
-                return "Invalid viewChest format!";
-            }
-            String originalWorldName = parts[0];
-            int origX = Integer.parseInt(parts[1]);
-            int origY = Integer.parseInt(parts[2]);
-            int origZ = Integer.parseInt(parts[3]);
-
-            World originalWorld = Bukkit.getWorld(originalWorldName);
-            if (originalWorld == null) {
-                return "Original world not found!";
-            }
-
-            // Read the original chest from the passed‐in location.
-            Location originalLoc = new Location(originalWorld, origX, origY, origZ);
-            Block originalBlock = originalLoc.getBlock();
-            if (!(originalBlock.getState() instanceof Chest)) {
-                return "No chest found at original location!";
-            }
-            Chest originalChest = (Chest) originalBlock.getState();
-            ItemStack[] originalContents = originalChest.getInventory().getContents();
-
-            // Determine if the passed‐in chest is part of a double chest.
-            // (We check adjacent blocks in all four cardinal directions.)
-            boolean passedInIsDouble = Stream.of(BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST).map(face -> originalLoc.getBlock().getRelative(face)).anyMatch(adjacent -> adjacent.getState() instanceof Chest);
-
-            // Get or create the replica world ("mcydatabase").
-            World replicaWorld = Bukkit.getWorld("mcydatabase");
-            if (replicaWorld == null) {
-                replicaWorld = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
-                        .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
-                        .type(org.bukkit.WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
-            }
-
-            // Look up the player's stored replica location from viewOnlyChestConfig.
-            String uuid = p.getUniqueId().toString();
-            String storedCoords = viewOnlyChestConfig.getString(uuid);
-            int repX, repY, repZ;
-            if (storedCoords != null && !storedCoords.isEmpty()) {
-                String[] repParts = storedCoords.split(" ");
-                repX = Integer.parseInt(repParts[0]);
-                repY = Integer.parseInt(repParts[1]);
-                repZ = Integer.parseInt(repParts[2]);
-            } else {
-                // No entry yet: allocate new coordinates for a full 2×2 area.
-                int[] coords = getNextAvailableCoordinatesForViewChest(replicaWorld);
-                repX = coords[0];
-                repY = coords[1];
-                repZ = coords[2];
-                viewOnlyChestConfig.set(uuid, repX + " " + repY + " " + repZ);
-                try {
-                    viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            // Create the replica chests in mcydatabase.
-            // The allocation always reserves a 2×2 block area.
-            // The single chest is created at the base coordinate.
-            Location replicaBase = new Location(replicaWorld, repX, repY, repZ);
-            Block baseBlock = replicaBase.getBlock();
-            if (!(baseBlock.getState() instanceof Chest)) {
-                baseBlock.setType(Material.CHEST);
-            }
-            Chest replicaChestBase = (Chest) baseBlock.getState();
-
-            // Create the double chest part in the allocated 2×2 area.
-            // Per your specification, the double chest occupies:
-            //   (repX, repY, repZ+1) and (repX+1, repY, repZ+1)
-            Location replicaDouble1 = new Location(replicaWorld, repX, repY, repZ + 1);
-            Location replicaDouble2 = new Location(replicaWorld, repX + 1, repY, repZ + 1);
-            Block doubleBlock1 = replicaDouble1.getBlock();
-            Block doubleBlock2 = replicaDouble2.getBlock();
-            if (!(doubleBlock1.getState() instanceof Chest)) {
-                doubleBlock1.setType(Material.CHEST);
-            }
-            if (!(doubleBlock2.getState() instanceof Chest)) {
-                doubleBlock2.setType(Material.CHEST);
-            }
-            Chest replicaChestDouble1 = (Chest) doubleBlock1.getState();
-            Chest replicaChestDouble2 = (Chest) doubleBlock2.getState();
-
-            // Link the two double chest halves by giving them the same custom name.
-            String linkName = "linked_" + uuid;
-            replicaChestDouble1.setCustomName(linkName);
-            replicaChestDouble2.setCustomName(linkName);
-
-            // Clear inventories immediately.
-            replicaChestBase.getInventory().clear();
-            replicaChestDouble1.getInventory().clear();
-            replicaChestDouble2.getInventory().clear();
-
-            // Schedule a task one tick later to populate the replica.
-            Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
-                p.sendMessage(ChatColor.AQUA + "[DEBUG] Starting replica chest population task...");
-
-                // Make sure the chunk is loaded before accessing the chest
-                if (!replicaBase.getChunk().isLoaded()) {
-                    replicaBase.getChunk().load(true);
-                    p.sendMessage(ChatColor.AQUA + "[DEBUG] Chunk loaded for chest.");
-                }
-
-                // Re-fetch the chest state after ensuring the chunk is loaded
-                Chest updatedChest = (Chest) baseBlock.getState();
-                Inventory replicaInventory = updatedChest.getInventory();
-
-                // Close any existing inventory the player has open (force a refresh)
-                p.closeInventory();
-
-                for (int slot = 0; slot < 27; slot++) {
-                    try {
-                        ItemStack item;
-                        if (slot == 26) {  // Force a dirt block in the last slot for testing
-                            item = new ItemStack(Material.DIRT, 1);
-                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": forcibly set to DIRT.");
-                        } else if (slot < originalContents.length && originalContents[slot] != null && originalContents[slot].getType() != Material.AIR) {
-                            item = convertToNoClick(originalContents[slot], p);
-                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": copied item " + item.getType().name());
-                        } else {
-                            item = getNoClickItem();
-                            p.sendMessage(ChatColor.AQUA + "[DEBUG] Slot " + slot + ": no item found, using GUINoClick item.");
-                        }
-
-                        // Log item before setting
-                        p.sendMessage(ChatColor.AQUA + "[DEBUG] Item being set in slot " + slot + ": " + (item != null ? item.getType().name() : "NULL"));
-
-                        // Set the item in the inventory
-                        replicaInventory.setItem(slot, item);
-
-                        // Double-check the item after setting it
-                        ItemStack checkItem = replicaInventory.getItem(slot);
-                        p.sendMessage(ChatColor.AQUA + "[DEBUG] Final chest slot " + slot + ": " + (checkItem != null ? checkItem.getType().name() : "NULL"));
-                    } catch (Exception e) {
-                        p.sendMessage(ChatColor.RED + "[DEBUG] Exception at slot " + slot + ": " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                }
-
-                // Force an update to make sure the changes are saved
-                updatedChest.update(true);
-                p.sendMessage(ChatColor.AQUA + "[DEBUG] Finished populating replica chest.");
-
-                // Force the player to open the chest to refresh the client view
-                p.openInventory(replicaInventory);
-            });
-
-
-
-
-
-
-
-
-            // Finally, return the appropriate coordinate.
-            // If the passed–in chest is double, return the double chest location (base + (0,0,1));
-            // otherwise, return the base coordinate.
-            if (passedInIsDouble) {
-                return repX + " " + repY + " " + (repZ + 1);
-            } else {
-                return repX + " " + repY + " " + repZ;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error processing viewChest!";
-        }
-    }
-
-    private ItemStack convertToNoClick(ItemStack original, Player p) {
-        // Clone the original item
-        ItemStack clone = original.clone();
-        YamlConfiguration tempConfig = new YamlConfiguration();
-        tempConfig.set("item", clone);
-        String serialized = tempConfig.saveToString();
-        p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Original serialized item: " + serialized);
-
-        // Replace the value for "executableitems:ei-id" with "GUINoClick"
-        String modified = serialized.replaceAll("(?m)(\"executableitems:ei-id\"\\s*:\\s*\")([^\"]*)(\")", "$1GUINoClick$3");
-        p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Modified serialized item: " + modified);
-
-        YamlConfiguration modConfig = new YamlConfiguration();
-        try {
-            modConfig.loadFromString(modified);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        ItemStack result = modConfig.getItemStack("item");
-        if(result == null) {
-            p.sendMessage(ChatColor.RED + "[DEBUG] convertToNoClick - Resulting item is null!");
-        } else {
-            p.sendMessage(ChatColor.AQUA + "[DEBUG] convertToNoClick - Resulting item type: " + result.getType().name());
-        }
-        return result;
-    }
-
-
-    private ItemStack getNoClickItem() {
-        ItemStack noClick = new ItemStack(Material.WHITE_STAINED_GLASS_PANE, 1);
-        YamlConfiguration tempConfig = new YamlConfiguration();
-        tempConfig.set("item", noClick);
-        String serialized = tempConfig.saveToString();
-        Bukkit.getLogger().info("[DEBUG] getNoClickItem - Original serialized noClick item: " + serialized);
-
-        String modified = serialized.replaceAll("(?<=\\\"executableitems:ei-id\\\": \\\")[^\"]*(?=\\\")", "GUINoClick");
-        Bukkit.getLogger().info("[DEBUG] getNoClickItem - Modified serialized noClick item: " + modified);
-
-        YamlConfiguration modConfig = new YamlConfiguration();
-        try {
-            modConfig.loadFromString(modified);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        ItemStack result = modConfig.getItemStack("item");
-        if(result == null) {
-            Bukkit.getLogger().info("[DEBUG] getNoClickItem - Resulting item is null!");
-        } else {
-            Bukkit.getLogger().info("[DEBUG] getNoClickItem - Resulting item type: " + result.getType().name());
-        }
-        return result;
-    }
-
-    
 
     /**
-     * Helper method to get the next available coordinates for view-only chests in the replica world.
-     * Allocation starts at chunk x=9, chunk z=0, relative (0,0) at world minimum,
-     * and reserves a 2×2 area for each player.
-     * The pointer is updated by increasing z by 2 until the chunk edge, then x by 2, then y, etc.
+     * Modifies the given ItemStack so that its PublicBukkitValues section:
+     * - Replaces any "executableblocks:eb-id" with "executableitems:ei-id"
+     * - Replaces any existing "executableitems:ei-id" value with "GUINoClick"
+     * - If missing, adds a meta section (if necessary) with:
+     * ==: ItemMeta
+     * meta-type: UNSPECIFIC
+     * display-name: '{"text":"","extra":[{"text":"","obfuscated":false,"italic":false,"underlined":false,"strikethrough":false,"color":"white","bold":true}]}'
+     * PublicBukkitValues: |-
+     * {
+     * "executableitems:ei-id": "GUINoClick",
+     * "executableitems:ei-disablestack": "a3b73c3d-deb4-4708-95a3-dac9ec7d4733",
+     * "score:usage": 1
+     * }
+     * <p>
+     * Debug messages are sent to the player.
      */
-    private int[] getNextAvailableCoordinatesForViewChest(World world) {
-        int chunkX = 9; // Reserved chunk X
-        int lastX = viewOnlyChestConfig.getInt("last_x", 0);
-        int lastZ = viewOnlyChestConfig.getInt("last_z", 0);
-        int lastY = viewOnlyChestConfig.getInt("last_y", world.getMinHeight());
-        int chunkZ = viewOnlyChestConfig.getInt("last_chunk_z", 0);
+    private ItemStack modifyItemForView(ItemStack item) {
+        YamlConfiguration config = new YamlConfiguration();
+        // Place the item under a known section "slot0"
+        config.set("slot0", item);
+        String yaml = config.saveToString();
 
-        int baseX = (chunkX * 16) + lastX;
-        int baseZ = (chunkZ * 16) + lastZ;
-        int y = lastY;
+        // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
+        yaml = yaml.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
 
-        // Update pointer: increase lastZ by 2 (each allocation uses 2 columns).
-        lastZ += 2;
-        if (lastZ >= 16) {
-            lastZ = 0;
-            lastX += 2;
-            if (lastX >= 16) {
-                lastX = 0;
-                lastY++;
-                if (lastY >= world.getMaxHeight()) {
-                    lastY = world.getMinHeight();
-                    chunkZ++;
-                }
-            }
+        // Replace any existing "executableitems:ei-id" value with "GUINoClick"
+        yaml = yaml.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1GUINoClick\"");
+
+        // Ensure that a meta section exists in slot0.
+        // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
+        if (!yaml.contains("meta:")) {
+            String metaBlock =
+                    "\n  meta:\n" +
+                            "    ==: ItemMeta\n" +
+                            "    meta-type: UNSPECIFIC\n" +
+                            "    PublicBukkitValues: |-\n" +
+                            "      {\n" +
+                            "          \"executableitems:ei-id\": \"GUINoClick\",\n" +
+                            "          \"score:usage\": 1\n" +
+                            "      }";
+            // Append the meta block to the slot0 section.
+            yaml += metaBlock;
+        } else if (!yaml.contains("PublicBukkitValues: |-")) {
+            // Meta exists but PublicBukkitValues is missing.
+            // Insert PublicBukkitValues before the closing of meta.
+            // This regex finds the last line in the meta section that is just whitespace followed by a "}".
+            yaml = yaml.replaceFirst("  meta:\n" +
+                    "    ==:", "  meta:\n" +
+                    "    PublicBukkitValues: |-\n" +
+                    "      {\n" +
+                    "          \"executableitems:ei-id\": \"GUINoClick\",\n" +
+                    "          \"score:usage\": 1\n" +
+                    "      }\n" +
+                    "    ==:");
         }
-        viewOnlyChestConfig.set("last_x", lastX);
-        viewOnlyChestConfig.set("last_z", lastZ);
-        viewOnlyChestConfig.set("last_y", lastY);
-        viewOnlyChestConfig.set("last_chunk_z", chunkZ);
+
         try {
-            viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+            config.loadFromString(yaml);
+        } catch (InvalidConfigurationException e) {
+            throw new RuntimeException(e);
         }
-        return new int[]{baseX, y, baseZ};
+
+        ItemStack newItem = config.getItemStack("slot0");
+        if (newItem == null) {
+            newItem = item;
+        } else {
+        }
+
+        return newItem;
     }
 
+
+
+
+    private ItemStack getDefaultGlassPane() {
+        YamlConfiguration config = new YamlConfiguration();
+
+
+        try {
+            config.loadFromString("slot0:\n" +
+                    "  ==: org.bukkit.inventory.ItemStack\n" +
+                    "  v: 3955\n" +
+                    "  type: LIGHT_GRAY_STAINED_GLASS_PANE\n" +
+                    "  meta:\n" +
+                    "    ==: ItemMeta\n" +
+                    "    meta-type: UNSPECIFIC\n" +
+                    "    display-name: '{\"text\":\"\",\"extra\":[{\"text\":\"\",\"obfuscated\":false,\"italic\":false,\"underlined\":false,\"strikethrough\":false,\"color\":\"white\",\"bold\":true}]}'\n" +
+                    "    PublicBukkitValues: |-\n" +
+                    "      {\n" +
+                    "          \"executableitems:ei-id\": \"GUINoClick\",\n" +
+                    "          \"score:usage\": 1\n" +
+                    "      }");
+        } catch (InvalidConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+        ItemStack pane = config.getItemStack("slot0");
+
+        if (pane == null) {
+            pane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        }
+
+        return pane;
+    }
+
+
+    private String findNextInChain(String chainType, int radius, List<UUID> uuids) {
+        // Step 1: Get the last UUID from the list
+        UUID lastUUID = uuids.get(uuids.size() - 1);
+        Entity lastEntity = Bukkit.getEntity(lastUUID);
+
+        // If the last entity is null, return '?'
+        if (lastEntity == null) {
+            return "x";
+        }
+
+        Location lastLocation = lastEntity.getLocation();
+        double closestDistance = Double.MAX_VALUE;
+        Entity closestEntity = null;
+        
+        
+        try {
+            // Step 2: Find nearby entities based on chain type
+            for (Entity entity : Objects.requireNonNull(lastLocation.getWorld()).getNearbyEntities(lastLocation, radius, radius, radius)) {
+                // Skip entities already in the chain
+                if (uuids.contains(entity.getUniqueId())) {
+                    continue;
+                }
+
+                // Check entity AI capability
+                if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).hasAI()) {
+                    continue;
+                }
+
+                // Apply chain type filtering
+                switch (chainType.toUpperCase()) {
+                    case "ENTITY":
+                        if (entity instanceof Player) continue;
+
+                        break;
+                    case "PLAYER":
+                        if (!(entity instanceof Player)) continue;
+                        break;
+                    case "BOTH":
+                        break;
+                    default:
+                        continue;
+                }
+
+                double distance = entity.getLocation().distance(lastLocation);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestEntity = entity;
+                }
+            }
+        } catch (NullPointerException e) {
+            return "x";
+        }
     
+
+        // Step 3: Return the UUID of the closest entity, or '?' if not found
+        return (closestEntity != null) ? closestEntity.getUniqueId().toString() : "x";
+    }
+
+
+
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -858,12 +757,286 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player p, String identifier) {
 
+        if (identifier.startsWith("viewChest2_")) {
+            // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
+            String params = identifier.substring("viewChest2_".length());
+            String[] parts = params.split(",");
+            if (parts.length != 4) {
+                return "Invalid format! Use: %Archistructure_viewChest2_sourceWorld,x,y,z%";
+            }
+            String sourceWorldName = parts[0];
+            int srcX, srcY, srcZ;
+            try {
+                srcX = Integer.parseInt(parts[1]);
+                srcY = Integer.parseInt(parts[2]);
+                srcZ = Integer.parseInt(parts[3]);
+            } catch (NumberFormatException e) {
+                return "Invalid coordinates!";
+            }
+            World sourceWorld = Bukkit.getWorld(sourceWorldName);
+            if (sourceWorld == null) return "Source world not found!";
+            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
+            Block sourceBlock = sourceLoc.getBlock();
+            if (sourceBlock.getType() != Material.CHEST) {
+                return "No chest found at source location!";
+            }
+            Chest sourceChest = (Chest) sourceBlock.getState();
 
-        if (identifier.startsWith("viewChest_")) {
-            return handleViewChestPlaceholder(p, identifier);
+            boolean isDouble = sourceChest.getInventory().getSize() > 27;
+            if (viewChestDebugLogging) {
+                p.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+                        " detected. It is " + (isDouble ? "double" : "single") + ".");
+            }
+
+            int destSize = isDouble ? 54 : 27;
+
+            Inventory fakeInventory = Bukkit.createInventory(null, destSize, "Fake Chest");
+
+
+            Inventory sourceInv = sourceChest.getInventory();
+            int sourceSize = sourceInv.getSize();
+
+            ItemStack[] newContents = new ItemStack[destSize];
+            for (int i = 0; i < destSize; i++) {
+                if (i < sourceSize && sourceInv.getItem(i) != null) {
+                    newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
+                    if (viewChestDebugLogging) {
+                    }
+                } else {
+                    newContents[i] = getDefaultGlassPane();
+                }
+            }
+            // Update destination chest inventory without an extra clear call (setContents overrides existing items)
+            try {
+
+                fakeInventory.setContents(newContents);
+            } catch (Exception ex) {
+                return "Error updating destination chest inventory.";
+            }
+
+            // Return the destination coordinates.
+            if (viewChestDebugLogging) {
+                p.sendMessage("FakeChest");
+            }
+            
+            return "done";
+        }
+        
+
+        if (identifier.startsWith("repeat_")) return identifier.substring("repeat".length());
+        if (identifier.startsWith("chain_")) {
+            // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
+            String params = identifier.substring("chain_".length());
+            String[] parts = params.split(",");
+
+            String chainType = parts[0].toUpperCase();
+            int radius;
+            try {
+                radius = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException e) {
+                return "x";
+            }
+
+            // Parse the UUID list from the format [uuid1, uuid2, uuid3...]
+            List<UUID> uuids = new ArrayList<>();
+            for (int i = 2; i < parts.length; i++) {
+                try {
+                    uuids.add(UUID.fromString(parts[i]));
+                } catch (IllegalArgumentException e) {
+                    return "x" + parts[i];
+                }
+            }
+
+
+            return findNextInChain(chainType, radius, uuids);
         }
 
-        
+
+
+        if (identifier.startsWith("viewChest_")) {
+            // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
+            String params = identifier.substring("viewChest_".length());
+            String[] parts = params.split(",");
+            if (parts.length != 4) {
+                return "Invalid format! Use: %Archistructure_viewChest_sourceWorld,x,y,z%";
+            }
+            String sourceWorldName = parts[0];
+            int srcX, srcY, srcZ;
+            try {
+                srcX = Integer.parseInt(parts[1]);
+                srcY = Integer.parseInt(parts[2]);
+                srcZ = Integer.parseInt(parts[3]);
+            } catch (NumberFormatException e) {
+                return "Invalid coordinates!";
+            }
+            World sourceWorld = Bukkit.getWorld(sourceWorldName);
+            if (sourceWorld == null) return "Source world not found!";
+            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
+            Block sourceBlock = sourceLoc.getBlock();
+            if (sourceBlock.getType() != Material.CHEST) {
+                return "No chest found at source location!";
+            }
+            Chest sourceChest = (Chest) sourceBlock.getState();
+
+            boolean isDouble = sourceChest.getInventory().getSize() > 27;
+            if (viewChestDebugLogging) {
+                p.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+                        " detected. It is " + (isDouble ? "double" : "single") + ".");
+            }
+
+            // Use a fixed destination in the "mcydatabase" world.
+            World destWorld = Bukkit.getWorld("mcydatabase");
+            if (destWorld == null) {
+                destWorld = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                        .environment(World.Environment.NORMAL)
+                        .generateStructures(false)
+                        .type(WorldType.FLAT));
+                Bukkit.getLogger().info("Created mcydatabase world.");
+            }
+
+
+            int destX, destY, destZ;
+            String playerKey = p.getUniqueId().toString();
+            String storedCoords = viewOnlyChestConfig.getString(playerKey);
+            if (storedCoords != null) {
+                // An entry exists for this player; use it.
+                String[] coords = storedCoords.split(" ");
+                destX = Integer.parseInt(coords[0]);
+                destY = Integer.parseInt(coords[1]);
+                destZ = Integer.parseInt(coords[2]);
+            } else {
+                // No entry exists, so compute new coordinates.
+                // Use the "last" entry in viewOnlyChestConfig; if missing, use defaults.
+                String lastEntry = viewOnlyChestConfig.getString("last");
+                int lastX, lastY, lastZ;
+                if (lastEntry == null) {
+                    // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
+                    lastX = 9 * 16;
+                    lastZ = 9 * 16;
+                    lastY = destWorld.getMinHeight();
+                } else {
+                    String[] lastParts = lastEntry.split(" ");
+                    lastX = Integer.parseInt(lastParts[0]);
+                    lastY = Integer.parseInt(lastParts[1]);
+                    lastZ = Integer.parseInt(lastParts[2]);
+                }
+                // Step 1: Add 2 to the last entry's z.
+                destX = lastX;
+                destY = lastY;
+                destZ = lastZ + 2;
+                // Step 2: If new z >= 16 (relative to the chunk), reset z to 0 and increment x by 2.
+                int relZ = destZ % 16;
+                if (relZ >= 16) { // In practice, since we add 2, check if relZ >= 16.
+                    destZ = (destZ / 16) * 16; // reset relative z to 0
+                    destX = lastX + 2;
+                }
+                // Step 3: If new x's relative value is >= 16, set x=0 and increment y by 1.
+                int relX = destX % 16;
+                if (relX >= 16) {
+                    destX = (destX / 16) * 16;
+                    destY = lastY + 1;
+                }
+                // Step 4: If y is past the build limit, set y to the minimum and increment x by 16.
+                if (destY > destWorld.getMaxHeight()) {
+                    destY = destWorld.getMinHeight();
+                    destX = lastX + 16;
+                }
+                // Store the computed coordinates under the player's UUID and update the "last" entry.
+                String newCoords = destX + " " + destY + " " + destZ;
+                viewOnlyChestConfig.set(playerKey, newCoords);
+                viewOnlyChestConfig.set("last", newCoords);
+                try {
+                    viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
+                } catch (IOException e) {
+                }
+            }
+
+            // Now, place chests at the computed coordinates—but only if we computed them now.
+            // If the player's entry already existed, we skip placement.
+            if (storedCoords == null) {
+                // Place a single chest at (destX, destY, destZ)
+                Location singleLoc = new Location(destWorld, destX, destY, destZ);
+                Block singleBlock = singleLoc.getBlock();
+                if (singleBlock.getType() != Material.CHEST) {
+                    singleBlock.setType(Material.CHEST);
+                } else {
+                }
+                // Place a double chest at (destX, destY, destZ+1) and (destX+1, destY, destZ+1)
+                Location doubleLoc1 = new Location(destWorld, destX, destY, destZ + 1);
+                Location doubleLoc2 = new Location(destWorld, destX + 1, destY, destZ + 1);
+                Block doubleBlock1 = doubleLoc1.getBlock();
+                Block doubleBlock2 = doubleLoc2.getBlock();
+                if (doubleBlock1.getType() != Material.CHEST || doubleBlock2.getType() != Material.CHEST) {
+                    doubleBlock1.setType(Material.CHEST);
+                    doubleBlock2.setType(Material.CHEST);
+                    // Link the double chest halves
+                    Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                        try {
+                            Chest chestA = (Chest) doubleBlock1.getState();
+                            Chest chestB = (Chest) doubleBlock2.getState();
+                            org.bukkit.block.data.type.Chest dataA = (org.bukkit.block.data.type.Chest) chestA.getBlockData();
+                            org.bukkit.block.data.type.Chest dataB = (org.bukkit.block.data.type.Chest) chestB.getBlockData();
+                            dataA.setType(org.bukkit.block.data.type.Chest.Type.LEFT);
+                            dataB.setType(org.bukkit.block.data.type.Chest.Type.RIGHT);
+                            dataA.setFacing(BlockFace.NORTH);
+                            dataB.setFacing(BlockFace.NORTH);
+                            chestA.setBlockData(dataA);
+                            chestB.setBlockData(dataB);
+                            String commonName = p.getUniqueId().toString();
+                            chestA.setCustomName(commonName);
+                            chestB.setCustomName(commonName);
+                            chestA.update(true);
+                            chestB.update(true);
+                        } catch (Exception ex) {
+                        }
+                    }, 1L);
+                } else {
+                }
+            } else {
+            }
+
+
+            Location destLocation = isDouble ? new Location(destWorld, destX, destY, destZ + 1) : new Location(destWorld, destX, destY, destZ);
+
+            Chest destChest = (Chest) (destLocation.getBlock().getState());
+
+
+            // Build a modified inventory: copy items from the source chest (modifying the ei-id) and fill any missing slots with a default pane.
+            Inventory sourceInv = sourceChest.getInventory();
+            int sourceSize = sourceInv.getSize();
+            int destSize = isDouble ? 54 : 27;
+
+            ItemStack[] newContents = new ItemStack[destSize];
+            for (int i = 0; i < destSize; i++) {
+                if (i < sourceSize && sourceInv.getItem(i) != null) {
+                    newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
+                    if (viewChestDebugLogging) {
+                    }
+                } else {
+                    newContents[i] = getDefaultGlassPane();
+                }
+            }
+            // Update destination chest inventory without an extra clear call (setContents overrides existing items)
+            try {
+                destChest.update();
+
+                destChest.getInventory().setContents(newContents);
+                if (viewChestDebugLogging) {
+                }
+            } catch (Exception ex) {
+                return "Error updating destination chest inventory.";
+            }
+
+            // Return the destination coordinates.
+            if (viewChestDebugLogging) {
+                p.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
+            }
+            return isDouble ? destX + " " + destY + " " + (destZ + 1 ): destX + " " + destY + " " + destZ;
+        }
+
+
+
+
         if (identifier.startsWith("blackHole_")) {
             try {
                 String[] parts = identifier.substring("blackHole_".length()).split(",");
@@ -893,10 +1066,57 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return x + " " + y + " " + z;
             } catch (Exception e) {
                 e.printStackTrace();
-                return "Error: " + e.getMessage();
+                return "x" + e.getMessage();
             }
         }
 
+
+        if (identifier.startsWith("x_")) {
+            String uuidString = identifier.substring("x_".length());
+            try {
+                UUID uuid = UUID.fromString(uuidString);
+                Entity entity = Bukkit.getEntity(uuid);
+                if (entity != null) {
+                    double x = entity.getLocation().getX();
+                    return String.format("%.3f", x);
+                }
+            } catch (IllegalArgumentException e) {
+                return "x";
+            }
+            return "x";
+        }
+
+        if (identifier.startsWith("y_")) {
+            String uuidString = identifier.substring("y_".length());
+            try {
+                UUID uuid = UUID.fromString(uuidString);
+                Entity entity = Bukkit.getEntity(uuid);
+                if (entity != null) {
+                    double y = entity.getLocation().getY();
+                    return String.format("%.3f", y);
+                }
+            } catch (IllegalArgumentException e) {
+                return "x";
+            }
+            return "x";
+        }
+
+        if (identifier.startsWith("z_")) {
+            String uuidString = identifier.substring("z_".length());
+            try {
+                UUID uuid = UUID.fromString(uuidString);
+                Entity entity = Bukkit.getEntity(uuid);
+                if (entity != null) {
+                    double z = entity.getLocation().getZ();
+                    return String.format("%.3f", z);
+                }
+            } catch (IllegalArgumentException e) {
+                return "x";
+            }
+            return "x";
+        }
+        
+        
         if (identifier.startsWith("openBackpack2_")) {
             long id = Long.parseLong(identifier.substring("openBackpack2_".length()));
 
