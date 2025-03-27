@@ -5,6 +5,7 @@ import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
 import com.ssomar.score.variables.manager.VariablesManager;
 import de.tr7zw.nbtapi.NBTContainer;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import de.tr7zw.nbtapi.NBTItem;
 
@@ -827,7 +828,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * We specify the value identifier in this method
      */
     @Override
-    public String onPlaceholderRequest(Player p, String identifier) {
+        public String onPlaceholderRequest(Player p, String identifier) {
+
+// SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
+
+        boolean parseNested = false;
+
+        // Check if the identifier starts with "parseNested_"
+        if (identifier.startsWith("parseNested_")) {
+            parseNested = true;
+            identifier = identifier.substring("parseNested_".length());
+        }
+
+        // If nested parsing is enabled, resolve all nested placeholders
+        if (parseNested) {
+            while (identifier.contains("{") && identifier.contains("}")) {
+                int start = identifier.indexOf("{");
+                int end = identifier.indexOf("}", start);
+
+                if (start < end) {
+                    String nestedPlaceholder = identifier.substring(start + 1, end);
+                    String resolvedNested = PlaceholderAPI.setPlaceholders(p, "%" + nestedPlaceholder + "%");
+
+                    if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
+                        // Replace the nested placeholder with its resolved value
+                        identifier = identifier.substring(0, start) + resolvedNested + identifier.substring(end + 1);
+                    } else {
+                        // If unresolved, replace with an empty string to avoid infinite loop
+                        identifier = identifier.substring(0, start) + identifier.substring(end + 1);
+                    }
+                } else {
+                    // Break out if no valid placeholder found
+                    break;
+                }
+            }
+        }
+
 
         if (identifier.startsWith("PTFXCUBE_")) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
