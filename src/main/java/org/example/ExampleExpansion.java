@@ -748,7 +748,79 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return (closestEntity != null) ? closestEntity.getUniqueId().toString() : "x";
     }
 
+    /**
+     * Displays a particle cube at the specified location.
+     */
+    public void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
+        double halfWidth = width / 2.0;
+        Particle particle = Particle.valueOf(particleType.toUpperCase());
 
+        // Calculate the 8 corners of the cube
+        Location[] corners = new Location[8];
+        corners[0] = new Location(world, x - halfWidth, y - halfWidth, z - halfWidth); // Bottom NW
+        corners[1] = new Location(world, x + halfWidth, y - halfWidth, z - halfWidth); // Bottom NE
+        corners[2] = new Location(world, x - halfWidth, y - halfWidth, z + halfWidth); // Bottom SW
+        corners[3] = new Location(world, x + halfWidth, y - halfWidth, z + halfWidth); // Bottom SE
+        corners[4] = new Location(world, x - halfWidth, y + halfWidth, z - halfWidth); // Top NW
+        corners[5] = new Location(world, x + halfWidth, y + halfWidth, z - halfWidth); // Top NE
+        corners[6] = new Location(world, x - halfWidth, y + halfWidth, z + halfWidth); // Top SW
+        corners[7] = new Location(world, x + halfWidth, y + halfWidth, z + halfWidth); // Top SE
+
+        // Render cube edges
+        displayLine(p, particle, corners[0], corners[1], density, force); // Bottom North
+        displayLine(p, particle, corners[0], corners[2], density, force); // Bottom West
+        displayLine(p, particle, corners[1], corners[3], density, force); // Bottom East
+        displayLine(p, particle, corners[2], corners[3], density, force); // Bottom South
+        displayLine(p, particle, corners[4], corners[5], density, force); // Top North
+        displayLine(p, particle, corners[4], corners[6], density, force); // Top West
+        displayLine(p, particle, corners[5], corners[7], density, force); // Top East
+        displayLine(p, particle, corners[6], corners[7], density, force); // Top South
+        displayLine(p, particle, corners[0], corners[4], density, force); // Vertical NW
+        displayLine(p, particle, corners[1], corners[5], density, force); // Vertical NE
+        displayLine(p, particle, corners[2], corners[6], density, force); // Vertical SW
+        displayLine(p, particle, corners[3], corners[7], density, force); // Vertical SE
+
+        // Render cube faces
+        renderFace(p, particle, corners[0], corners[1], corners[4], corners[5], density, force); // North Face
+        renderFace(p, particle, corners[2], corners[3], corners[6], corners[7], density, force); // South Face
+        renderFace(p, particle, corners[0], corners[2], corners[4], corners[6], density, force); // West Face
+        renderFace(p, particle, corners[1], corners[3], corners[5], corners[7], density, force); // East Face
+        renderFace(p, particle, corners[4], corners[5], corners[6], corners[7], density, force); // Top Face
+        renderFace(p, particle, corners[0], corners[1], corners[2], corners[3], density, force); // Bottom Face
+    }
+
+    private void renderFace(Player p, Particle particle, Location corner1, Location corner2, Location corner3, Location corner4, int density, boolean force) {
+        for (int i = 1; i < density; i++) {
+            double t = (double) i / density;
+
+            // Create intermediate lines between edges
+            Location start = interpolate(corner1, corner2, t);
+            Location end = interpolate(corner3, corner4, t);
+            displayLine(p, particle, start, end, density, force);
+
+            start = interpolate(corner1, corner3, t);
+            end = interpolate(corner2, corner4, t);
+            displayLine(p, particle, start, end, density, force);
+        }
+    }
+
+    private Location interpolate(Location start, Location end, double t) {
+        double x = start.getX() + (end.getX() - start.getX()) * t;
+        double y = start.getY() + (end.getY() - start.getY()) * t;
+        double z = start.getZ() + (end.getZ() - start.getZ()) * t;
+        return new Location(start.getWorld(), x, y, z);
+    }
+
+    private void displayLine(Player p, Particle particle, Location start, Location end, int density, boolean force) {
+        for (int i = 0; i <= density; i++) {
+            double t = (double) i / density;
+            double x = start.getX() + (end.getX() - start.getX()) * t;
+            double y = start.getY() + (end.getY() - start.getY()) * t;
+            double z = start.getZ() + (end.getZ() - start.getZ()) * t;
+            Location loc = new Location(start.getWorld(), x, y, z);
+            p.spawnParticle(particle, loc, 0, 0, 0, 0, 0, null, force);
+        }
+    }
 
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
@@ -757,6 +829,47 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player p, String identifier) {
 
+        if (identifier.startsWith("PTFXCUBE_")) {
+            // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
+            String params = identifier.substring("PTFXCUBE_".length());
+            String[] parts = params.split(",");
+
+            if (parts.length != 8) {
+                return "Invalid format!";
+            }
+
+            // Parse the parameters
+            String worldName = parts[0];
+            double x, y, z, width;
+            int density;
+            boolean force;
+
+            try {
+                x = Double.parseDouble(parts[1]);
+                y = Double.parseDouble(parts[2]);
+                z = Double.parseDouble(parts[3]);
+                width = Double.parseDouble(parts[5]);
+                density = Integer.parseInt(parts[7]);
+                force = parts[6].equalsIgnoreCase("force");
+            } catch (NumberFormatException e) {
+                return "Invalid numerical value!";
+            }
+
+            String particleType = parts[4];
+            World world = Bukkit.getWorld(worldName);
+
+            if (world == null) {
+                return "World not found!";
+            }
+
+            // Display the particle cube
+            displayCubeWithParticles(world, x, y, z, particleType, width, force, density, p);
+            return "Cube displayed";
+        }
+
+
+        
+        
         if (identifier.startsWith("viewChest2_")) {
             // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
             String params = identifier.substring("viewChest2_".length());
