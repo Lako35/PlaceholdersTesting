@@ -1,5 +1,14 @@
 package org.example;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.BlockPosition;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
@@ -33,6 +42,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarStyle;
@@ -55,7 +66,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static final boolean viewChestDebugLogging = false;
 
 
-
+    private final boolean trialVersion;
+    private int trialNumber;
+    private final Map<Location, BukkitTask> visualBreakTimers = new HashMap<>();
 
     private final File entityStorageDir;
     private final File backpackDir;
@@ -89,6 +102,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     public ExampleExpansion() {
+        trialVersion = false;
+        trialNumber = 500;
         this.viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
         if (!viewOnlyChestDir.exists()) {
             viewOnlyChestDir.mkdirs();
@@ -829,6 +844,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
      */
     @Override
         public String onPlaceholderRequest(Player p, String identifier) {
+        
+        if(trialVersion && trialNumber < 0) {
+            p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
+            return null;
+        }
+        if(trialVersion) p.sendMessage("§e§lYou have " + (trialNumber-1) + " of credits left");
+        trialNumber--;
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
 
@@ -864,6 +886,163 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
+
+        if (identifier.startsWith("nearestPlayerNotTeam2_")) {
+            String params = identifier.substring("nearestPlayerNotTeam2_".length());
+            String[] parts = params.split(",");
+
+            if (parts.length != 6) {
+                return "?";
+            }
+
+            String teamName = parts[0];
+            int radius;
+            String worldName = parts[2];
+            double x, y, z;
+
+            try {
+                radius = Integer.parseInt(parts[1]);
+                x = Double.parseDouble(parts[3]);
+                y = Double.parseDouble(parts[4]);
+                z = Double.parseDouble(parts[5]);
+            } catch (NumberFormatException e) {
+                return "?";
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                return "?";
+            }
+
+            Location origin = new Location(world, x, y, z);
+
+            // Get the specified team from the scoreboard
+            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(teamName);
+            if (team == null) {
+                return "?";
+            }
+
+            Player nearestPlayer = null;
+            double nearestDistance = Double.MAX_VALUE;
+
+            for (Player target : world.getPlayers()) {
+                // Skip players on the specified team
+                if (team.hasEntry(target.getName())) {
+                    continue;
+                }
+
+                // Check if player is inside a region that includes "criminalbase" in its ID
+                Location loc = target.getLocation();
+                com.sk89q.worldedit.util.Location wgLoc = BukkitAdapter.adapt(loc);
+                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+                RegionManager regions = container.get(BukkitAdapter.adapt(world));
+
+                if (regions == null) {
+                    continue;
+                }
+
+                ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
+                boolean inCriminalBase = set.getRegions().stream()
+                        .anyMatch(r -> r.getId().toLowerCase().contains("criminalbase"));
+
+                if (!inCriminalBase) {
+                    continue;
+                }
+
+                // Calculate distance
+                double distance = origin.distance(loc);
+                if (distance <= radius && distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestPlayer = target;
+                }
+            }
+
+            if (nearestPlayer != null) {
+                return nearestPlayer.getUniqueId().toString();
+            }
+
+            return "?";
+        }
+
+
+        if (identifier.startsWith("visualBreak_")) {
+            // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
+            String params = identifier.substring("visualBreak_".length());
+            String[] parts = params.split(",");
+
+            if (parts.length != 5) {
+                return "Invalid format!" + identifier;
+            }
+
+            int stage;
+            String worldName = parts[1];
+            int x, y, z;
+
+            try {
+                stage = Integer.parseInt(parts[0]); // 1-10
+                if (stage < 1 || stage > 10) return "Stage must be 1–10";
+
+                x = Integer.parseInt(parts[2]);
+                y = Integer.parseInt(parts[3]);
+                z = Integer.parseInt(parts[4]);
+            } catch (NumberFormatException e) {
+                return "Invalid number!";
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                return "World not found!";
+            }
+
+            Location loc = new Location(world, x, y, z);
+            int breakStage = stage - 1;
+
+            // Send animation to player
+            try {
+                PacketContainer packet = ProtocolLibrary.getProtocolManager()
+                        .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+
+                int animationId = loc.hashCode();
+                packet.getIntegers().write(0, animationId);
+                packet.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
+                packet.getIntegers().write(1, breakStage);
+
+                ProtocolLibrary.getProtocolManager().sendServerPacket(p, packet);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "Animation error";
+            }
+
+            // Reset any previous task
+            if (visualBreakTimers.containsKey(loc)) {
+                visualBreakTimers.get(loc).cancel();
+            }
+
+            // Schedule removal after 2 seconds (40 ticks)
+            BukkitTask task = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                if (loc.getBlock().getType() != Material.AIR) {
+                    try {
+                        PacketContainer resetPacket = ProtocolLibrary.getProtocolManager()
+                                .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+
+                        int animationId = loc.hashCode();
+                        resetPacket.getIntegers().write(0, animationId);
+                        resetPacket.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
+                        resetPacket.getIntegers().write(1, -1); // remove animation
+
+                        ProtocolLibrary.getProtocolManager().sendServerPacket(p, resetPacket);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                visualBreakTimers.remove(loc);
+            }, 40L); // 40 ticks = 2 seconds
+
+            visualBreakTimers.put(loc, task);
+
+            return "Visual break stage " + breakStage + " set with reset";
+        }
 
         if (identifier.startsWith("PTFXCUBE_")) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
