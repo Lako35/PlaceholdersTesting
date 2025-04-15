@@ -13,33 +13,26 @@ import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
 import com.ssomar.score.variables.manager.VariablesManager;
-import de.tr7zw.nbtapi.NBTContainer;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import de.tr7zw.nbtapi.NBTItem;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
-import net.luckperms.api.model.user.UserManager;
 import net.luckperms.api.node.Node;
 import org.bukkit.*;
+import org.bukkit.Color;
 import org.bukkit.block.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -47,23 +40,29 @@ import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BarFlag;
+import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import java.util.Comparator;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
+import java.util.List;
 
 /**
  * This class will automatically register as a placeholder expansion
  * when a jar including this class is added to the /plugins/placeholderapi/expansions/ folder
  *
  */
+@SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace", "TextBlockMigration", "unused"})
 public class ExampleExpansion extends PlaceholderExpansion {
     private static final boolean viewChestDebugLogging = false;
+
+
+
+    private static final Map<String, CachedParticleData> memoryCache = new HashMap<>();
+    private static final long EXPIRY_TIME = 1000 * 60 * 60; // 1 hour
+    private static final File PARTICLE_DIR = new File("plugins/Archistructures/particles");
 
 
     private final boolean trialVersion;
@@ -75,18 +74,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private final File databaseFile;
     private final File doubleDatabaseFile;
     private final File viewOnlyChestDatabaseFile;
-    private YamlConfiguration doubleDatabaseConfig;
-    private final File viewOnlyChestDir;
-    private YamlConfiguration databaseConfig;
+    private final YamlConfiguration doubleDatabaseConfig;
+    private final YamlConfiguration databaseConfig;
     private final Map<Location, BlockData> trackedBlockData = new HashMap<>();
-    private YamlConfiguration viewOnlyChestConfig;
+    private final YamlConfiguration viewOnlyChestConfig;
 
 
 
     private final File ftLeaderboardFile;
     private final Map<UUID, Integer> ftLeaderboard;
     private final LuckPerms luckPerms;
-    private final UserManager userManager;
 
     private final Map<UUID, Set<Location>> trackedBlocks = new HashMap<>();
     private final Set<Material> oresAndImportantBlocks = Set.of(
@@ -104,10 +101,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public ExampleExpansion() {
         trialVersion = false;
         trialNumber = 500;
-        this.viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
+        File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
         if (!viewOnlyChestDir.exists()) {
             viewOnlyChestDir.mkdirs();
         }
+
+        if (!PARTICLE_DIR.exists()) PARTICLE_DIR.mkdirs();
+
 
         this.viewOnlyChestDatabaseFile = new File(viewOnlyChestDir, "viewonlychests.yml");
         if (!viewOnlyChestDatabaseFile.exists()) {
@@ -152,7 +152,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ftLeaderboard = new LinkedHashMap<>();
         loadFTLeaderboard();
         this.luckPerms = LuckPermsProvider.get();
-        userManager = luckPerms.getUserManager();
+        luckPerms.getUserManager();
 
     }
 
@@ -171,18 +171,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * The name of the person who created this expansion should go here
      */
     @Override
-    public String getAuthor() {
+    public @NotNull String getAuthor() {
         return "Archistructure";
     }
 
     /**
      * The placeholder identifier should go here
-     * This is what tells PlaceholderAPI to call our onpr method to obtain
+     * This is what tells PlaceholderAPI to call our opener method to obtain
      * a value if a placeholder starts with our identifier.
      * This must be unique and can not contain % or _
      */
     @Override
-    public String getIdentifier() {
+    public @NotNull String getIdentifier() {
         return "Archistructure";
     }
 
@@ -191,7 +191,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * This is the version of this expansion
      */
     @Override
-    public String getVersion() {
+    public @NotNull String getVersion() {
         return "1.0.0";
     }
 
@@ -201,7 +201,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * for them to work
      */
     @Override
-    @SuppressWarnings("Overridden")
+    @SuppressWarnings({"Overridden", "UnstableApiUsage", "deprecation"})
     public String getPlugin() {
         return null;
     }
@@ -236,6 +236,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         BookMeta bookMeta = (BookMeta) item.getItemMeta();
+        assert bookMeta != null;
         List<String> pages = bookMeta.getPages();
         if (pages.isEmpty()) {
             return ChatColor.RED + "Nothing written!";
@@ -293,12 +294,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         Bukkit.getLogger().info("Target eliminated: " + (target != null ? target.getName() : entity.getName()));
 
         // Ensure book updates properly
-        if (modifiedPage != null && pageIndex != -1) {
-            List<String> updatedPages = new ArrayList<>(pages);
-            updatedPages.set(pageIndex, modifiedPage);
-            bookMeta.setPages(updatedPages);
-            item.setItemMeta(bookMeta);
-        }
+        List<String> updatedPages = new ArrayList<>(pages);
+        updatedPages.set(pageIndex, modifiedPage);
+        bookMeta.setPages(updatedPages);
+        item.setItemMeta(bookMeta);
 
         // Log return statement
         Bukkit.getLogger().info("Returning success message...");
@@ -574,9 +573,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Attract entities towards the black hole center
      */
     private void attractEntities(World world, Location center, int radius) {
-        int cx = center.getBlockX();
-        int cy = center.getBlockY();
-        int cz = center.getBlockZ();
+
 
         for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
             if (entity.getCustomName() != null && entity.getCustomName().equals("BlackHolev2")) {
@@ -632,7 +629,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Ensure that a meta section exists in slot0.
         // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
         if (!yaml.contains("meta:")) {
-            String metaBlock =
+            @SuppressWarnings("TextBlockMigration") String metaBlock =
                     "\n  meta:\n" +
                             "    ==: ItemMeta\n" +
                             "    meta-type: UNSPECIFIC\n" +
@@ -643,12 +640,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             "      }";
             // Append the meta block to the slot0 section.
             yaml += metaBlock;
-        } else if (!yaml.contains("PublicBukkitValues: |-")) {
+        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        {
             // Meta exists but PublicBukkitValues is missing.
             // Insert PublicBukkitValues before the closing of meta.
             // This regex finds the last line in the meta section that is just whitespace followed by a "}".
-            yaml = yaml.replaceFirst("  meta:\n" +
-                    "    ==:", "  meta:\n" +
+            //noinspection TextBlockMigration
+            yaml = yaml.replaceFirst(" {2}meta:\n" +
+                    " {4}==:", "  meta:\n" +
                     "    PublicBukkitValues: |-\n" +
                     "      {\n" +
                     "          \"executableitems:ei-id\": \"GUINoClick\",\n" +
@@ -666,8 +665,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ItemStack newItem = config.getItemStack("slot0");
         if (newItem == null) {
             newItem = item;
-        } else {
-        }
+        } 
 
         return newItem;
     }
@@ -708,7 +706,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private String findNextInChain(String chainType, int radius, List<UUID> uuids) {
         // Step 1: Get the last UUID from the list
-        UUID lastUUID = uuids.get(uuids.size() - 1);
+        UUID lastUUID = uuids.getLast();
         Entity lastEntity = Bukkit.getEntity(lastUUID);
 
         // If the last entity is null, return '?'
@@ -842,8 +840,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
      */
+    @SuppressWarnings({"UnstableApiUsage", "deprecation", "ConstantValue"})
     @Override
-        public String onPlaceholderRequest(Player p, String identifier) {
+        public String onPlaceholderRequest(Player p, @NotNull String identifier) {
         
         if(trialVersion && trialNumber < 0) {
             p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
@@ -885,6 +884,66 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
         }
+        
+        // INSERT HERE
+
+
+
+        if (identifier.startsWith("particleText_")) {
+            try {
+                String params = identifier.substring("particleText_".length());
+
+
+                // Parse identifier: world,x,y,z,particle,density,viewDistance,size,rotation,text
+                String[] parts = params.split(",", 10);
+                if (parts.length != 10) return "Invalid format";
+
+                String worldName = parts[0];
+                double x = Double.parseDouble(parts[1]);
+                double y = Double.parseDouble(parts[2]);
+                double z = Double.parseDouble(parts[3]);
+                Particle particle = Particle.valueOf(parts[4].toUpperCase());
+                int density = Math.max(1, Integer.parseInt(parts[5]));
+                String viewDistance = parts[6];
+                double size = Double.parseDouble(parts[7]);
+                double rotation = Math.toRadians(Double.parseDouble(parts[8]));
+                String text = parts[9];
+
+                Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
+
+                long now = System.currentTimeMillis();
+
+                // 1. Check RAM
+                CachedParticleData cached = memoryCache.get(identifier);
+                if (cached != null && now - cached.timestamp < EXPIRY_TIME) {
+                    displayToNearby(center, cached.locations, particle, viewDistance);
+                    return "";
+                }
+
+                // 2. Check Disk
+                File diskFile = new File(PARTICLE_DIR, sanitize(text) + ".dat");
+                if (diskFile.exists()) {
+                    List<Vector> vectors = loadFromDisk(diskFile);
+                    List<Location> worldLocs = applyToWorld(center, vectors);
+                    memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
+                    displayToNearby(center, worldLocs, particle, viewDistance);
+                    return "";
+                }
+
+                // 3. Compute
+                boolean[][] matrix = renderTextToMatrix(text);
+                List<Vector> vectors = matrixToVectors(matrix, density, size, rotation);
+                List<Location> worldLocs = applyToWorld(center, vectors);
+
+                saveToDisk(diskFile, vectors);
+                memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
+                displayToNearby(center, worldLocs, particle, viewDistance);
+                return "";
+            } catch (Exception e) {
+                return "§cFailed!";
+            }
+
+        }
 
 
         if (identifier.startsWith("nearestPlayerNotTeam2_")) {
@@ -917,7 +976,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Location origin = new Location(world, x, y, z);
 
             // Get the specified team from the scoreboard
-            Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(teamName);
+            Team team = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard().getTeam(teamName);
             if (team == null) {
                 return "?";
             }
@@ -1019,7 +1078,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Schedule removal after 2 seconds (40 ticks)
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+            BukkitTask task = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
                 if (loc.getBlock().getType() != Material.AIR) {
                     try {
                         PacketContainer resetPacket = ProtocolLibrary.getProtocolManager()
@@ -1128,8 +1187,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             for (int i = 0; i < destSize; i++) {
                 if (i < sourceSize && sourceInv.getItem(i) != null) {
                     newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
-                    if (viewChestDebugLogging) {
-                    }
                 } else {
                     newContents[i] = getDefaultGlassPane();
                 }
@@ -1241,6 +1298,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
                     lastX = 9 * 16;
                     lastZ = 9 * 16;
+                    assert destWorld != null;
                     lastY = destWorld.getMinHeight();
                 } else {
                     String[] lastParts = lastEntry.split(" ");
@@ -1265,6 +1323,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     destY = lastY + 1;
                 }
                 // Step 4: If y is past the build limit, set y to the minimum and increment x by 16.
+                assert destWorld != null;
                 if (destY > destWorld.getMaxHeight()) {
                     destY = destWorld.getMinHeight();
                     destX = lastX + 16;
@@ -1275,7 +1334,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 viewOnlyChestConfig.set("last", newCoords);
                 try {
                     viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
 
@@ -1287,8 +1346,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Block singleBlock = singleLoc.getBlock();
                 if (singleBlock.getType() != Material.CHEST) {
                     singleBlock.setType(Material.CHEST);
-                } else {
-                }
+                } 
                 // Place a double chest at (destX, destY, destZ+1) and (destX+1, destY, destZ+1)
                 Location doubleLoc1 = new Location(destWorld, destX, destY, destZ + 1);
                 Location doubleLoc2 = new Location(destWorld, destX + 1, destY, destZ + 1);
@@ -1298,7 +1356,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     doubleBlock1.setType(Material.CHEST);
                     doubleBlock2.setType(Material.CHEST);
                     // Link the double chest halves
-                    Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
                         try {
                             Chest chestA = (Chest) doubleBlock1.getState();
                             Chest chestB = (Chest) doubleBlock2.getState();
@@ -1315,13 +1373,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             chestB.setCustomName(commonName);
                             chestA.update(true);
                             chestB.update(true);
-                        } catch (Exception ex) {
+                        } catch (Exception ignored) {
                         }
                     }, 1L);
-                } else {
-                }
-            } else {
-            }
+                } 
+            } 
 
 
             Location destLocation = isDouble ? new Location(destWorld, destX, destY, destZ + 1) : new Location(destWorld, destX, destY, destZ);
@@ -1338,8 +1394,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             for (int i = 0; i < destSize; i++) {
                 if (i < sourceSize && sourceInv.getItem(i) != null) {
                     newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
-                    if (viewChestDebugLogging) {
-                    }
                 } else {
                     newContents[i] = getDefaultGlassPane();
                 }
@@ -1349,8 +1403,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 destChest.update();
 
                 destChest.getInventory().setContents(newContents);
-                if (viewChestDebugLogging) {
-                }
             } catch (Exception ex) {
                 return "Error updating destination chest inventory.";
             }
@@ -1443,8 +1495,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
             return "x";
         }
-        
-        
+
+
+
         if (identifier.startsWith("openBackpack2_")) {
             long id = Long.parseLong(identifier.substring("openBackpack2_".length()));
 
@@ -1471,6 +1524,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 z = Integer.parseInt(coords[2]);
             } else {
                 // Assign new coordinates in a chunk-efficient way
+                assert world != null;
                 int[] newCoords = getNextAvailableCoordinatesForDoubleChest(world);
                 x = newCoords[0];
                 y = newCoords[1];
@@ -1494,7 +1548,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 block2.setType(Material.CHEST);
 
                 // Wait for the world to register the chest placement
-                Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
                     Chest chest1 = (Chest) block1.getState();
                     Chest chest2 = (Chest) block2.getState();
 
@@ -1509,7 +1563,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
             Chest chest1 = (Chest) block1.getState();
-            Chest chest2 = (Chest) block2.getState();
 
             // Save current chest contents if the chest is already named
             String currentChestName = chest1.getCustomName();
@@ -1562,6 +1615,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 z = Integer.parseInt(coords[2]);
             } else {
                 // Assign new coordinates in a chunk-efficient way
+                assert world != null;
                 int[] newCoords = getNextAvailableCoordinates(world);
                 x = newCoords[0];
                 y = newCoords[1];
@@ -1606,8 +1660,226 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return x + " " + y + " " + z;
         }
+
+// Tunable displacement to help unstick projectiles
+        final double NUDGE_AMOUNT = 0.05;
+
+        if (identifier.startsWith("bounce2_")) {
+            // Format: %Archistructure_bounce2_UUID,FACE,PITCH,YAW,VELOCITY%
+            String[] parts = identifier.substring("bounce2_".length()).split(",");
+
+            if (parts.length != 5) return "Invalid format!";
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(parts[0]);
+            } catch (IllegalArgumentException e) {
+                return "Invalid UUID!";
+            }
+
+            BlockFace face;
+            try {
+                face = BlockFace.valueOf(parts[1].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return "Invalid face!";
+            }
+
+            Entity entity = null;
+            for (World world : Bukkit.getWorlds()) {
+                entity = world.getEntities().stream()
+                        .filter(e -> e.getUniqueId().equals(uuid))
+                        .findFirst()
+                        .orElse(null);
+                if (entity != null) break;
+            }
+
+            if (entity == null) return "Entity not found";
+
+            float pitch, yaw;
+            double velocityMagnitude;
+
+            try {
+                // Handle pitch input
+                if (parts[2].equalsIgnoreCase("pitch")) {
+                    pitch = entity.getLocation().getPitch();
+                } else {
+                    pitch = Float.parseFloat(parts[2]);
+                }
+
+                // Handle yaw input
+                if (parts[3].equalsIgnoreCase("yaw")) {
+                    yaw = entity.getLocation().getYaw();
+                } else {
+                    yaw = Float.parseFloat(parts[3]);
+                }
+
+                velocityMagnitude = Double.parseDouble(parts[4]);
+
+            } catch (NumberFormatException e) {
+                return "Invalid number!";
+            }
+
+            // Convert pitch/yaw to direction vector
+            float pitchRad = (float) Math.toRadians(pitch);
+            float yawRad = (float) Math.toRadians(yaw);
+
+            double x = -Math.sin(yawRad) * Math.cos(pitchRad);
+            double y = -Math.sin(pitchRad);
+            double z = Math.cos(yawRad) * Math.cos(pitchRad);
+            Vector direction = new Vector(x, y, z).normalize().multiply(velocityMagnitude);
+
+            Vector adjustedVelocity = direction.clone();
+
+            // Reflect based on impact face
+            switch (face) {
+                case UP:
+                case DOWN:
+                    adjustedVelocity.setY(-adjustedVelocity.getY());
+                    break;
+                case NORTH:
+                case SOUTH:
+                    adjustedVelocity.setZ(-adjustedVelocity.getZ());
+                    break;
+                case EAST:
+                case WEST:
+                    adjustedVelocity.setX(-adjustedVelocity.getX());
+                    break;
+                default:
+                    return "Invalid face!";
+            }
+
+            // Directional unstick nudge
+            Vector nudgeVector = new Vector(face.getModX(), face.getModY(), face.getModZ()).multiply(NUDGE_AMOUNT);
+            entity.setVelocity(nudgeVector); // Initial nudge
+
+            // Schedule proper bounce
+            Entity finalEntity = entity;
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+                Location nudgedLoc = finalEntity.getLocation().add(nudgeVector);
+                finalEntity.teleport(nudgedLoc);
+                finalEntity.setVelocity(adjustedVelocity);
+                finalEntity.setTicksLived(1);
+            }, 1L);
+
+            return String.format("%.4f", adjustedVelocity.length());
+        }
+
         
         
+        if (identifier.startsWith("checkVelocity_")) {
+            String uuidStr = identifier.substring("checkVelocity_".length());
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidStr);
+            } catch (IllegalArgumentException e) {
+                return "Invalid UUID";
+            }
+
+            Entity target = null;
+
+            // Search all worlds for entity with that UUID
+            for (World world : Bukkit.getWorlds()) {
+                target = world.getEntities().stream()
+                        .filter(ent -> ent.getUniqueId().equals(uuid))
+                        .findFirst()
+                        .orElse(null);
+                if (target != null) break;
+            }
+
+            if (target == null) {
+                return "Entity not found";
+            }
+
+            Vector v = target.getVelocity();
+            return v.getX() + " " + v.getY() + " " + v.getZ();
+        }
+
+// Tunable displacement to help unstick projectiles
+
+        if (identifier.startsWith("bounce_")) {
+            // Format: %Archistructure_bounce_UUID,FACE,SCALE%
+            String[] parts = identifier.substring("bounce_".length()).split(",");
+
+            if (parts.length != 3) return "Invalid format!";
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(parts[0]);
+            } catch (IllegalArgumentException e) {
+                return "Invalid UUID!";
+            }
+
+            BlockFace face;
+            try {
+                face = BlockFace.valueOf(parts[1].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return "Invalid face!";
+            }
+
+            double scale;
+            try {
+                scale = Double.parseDouble(parts[2]);
+            } catch (NumberFormatException e) {
+                return "Invalid scale!";
+            }
+
+
+            Entity entity = null;
+            for (World world : Bukkit.getWorlds()) {
+                entity = world.getEntities().stream()
+                        .filter(e -> e.getUniqueId().equals(uuid))
+                        .findFirst()
+                        .orElse(null);
+                if (entity != null) break;
+            }
+
+            if (entity == null) return "Entity not found";
+
+            Vector originalVelocity = entity.getVelocity();
+            Vector adjustedVelocity = originalVelocity.clone();
+
+            // Reflect based on impact face
+            switch (face) {
+                case UP:
+                case DOWN:
+                    adjustedVelocity.setY(-adjustedVelocity.getY());
+                    break;
+                case NORTH:
+                case SOUTH:
+                    adjustedVelocity.setZ(-adjustedVelocity.getZ());
+                    break;
+                case EAST:
+                case WEST:
+                    adjustedVelocity.setX(-adjustedVelocity.getX());
+                    break;
+                default:
+                    return "Invalid face!";
+            }
+
+            adjustedVelocity.normalize().multiply(scale);
+
+            // Determine the proper nudge direction from the impact face
+            Vector nudgeDirection = new Vector(face.getModX(), face.getModY(), face.getModZ()).multiply(NUDGE_AMOUNT);
+
+            // Apply a small bump in the direction *away* from the block
+            entity.setVelocity(nudgeDirection); // will help unstick the entity
+
+            // Apply real bounce in the next tick
+            Entity finalEntity = entity;
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+                // Slightly offset the location too, in the same direction
+                Location nudgedLoc = finalEntity.getLocation().add(nudgeDirection);
+                finalEntity.teleport(nudgedLoc);
+
+                finalEntity.setVelocity(adjustedVelocity);
+                finalEntity.setTicksLived(1);
+            }, 1L);
+
+            return String.format("%.4f", adjustedVelocity.length());
+        }
+
+
         if (identifier.startsWith("vacuumCleaner_")) {
             String[] parts = identifier.substring("vacuumCleaner_".length()).split(",");
             if (parts.length < 8) {
@@ -1634,11 +1906,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 // Check if target is a chest
                 Block targetBlock = targetLocation.getBlock();
-                if (!(targetBlock.getState() instanceof Chest)) {
+                if (!(targetBlock.getState() instanceof Chest chest)) {
                     return "There is no chest at " + targetX + "," + targetY + "," + targetZ + " in " + targetWorld.getName();
                 }
 
-                Chest chest = (Chest) targetBlock.getState();
                 Inventory chestInventory = chest.getInventory(); // Get the chest's inventory
 
                 // Collect dropped items in a 1x1x1 area
@@ -1872,14 +2143,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String barText = String.join(" ", textArgs);
 
                 // Create the BossBar
-                BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID, new BarFlag[0]);
+                BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
                 bossBar.setProgress(startProgress);
                 bossBar.addPlayer(p);
 
                 // If TIMESTEP is 0 or -1, keep the bossbar static
                 if (timeStepTicks <= 0) {
 
-                    Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), bossBar::removeAll, durationTicks);
+                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
                     return "BossBar displayed!";
                 }
 
@@ -1902,10 +2173,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         bossBar.setProgress(currentProgress);
                         elapsedTicks += timeStepTicks;
                     }
-                }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0, timeStepTicks);
+                }.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0, timeStepTicks);
 
                 // Remove the bossbar after the duration expires
-                Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), bossBar::removeAll, durationTicks);
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
 
                 return "BossBar displayed!";
             } catch (Exception e) {
@@ -1959,10 +2230,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 // Retrieve the boat entity
                 Entity entity = Bukkit.getEntity(boatUUID);
-                if (!(entity instanceof Boat)) {
+                if (!(entity instanceof Boat boat)) {
                     return "Error: No boat found with UUID " + boatUUID;
                 }
-                Boat boat = (Boat) entity;
 
                 // Get the boat's yaw and calculate the direction
                 float yaw = boat.getLocation().getYaw();
@@ -2014,7 +2284,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         String formattedArgs = String.join(" ", argList);
 
                         Variable v1 = new Variable(arg1, "plugins/SCore/variables/" + arg1 + ".yml");
-                        v1.getIcon().setValue(Optional.of(Material.getMaterial(arg4)));
+                        v1.getIcon().setValue(Optional.ofNullable(Material.getMaterial(arg4)));
                         switch (arg2) {
                             case "string" -> v1.getType().setValue(Optional.of(VariableType.STRING));
                             case "list" -> v1.getType().setValue(Optional.of(VariableType.LIST));
@@ -2092,7 +2362,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 caller.setVelocity(interceptVelocity);
 
                 // Get target's name (Player name or Entity type)
-                String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
+                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
 
                 // Format return message
                 return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
@@ -2127,6 +2397,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Entity entity = Bukkit.getEntity(uuid);
                 if (entity != null) {
                     EntitySnapshot snapshot = entity.createSnapshot();
+                    assert snapshot != null;
                     String nbtData = snapshot.getAsString();
                     String entityId = "entity_" + System.currentTimeMillis();
 
@@ -2209,98 +2480,94 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
+        switch (identifier) {
+            case "cycle_playeruuid_head" -> {
+                ItemStack mainHandItem = p.getInventory().getItemInMainHand();
 
-
-        if (identifier.equals("cycle_playeruuid_head")) {
-            ItemStack mainHandItem = p.getInventory().getItemInMainHand();
-
-            if (mainHandItem.getType() != Material.PLAYER_HEAD) {
-                return "Not holding a player head!";
-            }
-
-            SkullMeta skullMeta = (SkullMeta) mainHandItem.getItemMeta();
-            UUID currentUUID = null;
-            String currentName = null;
-
-            // Get all online player names and sort them alphabetically
-            List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-            onlinePlayers.sort(Comparator.comparing(Player::getName));
-
-            if (onlinePlayers.isEmpty()) {
-                return "No online players!";
-            }
-
-            // Check if the skull has valid player data
-            if (skullMeta != null && skullMeta.hasOwner()) {
-                OfflinePlayer currentPlayer = skullMeta.getOwningPlayer();
-                if (currentPlayer != null && currentPlayer.getUniqueId() != null) {
-                    currentUUID = currentPlayer.getUniqueId();
-                    currentName = currentPlayer.getName();
+                if (mainHandItem.getType() != Material.PLAYER_HEAD) {
+                    return "Not holding a player head!";
                 }
-            }
 
-            UUID nextUUID;
-            String nextPlayerName;
+                SkullMeta skullMeta = (SkullMeta) mainHandItem.getItemMeta();
+                UUID currentUUID = null;
+                String currentName = null;
 
-            if (currentUUID != null && currentName != null) {
-                // Find the next player in the sorted list
-                nextPlayerName = onlinePlayers.get(0).getName(); // Default to first in case of wraparound
-                nextUUID = onlinePlayers.get(0).getUniqueId();
+                // Get all online player names and sort them alphabetically
+                List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+                onlinePlayers.sort(Comparator.comparing(Player::getName));
 
-                for (int i = 0; i < onlinePlayers.size(); i++) {
-                    if (onlinePlayers.get(i).getName().equalsIgnoreCase(currentName)) {
-                        nextPlayerName = onlinePlayers.get((i + 1) % onlinePlayers.size()).getName();
-                        nextUUID = onlinePlayers.get((i + 1) % onlinePlayers.size()).getUniqueId();
-                        break;
+                if (onlinePlayers.isEmpty()) {
+                    return "No online players!";
+                }
+
+                // Check if the skull has valid player data
+                if (skullMeta != null && skullMeta.hasOwner()) {
+                    OfflinePlayer currentPlayer = skullMeta.getOwningPlayer();
+                    if (currentPlayer != null) {
+                        currentPlayer.getUniqueId();
+                        currentUUID = currentPlayer.getUniqueId();
+                        currentName = currentPlayer.getName();
                     }
                 }
-            } else {
-                // No valid skull data, default to the first player in the sorted list
-                nextPlayerName = onlinePlayers.get(0).getName();
-                nextUUID = onlinePlayers.get(0).getUniqueId();
+
+                UUID nextUUID;
+
+                nextUUID = onlinePlayers.getFirst().getUniqueId();
+                if (currentUUID != null && currentName != null) {
+                    // Find the next player in the sorted list
+
+                    for (int i = 0; i < onlinePlayers.size(); i++) {
+                        if (onlinePlayers.get(i).getName().equalsIgnoreCase(currentName)) {
+                            nextUUID = onlinePlayers.get((i + 1) % onlinePlayers.size()).getUniqueId();
+                            break;
+                        }
+                    }
+                } 
+
+                // Update the Player Head's metadata to the new player's UUID
+                assert skullMeta != null;
+                skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(nextUUID));
+                mainHandItem.setItemMeta(skullMeta);
+
+                return nextUUID.toString(); // Return the new UUID
             }
+            case "velocity" -> {
+                return p.getVelocity().toString();
+            }
+            case "copyMainHand" -> {
+                dropMainHandCopy(p);
+                return "done";
+            }
+            case "critical" -> {
+                boolean falling = p.getFallDistance() > 0 && p.getVelocity().getY() < 0;
+                boolean onGround = p.isOnGround(); // DEPRECATED! Remove if necessary
 
-            // Update the Player Head's metadata to the new player's UUID
-            skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(nextUUID));
-            mainHandItem.setItemMeta(skullMeta);
+                boolean isClimbing = p.isClimbing();
+                boolean inWater = p.isSwimming() || p.isInWater();
+                boolean blind = p.hasPotionEffect(PotionEffectType.BLINDNESS);
+                boolean slowFalling = p.hasPotionEffect(PotionEffectType.SLOW_FALLING);
+                boolean mounted = p.getVehicle() != null;
+                boolean horizontalSpeedValid = !p.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
 
-            return nextUUID.toString(); // Return the new UUID
+                // Unknown how to implement without passing in event. boolean validDamage = p.damage?
+                return falling &&
+                        //!onGround && 
+                        !isClimbing &&
+                        !inWater &&
+                        !blind &&
+                        !slowFalling &&
+                        !mounted &&
+                        horizontalSpeedValid ?
+                        "true" : "" + falling + !onGround + !isClimbing + !inWater + !blind + !slowFalling + !mounted + horizontalSpeedValid;// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
+
+                // Unknown how to implement without passing in event. boolean validDamage = p.damage?
+            }
+            case "rayTraceBlock" -> {
+                return Objects.requireNonNull(Objects.requireNonNull(p.rayTraceBlocks(30)).getHitBlock()).toString();
+            }
         }
 
-        if (identifier.equals("velocity")) {
-            return p.getVelocity().toString();
-        }
 
-        if (identifier.equals("copyMainHand")) {
-            dropMainHandCopy(p);
-            return "done";
-        }
-
-
-        if (identifier.equals("critical")) {
-            boolean falling = p.getFallDistance() > 0 && p.getVelocity().getY() < 0;
-            boolean onGround = p.isOnGround(); // DEPRECATED! Remove if necessary
-            boolean isClimbing = p.isClimbing();
-            boolean inWater = p.isSwimming() || p.isInWater();
-            boolean blind = p.hasPotionEffect(PotionEffectType.BLINDNESS);
-            boolean slowFalling = p.hasPotionEffect(PotionEffectType.SLOW_FALLING);
-            boolean mounted = p.getVehicle() != null;
-            boolean horizontalSpeedValid = !p.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
-            // Unknown how to implement without passing in event. boolean validDamage = p.damage?
-            return falling &&
-                    //!onGround && 
-                    !isClimbing &&
-                    !inWater &&
-                    !blind &&
-                    !slowFalling &&
-                    !mounted &&
-                    horizontalSpeedValid ?
-                    "true" : "" + falling + !onGround + !isClimbing + !inWater + !blind + !slowFalling + !mounted + horizontalSpeedValid;
-        }
-        if(identifier.equals("rayTraceBlock")) {
-            return p.rayTraceBlocks(30).getHitBlock().toString();
-
-        }
         /*
         p.breakBlock(block);
         p.canSee(entity);
@@ -2370,7 +2637,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private void dropMainHandCopy(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
 
-        if (itemInHand == null || itemInHand.getType() == Material.AIR) {
+        if (itemInHand.getType() == Material.AIR) {
             player.sendMessage("You're not holding anything!");
             return;
         }
@@ -2400,7 +2667,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (relativeSpeedSquared > 0) {
             // Calculate time to intercept using a quadratic equation
-            double relativeSpeed = Math.sqrt(relativeSpeedSquared);
             Vector relativePosition = targetLoc.toVector().subtract(callerLoc.toVector());
 
             double a = targetVelocity.dot(targetVelocity) - (speed * speed);
@@ -2480,7 +2746,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Remove the original firework
                 firework.remove();
             }
-        }.runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 1L);
+        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
 
     private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower) {
@@ -2489,9 +2755,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         double explosionRadius = 5.0; // Firework explosion hit radius
 
-        for (Entity entity : explosionLocation.getWorld().getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
-            if (entity instanceof Player) {
-                Player hitPlayer = (Player) entity;
+        for (Entity entity : Objects.requireNonNull(explosionLocation.getWorld()).getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
+            if (entity instanceof Player hitPlayer) {
 
                 // Apply direct damage as if caused by the launcher
                 hitPlayer.damage(explosionPower, launcher);
@@ -2509,7 +2774,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Count the number of firework stars
         int fireworkStars = 0;
         if (meta.hasEffects()) {
-            for (FireworkEffect effect : meta.getEffects()) {
+            for (FireworkEffect ignored : meta.getEffects()) {
                 fireworkStars++;
             }
         }
@@ -2543,16 +2808,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         firework.setFireworkMeta(meta);
 
         // Detonate instantly
-        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), firework::detonate, 1L);
-    }
-
-    private int[] convertUUIDToArray(UUID uuid) {
-        long mostSigBits = uuid.getMostSignificantBits();
-        long leastSigBits = uuid.getLeastSignificantBits();
-        return new int[]{
-                (int) (mostSigBits >> 32), (int) mostSigBits,
-                (int) (leastSigBits >> 32), (int) leastSigBits
-        };
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
     }
 
 
@@ -2581,11 +2837,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Sorting: First by score (descending), then by insertion order (first to score stays ahead)
             sortedList.sort((a, b) -> {
-                int scoreCompare = b.getValue().compareTo(a.getValue()); // Higher scores first
-                if (scoreCompare != 0) {
-                    return scoreCompare;
-                }
-                return 0; // Maintain insertion order in case of tie
+                // Higher scores first
+                return b.getValue().compareTo(a.getValue());// Maintain insertion order in case of tie
             });
 
             // Construct the tellraw JSON command
@@ -2597,7 +2850,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             for (Map.Entry<UUID, Integer> entry : sortedList) {
                 if (rank > 20) break;
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(entry.getKey());
-                String playerName = (offlinePlayer != null && offlinePlayer.getName() != null) ? offlinePlayer.getName() : "Unknown";
+                String playerName = offlinePlayer.getName() != null ? offlinePlayer.getName() : "Unknown";
                 tellraw.append(String.format(",{\"text\":\"§7%d. §a%s - §b%d\\n\"}", rank, playerName, entry.getValue()));
                 rank++;
             }
@@ -2605,7 +2858,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             tellraw.append(",{\"text\":\"§6-----------------\"}]");
 
             // Execute tellraw command
-            String tellrawCommand = String.format("tellraw %s %s", player.getName(), tellraw.toString());
+            String tellrawCommand = String.format("tellraw %s %s", player.getName(), tellraw);
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), tellrawCommand);
 
         } catch (Exception e) {
@@ -2654,7 +2907,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (!trackedBlocks.containsKey(playerUUID)) return;
 
                 for (Location loc : trackedBlocks.get(playerUUID)) {
-                    Block currentBlock = world.getBlockAt(loc);
                     BlockData originalData = trackedBlockData.get(loc);
 
                     // Restore the block data with preserved state
@@ -2665,7 +2917,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 trackedBlocks.remove(playerUUID);
                 trackedBlockData.clear();
             }
-        }.runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), duration);
+        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), duration);
     }
 
 
@@ -2676,9 +2928,111 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 && !oresAndImportantBlocks.contains(block.getType());
     }
 
-    private void sendBlockChange(Player player, Location location, Material newMaterial) {
-        player.sendBlockChange(location, newMaterial.createBlockData());
+
+    private static List<Vector> matrixToVectors(boolean[][] matrix, int density, double size, double rotation) {
+        List<Vector> result = new ArrayList<>();
+        int height = matrix.length;
+        int width = matrix[0].length;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (!matrix[y][x]) continue;
+                if (x % density != 0 || y % density != 0) continue;
+
+                double px = (x - width / 2.0) * size;
+                double py = -(y - height / 2.0) * size;
+                double pz = 0;
+
+                double rx = Math.cos(rotation) * px - Math.sin(rotation) * pz;
+                double rz = Math.sin(rotation) * px + Math.cos(rotation) * pz;
+
+                result.add(new Vector(rx, py, rz));
+            }
+        }
+        return result;
     }
+
+    private static boolean[][] renderTextToMatrix(String text) {
+        Font font = new Font("Arial", Font.BOLD, 16);
+        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setFont(font);
+        FontMetrics fm = g.getFontMetrics();
+        int width = fm.stringWidth(text);
+        int height = fm.getHeight();
+        g.dispose();
+
+        img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        g = img.createGraphics();
+        g.setFont(font);
+        g.setColor(java.awt.Color.WHITE);
+        g.drawString(text, 0, fm.getAscent());
+        g.dispose();
+
+        boolean[][] matrix = new boolean[height][width];
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                matrix[y][x] = (img.getRGB(x, y) >> 24) != 0;
+            }
+        }
+        return matrix;
+    }
+
+    private static List<Location> applyToWorld(Location center, List<Vector> offsets) {
+        List<Location> result = new ArrayList<>();
+        for (Vector v : offsets) {
+            result.add(center.clone().add(v));
+        }
+        return result;
+    }
+
+    private static void displayToNearby(Location center, List<Location> locs, Particle particle, String viewDistanceMode) {
+        new BukkitRunnable() {
+            public void run() {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!player.getWorld().equals(center.getWorld())) continue;
+                    double dist = player.getLocation().distance(center);
+                    if (!viewDistanceMode.equalsIgnoreCase("force") &&
+                            !viewDistanceMode.equalsIgnoreCase("normal") &&
+                            dist > Integer.parseInt(viewDistanceMode)) continue;
+
+                    for (Location loc : locs) {
+                        player.spawnParticle(particle, loc, 1, 0, 0, 0, 0);
+                    }
+                }
+            }
+        }.runTask(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")));
+    }
+
+    private static void saveToDisk(File file, List<Vector> vectors) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (Vector v : vectors) {
+                writer.write(v.getX() + "," + v.getY() + "," + v.getZ());
+                writer.newLine();
+            }
+        }
+    }
+
+    private static List<Vector> loadFromDisk(File file) throws IOException {
+        List<Vector> vectors = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                double x = Double.parseDouble(parts[0]);
+                double y = Double.parseDouble(parts[1]);
+                double z = Double.parseDouble(parts[2]);
+                vectors.add(new Vector(x, y, z));
+            }
+        }
+        return vectors;
+    }
+
+    private static String sanitize(String text) {
+        return Base64.getUrlEncoder().encodeToString(text.getBytes());
+    }
+
+    private record CachedParticleData(List<Location> locations, long timestamp) {}
 
 
 }
