@@ -45,6 +45,9 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.Comparator;
 import java.util.List;
@@ -58,6 +61,7 @@ import java.util.List;
 public class ExampleExpansion extends PlaceholderExpansion {
     private static final boolean viewChestDebugLogging = false;
 
+    private static final boolean particleDebugEnabled = true;
 
 
     private static final Map<String, CachedParticleData> memoryCache = new HashMap<>();
@@ -887,12 +891,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         // INSERT HERE
 
-
-
         if (identifier.startsWith("particleText_")) {
             try {
                 String params = identifier.substring("particleText_".length());
-
 
                 // Parse identifier: world,x,y,z,particle,density,viewDistance,size,rotation,text
                 String[] parts = params.split(",", 10);
@@ -910,19 +911,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String text = parts[9];
 
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
-
                 long now = System.currentTimeMillis();
 
-                // 1. Check RAM
+                if (particleDebugEnabled) {
+                    p.sendMessage("§7[Debug] world=" + worldName + " x=" + x + " y=" + y + " z=" + z);
+                    p.sendMessage("§7[Debug] particle=" + particle + " density=" + density + " size=" + size + " rotation=" + rotation);
+                    p.sendMessage("§7[Debug] text=\"" + text + "\" view=" + viewDistance);
+                }
+
+                // 1. RAM cache
                 CachedParticleData cached = memoryCache.get(identifier);
                 if (cached != null && now - cached.timestamp < EXPIRY_TIME) {
+                    if (particleDebugEnabled) p.sendMessage("§7[Debug] RAM cache hit.");
                     displayToNearby(center, cached.locations, particle, viewDistance);
                     return "";
                 }
 
-                // 2. Check Disk
-                File diskFile = new File(PARTICLE_DIR, sanitize(text) + ".dat");
+                // 2. Disk cache using hashed identifier
+                String hash = hashSHA256(identifier);
+                String safeText = text.replaceAll("[^a-zA-Z0-9]", "");
+                File diskFile = new File(PARTICLE_DIR, hash + "_" + safeText + ".dat");
+
                 if (diskFile.exists()) {
+                    if (particleDebugEnabled) p.sendMessage("§7[Debug] Disk cache hit: " + diskFile.getName());
                     List<Vector> vectors = loadFromDisk(diskFile);
                     List<Location> worldLocs = applyToWorld(center, vectors);
                     memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
@@ -930,7 +941,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return "";
                 }
 
-                // 3. Compute
+                // 3. Compute fresh
+                if (particleDebugEnabled) p.sendMessage("§7[Debug] Generating new particle text mesh...");
                 boolean[][] matrix = renderTextToMatrix(text);
                 List<Vector> vectors = matrixToVectors(matrix, density, size, rotation);
                 List<Location> worldLocs = applyToWorld(center, vectors);
@@ -939,10 +951,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
                 displayToNearby(center, worldLocs, particle, viewDistance);
                 return "";
-            } catch (Exception e) {
-                return "§cFailed!";
-            }
 
+            } catch (Exception e) {
+                if (particleDebugEnabled) {
+                    p.sendMessage("§c[Debug Error] Failed: " + identifier);
+                    p.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                    for (StackTraceElement el : e.getStackTrace()) p.sendMessage("§7" + el.toString());
+                }
+                return "§cFailed! " + e.getMessage();
+            }
         }
 
 
@@ -2953,7 +2970,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     private static boolean[][] renderTextToMatrix(String text) {
-        Font font = new Font("Arial", Font.BOLD, 16);
+        Font font = new Font("Dialog", Font.BOLD, 16);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setFont(font);
@@ -3027,6 +3044,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         return vectors;
     }
+
+    private String hashSHA256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hashBytes) hex.append(String.format("%02x", b));
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            return Integer.toHexString(input.hashCode()); // Fallback
+        }
+    }
+    
 
     private static String sanitize(String text) {
         return Base64.getUrlEncoder().encodeToString(text.getBytes());
