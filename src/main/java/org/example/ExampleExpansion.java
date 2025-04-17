@@ -1,5 +1,8 @@
 package org.example;
 
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
@@ -23,7 +26,12 @@ import net.luckperms.api.node.Node;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.*;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Rotatable;
+import org.bukkit.block.data.type.Slab;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -42,15 +50,20 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarStyle;
 import org.jetbrains.annotations.NotNull;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.Comparator;
 import java.util.List;
+
+
+import java.nio.file.Files;
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -61,7 +74,6 @@ import java.util.List;
 public class ExampleExpansion extends PlaceholderExpansion {
     private static final boolean viewChestDebugLogging = false;
 
-    private static final boolean particleDebugEnabled = true;
 
 
     private static final Map<String, CachedParticleData> memoryCache = new HashMap<>();
@@ -830,13 +842,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     private void displayLine(Player p, Particle particle, Location start, Location end, int density, boolean force) {
+        World world = start.getWorld();
+        if (world == null) return;
+
+        List<Player> viewers = new ArrayList<>(world.getPlayers());
+
         for (int i = 0; i <= density; i++) {
             double t = (double) i / density;
             double x = start.getX() + (end.getX() - start.getX()) * t;
             double y = start.getY() + (end.getY() - start.getY()) * t;
             double z = start.getZ() + (end.getZ() - start.getZ()) * t;
-            Location loc = new Location(start.getWorld(), x, y, z);
-            p.spawnParticle(particle, loc, 0, 0, 0, 0, 0, null, force);
+            Location loc = new Location(world, x, y, z);
+
+            for (Player viewer : viewers) {
+                if (!force && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
+                viewer.spawnParticle(particle, loc, 0, 0, 0, 0, 0, null, force);
+            }
         }
     }
 
@@ -889,15 +910,265 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         
-        // INSERT HERE
+        // INSERT HERE 
 
-        if (identifier.startsWith("particleText_")) {
+        if (identifier.startsWith("immortalize_")) {
             try {
-                String params = identifier.substring("particleText_".length());
+                p.sendMessage("§7[Debug] Received identifier: " + identifier);
 
-                // Parse identifier: world,x,y,z,particle,density,viewDistance,size,rotation,text
-                String[] parts = params.split(",", 10);
-                if (parts.length != 10) return "Invalid format";
+                String[] parts = identifier.substring("immortalize_".length()).split(",");
+   
+
+                String uuid = parts[0];
+                int scale = Math.max(1, Integer.parseInt(parts[1]));
+                String mode = parts[2];
+                String worldName = parts[3];
+                int ox = Integer.parseInt(parts[4]);
+                int oy = Integer.parseInt(parts[5]);
+                int oz = Integer.parseInt(parts[6]);
+                String direction = parts[7].toUpperCase();
+
+                p.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
+
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) return "§cInvalid world";
+
+                Location origin = new Location(world, ox, oy, oz);
+
+                BufferedImage skin;
+                try {
+                    p.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
+                    URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+                    try (InputStream sin = sessionApi.openStream(); Scanner sscanner = new Scanner(sin)) {
+                        String sessionResponse = sscanner.useDelimiter("\\A").next();
+
+                        JSONObject profile = new JSONObject(sessionResponse);
+                        JSONArray properties = profile.getJSONArray("properties");
+                        JSONObject textureProperty = properties.getJSONObject(0);
+                        String base64 = textureProperty.getString("value");
+
+                        JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
+                        String textureUrl = decoded.getJSONObject("textures").getJSONObject("SKIN").getString("url");
+
+                        p.sendMessage("§7[Debug] Skin URL: " + textureUrl);
+
+                        skin = ImageIO.read(new URL(textureUrl));
+                    }
+                } catch (Exception fetchEx) {
+                    p.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
+                    return "§cFailed to fetch skin for UUID: " + uuid;
+                }
+
+                p.sendMessage("§7[Debug] Skin loaded. Building statue...");
+                buildPlayerStatueFromSkin(p, world, skin, origin, scale, direction, mode);
+                return "§aStatue of UUID " + uuid + " placed!";
+
+            } catch (Exception e) {
+                p.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                return "§cError: " + e.getMessage();
+            }
+        }
+
+            if (identifier.startsWith("debugStickRotate_")) {
+            String[] parts = identifier.substring("debugStickRotate_".length()).split(",");
+            if (parts.length != 4) return "Invalid format!";
+            String worldName = parts[0];
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+            int z = Integer.parseInt(parts[3]);
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§cWorld not found";
+
+            Block block = world.getBlockAt(x, y, z);
+            BlockData data = block.getBlockData();
+            String name = block.getType().name();
+
+            try {
+                BlockData rotated = data.clone();
+
+                //noinspection IfCanBeSwitch
+                if (rotated instanceof Directional directional) {
+                    BlockFace current = directional.getFacing();
+                    List<BlockFace> faces = List.of(
+                            BlockFace.NORTH, BlockFace.EAST,
+                            BlockFace.SOUTH, BlockFace.WEST
+                    );
+                    int index = faces.indexOf(current);
+                    if (index == -1) throw new IllegalStateException();
+                    directional.setFacing(faces.get((index + 1) % faces.size()));
+                    block.setBlockData(rotated, false);
+                    return "§aSuccessfully rotated " + name;
+                }
+
+                if (rotated instanceof Rotatable rot) {
+                    BlockFace current = rot.getRotation();
+                    List<BlockFace> faces = List.of(
+                            BlockFace.NORTH, BlockFace.EAST,
+                            BlockFace.SOUTH, BlockFace.WEST
+                    );
+                    int index = faces.indexOf(current);
+                    if (index == -1) throw new IllegalStateException();
+                    rot.setRotation(faces.get((index + 1) % faces.size()));
+                    block.setBlockData(rotated, false);
+                    return "§aSuccessfully rotated " + name;
+                }
+
+                if (rotated instanceof Stairs stairs) {
+                    BlockFace currentFace = stairs.getFacing();
+                    Stairs.Shape currentShape = stairs.getShape();
+
+                    // Define rotation sequence: cardinal + shape
+                    record StairStep(BlockFace face, Stairs.Shape shape) {}
+                    List<StairStep> cycle = List.of(
+                            new StairStep(BlockFace.NORTH, Stairs.Shape.STRAIGHT),
+                            new StairStep(BlockFace.NORTH, Stairs.Shape.INNER_LEFT),
+                            new StairStep(BlockFace.EAST, Stairs.Shape.STRAIGHT),
+                            new StairStep(BlockFace.EAST, Stairs.Shape.INNER_RIGHT),
+                            new StairStep(BlockFace.SOUTH, Stairs.Shape.STRAIGHT),
+                            new StairStep(BlockFace.SOUTH, Stairs.Shape.OUTER_LEFT),
+                            new StairStep(BlockFace.WEST, Stairs.Shape.STRAIGHT),
+                            new StairStep(BlockFace.WEST, Stairs.Shape.OUTER_RIGHT)
+                    );
+
+                    int idx = -1;
+                    for (int i = 0; i < cycle.size(); i++) {
+                        if (cycle.get(i).face == currentFace && cycle.get(i).shape == currentShape) {
+                            idx = i;
+                            break;
+                        }
+                    }
+
+                    // Move to next rotation
+                    if (idx == -1) {
+                        stairs.setFacing(BlockFace.NORTH);
+                        stairs.setShape(Stairs.Shape.STRAIGHT);
+                    } else {
+                        StairStep next = cycle.get((idx + 1) % cycle.size());
+                        stairs.setFacing(next.face);
+                        stairs.setShape(next.shape);
+                    }
+
+                    block.setBlockData(stairs, false);
+                    return "§aSuccessfully rotated " + name;
+                }
+
+
+            } catch (Exception e) {
+                return "§cCould not rotate " + name;
+            }
+
+            return "§cCould not rotate " + name;
+        }
+
+
+        if (identifier.startsWith("debugStickInvert_")) {
+            String[] parts = identifier.substring("debugStickInvert_".length()).split(",");
+            if (parts.length != 4) return "Invalid format!";
+            String worldName = parts[0];
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+            int z = Integer.parseInt(parts[3]);
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§cWorld not found";
+
+            Block block = world.getBlockAt(x, y, z);
+            BlockData data = block.getBlockData();
+            String name = block.getType().name();
+
+            try {
+                if (data instanceof Stairs stairs) {
+                    stairs.setHalf(stairs.getHalf() == Bisected.Half.TOP ? Bisected.Half.BOTTOM : Bisected.Half.TOP);
+                    block.setBlockData(stairs, false);
+                    return "§aSuccessfully inverted " + name;
+                }
+
+                if (data instanceof Slab slab) {
+                    Slab.Type type = slab.getType();
+                    if (type == Slab.Type.DOUBLE) return "§cCould not invert " + name;
+                    slab.setType(type == Slab.Type.TOP ? Slab.Type.BOTTOM : Slab.Type.TOP);
+                    block.setBlockData(slab, false);
+                    return "§aSuccessfully inverted " + name;
+                }
+
+            } catch (Exception e) {
+                return "§cCould not invert " + name;
+            }
+
+            return "§cCould not invert " + name;
+        }
+
+
+        if (identifier.startsWith("searchExecutable_")) {
+            String keyword = identifier.substring("searchExecutable_".length());
+            String lowerKeyword = keyword.toLowerCase();
+
+            File[] dirs = {
+                    new File("plugins/ExecutableEvents/events"),
+                    new File("plugins/ExecutableItems/items"),
+                    new File("plugins/ExecutableBlocks/blocks")
+            };
+
+            List<String> exactMatches = new ArrayList<>();
+            List<String> similarMatches = new ArrayList<>();
+
+            for (File dir : dirs) {
+                if (dir.exists() && dir.isDirectory()) {
+                    try {
+                        //noinspection resource
+                        Files.walk(dir.toPath())
+                                .filter(Files::isRegularFile)
+                                .filter(path -> path.toString().endsWith(".yml"))
+                                .forEach(path -> {
+                                    String fileName = path.getFileName().toString().replace(".yml", "");
+                                    String relPath = dir.toPath().relativize(path).toString().replace(File.separatorChar, '/');
+                                    String fullRelPath = dir.getPath().replace("plugins/", "") + "/" + relPath;
+    
+                                    if (fileName.equals(keyword)) {
+                                        exactMatches.add(fileName + ", " + fullRelPath);
+                                    } else if (fileName.toLowerCase().contains(lowerKeyword)) {
+                                        similarMatches.add(fileName + ", " + fullRelPath);
+                                    }
+                                });
+                        
+                    } catch (IOException e) {
+                        
+                        return "§cFailed";
+                    }
+
+                }
+            }
+
+            if (!exactMatches.isEmpty()) {
+                p.sendMessage("§e===Exact Matches===");
+                for (String match : exactMatches) {
+                    p.sendMessage("§f" + match);
+                }
+            }
+
+            if (!similarMatches.isEmpty()) {
+                p.sendMessage("§6===Similar Matches===");
+                for (String match : similarMatches) {
+                    p.sendMessage("§f" + match);
+                }
+            }
+
+            if (exactMatches.isEmpty() && similarMatches.isEmpty()) {
+                p.sendMessage("§7No matches found for \"" + keyword + "\"");
+            } else {
+                p.sendMessage("§7======");
+            }
+
+            return String.valueOf(exactMatches.size());
+        }
+
+        if (identifier.startsWith("repeatingParticleText_")) {
+            boolean particleDebugEnabled = true;
+            try {
+                String params = identifier.substring("repeatingParticleText_".length());
+                String[] parts = params.split(",", 13);
+                if (parts.length != 13) return "Invalid format";
 
                 String worldName = parts[0];
                 double x = Double.parseDouble(parts[1]);
@@ -908,59 +1179,86 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String viewDistance = parts[6];
                 double size = Double.parseDouble(parts[7]);
                 double rotation = Math.toRadians(Double.parseDouble(parts[8]));
-                String text = parts[9];
+                long durationTicks = Long.parseLong(parts[9]);
+                long intervalTicks = Math.max(1, Long.parseLong(parts[10]));
+                String text = parts[12];
+                if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
 
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
-                long now = System.currentTimeMillis();
+                String hashKey = hashSHA256(identifier);
 
+                List<Location> worldLocs;
+
+                // === RAM Cache Check ===
+                if (memoryCache.containsKey(identifier)) {
+                    if (particleDebugEnabled) p.sendMessage("§7[Cache] RAM hit for: " + identifier);
+                    worldLocs = memoryCache.get(identifier).locations();
+                    refreshCacheExpiry(identifier);
+                }
+                // === Disk Cache Check ===
+                else {
+                    File cacheFile = new File(PARTICLE_DIR, hashKey + ".txt");
+                    //noinspection IfStatementWithIdenticalBranches
+                    if (cacheFile.exists()) {
+                        if (particleDebugEnabled) p.sendMessage("§7[Cache] Disk hit for: " + identifier);
+                        List<Vector> vectors = loadFromDisk(cacheFile);
+                        worldLocs = applyToWorld(center, vectors);
+
+                        memoryCache.put(identifier, new CachedParticleData(worldLocs, System.currentTimeMillis()));
+                        refreshCacheExpiry(identifier);
+                    }
+                    // === No Cache: Generate ===
+                    else {
+                        if (particleDebugEnabled) p.sendMessage("§7[Cache] No cache found. Generating new data.");
+                        boolean[][] matrix = renderTextToMatrix(text);
+                        List<Vector> vectors = matrixToVectors(matrix, density, size, rotation);
+                        worldLocs = applyToWorld(center, vectors);
+
+                        saveToDisk(cacheFile, vectors);
+                        memoryCache.put(identifier, new CachedParticleData(worldLocs, System.currentTimeMillis()));
+                        refreshCacheExpiry(identifier);
+                    }
+                }
+
+                // === Repeating Display ===
                 if (particleDebugEnabled) {
-                    p.sendMessage("§7[Debug] world=" + worldName + " x=" + x + " y=" + y + " z=" + z);
-                    p.sendMessage("§7[Debug] particle=" + particle + " density=" + density + " size=" + size + " rotation=" + rotation);
-                    p.sendMessage("§7[Debug] text=\"" + text + "\" view=" + viewDistance);
+                    p.sendMessage("§7[Debug] Scheduling display for: " + text);
                 }
 
-                // 1. RAM cache
-                CachedParticleData cached = memoryCache.get(identifier);
-                if (cached != null && now - cached.timestamp < EXPIRY_TIME) {
-                    if (particleDebugEnabled) p.sendMessage("§7[Debug] RAM cache hit.");
-                    displayToNearby(center, cached.locations, particle, viewDistance);
-                    return "";
-                }
+                boolean finalParticleDebugEnabled = particleDebugEnabled;
+                new BukkitRunnable() {
+                    long elapsedTicks = 0;
 
-                // 2. Disk cache using hashed identifier
-                String hash = hashSHA256(identifier);
-                String safeText = text.replaceAll("[^a-zA-Z0-9]", "");
-                File diskFile = new File(PARTICLE_DIR, hash + "_" + safeText + ".dat");
+                    @Override
+                    public void run() {
+                        if (elapsedTicks >= durationTicks) {
+                            this.cancel();
+                            return;
+                        }
 
-                if (diskFile.exists()) {
-                    if (particleDebugEnabled) p.sendMessage("§7[Debug] Disk cache hit: " + diskFile.getName());
-                    List<Vector> vectors = loadFromDisk(diskFile);
-                    List<Location> worldLocs = applyToWorld(center, vectors);
-                    memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
-                    displayToNearby(center, worldLocs, particle, viewDistance);
-                    return "";
-                }
+                        try {
+                            displayToNearby(center, worldLocs, particle, viewDistance);
+                        } catch (Exception ex) {
+                            if (finalParticleDebugEnabled) {
+                                p.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
+                            }
+                            this.cancel();
+                        }
 
-                // 3. Compute fresh
-                if (particleDebugEnabled) p.sendMessage("§7[Debug] Generating new particle text mesh...");
-                boolean[][] matrix = renderTextToMatrix(text);
-                List<Vector> vectors = matrixToVectors(matrix, density, size, rotation);
-                List<Location> worldLocs = applyToWorld(center, vectors);
+                        elapsedTicks += intervalTicks;
+                    }
+                }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0L, intervalTicks);
 
-                saveToDisk(diskFile, vectors);
-                memoryCache.put(identifier, new CachedParticleData(worldLocs, now));
-                displayToNearby(center, worldLocs, particle, viewDistance);
-                return "";
+                return "Scheduled " + text;
 
             } catch (Exception e) {
                 if (particleDebugEnabled) {
-                    p.sendMessage("§c[Debug Error] Failed: " + identifier);
-                    p.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
-                    for (StackTraceElement el : e.getStackTrace()) p.sendMessage("§7" + el.toString());
+                    p.sendMessage("§c[Debug Error] " + e.getMessage());
                 }
-                return "§cFailed! " + e.getMessage();
+                return "§cError: " + e.getMessage();
             }
         }
+
 
 
         if (identifier.startsWith("nearestPlayerNotTeam2_")) {
@@ -2945,32 +3243,39 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 && !oresAndImportantBlocks.contains(block.getType());
     }
 
+    private List<Vector> matrixToVectors(boolean[][] matrix, int density, double size, double rotationRadians) {
+        List<Vector> vectors = new ArrayList<>();
 
-    private static List<Vector> matrixToVectors(boolean[][] matrix, int density, double size, double rotation) {
-        List<Vector> result = new ArrayList<>();
         int height = matrix.length;
-        int width = matrix[0].length;
+        int width = Arrays.stream(matrix).mapToInt(row -> row.length).max().orElse(0);
 
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                if (!matrix[y][x]) continue;
-                if (x % density != 0 || y % density != 0) continue;
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < matrix[row].length; col++) {
+                if (!matrix[row][col]) continue;
 
-                double px = (x - width / 2.0) * size;
-                double py = -(y - height / 2.0) * size;
-                double pz = 0;
+                for (int dy = 0; dy < density; dy++) {
+                    for (int dx = 0; dx < density; dx++) {
+                        double offsetZ = (col + dx / (double) density - width / 2.0) * size;
+                        double offsetY = (-row - dy / (double) density + height / 2.0) * size;
 
-                double rx = Math.cos(rotation) * px - Math.sin(rotation) * pz;
-                double rz = Math.sin(rotation) * px + Math.cos(rotation) * pz;
+                        // The text is vertical (YZ), and rotated around Y
+                        double rotatedX = offsetZ * Math.sin(rotationRadians);
+                        double rotatedZ = offsetZ * Math.cos(rotationRadians);
 
-                result.add(new Vector(rx, py, rz));
+                        vectors.add(new Vector(rotatedX, offsetY, rotatedZ));
+                    }
+                }
             }
         }
-        return result;
+
+        return vectors;
     }
 
+
+
+
     private static boolean[][] renderTextToMatrix(String text) {
-        Font font = new Font("Dialog", Font.BOLD, 16);
+        Font font = new Font("Dialog", Font.PLAIN, 16);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setFont(font);
@@ -3003,23 +3308,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return result;
     }
 
-    private static void displayToNearby(Location center, List<Location> locs, Particle particle, String viewDistanceMode) {
-        new BukkitRunnable() {
-            public void run() {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!player.getWorld().equals(center.getWorld())) continue;
-                    double dist = player.getLocation().distance(center);
-                    if (!viewDistanceMode.equalsIgnoreCase("force") &&
-                            !viewDistanceMode.equalsIgnoreCase("normal") &&
-                            dist > Integer.parseInt(viewDistanceMode)) continue;
+    private void displayToNearby(Location center, List<Location> locs, Particle particle, String mode) {
+        boolean isForce = mode.equalsIgnoreCase("force");
 
-                    for (Location loc : locs) {
-                        player.spawnParticle(particle, loc, 1, 0, 0, 0, 0);
-                    }
-                }
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!isForce && player.getLocation().getWorld() != center.getWorld()) continue;
+            if (!isForce && player.getLocation().distanceSquared(center) > 256) continue;
+
+            for (Location loc : locs) {
+                player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, null, isForce);
             }
-        }.runTask(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")));
+        }
     }
+
 
     private static void saveToDisk(File file, List<Vector> vectors) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
@@ -3064,5 +3365,293 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private record CachedParticleData(List<Location> locations, long timestamp) {}
 
+    private void refreshCacheExpiry(String fullKey) {
+        // Cancel and reschedule the cache removal in 1 minute
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                () -> memoryCache.remove(fullKey), 20L * 60); // 60 seconds
+    }
 
+
+    @SuppressWarnings("deprecation")
+    private BufferedImage getSkinImage(String playerIdOrUuid) throws IOException {
+        String uuid = playerIdOrUuid;
+
+        // Step 1: Convert username to UUID if needed
+        if (!uuid.matches("^[0-9a-fA-F]{32}$") && !uuid.contains("-")) {
+            URL uuidApi = new URL("https://api.mojang.com/users/profiles/minecraft/" + playerIdOrUuid);
+            try (InputStream in = uuidApi.openStream(); Scanner scanner = new Scanner(in)) {
+                String response = scanner.useDelimiter("\\A").next();
+                uuid = response.split("\"id\":\"")[1].split("\"")[0];
+            }
+        }
+
+        // Step 2: Fetch texture URL from session server
+        URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+        String textureUrl;
+        try (InputStream in = sessionApi.openStream(); Scanner scanner = new Scanner(in)) {
+            String response = scanner.useDelimiter("\\A").next();
+            String base64 = response.split("\"value\":\"")[1].split("\"")[0];
+            String decodedJson = new String(Base64.getDecoder().decode(base64));
+            textureUrl = decodedJson.split("\"url\":\"")[1].split("\"")[0];
+        }
+
+        // Step 3: Download skin image
+        URL skinUrl = new URL(textureUrl);
+        try (InputStream in = skinUrl.openStream()) {
+            return ImageIO.read(in); // returns 64x64 BufferedImage
+        }
+    }
+
+
+
+
+    private static final int SKIN_WIDTH = 64;
+    private static final int SKIN_HEIGHT = 64;
+
+    record SkinLayers(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
+    private SkinLayers extractPixelLayers(BufferedImage skin) {
+        java.awt.Color[][] base = new java.awt.Color[SKIN_HEIGHT][SKIN_WIDTH];
+        java.awt.Color[][] overlay = new java.awt.Color[SKIN_HEIGHT][SKIN_WIDTH];
+
+        for (int y = 0; y < SKIN_HEIGHT; y++) {
+            for (int x = 0; x < SKIN_WIDTH; x++) {
+                int argb = skin.getRGB(x, y);
+                base[y][x] = getColorFromARGB(argb);
+            }
+        }
+
+        for (int y = 0; y < SKIN_HEIGHT; y++) {
+            for (int x = 0; x < SKIN_WIDTH; x++) {
+                java.awt.Color color = getColorFromARGB(skin.getRGB(x, y));
+                overlay[y][x] = (color.getAlpha() > 0) ? color : null;
+            }
+        }
+
+        return new SkinLayers(base, overlay);
+    }
+
+
+    private java.awt.Color getColorFromARGB(int argb) {
+        int alpha = (argb >> 24) & 0xFF;
+        int red   = (argb >> 16) & 0xFF;
+        int green = (argb >> 8) & 0xFF;
+        int blue  = (argb) & 0xFF;
+        return new java.awt.Color(red, green, blue, alpha);
+    }
+
+
+
+    private void placeBlock(World world, Location loc, Material mat, int scale) {
+        for (int dx = 0; dx < scale; dx++) {
+            for (int dy = 0; dy < scale; dy++) {
+                for (int dz = 0; dz < scale; dz++) {
+                    Location sub = loc.clone().add(dx, dy, dz);
+                    sub.getBlock().setType(mat);
+                }
+            }
+        }
+    }
+    
+    
+    public record BlockColor(Material material, java.awt.Color color) {}
+
+
+    private static final List<BlockColor> blockPalette = List.of(
+            // === CONCRETES ===
+            new BlockColor(Material.WHITE_CONCRETE, new java.awt.Color(207, 213, 214)),
+            new BlockColor(Material.LIGHT_GRAY_CONCRETE, new java.awt.Color(125, 125, 115)),
+            new BlockColor(Material.GRAY_CONCRETE, new java.awt.Color(54, 57, 61)),
+            new BlockColor(Material.BLACK_CONCRETE, new java.awt.Color(8, 10, 15)),
+            new BlockColor(Material.RED_CONCRETE, new java.awt.Color(142, 32, 32)),
+            new BlockColor(Material.ORANGE_CONCRETE, new java.awt.Color(224, 97, 0)),
+            new BlockColor(Material.YELLOW_CONCRETE, new java.awt.Color(240, 175, 21)),
+            new BlockColor(Material.LIME_CONCRETE, new java.awt.Color(94, 168, 24)),
+            new BlockColor(Material.GREEN_CONCRETE, new java.awt.Color(73, 91, 36)),
+            new BlockColor(Material.CYAN_CONCRETE, new java.awt.Color(21, 137, 145)),
+            new BlockColor(Material.LIGHT_BLUE_CONCRETE, new java.awt.Color(36, 137, 199)),
+            new BlockColor(Material.BLUE_CONCRETE, new java.awt.Color(44, 46, 143)),
+            new BlockColor(Material.PURPLE_CONCRETE, new java.awt.Color(100, 32, 156)),
+            new BlockColor(Material.MAGENTA_CONCRETE, new java.awt.Color(170, 45, 160)),
+            new BlockColor(Material.PINK_CONCRETE, new java.awt.Color(210, 97, 137)),
+            new BlockColor(Material.BROWN_CONCRETE, new java.awt.Color(96, 59, 31)),
+
+            // === TERRACOTTA ===
+            new BlockColor(Material.TERRACOTTA, new java.awt.Color(152, 94, 68)),
+            new BlockColor(Material.WHITE_TERRACOTTA, new java.awt.Color(209, 178, 161)),
+            new BlockColor(Material.LIGHT_GRAY_TERRACOTTA, new java.awt.Color(135, 107, 98)),
+            new BlockColor(Material.GRAY_TERRACOTTA, new java.awt.Color(57, 42, 35)),
+            new BlockColor(Material.BLACK_TERRACOTTA, new java.awt.Color(37, 23, 16)),
+            new BlockColor(Material.RED_TERRACOTTA, new java.awt.Color(143, 61, 47)),
+            new BlockColor(Material.ORANGE_TERRACOTTA, new java.awt.Color(161, 83, 37)),
+            new BlockColor(Material.YELLOW_TERRACOTTA, new java.awt.Color(186, 133, 35)),
+            new BlockColor(Material.LIME_TERRACOTTA, new java.awt.Color(103, 117, 53)),
+            new BlockColor(Material.GREEN_TERRACOTTA, new java.awt.Color(76, 83, 42)),
+            new BlockColor(Material.CYAN_TERRACOTTA, new java.awt.Color(86, 91, 91)),
+            new BlockColor(Material.LIGHT_BLUE_TERRACOTTA, new java.awt.Color(113, 108, 137)),
+            new BlockColor(Material.BLUE_TERRACOTTA, new java.awt.Color(74, 59, 91)),
+            new BlockColor(Material.PURPLE_TERRACOTTA, new java.awt.Color(118, 70, 86)),
+            new BlockColor(Material.MAGENTA_TERRACOTTA, new java.awt.Color(149, 87, 108)),
+            new BlockColor(Material.PINK_TERRACOTTA, new java.awt.Color(160, 77, 78)),
+            new BlockColor(Material.BROWN_TERRACOTTA, new java.awt.Color(77, 51, 35)),
+
+            // === WOOL ===
+            new BlockColor(Material.WHITE_WOOL, new java.awt.Color(234, 236, 237)),
+            new BlockColor(Material.LIGHT_GRAY_WOOL, new java.awt.Color(142, 142, 135)),
+            new BlockColor(Material.GRAY_WOOL, new java.awt.Color(63, 68, 72)),
+            new BlockColor(Material.BLACK_WOOL, new java.awt.Color(29, 29, 33)),
+            new BlockColor(Material.RED_WOOL, new java.awt.Color(161, 39, 34)),
+            new BlockColor(Material.ORANGE_WOOL, new java.awt.Color(241, 118, 20)),
+            new BlockColor(Material.YELLOW_WOOL, new java.awt.Color(249, 198, 39)),
+            new BlockColor(Material.LIME_WOOL, new java.awt.Color(110, 185, 25)),
+            new BlockColor(Material.GREEN_WOOL, new java.awt.Color(85, 110, 27)),
+            new BlockColor(Material.CYAN_WOOL, new java.awt.Color(21, 137, 145)),
+            new BlockColor(Material.LIGHT_BLUE_WOOL, new java.awt.Color(113, 166, 221)),
+            new BlockColor(Material.BLUE_WOOL, new java.awt.Color(53, 57, 157)),
+            new BlockColor(Material.PURPLE_WOOL, new java.awt.Color(123, 47, 190)),
+            new BlockColor(Material.MAGENTA_WOOL, new java.awt.Color(195, 84, 205)),
+            new BlockColor(Material.PINK_WOOL, new java.awt.Color(243, 139, 170)),
+            new BlockColor(Material.BROWN_WOOL, new java.awt.Color(112, 71, 40)),
+
+            // === PLANKS (WOOD) ===
+            new BlockColor(Material.OAK_PLANKS, new java.awt.Color(162, 130, 79)),
+            new BlockColor(Material.SPRUCE_PLANKS, new java.awt.Color(115, 84, 52)),
+            new BlockColor(Material.BIRCH_PLANKS, new java.awt.Color(197, 179, 123)),
+            new BlockColor(Material.JUNGLE_PLANKS, new java.awt.Color(171, 124, 85)),
+            new BlockColor(Material.ACACIA_PLANKS, new java.awt.Color(175, 92, 66)),
+            new BlockColor(Material.DARK_OAK_PLANKS, new java.awt.Color(66, 43, 20)),
+            new BlockColor(Material.MANGROVE_PLANKS, new java.awt.Color(132, 38, 38)),
+            new BlockColor(Material.CHERRY_PLANKS, new java.awt.Color(216, 132, 145)),
+            new BlockColor(Material.BAMBOO_PLANKS, new java.awt.Color(197, 176, 96)),
+            new BlockColor(Material.CRIMSON_PLANKS, new java.awt.Color(137, 58, 90)),
+            new BlockColor(Material.WARPED_PLANKS, new java.awt.Color(58, 142, 140)),
+
+            // === PRECIOUS BLOCKS ===
+            new BlockColor(Material.DIAMOND_BLOCK, new java.awt.Color(97, 219, 213)),
+            new BlockColor(Material.EMERALD_BLOCK, new java.awt.Color(63, 217, 58)),
+            new BlockColor(Material.GOLD_BLOCK, new java.awt.Color(249, 236, 78)),
+            new BlockColor(Material.IRON_BLOCK, new java.awt.Color(224, 224, 224)),
+            new BlockColor(Material.NETHERITE_BLOCK, new java.awt.Color(64, 59, 65)),
+
+            // === COPPER TYPES ===
+            new BlockColor(Material.COPPER_BLOCK, new java.awt.Color(183, 106, 53)),
+            new BlockColor(Material.EXPOSED_COPPER, new java.awt.Color(168, 138, 113)),
+            new BlockColor(Material.WEATHERED_COPPER, new java.awt.Color(74, 153, 135)),
+            new BlockColor(Material.OXIDIZED_COPPER, new java.awt.Color(90, 161, 151)),
+
+            // === PURPUR ===
+            new BlockColor(Material.PURPUR_BLOCK, new java.awt.Color(172, 124, 172)),
+
+            // === PRISMARINE ===
+            new BlockColor(Material.PRISMARINE, new java.awt.Color(99, 156, 143)),
+            new BlockColor(Material.PRISMARINE_BRICKS, new java.awt.Color(70, 194, 175)),
+            new BlockColor(Material.DARK_PRISMARINE, new java.awt.Color(46, 102, 90)),
+
+            // === SANDSTONES ===
+            new BlockColor(Material.SANDSTONE, new java.awt.Color(219, 211, 160)),
+            new BlockColor(Material.CUT_SANDSTONE, new java.awt.Color(215, 205, 152)),
+            new BlockColor(Material.RED_SANDSTONE, new java.awt.Color(177, 90, 47)),
+            new BlockColor(Material.CUT_RED_SANDSTONE, new java.awt.Color(170, 83, 42)),
+
+            // === END STONE ===
+            new BlockColor(Material.END_STONE, new java.awt.Color(230, 230, 170))
+
+    );
+
+
+
+    private Material getClosestMaterial(java.awt.Color target) {
+        return blockPalette.stream()
+                .min(Comparator.comparingDouble(p -> colorDistance(target, p.color())))
+                .map(BlockColor::material)
+                .orElse(Material.BARRIER);
+    }
+
+
+    private double colorDistance(java.awt.Color c1, java.awt.Color c2) {
+        int dr = c1.getRed() - c2.getRed();
+        int dg = c1.getGreen() - c2.getGreen();
+        int db = c1.getBlue() - c2.getBlue();
+        return Math.sqrt(dr * dr + dg * dg + db * db);
+    }
+    private Vector rotateY(Vector v, double degrees) {
+        double rad = Math.toRadians(degrees);
+        double cos = Math.cos(rad);
+        double sin = Math.sin(rad);
+        double x = v.getX() * cos - v.getZ() * sin;
+        double z = v.getX() * sin + v.getZ() * cos;
+        return new Vector(x, v.getY(), z);
+    }
+
+    private void buildPlayerStatueFromSkin(Player p, World world, BufferedImage skin, Location origin, int scale, String direction, String mode) {
+        double rotation = switch (direction) {
+            case "N" -> 180;
+            case "E" -> -90;
+            case "W" -> 90;
+            default -> 0;
+        };
+
+        // Head (base layer): size 8x8x8, using full 6-sided unwrap
+        buildHeadFromSkin(skin, world, origin.clone().add(0, 24, -2), scale, rotation);
+
+        // Torso front: 8x12x4
+        buildCubeFromSkin(skin, world, origin.clone().add(0, 12, 0), scale, 8, rotation, new Point(20, 20));
+
+        // Right Arm (44,20), 4x12x4
+        buildCubeFromSkin(skin, world, origin.clone().add(-4, 12, 0), scale, 4, rotation, new Point(44, 20));
+
+        // Left Arm (36,52), 4x12x4
+        buildCubeFromSkin(skin, world, origin.clone().add(8, 12, 0), scale, 4, rotation, new Point(36, 52));
+
+        // Right Leg (4,20), 4x12x4
+        buildCubeFromSkin(skin, world, origin.clone().add(0, 0, 0), scale, 4, rotation, new Point(4, 20));
+
+        // Left Leg (20,52), 4x12x4
+        buildCubeFromSkin(skin, world, origin.clone().add(4, 0, 0), scale, 4, rotation, new Point(20, 52));
+    }
+    private void buildHeadFromSkin(BufferedImage skin, World world, Location origin, int scale, double rotation) {
+        for (int y = 0; y < 8; y++) {
+            for (int x = 0; x < 8; x++) {
+                for (int z = 0; z < 8; z++) {
+                    int skinX = switch (z) {
+                        case 0 -> 8 + x;         // front face
+                        case 7 -> 24 - x - 1;    // back face
+                        case 1,2,3,4,5,6 -> (x < 4 ? z : 16 - z); // sides (approx)
+                        default -> 8 + x;
+                    };
+                    int skinY = 8 + (7 - y);
+
+                    java.awt.Color color = new java.awt.Color(skin.getRGB(skinX, skinY), true);
+                    if (color.getAlpha() < 10) continue;
+
+                    Vector offset = new Vector(x * scale, y * scale, z * scale);
+                    offset = rotateY(offset, rotation);
+                    Location loc = origin.clone().add(offset);
+                    Material material = getClosestMaterial(color);
+                    placeBlock(world, loc, material, scale);
+                }
+            }
+        }
+    }
+
+    private void buildCubeFromSkin(BufferedImage skin, World world, Location origin, int scale, int width, double rotation, Point start) {
+        for (int y = 0; y < 12; y++) {
+            for (int x = 0; x < width; x++) {
+                for (int z = 0; z < 4; z++) {
+                    int pixelX = start.x + x % width;
+                    int pixelY = start.y + (12 - y - 1) % 12;
+                    int rgb = skin.getRGB(pixelX, pixelY);
+                    java.awt.Color color = new java.awt.Color(rgb, true);
+                    if (color.getAlpha() < 10) continue;
+
+                    Vector offset = new Vector(x * scale, y * scale, z * scale);
+                    offset = rotateY(offset, rotation);
+                    Location loc = origin.clone().add(offset);
+                    Material material = getClosestMaterial(color);
+                    placeBlock(world, loc, material, scale);
+                }
+            }
+        }
+    }
+    
+    
 }
