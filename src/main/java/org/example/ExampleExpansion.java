@@ -79,7 +79,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private boolean WorldEdit_Installed = false;
     private boolean WorldGuard_Installed = false;
     private boolean LuckPerms_Installed = false;
-    @SuppressWarnings("FieldCanBeLocal")
     private boolean ProtocolLib_Installed = false;
 
 
@@ -3712,7 +3711,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     if (!LuckPerms_Installed) missing.add("LuckPerms");
                     break;
                 case "protocollib":
-                    if (!LuckPerms_Installed) missing.add("ProtocolLib");
+                    if (!ProtocolLib_Installed) missing.add("ProtocolLib");
                     break;
                 default:
                     missing.add(name + " (unknown plugin flag)");
