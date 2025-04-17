@@ -1,6 +1,7 @@
 package org.example;
 
 
+import org.bukkit.plugin.PluginManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -72,6 +73,18 @@ import java.nio.file.Files;
  */
 @SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace", "TextBlockMigration", "unused"})
 public class ExampleExpansion extends PlaceholderExpansion {
+
+
+
+    private boolean WorldEdit_Installed = false;
+    private boolean WorldGuard_Installed = false;
+    private boolean LuckPerms_Installed = false;
+    @SuppressWarnings("FieldCanBeLocal")
+    private boolean ProtocolLib_Installed = false;
+
+
+
+
     private static final boolean viewChestDebugLogging = false;
 
 
@@ -117,6 +130,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public ExampleExpansion() {
         trialVersion = false;
         trialNumber = 500;
+
+
+
+        PluginManager pm = Bukkit.getPluginManager();
+
+        if (pm.getPlugin("WorldEdit") != null && Objects.requireNonNull(pm.getPlugin("WorldEdit")).isEnabled()) {
+            WorldEdit_Installed = true;
+        }
+
+        if (pm.getPlugin("WorldGuard") != null && Objects.requireNonNull(pm.getPlugin("WorldGuard")).isEnabled()) {
+            WorldGuard_Installed = true;
+        }
+
+        if (pm.getPlugin("LuckPerms") != null && Objects.requireNonNull(pm.getPlugin("LuckPerms")).isEnabled()) {
+            LuckPerms_Installed = true;
+        }
+
+        if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
+            ProtocolLib_Installed = true;
+        }
+
         File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
         if (!viewOnlyChestDir.exists()) {
             viewOnlyChestDir.mkdirs();
@@ -913,6 +947,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
         if (identifier.startsWith("immortalize_")) {
+
             try {
                 p.sendMessage("§7[Debug] Received identifier: " + identifier);
 
@@ -1262,6 +1297,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (identifier.startsWith("nearestPlayerNotTeam2_")) {
+            if (!checkCompatibility(p, "WorldGuard")) return null;
+
             String params = identifier.substring("nearestPlayerNotTeam2_".length());
             String[] parts = params.split(",");
 
@@ -1340,6 +1377,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (identifier.startsWith("visualBreak_")) {
+            if (!checkCompatibility(p, "ProtocolLib")) return null;
+
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
             String params = identifier.substring("visualBreak_".length());
             String[] parts = params.split(",");
@@ -2382,6 +2421,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (identifier.equals("eifolderresetperms") && p != null) {
+
+            if (!checkCompatibility(p, "LuckPerms")) return null;
+
             User user = luckPerms.getPlayerAdapter(Player.class).getUser(p);
 
             // Skip users with "ei.*" or "ei.itemfolderbypass"
@@ -2577,7 +2619,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (identifier.startsWith("variables-create-")) {
-                    try {
+
+            try {
                         String[] args = identifier.substring("variables-create-".length()).split(",");
 
                         if (args.length < 3) {
@@ -3652,6 +3695,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
     }
-    
+
+
+    private boolean checkCompatibility(Player p, String... pluginNames) {
+        List<String> missing = new ArrayList<>();
+
+        for (String name : pluginNames) {
+            switch (name.toLowerCase()) {
+                case "worldedit":
+                    if (!WorldEdit_Installed) missing.add("WorldEdit");
+                    break;
+                case "worldguard":
+                    if (!WorldGuard_Installed) missing.add("WorldGuard");
+                    break;
+                case "luckperms":
+                    if (!LuckPerms_Installed) missing.add("LuckPerms");
+                    break;
+                case "protocollib":
+                    if (!LuckPerms_Installed) missing.add("ProtocolLib");
+                    break;
+                default:
+                    missing.add(name + " (unknown plugin flag)");
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            p.sendMessage("§c§lMissing required plugin(s): §r" + String.join(", ", missing));
+            return false;
+        }
+
+        return true;
+    }
     
 }
