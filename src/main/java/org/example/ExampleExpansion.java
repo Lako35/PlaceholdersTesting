@@ -1144,7 +1144,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-
+        if (identifier.startsWith("ENCHANTRESSMINEREFILL_")) {             String[] parts = identifier.substring("ENCHANTRESSMINEREFILL_".length()).split(",");             if (parts.length != 4) return "§cInvalid format";              String worldName = parts[0];             int x = Integer.parseInt(parts[1]);             int y = Integer.parseInt(parts[2]);             int z = Integer.parseInt(parts[3]);              World world = Bukkit.getWorld(worldName);             if (world == null) return "§cWorld not found";              Block block = world.getBlockAt(x, y, z);             if (!(block.getState() instanceof Chest chest)) return "§cNot a chest";              Inventory inv = chest.getInventory();             int placed = 0;              for (int dx = -4; dx < 5; dx++) {                 for (int dz = -4; dz < 5; dz++) {                     for (int dy = 1; dy <= 8; dy++ ){                         Location target = new Location(world, x + dx, y + dy, z + dz);                         if (!target.getBlock().getType().isAir()) continue;                          ItemStack stack = findPlaceableStack(inv);                         if (stack == null) return "§7Filled " + placed + " blocks";                          target.getBlock().setType(stack.getType());                         stack.setAmount(stack.getAmount() - 1);                         if (stack.getAmount() <= 0) inv.remove(stack);                         placed++;                     }                 }             }              return "§aPlaced " + placed + " blocks";         }
 
 
         if (identifier.startsWith("remoteHopper_")) {
@@ -1345,6 +1345,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return directionToTarget.multiply(speed);
     }
 
+
+
+
+    private boolean isPlaceable(Material mat) {
+        return mat.isBlock() && mat.isSolid(); // optionally refine further
+    }
+
+    private ItemStack findPlaceableStack(Inventory inv) {
+        for (ItemStack item : inv.getContents()) {
+            if (item == null) continue;
+            Material mat = item.getType();
+            if (isPlaceable(mat)) return item;
+        }
+        return null;
+    }
+    
+    
+    
     /**
      * Determines if the missile is stuck in front of the target's movement direction (within 2-3 degrees).
      */
