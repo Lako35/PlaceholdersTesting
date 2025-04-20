@@ -942,6 +942,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
         // INSERT HERE 
+        
+        
+        
+        
         if (identifier.startsWith("vertigoHallucination_")) {
             String[] parts = identifier.substring("vertigoHallucination_".length()).split(",");
             if (parts.length != 3) return "§cInvalid format";
