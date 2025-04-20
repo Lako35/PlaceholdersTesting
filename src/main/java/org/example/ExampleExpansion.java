@@ -1,6 +1,7 @@
 package org.example;
 
 
+import org.bukkit.block.data.*;
 import org.bukkit.plugin.PluginManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,10 +28,6 @@ import net.luckperms.api.node.Node;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.*;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.boss.BarColor;
@@ -71,7 +68,7 @@ import java.nio.file.Files;
  * when a jar including this class is added to the /plugins/placeholderapi/expansions/ folder
  *
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored", "CallToPrintStackTrace", "TextBlockMigration", "unused"})
+@SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
 
@@ -87,6 +84,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static final boolean viewChestDebugLogging = false;
 
 
+    private final Map<UUID, BukkitTask> invisTimers = new HashMap<>();
 
     private static final Map<String, CachedParticleData> memoryCache = new HashMap<>();
     private static final long EXPIRY_TIME = 1000 * 60 * 60; // 1 hour
@@ -124,6 +122,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
             Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
             Material.ANCIENT_DEBRIS);
+    private final Map<Location, BukkitTask> jesusTimers = new HashMap<>();
 
 
     public ExampleExpansion() {
@@ -898,7 +897,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
      */
-    @SuppressWarnings({"UnstableApiUsage", "deprecation", "ConstantValue"})
+    @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
         
@@ -906,7 +905,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
             return null;
         }
-        if(trialVersion) p.sendMessage("§e§lYou have " + (trialNumber-1) + " of credits left");
         trialNumber--;
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
@@ -944,6 +942,118 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
         // INSERT HERE 
+        if (identifier.startsWith("vertigoHallucination_")) {
+            String[] parts = identifier.substring("vertigoHallucination_".length()).split(",");
+            if (parts.length != 3) return "§cInvalid format";
+
+            int radius1 = Integer.parseInt(parts[0]);
+            int radius2 = Integer.parseInt(parts[1]);
+            int durationTicks = Integer.parseInt(parts[2]);
+
+            Location origin = p.getLocation();
+            World world = p.getWorld();
+
+            for (Player target : world.getPlayers()) {
+                if (p.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
+
+                for (int dx = -radius2; dx <= radius2; dx++) {
+                    for (int dy = -radius2; dy <= radius2; dy++) {
+                        for (int dz = -radius2; dz <= radius2; dz++) {
+                            Location loc = origin.clone().add(dx, dy, dz);
+                            if (loc.getBlock().getType() == Material.AIR) continue;
+
+                            target.sendBlockChange(loc, Material.AIR.createBlockData());
+
+                            Bukkit.getScheduler().runTaskLater(
+                                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                    () -> target.sendBlockChange(loc, loc.getBlock().getBlockData()),
+                                    durationTicks
+                            );
+                        }
+                    }
+                }
+            }
+            return "§8Hallucination triggered";
+        }
+
+        
+        if (identifier.equals("invis")) {
+            UUID uuid = p.getUniqueId();
+
+            // Cancel existing timer if any
+            if (invisTimers.containsKey(uuid)) {
+                invisTimers.get(uuid).cancel();
+            }
+
+            // Hide from all players in world
+            for (Player other : p.getWorld().getPlayers()) {
+                if (!other.equals(p)) {
+                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), p);
+                }
+            }
+
+            // Schedule re-show after 5 seconds (100 ticks)
+            BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                    () -> {
+                        for (Player other : p.getWorld().getPlayers()) {
+                            if (!other.equals(p)) {
+                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), p);
+                            }
+                        }
+                        invisTimers.remove(uuid);
+                    },
+                    100L
+            );
+
+            invisTimers.put(uuid, task);
+            return "§7Now invisible to others for 5s";
+        }
+
+        if (identifier.startsWith("JESUS_")) {
+            try {
+                int radius = Integer.parseInt(identifier.substring("JESUS_".length()));
+                applyJesusEffect(p, radius);
+                return "§bWalking on water (" + radius + " block radius)";
+            } catch (Exception e) {
+                return "§cInvalid radius";
+            }
+        }
+
+
+        if (identifier.startsWith("setVelocity_")) {
+            String[] parts = identifier.substring("setVelocity_".length()).split(",");
+            p.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
+            return "§adone";
+        }
+
+
+
+        if (identifier.startsWith("chargeUp_")) {
+            String[] parts = identifier.substring("chargeUp_".length()).split(",");
+            if (parts.length != 7) return "§cInvalid format";
+
+            String complete = parts[0];
+            String incomplete = parts[1];
+            String unfilled = parts[2];
+            int current = Integer.parseInt(parts[3]);
+            int total = Integer.parseInt(parts[4]);
+            String symbol = parts[5];
+            int symbolCount = Integer.parseInt(parts[6]);
+
+            if (total <= 0 || symbolCount <= 0) return "§cInvalid total or symbol count";
+
+            double ratio = Math.min(1.0, Math.max(0.0, (double) current / total));
+            int filled = (int) Math.floor(ratio * symbolCount);
+
+            StringBuilder bar = new StringBuilder();
+            for (int i = 0; i < filled; i++) bar.append(incomplete).append(symbol);
+            for (int i = filled; i < symbolCount; i++) bar.append(unfilled).append(symbol);
+            if (filled == symbolCount) bar = new StringBuilder();
+            if (current >= total) for (int i = 0; i < symbolCount; i++) bar.append(complete).append(symbol);
+
+            return bar.toString();
+        }
 
         if (identifier.startsWith("ENCHANTRESSMINEREFILL_")) {
             String[] parts = identifier.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
@@ -1041,7 +1151,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-            if (identifier.startsWith("debugStickRotate_")) {
+        if (identifier.startsWith("debugStickRotate_")) {
             String[] parts = identifier.substring("debugStickRotate_".length()).split(",");
             if (parts.length != 4) return "Invalid format!";
             String worldName = parts[0];
@@ -2052,7 +2162,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return x + " " + y + " " + z;
         }
 
-// Tunable displacement to help unstick projectiles
         final double NUDGE_AMOUNT = 0.05;
 
         if (identifier.startsWith("bounce2_")) {
@@ -2735,6 +2844,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 Entity caller = Bukkit.getEntity(callerUUID);
                 Entity target = Bukkit.getEntity(targetUUID);
+                
+                
 
                 if (caller == null || target == null) {
                     return "§c§lMissile Impacted"; // No valid target
@@ -2747,7 +2858,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 // Airburst Mechanic: If within 3 blocks, explode immediately
                 double distance = caller.getLocation().distance(target.getLocation());
-                if (distance <= 5.0 && caller instanceof Firework && target instanceof Player) {
+                if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
                     airburstExplode((Firework) caller, target, launcherUUID);
                     return "§c§lAirburst Detonation!";
                 }
@@ -3133,7 +3244,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 spawnCustomFireworkExplosion(world, explosionLocation);
 
                 // Apply explosion damage
-                world.createExplosion(explosionLocation, explosionPower, false, false, firework);
 
                 // Trigger a player hit event (simulate firework explosion hitting a player)
                 triggerPlayerHitEvent(launcherUUID, explosionLocation, explosionPower);
@@ -3151,7 +3261,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         double explosionRadius = 5.0; // Firework explosion hit radius
 
         for (Entity entity : Objects.requireNonNull(explosionLocation.getWorld()).getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
-            if (entity instanceof Player hitPlayer) {
+            if (entity instanceof LivingEntity hitPlayer) {
 
                 // Apply direct damage as if caused by the launcher
                 hitPlayer.damage(explosionPower, launcher);
@@ -3777,5 +3887,50 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         return null;
     }
-    
+
+
+
+
+    private void applyJesusEffect(Player p, int radius) {
+        Location center = p.getLocation();
+        World world = center.getWorld();
+        if (world == null) return;
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = - 2; dy <= 0; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Location loc = center.clone().add(dx, dy, dz);
+                    Block block = loc.getBlock();
+                    Material type = block.getType();
+
+                    BlockData data = block.getBlockData();
+                    boolean waterLogged = false;
+                    if (data instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+                        waterLogged = true;
+                    }
+
+                    if (waterLogged || type == Material.WATER || type == Material.LAVA  || type == Material.BUBBLE_COLUMN) {
+
+                        if (jesusTimers.containsKey(loc)) {
+                            jesusTimers.get(loc).cancel();
+                        }
+
+                        Material fakeMat = (type == Material.LAVA  )
+                                ? Material.ORANGE_CONCRETE : Material.LAPIS_BLOCK;
+
+                        p.sendBlockChange(loc, fakeMat.createBlockData());
+
+                        BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                () -> p.sendBlockChange(loc, block.getBlockData()),
+                                100L
+                        );
+
+                        jesusTimers.put(loc, task);
+                    }
+                }
+            }
+        }
+    }
+
 }
