@@ -1,6 +1,7 @@
 package org.example;
 
 
+import org.bukkit.block.data.*;
 import org.bukkit.plugin.PluginManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,10 +28,6 @@ import net.luckperms.api.node.Node;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.*;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.boss.BarColor;
@@ -77,6 +74,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private final Map<UUID, BukkitTask> invisTimers = new HashMap<>();
+    private final Map<Location, BukkitTask> jesusTimers = new HashMap<>();
 
     private static final boolean viewChestDebugLogging = false;
 
@@ -924,6 +923,125 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+
+        if (identifier.startsWith("vertigoHallucination_")) {
+            String[] parts = identifier.substring("vertigoHallucination_".length()).split(",");
+            if (parts.length != 3) return "§cInvalid format";
+
+            int radius1 = Integer.parseInt(parts[0]);
+            int radius2 = Integer.parseInt(parts[1]);
+            int durationTicks = Integer.parseInt(parts[2]);
+
+            Location origin = p.getLocation();
+            World world = p.getWorld();
+
+            for (Player target : world.getPlayers()) {
+                if (p.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
+
+                for (int dx = -radius2; dx <= radius2; dx++) {
+                    for (int dy = -radius2; dy <= radius2; dy++) {
+                        for (int dz = -radius2; dz <= radius2; dz++) {
+                            Location loc = origin.clone().add(dx, dy, dz);
+                            if (loc.getBlock().getType() == Material.AIR) continue;
+
+                            target.sendBlockChange(loc, Material.AIR.createBlockData());
+
+                            Bukkit.getScheduler().runTaskLater(
+                                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                    () -> target.sendBlockChange(loc, loc.getBlock().getBlockData()),
+                                    durationTicks
+                            );
+                        }
+                    }
+                }
+            }
+            return "§8Hallucination triggered";
+        }
+
+
+        if (identifier.equals("invis")) {
+            UUID uuid = p.getUniqueId();
+
+            // Cancel existing timer if any
+            if (invisTimers.containsKey(uuid)) {
+                invisTimers.get(uuid).cancel();
+            }
+
+            // Hide from all players in world
+            for (Player other : p.getWorld().getPlayers()) {
+                if (!other.equals(p)) {
+                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), p);
+                }
+            }
+
+            // Schedule re-show after 5 seconds (100 ticks)
+            BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                    () -> {
+                        for (Player other : p.getWorld().getPlayers()) {
+                            if (!other.equals(p)) {
+                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), p);
+                            }
+                        }
+                        invisTimers.remove(uuid);
+                    },
+                    100L
+            );
+
+            invisTimers.put(uuid, task);
+            return "§7Now invisible to others for 5s";
+        }
+
+        if (identifier.startsWith("JESUS_")) {
+            try {
+                int radius = Integer.parseInt(identifier.substring("JESUS_".length()));
+                applyJesusEffect(p, radius);
+                return "§bWalking on water (" + radius + " block radius)";
+            } catch (Exception e) {
+                return "§cInvalid radius";
+            }
+        }
+
+
+        if (identifier.startsWith("PTFXCUBE_")) {
+            // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
+            String params = identifier.substring("PTFXCUBE_".length());
+            String[] parts = params.split(",");
+
+            if (parts.length != 8) {
+                return "Invalid format!";
+            }
+
+            // Parse the parameters
+            String worldName = parts[0];
+            double x, y, z, width;
+            int density;
+            boolean force;
+
+            try {
+                x = Double.parseDouble(parts[1]);
+                y = Double.parseDouble(parts[2]);
+                z = Double.parseDouble(parts[3]);
+                width = Double.parseDouble(parts[5]);
+                density = Integer.parseInt(parts[7]);
+                force = parts[6].equalsIgnoreCase("force");
+            } catch (NumberFormatException e) {
+                return "Invalid numerical value!";
+            }
+
+            String particleType = parts[4];
+            World world = Bukkit.getWorld(worldName);
+
+            if (world == null) {
+                return "World not found!";
+            }
+
+            // Display the particle cube
+            displayCubeWithParticles(world, x, y, z, particleType, width, force, density, p);
+            return "Cube displayed";
+        }
+
+
         if (identifier.equalsIgnoreCase("FT-increment")) {
             incrementFTScore(p.getUniqueId());
             return "done"; // Return "done" if successful
@@ -999,6 +1117,51 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+
+    private void applyJesusEffect(Player p, int radius) {
+        Location center = p.getLocation();
+        World world = center.getWorld();
+        if (world == null) return;
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = - 2; dy <= 0; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Location loc = center.clone().add(dx, dy, dz);
+                    Block block = loc.getBlock();
+                    Material type = block.getType();
+
+                    BlockData data = block.getBlockData();
+                    boolean waterLogged = false;
+                    if (data instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+                        waterLogged = true;
+                    }
+
+                    if (waterLogged || type == Material.WATER || type == Material.LAVA  || type == Material.BUBBLE_COLUMN) {
+
+                        if (jesusTimers.containsKey(loc)) {
+                            jesusTimers.get(loc).cancel();
+                        }
+
+                        Material fakeMat = (type == Material.LAVA  )
+                                ? Material.ORANGE_CONCRETE : Material.LAPIS_BLOCK;
+
+                        p.sendBlockChange(loc, fakeMat.createBlockData());
+
+                        BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                () -> p.sendBlockChange(loc, block.getBlockData()),
+                                100L
+                        );
+
+                        jesusTimers.put(loc, task);
+                    }
+                }
+            }
+        }
+    }
 
     
 }
