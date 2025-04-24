@@ -6,6 +6,7 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import org.bukkit.block.data.*;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.potion.PotionEffect;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -78,6 +79,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private final Map<Location, BukkitTask> jesus2Timers = new HashMap<>();
+    private final Map<Location, Integer> shulkerEntityIds = new HashMap<>();
 
     private boolean WorldEdit_Installed = false;
     private boolean WorldGuard_Installed = false;
@@ -1029,6 +1032,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§cInvalid radius";
             }
         }
+
+
+
 
         if (identifier.startsWith("setVelocity_")) {
             String[] parts = identifier.substring("setVelocity_".length()).split(",");
@@ -3313,6 +3319,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 // Optional: Add custom effects
                 hitPlayer.setVelocity(hitPlayer.getVelocity().add(new Vector(0, 0.5, 0))); // Small knockback
+
+                if (entity instanceof LivingEntity hitEntity) hitEntity.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1, 1, false, false, false));
+
             }
         }
     }
