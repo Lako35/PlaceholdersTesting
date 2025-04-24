@@ -1,6 +1,9 @@
 package org.example;
 
 
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import org.bukkit.block.data.*;
 import org.bukkit.plugin.PluginManager;
 import org.json.JSONArray;
@@ -52,6 +55,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -62,6 +66,7 @@ import java.util.List;
 
 
 import java.nio.file.Files;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -70,6 +75,7 @@ import java.nio.file.Files;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+
 
 
 
@@ -1023,7 +1029,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§cInvalid radius";
             }
         }
-
 
         if (identifier.startsWith("setVelocity_")) {
             String[] parts = identifier.substring("setVelocity_".length()).split(",");
@@ -3972,5 +3977,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
     }
+
+
+
 
 }
