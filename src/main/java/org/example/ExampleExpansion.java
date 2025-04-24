@@ -3416,35 +3416,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-
     private void activateXRay(Player player, int radius, int duration) {
         World world = player.getWorld();
         Location playerLoc = player.getLocation();
         UUID playerUUID = player.getUniqueId();
 
-        // Store block states instead of just locations
-        trackedBlocks.put(playerUUID, new HashSet<>());
+        // Track just the locations, not the original state
+        Set<Location> xrayLocations = new HashSet<>();
+        trackedBlocks.put(playerUUID, xrayLocations);
 
         // Scan surrounding blocks
         for (int x = -radius; x <= radius; x++) {
             for (int y = -radius; y <= radius; y++) {
                 for (int z = -radius; z <= radius; z++) {
-                    Block block = world.getBlockAt(
+                    Location loc = new Location(
+                            world,
                             playerLoc.getBlockX() + x,
                             playerLoc.getBlockY() + y,
                             playerLoc.getBlockZ() + z
                     );
 
+                    Block block = loc.getBlock();
                     if (shouldTurnToGlass(block)) {
-                        // Save the original block data (including state)
-                        BlockData originalData = block.getBlockData();
-                        trackedBlocks.get(playerUUID).add(block.getLocation());
-
-                        // Send block change to player while preserving state
-                        player.sendBlockChange(block.getLocation(), Material.GLASS.createBlockData());
-
-                        // Store the block data in the tracked blocks map
-                        trackedBlockData.put(block.getLocation(), originalData);
+                        xrayLocations.add(loc);
+                        player.sendBlockChange(loc, Material.GLASS.createBlockData());
                     }
                 }
             }
@@ -3457,15 +3452,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (!trackedBlocks.containsKey(playerUUID)) return;
 
                 for (Location loc : trackedBlocks.get(playerUUID)) {
-                    BlockData originalData = trackedBlockData.get(loc);
-
-                    // Restore the block data with preserved state
-                    player.sendBlockChange(loc, originalData);
+                    Block current = loc.getBlock();
+                    player.sendBlockChange(loc, current.getBlockData()); // Re-fetch the actual block state at time of restore
                 }
 
                 // Cleanup
                 trackedBlocks.remove(playerUUID);
-                trackedBlockData.clear();
             }
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), duration);
     }
