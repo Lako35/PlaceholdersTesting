@@ -2,6 +2,9 @@ package org.example;
 
 
 import org.bukkit.block.data.*;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.json.JSONArray;
@@ -53,6 +56,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -60,6 +64,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.Comparator;
 import java.util.List;
+
+
+
 
 
 import java.nio.file.Files;
@@ -72,7 +79,11 @@ import java.nio.file.Files;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
+    private final Map<String, List<Map.Entry<String, Integer>>> leaderboards = new HashMap<>();
 
+
+    private final File shulkerDatabaseFile;
+    private final YamlConfiguration shulkerDatabaseConfig;
 
     private final Map<Location, BukkitTask> jesus2Timers = new HashMap<>();
     private final Map<Location, Integer> shulkerEntityIds = new HashMap<>();
@@ -81,6 +92,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private boolean WorldGuard_Installed = false;
     private boolean LuckPerms_Installed = false;
     private boolean ProtocolLib_Installed = false;
+    
+    
+    
 
 
 
@@ -133,6 +147,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         trialVersion = false;
         trialNumber = 1000;
 
+        
 
 
         PluginManager pm = Bukkit.getPluginManager();
@@ -193,6 +208,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 e.printStackTrace();
             }
         }
+        
+        
+        
         this.doubleDatabaseConfig = YamlConfiguration.loadConfiguration(doubleDatabaseFile);
         
         entityStorageDir = new File("plugins/Archistructures/saved-entities/");
@@ -205,6 +223,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
         loadFTLeaderboard();
         this.luckPerms = LuckPermsProvider.get();
         luckPerms.getUserManager();
+
+
+        File shulkerDir = new File("plugins/Archistructures/shulkers/");
+        if (!shulkerDir.exists()) shulkerDir.mkdirs();
+        this.shulkerDatabaseFile = new File(shulkerDir, "shulkers.yml");
+        if (!shulkerDatabaseFile.exists()) {
+            try { shulkerDatabaseFile.createNewFile(); }
+            catch(IOException e){ e.printStackTrace(); }
+        }
+        this.shulkerDatabaseConfig = YamlConfiguration.loadConfiguration(shulkerDatabaseFile);
+
 
     }
 
@@ -946,10 +975,174 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
         // INSERT HERE 
+        if (identifier.startsWith("leaderboards_")) {
+            
+            String[] args = identifier.substring("leaderboards_".length()).split(",");
+            
+
+            String action = args[0].toUpperCase();
+            String name = args[1];
+            String user = args.length > 2 ? args[2] : null;
+            int param = 0;
+            if (args.length > 3) {
+                try {
+                    param = Integer.parseInt(args[3]);
+                } catch (NumberFormatException e) {
+                    return "§cInvalid number";
+                }
+            }
+
+            switch (action) {
+                case "CLEAR" -> {
+                    leaderboards.remove(name);
+                    return "§aCleared " + name;
+                }
+                case "INCREMENT" -> {
+                    if (user == null) return "§cNo user";
+                    updateScore(name, user, getScore(name, user) + param);
+                    return "§a+" + param;
+                }
+                case "DECREMENT" -> {
+                    if (user == null) return "§cNo user";
+                    updateScore(name, user, getScore(name, user) - param);
+                    return "§a-" + param;
+                }
+                case "SET" -> {
+                    if (user == null) return "§cNo user";
+                    updateScore(name, user, param);
+                    return "§aSet to " + param;
+                }
+                case "GET" -> {
+                    if (args.length < 4) return "§cNo index";
+                    List<Map.Entry<String, Integer>> list = leaderboards.get(name);
+                    if (list == null || param < 0 || param >= list.size()) return "N/A";
+                    return list.get(param).getKey() + ": " + list.get(param).getValue();
+                }
+            }
+            return "§cUnknown action";
+            
+            
+        }
+        
+
+            if( identifier.equalsIgnoreCase("shulkerCheck")) {
+            return isShulkerBoxOpen(p) ? "yes" : "no";
+        }
+
+        if (identifier.startsWith("shulkerOpen_")) {
+            String[] pp = identifier.substring("shulkerOpen_".length()).split(",");
+            if (pp.length != 1) return "§cInvalid format";
+            int slot = Integer.parseInt(pp[0]);
+
+            ItemStack current = getItemInSlot(p, slot);
+            if (current == null) return "§cNo item in that slot!";
+            if (!current.getType().toString().endsWith("SHULKER_BOX")) {
+                return "§cItem is not a shulker box!";
+            }
+
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) {
+                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                        .environment(World.Environment.NORMAL)
+                        .generateStructures(false)
+                        .type(WorldType.FLAT));
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+            }
+            
+            
+            String uuid = p.getUniqueId().toString();
+            String coords = shulkerDatabaseConfig.getString(uuid);
+            int x, y, z;
+
+            if (coords != null) {
+                String[] parts = coords.split(" ");
+                x = Integer.parseInt(parts[0]);
+                y = Integer.parseInt(parts[1]);
+                z = Integer.parseInt(parts[2]);
+            } else {
+                int[] loc = getNextAvailableCoordinatesCustom(world, 9);
+                x = loc[0]; y = loc[1]; z = loc[2];
+                shulkerDatabaseConfig.set(uuid, x + " " + y + " " + z);
+                saveShulkerConfig();
+            }
+
+            Location chestLoc = new Location(world, x, y, z);
+            if (chestLoc.getBlock().getType() != Material.CHEST) {
+                chestLoc.getBlock().setType(Material.CHEST);
+            }
+            Chest chest = (Chest) chestLoc.getBlock().getState();
+            chest.getInventory().clear();
+
+            if (current.getItemMeta() instanceof BlockStateMeta bsm
+                    && bsm.getBlockState() instanceof ShulkerBox sb) {
+                chest.getInventory().setContents(sb.getInventory().getContents());
+            } else {
+                return "§cFailed to read shulker box contents!";
+            }
+
+            Material glassColor = getGlassForShulker(current.getType());
+            ItemStack placeholder = modifyItemForShulker(current, glassColor);
+            p.getInventory().setItem(slot, placeholder);
+
+            return x + " " + y + " " + z;
+        }
+
+
+        if (identifier.startsWith("shulkerClose_")) {
+            // 1) parse slot & grab current placeholder
+            String[] pp = identifier.substring("shulkerClose_".length()).split(",");
+            if (pp.length != 1) return "§cInvalid format";
+            int slot = Integer.parseInt(pp[0]);
+            ItemStack current = getItemInSlot(p, slot);
+            if (current == null) return "§cNo item in that slot!";
+
+            // 2) determine the correct shulker‐box material from the glass
+            Material placeholderMat = current.getType();
+            Material shulkerMat     = getShulkerFromGlass(placeholderMat);
+
+            // 3) load chest coords
+            String uuid   = p.getUniqueId().toString();
+            String coords = shulkerDatabaseConfig.getString(uuid);
+            if (coords == null) return "§cChest not found!";
+            String[] parts = coords.split(" ");
+            int x = Integer.parseInt(parts[0]),
+                    y = Integer.parseInt(parts[1]),
+                    z = Integer.parseInt(parts[2]);
+
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) return "§cDatabase world missing!";
+            Location chestLoc = new Location(world, x, y, z);
+            if (!(chestLoc.getBlock().getState() instanceof Chest chest)) {
+                return "§cNo chest found!";
+            }
+
+            // 4) grab the contents
+            ItemStack[] contents = chest.getInventory().getContents();
+
+            // 5) create a new shulker‐box stack with all the original meta but new material + ei-id="test"
+            ItemStack shulker = modifyItemForShulker2(current, shulkerMat);
+
+            // 6) inject the contents via BlockStateMeta
+            BlockStateMeta meta = (BlockStateMeta) shulker.getItemMeta();
+            ShulkerBox box = (ShulkerBox) Bukkit.createBlockData(shulkerMat).createBlockState();
+            box.getInventory().setContents(contents);
+            meta.setBlockState(box);
+            shulker.setItemMeta(meta);
+
+            // 7) hand it back
+            p.getInventory().setItem(slot, shulker);
+
+            // 8) clear the chest
+            chest.getInventory().clear();
+
+            // 9) done
+            return "success";
+        }
         
         
         
         
+
         if (identifier.startsWith("vertigoHallucination_")) {
             String[] parts = identifier.substring("vertigoHallucination_".length()).split(",");
             if (parts.length != 3) return "§cInvalid format";
@@ -3200,9 +3393,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
+    public void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
+        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
+        packet.getBlockPositionModifier().write(0, new BlockPosition(
+                fakeRespawnLocation.getBlockX(),
+                fakeRespawnLocation.getBlockY(),
+                fakeRespawnLocation.getBlockZ()
+        ));
+        packet.getFloat().write(0, 0F); // Angle (Yaw), optional
+
+        try {
+            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     private Vector calculateInterceptionVelocity(Entity caller, Entity target, double speed) {
         Location callerLoc = caller.getLocation();
-        Location targetLoc = target.getLocation().add(0, target.getHeight() / 3, 0);
+        Location targetLoc = target.getLocation().add(0, target.getHeight() / 2, 0);
 
         if( target instanceof Player )  targetLoc = target.getLocation().add(0, ((Player) target).getEyeHeight(), 0);
 
@@ -3313,9 +3523,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 hitPlayer.damage(explosionPower, launcher);
 
                 // Optional: Add custom effects
-                hitPlayer.setVelocity(hitPlayer.getVelocity().add(new Vector(0, 0.5, 0))); // Small knockback
+                ; // Small knockback
 
-                if (entity instanceof LivingEntity hitEntity) hitEntity.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1, 1, false, false, false));
+                if (entity instanceof LivingEntity hitEntity) {
+                    hitEntity.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1, 1, false, false, false));
+                };
 
             }
         }
@@ -3978,4 +4190,260 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private ItemStack getItemInSlot(Player p, int slot) {
+        if (slot >= 0 && slot <= 8) return p.getInventory().getItem(slot);
+        if (slot >= 9 && slot <= 35) return p.getInventory().getItem(slot);
+        if (slot == 40) return p.getInventory().getItemInOffHand();
+        return null;
+    }
+
+    private int[] getNextAvailableCoordinatesCustom(World world, int chunkXFixed) {
+        int chunkZ = viewOnlyChestConfig.getInt("last_chunk_z", 9);
+        int y = viewOnlyChestConfig.getInt("last_y", world.getMinHeight());
+
+        while (true) {
+            int x = chunkXFixed * 16;
+            int z = chunkZ * 16;
+            Location loc = new Location(world, x, y, z);
+            if (loc.getBlock().getType() == Material.AIR) {
+                viewOnlyChestConfig.set("last_chunk_z", chunkZ);
+                viewOnlyChestConfig.set("last_y", y);
+                try { viewOnlyChestConfig.save(viewOnlyChestDatabaseFile); } catch (IOException ignored) {}
+                return new int[] {x, y, z};
+            }
+
+            y++;
+            if (y >= world.getMaxHeight()) {
+                y = world.getMinHeight();
+                chunkZ++;
+            }
+        }
+    }
+    
+    
+    /**
+     * Map a Shulker Box to a “glass” placeholder:
+     *  • SHULKER_BOX          → GLASS
+     *  • RED_SHULKER_BOX      → RED_STAINED_GLASS
+     *  • ...etc...
+     * Falls back to GLASS if something’s unexpected.
+     */
+    private Material getGlassForShulker(Material shulker) {
+        if (shulker == Material.SHULKER_BOX) {
+            return Material.GLASS;
+        }
+        String name = shulker.name();
+        if (name.endsWith("_SHULKER_BOX")) {
+            try {
+                return Material.valueOf(name.replace("_SHULKER_BOX", "_STAINED_GLASS"));
+            } catch (IllegalArgumentException ignored) { }
+        }
+        return Material.GLASS;
+    }
+
+    /**
+     * Reverse mapping:
+     *  • GLASS                → SHULKER_BOX
+     *  • RED_STAINED_GLASS    → RED_SHULKER_BOX
+     *  • ...etc...
+     * Falls back to SHULKER_BOX if something’s unexpected.
+     */
+    private Material getShulkerFromGlass(Material glass) {
+        if (glass == Material.GLASS) {
+            return Material.SHULKER_BOX;
+        }
+        String name = glass.name();
+        if (name.endsWith("_STAINED_GLASS")) {
+            try {
+                return Material.valueOf(name.replace("_STAINED_GLASS", "_SHULKER_BOX"));
+            } catch (IllegalArgumentException ignored) { }
+        }
+        return Material.SHULKER_BOX;
+    }
+
+
+
+
+
+    private ItemStack modifyItemForShulker(ItemStack item, Material glassColor) {
+        YamlConfiguration config = new YamlConfiguration();
+        // Place the item under a known section "slot0"
+        config.set("slot0", item);
+        String yaml = config.saveToString();
+
+        // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
+        yaml = yaml.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
+
+        // Replace any existing "executableitems:ei-id" value with "GUINoClick"
+        yaml = yaml.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1TempShulkerPlaceholder\"");
+
+        // Ensure that a meta section exists in slot0.
+        // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
+        if (!yaml.contains("meta:")) {
+            @SuppressWarnings("TextBlockMigration") String metaBlock =
+                    "\n  meta:\n" +
+                            "    ==: ItemMeta\n" +
+                            "    meta-type: UNSPECIFIC\n" +
+                            "    PublicBukkitValues: |-\n" +
+                            "      {\n" +
+                            "          \"executableitems:ei-id\": \"TempShulkerPlaceholder\",\n" +
+                            "          \"score:usage\": 1\n" +
+                            "      }";
+            // Append the meta block to the slot0 section.
+            yaml += metaBlock;
+        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        {
+            // Meta exists but PublicBukkitValues is missing.
+            // Insert PublicBukkitValues before the closing of meta.
+            // This regex finds the last line in the meta section that is just whitespace followed by a "}".
+            //noinspection TextBlockMigration
+            yaml = yaml.replaceFirst(" {2}meta:\n" +
+                    " {4}==:", "  meta:\n" +
+                    "    PublicBukkitValues: |-\n" +
+                    "      {\n" +
+                    "          \"executableitems:ei-id\": \"TempShulkerPlaceholder\",\n" +
+                    "          \"score:usage\": 1\n" +
+                    "      }\n" +
+                    "    ==:");
+        }
+
+        try {
+            config.loadFromString(yaml);
+        } catch (InvalidConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+
+        ItemStack newItem = config.getItemStack("slot0");
+        
+        if (newItem == null) {
+            newItem = item;
+        }
+        newItem.setType(glassColor);
+
+        return newItem;
+    }
+
+
+
+
+    private ItemStack modifyItemForShulker2(ItemStack item, Material newMat) {
+        YamlConfiguration config = new YamlConfiguration();
+        // Place the item under a known section "slot0"
+        config.set("slot0", item);
+        String yaml = config.saveToString();
+
+        // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
+        yaml = yaml.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
+
+        // Replace any existing "executableitems:ei-id" value with "GUINoClick"
+        yaml = yaml.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1doesnotexist\"");
+
+        // Ensure that a meta section exists in slot0.
+        // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
+        if (!yaml.contains("meta:")) {
+            @SuppressWarnings("TextBlockMigration") String metaBlock =
+                    "\n  meta:\n" +
+                            "    ==: ItemMeta\n" +
+                            "    meta-type: UNSPECIFIC\n" +
+                            "    PublicBukkitValues: |-\n" +
+                            "      {\n" +
+                            "          \"executableitems:ei-id\": \"doesnotexist\",\n" +
+                            "          \"score:usage\": 1\n" +
+                            "      }";
+            // Append the meta block to the slot0 section.
+            yaml += metaBlock;
+        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        {
+            // Meta exists but PublicBukkitValues is missing.
+            // Insert PublicBukkitValues before the closing of meta.
+            // This regex finds the last line in the meta section that is just whitespace followed by a "}".
+            //noinspection TextBlockMigration
+            yaml = yaml.replaceFirst(" {2}meta:\n" +
+                    " {4}==:", "  meta:\n" +
+                    "    PublicBukkitValues: |-\n" +
+                    "      {\n" +
+                    "          \"executableitems:ei-id\": \"doesnotexist\",\n" +
+                    "          \"score:usage\": 1\n" +
+                    "      }\n" +
+                    "    ==:");
+        }
+
+        try {
+            config.loadFromString(yaml);
+        } catch (InvalidConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+
+        ItemStack newItem = config.getItemStack("slot0");
+
+        if (newItem == null) {
+            newItem = item;
+        }
+        newItem.setType(newMat);
+
+        return newItem;
+    }
+
+
+    private void saveShulkerConfig() {
+        try { shulkerDatabaseConfig.save(shulkerDatabaseFile); }
+        catch(IOException e){ e.printStackTrace(); }
+    }
+
+
+
+    /**
+     * Returns true if the player currently has their “Shulker Box” placeholder chest open.
+     */
+    private boolean isShulkerBoxOpen(Player player) {
+        // 1) Get the open-inventory view
+        InventoryView view = player.getOpenInventory();
+        Inventory topInv = view.getTopInventory();
+
+        // 2) It must be a real chest block state
+        InventoryHolder holder = topInv.getHolder();
+        if (!(holder instanceof Chest)) {
+            return false;
+        }
+        Chest chest = (Chest) holder;
+
+        // 3) Compare its location against the saved shulker chest coords
+        Location loc = chest.getLocation();
+        String uuid = player.getUniqueId().toString();
+        String saved = shulkerDatabaseConfig.getString(uuid, "");
+        if (saved.isEmpty()) {
+            return false;
+        }
+        String[] parts = saved.split(" ");
+        int x = Integer.parseInt(parts[0]);
+        int y = Integer.parseInt(parts[1]);
+        int z = Integer.parseInt(parts[2]);
+
+        // 4) Must be in the mcydatabase world at the exact coords
+        return loc.getWorld().getName().equals("mcydatabase")
+                && loc.getBlockX() == x
+                && loc.getBlockY() == y
+                && loc.getBlockZ() == z;
+    }
+
+
+    private void updateScore(String boardName, String user, int newScore) {
+        List<Map.Entry<String, Integer>> list = leaderboards.computeIfAbsent(boardName, k -> new ArrayList<>());
+        list.removeIf(e -> e.getKey().equals(user));
+        Map.Entry<String, Integer> newEntry = Map.entry(user, newScore);
+
+        int index = 0;
+        while (index < list.size()) {
+            Map.Entry<String, Integer> current = list.get(index);
+            if (newScore > current.getValue()) break;
+            index++;
+        }
+        list.add(index, newEntry);
+    }
+
+    private int getScore(String boardName, String user) {
+        List<Map.Entry<String, Integer>> list = leaderboards.get(boardName);
+        if (list == null) return 0;
+        return list.stream().filter(e -> e.getKey().equals(user)).map(Map.Entry::getValue).findFirst().orElse(0);
+    }
 }
