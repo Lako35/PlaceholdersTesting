@@ -144,7 +144,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     public ExampleExpansion() {
-        trialVersion = false;
+        trialVersion = true;
         trialNumber = 1000;
 
         
