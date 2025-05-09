@@ -309,7 +309,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    public String processBook(Player player) {
+    private String processBook(Player player) {
         // Ensure player is holding a written book
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
@@ -392,7 +392,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
      */
-    public void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
+    private void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
         Set<String> totalPerms = new HashSet<>();
         String basePath = "plugins/ExecutableItems/items/";
 
@@ -846,7 +846,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Displays a particle cube at the specified location.
      */
-    public void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
+    private void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
         double halfWidth = width / 2.0;
         Particle particle = Particle.valueOf(particleType.toUpperCase());
 
@@ -3460,7 +3460,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
-    public void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
+    private void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
         packet.getBlockPositionModifier().write(0, new BlockPosition(
                 fakeRespawnLocation.getBlockX(),
@@ -3964,7 +3964,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
-    public record BlockColor(Material material, java.awt.Color color) {}
+    private record BlockColor(Material material, java.awt.Color color) {}
 
 
     private static final List<BlockColor> blockPalette = List.of(
