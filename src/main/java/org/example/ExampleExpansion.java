@@ -7,6 +7,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.BoundingBox;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -56,7 +57,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -974,7 +974,74 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         
+        
+        
         // INSERT HERE 
+
+
+        if (identifier.equals("vanta")) {
+            World world = p.getWorld();
+            Location eye = p.getEyeLocation();
+            Vector direction = eye.getDirection().normalize();
+            Location furthestValid = null;
+
+            // Trace forward up to 10 blocks, skipping non-solid blocks
+            for (double i = 0.0; i <= 10.0; i += 0.1) {
+                Location check = eye.clone().add(direction.clone().multiply(i));
+                Block block = check.getBlock();
+
+                if (!isNonSolid(block.getType())) break;
+
+                furthestValid = check.clone();
+            }
+
+            // If we hit solid immediately, fall back to eye location
+            if (furthestValid == null) {
+                Location eyeLoc = p.getEyeLocation();
+                return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
+            }
+
+            // Step backward from furthestValid toward player
+            for (double i = 0.0; i <= 10.0; i += 1.0) {
+                Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
+
+                // Reject if behind or below the eye location
+                Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
+                if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
+
+                // Construct a player-sized hitbox centered at the testLoc
+                double cx = testLoc.getX();
+                double cy = testLoc.getY();
+                double cz = testLoc.getZ();
+
+                BoundingBox hitbox = new BoundingBox(
+                        cx - 0.3, cy, cz - 0.3,
+                        cx + 0.3, cy + 1.8, cz + 0.3
+                );
+
+                boolean collides = false;
+                for (Block b : getBlocksAround(hitbox, world)) {
+                    if (b.getType().isSolid()) {
+                        collides = true;
+                        break;
+                    }
+                }
+
+                if (!collides) {
+                    return String.format("%.6f %.6f %.6f", cx, cy, cz);
+                }
+            }
+
+            // Fallback to eye location
+            Location fallback = p.getEyeLocation();
+            return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+        }
+
+
+
+
+
+
         if (identifier.startsWith("leaderboards_")) {
             
             String[] args = identifier.substring("leaderboards_".length()).split(",");
@@ -4445,5 +4512,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
         List<Map.Entry<String, Integer>> list = leaderboards.get(boardName);
         if (list == null) return 0;
         return list.stream().filter(e -> e.getKey().equals(user)).map(Map.Entry::getValue).findFirst().orElse(0);
+    }
+
+
+    private boolean isNonSolid(Material mat) {
+        return !mat.isSolid() || mat == Material.STRING || mat == Material.COBWEB || mat == Material.WATER || mat == Material.LAVA || mat == Material.TALL_GRASS;
+    }
+
+    private List<Block> getBlocksAround(BoundingBox box, World world) {
+        List<Block> blocks = new ArrayList<>();
+        int minX = (int) Math.floor(box.getMinX());
+        int maxX = (int) Math.ceil(box.getMaxX());
+        int minY = (int) Math.floor(box.getMinY());
+        int maxY = (int) Math.ceil(box.getMaxY());
+        int minZ = (int) Math.floor(box.getMinZ());
+        int maxZ = (int) Math.ceil(box.getMaxZ());
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    blocks.add(world.getBlockAt(x, y, z));
+                }
+            }
+        }
+        return blocks;
     }
 }
