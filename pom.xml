@@ -26,7 +26,7 @@
     <dependencies>
 
 
-    
+
         <dependency>
             <groupId>com.sk89q.worldedit2</groupId>
             <artifactId>worldedit-bukkit2</artifactId>
@@ -34,9 +34,10 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/ZestyBuffalo.jar</systemPath>
         </dependency>
-        
-        
-        
+
+
+
+
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
