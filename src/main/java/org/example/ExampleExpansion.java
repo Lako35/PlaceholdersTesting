@@ -92,10 +92,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private boolean WorldGuard_Installed = false;
     private boolean LuckPerms_Installed = false;
     private boolean ProtocolLib_Installed = false;
-    
-    
-    
 
+
+    private final char[] msg = new char[] {
+            0x00A7, 0x0063, 0x00A7, 0x006C, 0x0059, 0x006F, 0x0075, 0x0020,
+            0x0068, 0x0061, 0x0076, 0x0065, 0x0020, 0x0065, 0x0078, 0x0063,
+            0x0065, 0x0065, 0x0064, 0x0065, 0x0064, 0x0020, 0x0074, 0x0068,
+            0x0065, 0x0020, 0x006C, 0x0069, 0x006D, 0x0069, 0x0074, 0x0020,
+            0x006F, 0x0066, 0x0020, 0x0074, 0x0068, 0x0065, 0x0020, 0x0066,
+            0x0072, 0x0065, 0x0065, 0x0020, 0x0074, 0x0072, 0x0069, 0x0061,
+            0x006C, 0x002E, 0x0020, 0x0043, 0x006F, 0x006E, 0x0073, 0x0069,
+            0x0064, 0x0065, 0x0072, 0x0020, 0x0070, 0x0075, 0x0072, 0x0063,
+            0x0068, 0x0061, 0x0073, 0x0069, 0x006E, 0x0067, 0x0020, 0x0074,
+            0x0068, 0x0065, 0x0020, 0x0066, 0x0075, 0x006C, 0x006C, 0x0020,
+            0x0070, 0x0061, 0x0063, 0x006B, 0x0020, 0x0066, 0x0072, 0x006F,
+            0x006D, 0x0020, 0x005A, 0x0065, 0x0073, 0x0074, 0x0079, 0x0042,
+            0x0075, 0x0066, 0x0066, 0x0061, 0x006C, 0x006F, 0x0020, 0x006F,
+            0x0072, 0x0020, 0x0064, 0x006F, 0x0020, 0x002F, 0x0070, 0x0061,
+            0x0070, 0x0069, 0x0020, 0x0072, 0x0065, 0x006C, 0x006F, 0x0061,
+            0x0064, 0x0020, 0x0074, 0x006F, 0x0020, 0x0073, 0x0074, 0x0069,
+            0x0063, 0x006B, 0x0020, 0x0077, 0x0069, 0x0074, 0x0068, 0x0020,
+            0x0074, 0x0068, 0x0065, 0x0020, 0x0074, 0x0072, 0x0069, 0x0061,
+            0x006C, 0x0020, 0x0076, 0x0065, 0x0072, 0x0073, 0x0069, 0x006F,
+            0x006E
+    };
+
+    String freeloader;
 
 
 
@@ -146,6 +168,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public ExampleExpansion() {
         trialVersion = true;
         trialNumber = 1000;
+        
 
         
 
@@ -191,11 +214,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         this.databaseFile = new File(backpackDir, "database.yml");
         if (!databaseFile.exists()) {
+            freeloader = new String(msg);
             try {
                 databaseFile.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        } else {
+            freeloader = new String(msg);
         }
         this.databaseConfig = YamlConfiguration.loadConfiguration(databaseFile);
 
@@ -309,7 +335,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    public String processBook(Player player) {
+    private String processBook(Player player) {
         // Ensure player is holding a written book
         ItemStack item = player.getInventory().getItemInMainHand();
         if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
@@ -392,7 +418,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
      */
-    public void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
+    private void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
         Set<String> totalPerms = new HashSet<>();
         String basePath = "plugins/ExecutableItems/items/";
 
@@ -846,7 +872,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Displays a particle cube at the specified location.
      */
-    public void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
+    private void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
         double halfWidth = width / 2.0;
         Particle particle = Particle.valueOf(particleType.toUpperCase());
 
@@ -934,11 +960,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
         
-        if(trialVersion && trialNumber < 0) {
-            p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
-            return null;
-        }
-        trialNumber--;
+ 
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
 
@@ -980,6 +1002,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (identifier.equals("vanta")) {
+
+            
+            
             World world = p.getWorld();
             Location eye = p.getEyeLocation();
             Vector direction = eye.getDirection().normalize();
@@ -994,6 +1019,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 furthestValid = check.clone();
             }
+
+
+            if(trialVersion && trialNumber < 0) {
+                p.sendMessage(freeloader);
+                return null;
+            }
+            trialNumber--;
 
             // If we hit solid immediately, fall back to eye location
             if (furthestValid == null) {
@@ -1035,6 +1067,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Fallback to eye location
             Location fallback = p.getEyeLocation();
             return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+        
+        
+        } else {
+            if(trialVersion && trialNumber < 0) {
+                p.sendMessage(freeloader);
+                return null;
+            }
+            trialNumber--;
         }
 
 
@@ -3460,7 +3500,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
-    public void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
+    private void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
         packet.getBlockPositionModifier().write(0, new BlockPosition(
                 fakeRespawnLocation.getBlockX(),
@@ -3964,7 +4004,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
-    public record BlockColor(Material material, java.awt.Color color) {}
+    private record BlockColor(Material material, java.awt.Color color) {}
 
 
     private static final List<BlockColor> blockPalette = List.of(

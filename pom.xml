@@ -26,7 +26,6 @@
     <dependencies>
 
 
-    <!--    
     
         <dependency>
             <groupId>com.sk89q.worldedit2</groupId>
@@ -36,7 +35,6 @@
             <systemPath>${project.basedir}/lib/ZestyBuffalo.jar</systemPath>
         </dependency>
         
-        -->
         
         
         <dependency>
