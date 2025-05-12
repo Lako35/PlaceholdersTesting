@@ -37,8 +37,20 @@
         </dependency>
         
         -->
-        
-        
+
+
+
+        <dependency>
+            <groupId>com.github.GriefPrevention</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>16.18.2</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/GriefPrevention.jar</systemPath>
+        </dependency>
+
+
+
+
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
