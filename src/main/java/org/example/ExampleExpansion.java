@@ -8,17 +8,9 @@ import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
@@ -977,26 +969,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // If nested parsing is enabled, resolve all nested placeholders
         if (test) {
-            while (f1.contains("{") && f1.contains("}")) {
-                int start = f1.indexOf("{");
-                int end = f1.indexOf("}", start);
-
-                if (start < end) {
-                    String nestedPlaceholder = f1.substring(start + 1, end);
-                    String resolvedNested = PlaceholderAPI.setPlaceholders(f2, "%" + nestedPlaceholder + "%");
-
-                    if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
-                        // Replace the nested placeholder with its resolved value
-                        f1 = f1.substring(0, start) + resolvedNested + f1.substring(end + 1);
-                    } else {
-                        // If unresolved, replace with an empty string to avoid infinite loop
-                        f1 = f1.substring(0, start) + f1.substring(end + 1);
-                    }
-                } else {
-                    // Break out if no valid placeholder found
-                    break;
-                }
-            }
+            f1 = getString(f2, f1);
         }
         
         
@@ -1005,74 +978,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
-            World world = f2.getWorld();
-            Location eye = f2.getEyeLocation();
-            Vector direction = eye.getDirection().normalize();
-            Location furthestValid = null;
-
-            // Trace forward up to 10 blocks, skipping non-solid blocks
-            for (double i = 0.0; i <= 10.0; i += 0.1) {
-                Location check = eye.clone().add(direction.clone().multiply(i));
-                Block block = check.getBlock();
-
-                if (!fOne(block.getType())) break;
-
-                furthestValid = check.clone();
-            }
-
-            if(SCore_Installed && g5 < 0) {
-                f2.sendMessage(g28);
-                return null;
-            }
-            g5--;
-
-            // If we hit solid immediately, fall back to eye location
-            if (furthestValid == null) {
-                Location eyeLoc = f2.getEyeLocation();
-                return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
-            }
-
-            // Step backward from furthestValid toward player
-            for (double i = 0.0; i <= 10.0; i += 1.0) {
-                Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
-
-                // Reject if behind or below the eye location
-                Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
-                if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
-
-                // Construct a player-sized hitbox centered at the testLoc
-                double cx = testLoc.getX();
-                double cy = testLoc.getY();
-                double cz = testLoc.getZ();
-
-                BoundingBox hitbox = new BoundingBox(
-                        cx - 0.3, cy, cz - 0.3,
-                        cx + 0.3, cy + 1.8, cz + 0.3
-                );
-
-                boolean collides = false;
-                for (Block b : f1(hitbox, world)) {
-                    if (b.getType().isSolid()) {
-                        collides = true;
-                        break;
-                    }
-                }
-
-                if (!collides) {
-                    return String.format("%.6f %.6f %.6f", cx, cy, cz);
-                }
-            }
-
-            // Fallback to eye location
-            Location fallback = f2.getEyeLocation();
-            return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+            return ka(f2);
         } else {
 
-            if(SCore_Installed && g5 < 0) {
-                f2.sendMessage(g28);
-                return null;
-            }
-            g5--;
+            if (k(f2)) return null;
         }
 
 
@@ -1080,53 +989,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("xdesugun_001_")) {
-            String[] parts = f1.substring("xdesugun_001_".length()).split(",");
-            if (parts.length != 5) return "Invalid format";
-
-            String xD = parts[0];
-            int fun = Integer.parseInt(parts[1]);
-            int plankton = Integer.parseInt(parts[2]);
-            int spongebob = Integer.parseInt(parts[3]);
-            int patrick = Integer.parseInt(parts[4]);
-
-            World tazer = Bukkit.getWorld(xD);
-            if (tazer == null) return "Invalid world";
-
-            List<Material> oofica = List.of(
-                    Material.COAL_ORE, Material.IRON_ORE, Material.COPPER_ORE, Material.GOLD_ORE,
-                    Material.REDSTONE_ORE, Material.LAPIS_ORE, Material.DIAMOND_ORE, Material.EMERALD_ORE,
-                    Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_COPPER_ORE,
-                    Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
-                    Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_EMERALD_ORE
-            );
-
-            List<Material> endereye = List.of(
-                    Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
-            );
-
-            List<Material> what = switch (patrick) {
-                case 1 -> oofica;
-                case 2 -> endereye;
-                case 3 -> Stream.concat(oofica.stream(), endereye.stream()).toList();
-                default -> List.of();
-            };
-
-            if (what.isEmpty()) return "Invalid mode";
-
-            Random random = new Random();
-            for (int dx = -2; dx <= 2; dx++) {
-                for (int dy = -2; dy <= 2; dy++) {
-                    for (int dz = -2; dz <= 2; dz++) {
-                        Location loc = new Location(tazer, fun + dx, plankton + dy, spongebob + dz);
-                        Block block = loc.getBlock();
-                        if (block.getType() == Material.STONE || block.getType() == Material.DEEPSLATE) {
-                            block.setType(what.get(random.nextInt(what.size())));
-                        }
-                    }
-                }
-            }
-
-            return "DesuGun Complete";
+            return xband(f1);
         }
 
 
@@ -1136,52 +999,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("leaderboards_")) {
-            
-            String[] args = f1.substring("leaderboards_".length()).split(",");
-            
 
-            String action = args[0].toUpperCase();
-            String name = args[1];
-            String user = args.length > 2 ? args[2] : null;
-            int param = 0;
-            if (args.length > 3) {
-                try {
-                    param = Integer.parseInt(args[3]);
-                } catch (NumberFormatException e) {
-                    return "§cInvalid number";
-                }
-            }
+            return gatso(f1);
 
-            switch (action) {
-                case "CLEAR" -> {
-                    global1.remove(name);
-                    return "§aCleared " + name;
-                }
-                case "INCREMENT" -> {
-                    if (user == null) return "§cNo user";
-                    f1(name, user, f1(name, user) + param);
-                    return "§a+" + param;
-                }
-                case "DECREMENT" -> {
-                    if (user == null) return "§cNo user";
-                    f1(name, user, f1(name, user) - param);
-                    return "§a-" + param;
-                }
-                case "SET" -> {
-                    if (user == null) return "§cNo user";
-                    f1(name, user, param);
-                    return "§aSet to " + param;
-                }
-                case "GET" -> {
-                    if (args.length < 4) return "§cNo index";
-                    List<Map.Entry<String, Integer>> list = global1.get(name);
-                    if (list == null || param < 0 || param >= list.size()) return "N/A";
-                    return list.get(param).getKey() + ": " + list.get(param).getValue();
-                }
-            }
-            return "§cUnknown action";
-            
-            
+
         }
         
 
@@ -1190,113 +1011,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("shulkerOpen_")) {
-            String[] pp = f1.substring("shulkerOpen_".length()).split(",");
-            if (pp.length != 1) return "§cInvalid format";
-            int slot = Integer.parseInt(pp[0]);
-
-            ItemStack current = f2(f2, slot);
-            if (current == null) return "§cNo item in that slot!";
-            if (!current.getType().toString().endsWith("SHULKER_BOX")) {
-                return "§cItem is not a shulker box!";
-            }
-
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) {
-                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
-                        .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
-                        .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
-            }
-            
-            
-            String uuid = f2.getUniqueId().toString();
-            String coords = g2.getString(uuid);
-            int x, y, z;
-
-            if (coords != null) {
-                String[] parts = coords.split(" ");
-                x = Integer.parseInt(parts[0]);
-                y = Integer.parseInt(parts[1]);
-                z = Integer.parseInt(parts[2]);
-            } else {
-                int[] loc = f1(world, 9);
-                x = loc[0]; y = loc[1]; z = loc[2];
-                g2.set(uuid, x + " " + y + " " + z);
-                f9();
-            }
-
-            Location chestLoc = new Location(world, x, y, z);
-            if (chestLoc.getBlock().getType() != Material.CHEST) {
-                chestLoc.getBlock().setType(Material.CHEST);
-            }
-            Chest chest = (Chest) chestLoc.getBlock().getState();
-            chest.getInventory().clear();
-
-            if (current.getItemMeta() instanceof BlockStateMeta bsm
-                    && bsm.getBlockState() instanceof ShulkerBox sb) {
-                chest.getInventory().setContents(sb.getInventory().getContents());
-            } else {
-                return "§cFailed to read shulker box contents!";
-            }
-
-            Material glassColor = f1(current.getType());
-            ItemStack placeholder = f1(current, glassColor);
-            f2.getInventory().setItem(slot, placeholder);
-
-            return x + " " + y + " " + z;
+            return laser(f2, f1);
         }
 
 
         if (f1.startsWith("shulkerClose_")) {
-            // 1) parse slot & grab current placeholder
-            String[] pp = f1.substring("shulkerClose_".length()).split(",");
-            if (pp.length != 1) return "§cInvalid format";
-            int slot = Integer.parseInt(pp[0]);
-            ItemStack current = f2(f2, slot);
-            if (current == null) return "§cNo item in that slot!";
-
-            // 2) determine the correct shulker‐box material from the glass
-            Material placeholderMat = current.getType();
-            Material shulkerMat     = f2(placeholderMat);
-
-            // 3) load chest coords
-            String uuid   = f2.getUniqueId().toString();
-            String coords = g2.getString(uuid);
-            if (coords == null) return "§cChest not found!";
-            String[] parts = coords.split(" ");
-            int x = Integer.parseInt(parts[0]),
-                    y = Integer.parseInt(parts[1]),
-                    z = Integer.parseInt(parts[2]);
-
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) return "§cDatabase world missing!";
-            Location chestLoc = new Location(world, x, y, z);
-            if (!(chestLoc.getBlock().getState() instanceof Chest chest)) {
-                return "§cNo chest found!";
-            }
-
-            // 4) grab the contents
-            ItemStack[] contents = chest.getInventory().getContents();
-
-            // 5) create a new shulker‐box stack with all the original meta but new material + ei-id="test"
-            ItemStack shulker = f3(current, shulkerMat);
-
-            // 6) inject the contents via BlockStateMeta
-            BlockStateMeta meta = (BlockStateMeta) shulker.getItemMeta();
-            ShulkerBox box = (ShulkerBox) Bukkit.createBlockData(shulkerMat).createBlockState();
-            box.getInventory().setContents(contents);
-            meta.setBlockState(box);
-            shulker.setItemMeta(meta);
-
-            // 7) hand it back
-            f2.getInventory().setItem(slot, shulker);
-
-            // 8) clear the chest
-            chest.getInventory().clear();
-
-            // 9) done
-            return "success";
+            return lidar(f2, f1);
         }
         
         
@@ -1304,1013 +1024,88 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
 
         if (f1.startsWith("vertigoHallucination_")) {
-            String[] parts = f1.substring("vertigoHallucination_".length()).split(",");
-            if (parts.length != 3) return "§cInvalid format";
-
-            int radius1 = Integer.parseInt(parts[0]);
-            int radius2 = Integer.parseInt(parts[1]);
-            int durationTicks = Integer.parseInt(parts[2]);
-
-            Location origin = f2.getLocation();
-            World world = f2.getWorld();
-
-            for (Player target : world.getPlayers()) {
-                if (f2.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
-
-                for (int dx = -radius2; dx <= radius2; dx++) {
-                    for (int dy = -radius2; dy <= radius2; dy++) {
-                        for (int dz = -radius2; dz <= radius2; dz++) {
-                            Location loc = origin.clone().add(dx, dy, dz);
-                            if (loc.getBlock().getType() == Material.AIR) continue;
-
-                            target.sendBlockChange(loc, Material.AIR.createBlockData());
-
-                            Bukkit.getScheduler().runTaskLater(
-                                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
-                                    () -> target.sendBlockChange(loc, loc.getBlock().getBlockData()),
-                                    durationTicks
-                            );
-                        }
-                    }
-                }
-            }
-            return "§8Hallucination triggered";
+            return radar(f2, f1);
         }
 
         
         if (f1.equals("invis")) {
-            UUID uuid = f2.getUniqueId();
-
-            // Cancel existing timer if any
-            if (g7.containsKey(uuid)) {
-                g7.get(uuid).cancel();
-            }
-
-            // Hide from all players in world
-            for (Player other : f2.getWorld().getPlayers()) {
-                if (!other.equals(f2)) {
-                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f2);
-                }
-            }
-
-            // Schedule re-show after 5 seconds (100 ticks)
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(
-                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
-                    () -> {
-                        for (Player other : f2.getWorld().getPlayers()) {
-                            if (!other.equals(f2)) {
-                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), f2);
-                            }
-                        }
-                        g7.remove(uuid);
-                    },
-                    100L
-            );
-
-            g7.put(uuid, task);
-            return "§7Now invisible to others for 5s";
+            return stuff(f2);
         }
 
         if (f1.startsWith("JESUS_")) {
-            try {
-                int radius = Integer.parseInt(f1.substring("JESUS_".length()));
-                f1(f2, radius);
-                return "§bWalking on water (" + radius + " block radius)";
-            } catch (Exception e) {
-                return "§cInvalid radius";
-            }
+            return housemd(f2, f1);
         }
 
 
 
 
         if (f1.startsWith("setVelocity_")) {
-            String[] parts = f1.substring("setVelocity_".length()).split(",");
-            f2.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
-            return "§adone";
+            return amsterdam(f2, f1);
         }
 
 
 
         if (f1.startsWith("chargeUp_")) {
-            String[] parts = f1.substring("chargeUp_".length()).split(",");
-            if (parts.length != 7) return "§cInvalid format";
-
-            String complete = parts[0];
-            String incomplete = parts[1];
-            String unfilled = parts[2];
-            int current = Integer.parseInt(parts[3]);
-            int total = Integer.parseInt(parts[4]);
-            String symbol = parts[5];
-            int symbolCount = Integer.parseInt(parts[6]);
-
-            if (total <= 0 || symbolCount <= 0) return "§cInvalid total or symbol count";
-
-            double ratio = Math.min(1.0, Math.max(0.0, (double) current / total));
-            int filled = (int) Math.floor(ratio * symbolCount);
-
-            StringBuilder bar = new StringBuilder();
-            for (int i = 0; i < filled; i++) bar.append(incomplete).append(symbol);
-            for (int i = filled; i < symbolCount; i++) bar.append(unfilled).append(symbol);
-            if (filled == symbolCount) bar = new StringBuilder();
-            if (current >= total) for (int i = 0; i < symbolCount; i++) bar.append(complete).append(symbol);
-
-            return bar.toString();
+            return redlightdistrict(f1);
         }
 
         if (f1.startsWith("ENCHANTRESSMINEREFILL_")) {
-            String[] parts = f1.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
-            if (parts.length != 4) return "§cInvalid format";
-
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) return "§cWorld not found";
-
-            Block block = world.getBlockAt(x, y, z);
-            if (!(block.getState() instanceof Chest chest)) return "§cNot a chest";
-
-            Inventory inv = chest.getInventory();
-            int placed = 0;
-
-            for (int dx = -4; dx < 5; dx++) {
-                for (int dz = -4; dz < 5; dz++) {
-                    for (int dy = 1; dy <= 8; dy++ ){
-                        Location target = new Location(world, x + dx, y + dy, z + dz);
-                        if (!target.getBlock().getType().isAir()) continue;
-
-                        ItemStack stack = f1(inv);
-                        if (stack == null) return "§7Filled " + placed + " blocks";
-
-                        target.getBlock().setType(stack.getType());
-                        stack.setAmount(stack.getAmount() - 1);
-                        if (stack.getAmount() <= 0) inv.remove(stack);
-                        placed++;
-                    }
-                }
-            }
-
-            return "§aPlaced " + placed + " blocks";
+            return tijuana(f1);
         }
 
         if (f1.startsWith("immortalize_")) {
 
-            try {
-
-                String[] parts = f1.substring("immortalize_".length()).split(",");
-   
-
-                String uuid = parts[0];
-                int scale = Math.max(1, Integer.parseInt(parts[1]));
-                String mode = parts[2];
-                String worldName = parts[3];
-                int ox = Integer.parseInt(parts[4]);
-                int oy = Integer.parseInt(parts[5]);
-                int oz = Integer.parseInt(parts[6]);
-                String direction = parts[7].toUpperCase();
-
-                f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
-
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) return "§cInvalid world";
-
-                Location origin = new Location(world, ox, oy, oz);
-
-                BufferedImage skin;
-                try {
-                    f2.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
-                    URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
-                    try (InputStream sin = sessionApi.openStream(); Scanner sscanner = new Scanner(sin)) {
-                        String sessionResponse = sscanner.useDelimiter("\\A").next();
-
-                        JSONObject profile = new JSONObject(sessionResponse);
-                        JSONArray properties = profile.getJSONArray("properties");
-                        JSONObject textureProperty = properties.getJSONObject(0);
-                        String base64 = textureProperty.getString("value");
-
-                        JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
-                        String textureUrl = decoded.getJSONObject("textures").getJSONObject("SKIN").getString("url");
-
-                        f2.sendMessage("§7[Debug] Skin URL: " + textureUrl);
-
-                        skin = ImageIO.read(new URL(textureUrl));
-                    }
-                } catch (Exception fetchEx) {
-                    f2.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
-                    return "§cFailed to fetch skin for UUID: " + uuid;
-                }
-
-                f2.sendMessage("§7[Debug] Skin loaded. Building statue...");
-                f1(f2, world, skin, origin, scale, direction, mode);
-                return "§aStatue of UUID " + uuid + " placed!";
-
-            } catch (Exception e) {
-                f2.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
-                return "§cError: " + e.getMessage();
-            }
+            return spimsons(f2, f1);
         }
 
         if (f1.startsWith("debugStickRotate_")) {
-            String[] parts = f1.substring("debugStickRotate_".length()).split(",");
-            if (parts.length != 4) return "Invalid format!";
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) return "§cWorld not found";
-
-            Block block = world.getBlockAt(x, y, z);
-            BlockData data = block.getBlockData();
-            String name = block.getType().name();
-
-            try {
-                BlockData rotated = data.clone();
-
-                //noinspection IfCanBeSwitch
-                if (rotated instanceof Directional directional) {
-                    BlockFace current = directional.getFacing();
-                    List<BlockFace> faces = List.of(
-                            BlockFace.NORTH, BlockFace.EAST,
-                            BlockFace.SOUTH, BlockFace.WEST
-                    );
-                    int index = faces.indexOf(current);
-                    if (index == -1) throw new IllegalStateException();
-                    directional.setFacing(faces.get((index + 1) % faces.size()));
-                    block.setBlockData(rotated, false);
-                    return "§aSuccessfully rotated " + name;
-                }
-
-                if (rotated instanceof Rotatable rot) {
-                    BlockFace current = rot.getRotation();
-                    List<BlockFace> faces = List.of(
-                            BlockFace.NORTH, BlockFace.EAST,
-                            BlockFace.SOUTH, BlockFace.WEST
-                    );
-                    int index = faces.indexOf(current);
-                    if (index == -1) throw new IllegalStateException();
-                    rot.setRotation(faces.get((index + 1) % faces.size()));
-                    block.setBlockData(rotated, false);
-                    return "§aSuccessfully rotated " + name;
-                }
-
-                if (rotated instanceof Stairs stairs) {
-                    BlockFace currentFace = stairs.getFacing();
-                    Stairs.Shape currentShape = stairs.getShape();
-
-                    // Define rotation sequence: cardinal + shape
-                    record StairStep(BlockFace face, Stairs.Shape shape) {}
-                    List<StairStep> cycle = List.of(
-                            new StairStep(BlockFace.NORTH, Stairs.Shape.STRAIGHT),
-                            new StairStep(BlockFace.NORTH, Stairs.Shape.INNER_LEFT),
-                            new StairStep(BlockFace.EAST, Stairs.Shape.STRAIGHT),
-                            new StairStep(BlockFace.EAST, Stairs.Shape.INNER_RIGHT),
-                            new StairStep(BlockFace.SOUTH, Stairs.Shape.STRAIGHT),
-                            new StairStep(BlockFace.SOUTH, Stairs.Shape.OUTER_LEFT),
-                            new StairStep(BlockFace.WEST, Stairs.Shape.STRAIGHT),
-                            new StairStep(BlockFace.WEST, Stairs.Shape.OUTER_RIGHT)
-                    );
-
-                    int idx = -1;
-                    for (int i = 0; i < cycle.size(); i++) {
-                        if (cycle.get(i).face == currentFace && cycle.get(i).shape == currentShape) {
-                            idx = i;
-                            break;
-                        }
-                    }
-
-                    // Move to next rotation
-                    if (idx == -1) {
-                        stairs.setFacing(BlockFace.NORTH);
-                        stairs.setShape(Stairs.Shape.STRAIGHT);
-                    } else {
-                        StairStep next = cycle.get((idx + 1) % cycle.size());
-                        stairs.setFacing(next.face);
-                        stairs.setShape(next.shape);
-                    }
-
-                    block.setBlockData(stairs, false);
-                    return "§aSuccessfully rotated " + name;
-                }
-
-
-            } catch (Exception e) {
-                return "§cCould not rotate " + name;
-            }
-
-            return "§cCould not rotate " + name;
+            return swat(f1);
         }
 
 
         if (f1.startsWith("debugStickInvert_")) {
-            String[] parts = f1.substring("debugStickInvert_".length()).split(",");
-            if (parts.length != 4) return "Invalid format!";
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) return "§cWorld not found";
-
-            Block block = world.getBlockAt(x, y, z);
-            BlockData data = block.getBlockData();
-            String name = block.getType().name();
-
-            try {
-                if (data instanceof Stairs stairs) {
-                    stairs.setHalf(stairs.getHalf() == Bisected.Half.TOP ? Bisected.Half.BOTTOM : Bisected.Half.TOP);
-                    block.setBlockData(stairs, false);
-                    return "§aSuccessfully inverted " + name;
-                }
-
-                if (data instanceof Slab slab) {
-                    Slab.Type type = slab.getType();
-                    if (type == Slab.Type.DOUBLE) return "§cCould not invert " + name;
-                    slab.setType(type == Slab.Type.TOP ? Slab.Type.BOTTOM : Slab.Type.TOP);
-                    block.setBlockData(slab, false);
-                    return "§aSuccessfully inverted " + name;
-                }
-
-            } catch (Exception e) {
-                return "§cCould not invert " + name;
-            }
-
-            return "§cCould not invert " + name;
+            return lspd(f1);
         }
 
 
         if (f1.startsWith("searchExecutable_")) {
-            String keyword = f1.substring("searchExecutable_".length());
-            String lowerKeyword = keyword.toLowerCase();
-
-            File[] dirs = {
-                    new File("plugins/ExecutableEvents/events"),
-                    new File("plugins/ExecutableItems/items"),
-                    new File("plugins/ExecutableBlocks/blocks")
-            };
-
-            List<String> exactMatches = new ArrayList<>();
-            List<String> similarMatches = new ArrayList<>();
-
-            for (File dir : dirs) {
-                if (dir.exists() && dir.isDirectory()) {
-                    try {
-                        //noinspection resource
-                        Files.walk(dir.toPath())
-                                .filter(Files::isRegularFile)
-                                .filter(path -> path.toString().endsWith(".yml"))
-                                .forEach(path -> {
-                                    String fileName = path.getFileName().toString().replace(".yml", "");
-                                    String relPath = dir.toPath().relativize(path).toString().replace(File.separatorChar, '/');
-                                    String fullRelPath = dir.getPath().replace("plugins/", "") + "/" + relPath;
-    
-                                    if (fileName.equals(keyword)) {
-                                        exactMatches.add(fileName + ", " + fullRelPath);
-                                    } else if (fileName.toLowerCase().contains(lowerKeyword)) {
-                                        similarMatches.add(fileName + ", " + fullRelPath);
-                                    }
-                                });
-                        
-                    } catch (IOException e) {
-                        
-                        return "§cFailed";
-                    }
-
-                }
-            }
-
-            if (!exactMatches.isEmpty()) {
-                f2.sendMessage("§e===Exact Matches===");
-                for (String match : exactMatches) {
-                    f2.sendMessage("§f" + match);
-                }
-            }
-
-            if (!similarMatches.isEmpty()) {
-                f2.sendMessage("§6===Similar Matches===");
-                for (String match : similarMatches) {
-                    f2.sendMessage("§f" + match);
-                }
-            }
-
-            if (exactMatches.isEmpty() && similarMatches.isEmpty()) {
-                f2.sendMessage("§7No matches found for \"" + keyword + "\"");
-            } else {
-                f2.sendMessage("§7======");
-            }
-
-            return String.valueOf(exactMatches.size());
+            return ricin(f2, f1);
         }
 
         if (f1.startsWith("repeatingParticleText_")) {
-            boolean particleDebugEnabled = true;
-            try {
-                String params = f1.substring("repeatingParticleText_".length());
-                String[] parts = params.split(",", 13);
-                if (parts.length != 13) return "Invalid format";
-
-                String worldName = parts[0];
-                double x = Double.parseDouble(parts[1]);
-                double y = Double.parseDouble(parts[2]);
-                double z = Double.parseDouble(parts[3]);
-                Particle particle = Particle.valueOf(parts[4].toUpperCase());
-                int density = Math.max(1, Integer.parseInt(parts[5]));
-                String viewDistance = parts[6];
-                double size = Double.parseDouble(parts[7]);
-                double rotation = Math.toRadians(Double.parseDouble(parts[8]));
-                long durationTicks = Long.parseLong(parts[9]);
-                long intervalTicks = Math.max(1, Long.parseLong(parts[10]));
-                String text = parts[12];
-                if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
-
-                Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
-                String hashKey = f12(f1);
-
-                List<Location> worldLocs;
-
-                // === RAM Cache Check ===
-                if (g8.containsKey(f1)) {
-                    if (particleDebugEnabled) f2.sendMessage("§7[Cache] RAM hit for: " + f1);
-                    worldLocs = g8.get(f1).locations();
-                    f1fs(f1);
-                }
-                // === Disk Cache Check ===
-                else {
-                    File cacheFile = new File(g10, hashKey + ".txt");
-                    //noinspection IfStatementWithIdenticalBranches
-                    if (cacheFile.exists()) {
-                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] Disk hit for: " + f1);
-                        List<Vector> vectors = f(cacheFile);
-                        worldLocs = f1(center, vectors);
-
-                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
-                        f1fs(f1);
-                    }
-                    // === No Cache: Generate ===
-                    else {
-                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] No cache found. Generating new data.");
-                        boolean[][] matrix = f11(text);
-                        List<Vector> vectors = f1(matrix, density, size, rotation);
-                        worldLocs = f1(center, vectors);
-
-                        f1(cacheFile, vectors);
-                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
-                        f1fs(f1);
-                    }
-                }
-
-                // === Repeating Display ===
-                if (particleDebugEnabled) {
-                    f2.sendMessage("§7[Debug] Scheduling display for: " + text);
-                }
-
-                boolean finalParticleDebugEnabled = particleDebugEnabled;
-                new BukkitRunnable() {
-                    long elapsedTicks = 0;
-
-                    @Override
-                    public void run() {
-                        if (elapsedTicks >= durationTicks) {
-                            this.cancel();
-                            return;
-                        }
-
-                        try {
-                            f1(center, worldLocs, particle, viewDistance);
-                        } catch (Exception ex) {
-                            if (finalParticleDebugEnabled) {
-                                f2.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
-                            }
-                            this.cancel();
-                        }
-
-                        elapsedTicks += intervalTicks;
-                    }
-                }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0L, intervalTicks);
-
-                return "Scheduled " + text;
-
-            } catch (Exception e) {
-                if (particleDebugEnabled) {
-                    f2.sendMessage("§c[Debug Error] " + e.getMessage());
-                }
-                return "§cError: " + e.getMessage();
-            }
+            return heisenburg(f2, f1);
         }
 
 
-
-        if (f1.startsWith("nearestPlayerNotTeam2_")) {
-            if (!f1(f2, "WorldGuard")) return null;
-
-            String params = f1.substring("nearestPlayerNotTeam2_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 6) {
-                return "?";
-            }
-
-            String teamName = parts[0];
-            int radius;
-            String worldName = parts[2];
-            double x, y, z;
-
-            try {
-                radius = Integer.parseInt(parts[1]);
-                x = Double.parseDouble(parts[3]);
-                y = Double.parseDouble(parts[4]);
-                z = Double.parseDouble(parts[5]);
-            } catch (NumberFormatException e) {
-                return "?";
-            }
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "?";
-            }
-
-            Location origin = new Location(world, x, y, z);
-
-            // Get the specified team from the scoreboard
-            Team team = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard().getTeam(teamName);
-            if (team == null) {
-                return "?";
-            }
-
-            Player nearestPlayer = null;
-            double nearestDistance = Double.MAX_VALUE;
-
-            for (Player target : world.getPlayers()) {
-                // Skip players on the specified team
-                if (team.hasEntry(target.getName())) {
-                    continue;
-                }
-
-                // Check if player is inside a region that includes "criminalbase" in its ID
-                Location loc = target.getLocation();
-                com.sk89q.worldedit.util.Location wgLoc = BukkitAdapter.adapt(loc);
-                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-                RegionManager regions = container.get(BukkitAdapter.adapt(world));
-
-                if (regions == null) {
-                    continue;
-                }
-
-                ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
-                boolean inCriminalBase = set.getRegions().stream()
-                        .anyMatch(r -> r.getId().toLowerCase().contains("criminalbase"));
-
-                if (!inCriminalBase) {
-                    continue;
-                }
-
-                // Calculate distance
-                double distance = origin.distance(loc);
-                if (distance <= radius && distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestPlayer = target;
-                }
-            }
-
-            if (nearestPlayer != null) {
-                return nearestPlayer.getUniqueId().toString();
-            }
-
-            return "?";
-        }
-
-
-        if (f1.startsWith("visualBreak_")) {
-            if (!f1(f2, "ProtocolLib")) return null;
-
-            // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
-            String params = f1.substring("visualBreak_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 5) {
-                return "Invalid format!" + f1;
-            }
-
-            int stage;
-            String worldName = parts[1];
-            int x, y, z;
-
-            try {
-                stage = Integer.parseInt(parts[0]); // 1-10
-                if (stage < 1 || stage > 10) return "Stage must be 1–10";
-
-                x = Integer.parseInt(parts[2]);
-                y = Integer.parseInt(parts[3]);
-                z = Integer.parseInt(parts[4]);
-            } catch (NumberFormatException e) {
-                return "Invalid number!";
-            }
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "World not found!";
-            }
-
-            Location loc = new Location(world, x, y, z);
-            int breakStage = stage - 1;
-
-            // Send animation to player
-            try {
-                PacketContainer packet = ProtocolLibrary.getProtocolManager()
-                        .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-
-                int animationId = loc.hashCode();
-                packet.getIntegers().write(0, animationId);
-                packet.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                packet.getIntegers().write(1, breakStage);
-
-                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, packet);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Animation error";
-            }
-
-            // Reset any previous task
-            if (g11.containsKey(loc)) {
-                g11.get(loc).cancel();
-            }
-
-            // Schedule removal after 2 seconds (40 ticks)
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                if (loc.getBlock().getType() != Material.AIR) {
-                    try {
-                        PacketContainer resetPacket = ProtocolLibrary.getProtocolManager()
-                                .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-
-                        int animationId = loc.hashCode();
-                        resetPacket.getIntegers().write(0, animationId);
-                        resetPacket.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                        resetPacket.getIntegers().write(1, -1); // remove animation
-
-                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, resetPacket);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                g11.remove(loc);
-            }, 40L); // 40 ticks = 2 seconds
-
-            g11.put(loc, task);
-
-            return "Visual break stage " + breakStage + " set with reset";
-        }
 
         if (f1.startsWith("PTFXCUBE_")) {
-            // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
-            String params = f1.substring("PTFXCUBE_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 8) {
-                return "Invalid format!";
-            }
-
-            // Parse the parameters
-            String worldName = parts[0];
-            double x, y, z, width;
-            int density;
-            boolean force;
-
-            try {
-                x = Double.parseDouble(parts[1]);
-                y = Double.parseDouble(parts[2]);
-                z = Double.parseDouble(parts[3]);
-                width = Double.parseDouble(parts[5]);
-                density = Integer.parseInt(parts[7]);
-                force = parts[6].equalsIgnoreCase("force");
-            } catch (NumberFormatException e) {
-                return "Invalid numerical value!";
-            }
-
-            String particleType = parts[4];
-            World world = Bukkit.getWorld(worldName);
-
-            if (world == null) {
-                return "World not found!";
-            }
-
-            // Display the particle cube
-            f1(world, x, y, z, particleType, width, force, density, f2);
-            return "Cube displayed";
+            return enginefailure(f2, f1);
         }
 
 
         
         
         if (f1.startsWith("viewChest2_")) {
-            // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
-            String params = f1.substring("viewChest2_".length());
-            String[] parts = params.split(",");
-            if (parts.length != 4) {
-                return "Invalid format! Use: %Archistructure_viewChest2_sourceWorld,x,y,z%";
-            }
-            String sourceWorldName = parts[0];
-            int srcX, srcY, srcZ;
-            try {
-                srcX = Integer.parseInt(parts[1]);
-                srcY = Integer.parseInt(parts[2]);
-                srcZ = Integer.parseInt(parts[3]);
-            } catch (NumberFormatException e) {
-                return "Invalid coordinates!";
-            }
-            World sourceWorld = Bukkit.getWorld(sourceWorldName);
-            if (sourceWorld == null) return "Source world not found!";
-            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
-            Block sourceBlock = sourceLoc.getBlock();
-            if (sourceBlock.getType() != Material.CHEST) {
-                return "No chest found at source location!";
-            }
-            Chest sourceChest = (Chest) sourceBlock.getState();
-
-            boolean isDouble = sourceChest.getInventory().getSize() > 27;
-            if (g6) {
-                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
-                        " detected. It is " + (isDouble ? "double" : "single") + ".");
-            }
-
-            int destSize = isDouble ? 54 : 27;
-
-            Inventory fakeInventory = Bukkit.createInventory(null, destSize, "Fake Chest");
-
-
-            Inventory sourceInv = sourceChest.getInventory();
-            int sourceSize = sourceInv.getSize();
-
-            ItemStack[] newContents = new ItemStack[destSize];
-            for (int i = 0; i < destSize; i++) {
-                if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
-                } else {
-                    newContents[i] = f0();
-                }
-            }
-            // Update destination chest inventory without an extra clear call (setContents overrides existing items)
-            try {
-
-                fakeInventory.setContents(newContents);
-            } catch (Exception ex) {
-                return "Error updating destination chest inventory.";
-            }
-
-            // Return the destination coordinates.
-            if (g6) {
-                f2.sendMessage("FakeChest");
-            }
-            
-            return "done";
+            return vc(f2, f1);
         }
         
 
         if (f1.startsWith("repeat_")) return f1.substring("repeat".length());
         if (f1.startsWith("chain_")) {
-            // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
-            String params = f1.substring("chain_".length());
-            String[] parts = params.split(",");
-
-            String chainType = parts[0].toUpperCase();
-            int radius;
-            try {
-                radius = Integer.parseInt(parts[1]);
-            } catch (NumberFormatException e) {
-                return "x";
-            }
-
-            // Parse the UUID list from the format [uuid1, uuid2, uuid3...]
-            List<UUID> uuids = new ArrayList<>();
-            for (int i = 2; i < parts.length; i++) {
-                try {
-                    uuids.add(UUID.fromString(parts[i]));
-                } catch (IllegalArgumentException e) {
-                    return "x" + parts[i];
-                }
-            }
-
-
-            return f1(chainType, radius, uuids);
+            return atc(f1);
         }
 
 
 
         if (f1.startsWith("viewChest_")) {
-            // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
-            String params = f1.substring("viewChest_".length());
-            String[] parts = params.split(",");
-            if (parts.length != 4) {
-                return "Invalid format! Use: %Archistructure_viewChest_sourceWorld,x,y,z%";
-            }
-            String sourceWorldName = parts[0];
-            int srcX, srcY, srcZ;
-            try {
-                srcX = Integer.parseInt(parts[1]);
-                srcY = Integer.parseInt(parts[2]);
-                srcZ = Integer.parseInt(parts[3]);
-            } catch (NumberFormatException e) {
-                return "Invalid coordinates!";
-            }
-            World sourceWorld = Bukkit.getWorld(sourceWorldName);
-            if (sourceWorld == null) return "Source world not found!";
-            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
-            Block sourceBlock = sourceLoc.getBlock();
-            if (sourceBlock.getType() != Material.CHEST) {
-                return "No chest found at source location!";
-            }
-            Chest sourceChest = (Chest) sourceBlock.getState();
-
-            boolean isDouble = sourceChest.getInventory().getSize() > 27;
-            if (g6) {
-                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
-                        " detected. It is " + (isDouble ? "double" : "single") + ".");
-            }
-
-            // Use a fixed destination in the "mcydatabase" world.
-            World destWorld = Bukkit.getWorld("mcydatabase");
-            if (destWorld == null) {
-                destWorld = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
-                        .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
-                        .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created mcydatabase world.");
-            }
-
-
-            int destX, destY, destZ;
-            String playerKey = f2.getUniqueId().toString();
-            String storedCoords = g20.getString(playerKey);
-            if (storedCoords != null) {
-                // An entry exists for this player; use it.
-                String[] coords = storedCoords.split(" ");
-                destX = Integer.parseInt(coords[0]);
-                destY = Integer.parseInt(coords[1]);
-                destZ = Integer.parseInt(coords[2]);
-            } else {
-                // No entry exists, so compute new coordinates.
-                // Use the "last" entry in viewOnlyChestConfig; if missing, use defaults.
-                String lastEntry = g20.getString("last");
-                int lastX, lastY, lastZ;
-                if (lastEntry == null) {
-                    // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
-                    lastX = 9 * 16;
-                    lastZ = 9 * 16;
-                    assert destWorld != null;
-                    lastY = destWorld.getMinHeight();
-                } else {
-                    String[] lastParts = lastEntry.split(" ");
-                    lastX = Integer.parseInt(lastParts[0]);
-                    lastY = Integer.parseInt(lastParts[1]);
-                    lastZ = Integer.parseInt(lastParts[2]);
-                }
-                // Step 1: Add 2 to the last entry's z.
-                destX = lastX;
-                destY = lastY;
-                destZ = lastZ + 2;
-                // Step 2: If new z >= 16 (relative to the chunk), reset z to 0 and increment x by 2.
-                int relZ = destZ % 16;
-                if (relZ >= 16) { // In practice, since we add 2, check if relZ >= 16.
-                    destZ = (destZ / 16) * 16; // reset relative z to 0
-                    destX = lastX + 2;
-                }
-                // Step 3: If new x's relative value is >= 16, set x=0 and increment y by 1.
-                int relX = destX % 16;
-                if (relX >= 16) {
-                    destX = (destX / 16) * 16;
-                    destY = lastY + 1;
-                }
-                // Step 4: If y is past the build limit, set y to the minimum and increment x by 16.
-                assert destWorld != null;
-                if (destY > destWorld.getMaxHeight()) {
-                    destY = destWorld.getMinHeight();
-                    destX = lastX + 16;
-                }
-                // Store the computed coordinates under the player's UUID and update the "last" entry.
-                String newCoords = destX + " " + destY + " " + destZ;
-                g20.set(playerKey, newCoords);
-                g20.set("last", newCoords);
-                try {
-                    g20.save(g16);
-                } catch (IOException ignored) {
-                }
-            }
-
-            // Now, place chests at the computed coordinates—but only if we computed them now.
-            // If the player's entry already existed, we skip placement.
-            if (storedCoords == null) {
-                // Place a single chest at (destX, destY, destZ)
-                Location singleLoc = new Location(destWorld, destX, destY, destZ);
-                Block singleBlock = singleLoc.getBlock();
-                if (singleBlock.getType() != Material.CHEST) {
-                    singleBlock.setType(Material.CHEST);
-                } 
-                // Place a double chest at (destX, destY, destZ+1) and (destX+1, destY, destZ+1)
-                Location doubleLoc1 = new Location(destWorld, destX, destY, destZ + 1);
-                Location doubleLoc2 = new Location(destWorld, destX + 1, destY, destZ + 1);
-                Block doubleBlock1 = doubleLoc1.getBlock();
-                Block doubleBlock2 = doubleLoc2.getBlock();
-                if (doubleBlock1.getType() != Material.CHEST || doubleBlock2.getType() != Material.CHEST) {
-                    doubleBlock1.setType(Material.CHEST);
-                    doubleBlock2.setType(Material.CHEST);
-                    // Link the double chest halves
-                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                        try {
-                            Chest chestA = (Chest) doubleBlock1.getState();
-                            Chest chestB = (Chest) doubleBlock2.getState();
-                            org.bukkit.block.data.type.Chest dataA = (org.bukkit.block.data.type.Chest) chestA.getBlockData();
-                            org.bukkit.block.data.type.Chest dataB = (org.bukkit.block.data.type.Chest) chestB.getBlockData();
-                            dataA.setType(org.bukkit.block.data.type.Chest.Type.LEFT);
-                            dataB.setType(org.bukkit.block.data.type.Chest.Type.RIGHT);
-                            dataA.setFacing(BlockFace.NORTH);
-                            dataB.setFacing(BlockFace.NORTH);
-                            chestA.setBlockData(dataA);
-                            chestB.setBlockData(dataB);
-                            String commonName = f2.getUniqueId().toString();
-                            chestA.setCustomName(commonName);
-                            chestB.setCustomName(commonName);
-                            chestA.update(true);
-                            chestB.update(true);
-                        } catch (Exception ignored) {
-                        }
-                    }, 1L);
-                } 
-            } 
-
-
-            Location destLocation = isDouble ? new Location(destWorld, destX, destY, destZ + 1) : new Location(destWorld, destX, destY, destZ);
-
-            Chest destChest = (Chest) (destLocation.getBlock().getState());
-
-
-            // Build a modified inventory: copy items from the source chest (modifying the ei-id) and fill any missing slots with a default pane.
-            Inventory sourceInv = sourceChest.getInventory();
-            int sourceSize = sourceInv.getSize();
-            int destSize = isDouble ? 54 : 27;
-
-            ItemStack[] newContents = new ItemStack[destSize];
-            for (int i = 0; i < destSize; i++) {
-                if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
-                } else {
-                    newContents[i] = f0();
-                }
-            }
-            // Update destination chest inventory without an extra clear call (setContents overrides existing items)
-            try {
-                destChest.update();
-
-                destChest.getInventory().setContents(newContents);
-            } catch (Exception ex) {
-                return "Error updating destination chest inventory.";
-            }
-
-            // Return the destination coordinates.
-            if (g6) {
-                f2.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
-            }
-            return isDouble ? destX + " " + destY + " " + (destZ + 1 ): destX + " " + destY + " " + destZ;
+            return intellij(f2, f1);
         }
 
 
 
 
         if (f1.startsWith("blackHole_")) {
-            try {
-                String[] parts = f1.substring("blackHole_".length()).split(",");
-                if (parts.length != 5) {
-                    return "Invalid format!";
-                }
-
-                String worldName = parts[0];
-                int x = Integer.parseInt(parts[1]);
-                int y = Integer.parseInt(parts[2]);
-                int z = Integer.parseInt(parts[3]);
-                int radius = Integer.parseInt(parts[4]);
-
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) {
-                    return "World not found!";
-                }
-
-                Location center = new Location(world, x, y, z);
-
-                // Convert blocks to falling blocks
-                f1(world, center, radius);
-
-                // Attract entities to the center
-                f2(world, center, radius);
-
-                return x + " " + y + " " + z;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "x" + e.getMessage();
-            }
+            return enphixo(f1);
         }
 
 
@@ -2362,166 +1157,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("openBackpack2_")) {
-            long id = Long.parseLong(f1.substring("openBackpack2_".length()));
-
-            // Get or create the world
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) {
-                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
-                        .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
-                        .type(org.bukkit.WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
-            }
-
-            // Get player UUID
-            String uuid = f2.getUniqueId().toString();
-
-            // Load or assign coordinates from the double chest database
-            int x, y, z;
-            String coordinates = g17.getString(uuid);
-            if (coordinates != null) {
-                String[] coords = coordinates.split(" ");
-                x = Integer.parseInt(coords[0]);
-                y = Integer.parseInt(coords[1]);
-                z = Integer.parseInt(coords[2]);
-            } else {
-                // Assign new coordinates in a chunk-efficient way
-                assert world != null;
-                int[] newCoords = f2(world);
-                x = newCoords[0];
-                y = newCoords[1];
-                z = newCoords[2];
-
-                // Save the assigned coordinates to the double chest database
-                String newCoordinates = x + " " + y + " " + z;
-                g17.set(uuid, newCoordinates);
-                f3();
-            }
-
-            // Create the double chest at the given coordinates if not already present
-            Location loc1 = new Location(world, x, y, z);
-            Location loc2 = new Location(world, x + 1, y, z); // Adjacent chest for double chest pair
-
-            Block block1 = loc1.getBlock();
-            Block block2 = loc2.getBlock();
-
-            if (!(block1.getState() instanceof Chest) || !(block2.getState() instanceof Chest)) {
-                block1.setType(Material.CHEST);
-                block2.setType(Material.CHEST);
-
-                // Wait for the world to register the chest placement
-                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                    Chest chest1 = (Chest) block1.getState();
-                    Chest chest2 = (Chest) block2.getState();
-
-                    // Update the block data to link them as a double chest
-                    chest1.setCustomName(String.valueOf(id));
-                    chest1.update(true);
-                    chest2.setCustomName(String.valueOf(id));
-                    chest2.update(true);
-
-                    Bukkit.getLogger().info("Double chest created at " + x + ", " + y + ", " + z);
-                }, 1L);
-                }
-
-            Chest chest1 = (Chest) block1.getState();
-
-            // Save current chest contents if the chest is already named
-            String currentChestName = chest1.getCustomName();
-            if (currentChestName != null && !currentChestName.isEmpty()) {
-                f2(currentChestName, chest1.getInventory().getContents());
-            }
-
-            // Set the new chest name and update it
-            chest1.setCustomName(String.valueOf(id));
-            chest1.update(true);
-            chest1.getInventory().clear();
-
-            // Load the new chest contents from the file if available
-            ItemStack[] savedContents = f(String.valueOf(id));
-            if (savedContents != null) {
-                chest1.getInventory().setContents(savedContents);
-                Bukkit.getLogger().info("Loaded double chest contents for chest ID: " + id);
-            } else {
-                Bukkit.getLogger().info("No previous contents found for double chest ID: " + id);
-            }
-
-            return x + " " + y + " " + z;
+            return biker(f2, f1);
         }
 
         
         
         if (f1.startsWith("openBackpack_")) {
-            long id = Long.parseLong(f1.substring("openBackpack_".length()));
-
-            // Get or create the world
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) {
-                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
-                        .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
-                        .type(org.bukkit.WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
-            }
-
-            // Get player UUID
-            String uuid = f2.getUniqueId().toString();
-
-            // Load or assign coordinates from the database
-            int x, y, z;
-            String coordinates = g18.getString(uuid);
-            if (coordinates != null) {
-                String[] coords = coordinates.split(" ");
-                x = Integer.parseInt(coords[0]);
-                y = Integer.parseInt(coords[1]);
-                z = Integer.parseInt(coords[2]);
-            } else {
-                // Assign new coordinates in a chunk-efficient way
-                assert world != null;
-                int[] newCoords = f1(world);
-                x = newCoords[0];
-                y = newCoords[1];
-                z = newCoords[2];
-
-                // Save the assigned coordinates to the database
-                String newCoordinates = x + " " + y + " " + z;
-                g18.set(uuid, newCoordinates);
-                f2();
-            }
-
-            // Create the chest at the given coordinates if not already present
-            Location loc = new Location(world, x, y, z);
-            Block block = loc.getBlock();
-            if (!(block.getState() instanceof Chest)) {
-                block.setType(Material.CHEST);
-                Bukkit.getLogger().info("Backpack chest created at " + x + ", " + y + ", " + z);
-            }
-
-            Chest chest = (Chest) block.getState();
-
-// Check if the chest already has a name and save its contents before updating
-            String currentChestName = chest.getCustomName();
-            if (currentChestName != null && !currentChestName.isEmpty()) {
-                // Save the existing chest contents to a file based on its current name
-                f1(currentChestName, chest.getInventory().getContents());
-            }
-
-// Update the chest name and clear its contents
-            chest.setCustomName(String.valueOf(id));
-            chest.update(true);
-            chest.getInventory().clear();
-
-// Load the new chest contents from the file if available
-            ItemStack[] savedContents = f1(String.valueOf(id));
-            if (savedContents != null) {
-                chest.getInventory().setContents(savedContents);
-                Bukkit.getLogger().info("Loaded backpack contents for chest ID: " + id);
-            } else {
-                Bukkit.getLogger().info("No previous contents found for chest ID: " + id);
-            }
-
-            return x + " " + y + " " + z;
+            return joerogan(f2, f1);
         }
 
         final double NUDGE_AMOUNT = 0.05;
@@ -2743,334 +1385,35 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("vacuumCleaner_")) {
-            String[] parts = f1.substring("vacuumCleaner_".length()).split(",");
-            if (parts.length < 8) {
-                return "Invalid format: Expected 8 parameters";
-            }
-
-            try {
-                // Extract world and coordinates
-                World sourceWorld = Bukkit.getWorld(parts[0]);
-                int sourceX = Integer.parseInt(parts[1]);
-                int sourceY = Integer.parseInt(parts[2]);
-                int sourceZ = Integer.parseInt(parts[3]);
-                World targetWorld = Bukkit.getWorld(parts[4]);
-                int targetX = Integer.parseInt(parts[5]);
-                int targetY = Integer.parseInt(parts[6]);
-                int targetZ = Integer.parseInt(parts[7]);
-
-                if (sourceWorld == null || targetWorld == null) {
-                    return "Invalid world name.";
-                }
-
-                Location sourceLocation = new Location(sourceWorld, sourceX, sourceY, sourceZ);
-                Location targetLocation = new Location(targetWorld, targetX, targetY, targetZ);
-
-                // Check if target is a chest
-                Block targetBlock = targetLocation.getBlock();
-                if (!(targetBlock.getState() instanceof Chest chest)) {
-                    return "There is no chest at " + targetX + "," + targetY + "," + targetZ + " in " + targetWorld.getName();
-                }
-
-                Inventory chestInventory = chest.getInventory(); // Get the chest's inventory
-
-                // Collect dropped items in a 1x1x1 area
-                List<Item> itemsToTransfer = new ArrayList<>();
-                for (Entity entity : sourceWorld.getNearbyEntities(sourceLocation, 0.7, 0.7, 0.7)) {
-                    if (entity instanceof Item itemEntity) {
-                        itemsToTransfer.add(itemEntity);
-                    }
-                }
-
-                if (itemsToTransfer.isEmpty()) {
-                    return "No items to vacuum at " + sourceX + "," + sourceY + "," + sourceZ;
-                }
-
-                // Insert items one-by-one into the chest
-                for (Item itemEntity : itemsToTransfer) {
-                    ItemStack itemStack = itemEntity.getItemStack();
-
-                    // Find the first empty slot
-                    int emptySlot = chestInventory.firstEmpty();
-                    if (emptySlot != -1) {
-                        // Place item in chest and remove from world
-                        chestInventory.setItem(emptySlot, itemStack);
-                        itemEntity.remove();
-                    } else {
-                        // If chest is full, just delete the item
-                        itemEntity.remove();
-                    }
-                }
-
-                return "Vacuum transfer complete!";
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Error processing vacuum cleaner.";
-            }
+            return vacum(f1);
         }
 
 
 
 
         if (f1.startsWith("remoteHopper_")) {
-            String[] parts = f1.substring("remoteHopper_".length()).split(",");
-            if (parts.length != 8) {
-                return "Invalid format. Use: %Archistructure_remoteHopper_INWorld,InX,InY,InZ,OutWorld,OutX,OutY,OutZ%";
-            }
-
-            try {
-                // Extract input coordinates
-                World inWorld = Bukkit.getWorld(parts[0]);
-                int inX = Integer.parseInt(parts[1]);
-                int inY = Integer.parseInt(parts[2]);
-                int inZ = Integer.parseInt(parts[3]);
-
-                // Extract output coordinates
-                World outWorld = Bukkit.getWorld(parts[4]);
-                int outX = Integer.parseInt(parts[5]);
-                int outY = Integer.parseInt(parts[6]);
-                int outZ = Integer.parseInt(parts[7]);
-
-                if (inWorld == null || outWorld == null) {
-                    return "§cInvalid world!";
-                }
-
-                Block inBlock = inWorld.getBlockAt(inX, inY, inZ);
-                Block outBlock = outWorld.getBlockAt(outX, outY, outZ);
-
-                if (!(inBlock.getState() instanceof Hopper inHopper)) {
-                    return "§cIN block is not a hopper!";
-                }
-
-                if (!(outBlock.getState() instanceof Hopper outHopper)) {
-                    return "§cOUT block is not a hopper!";
-                }
-
-                Inventory inInventory = inHopper.getInventory();
-                Inventory outInventory = outHopper.getInventory();
-
-                // Find the first non-empty slot in the input hopper
-                ItemStack itemToTransfer = null;
-                int sourceSlot = -1;
-
-                for (int i = 0; i < inInventory.getSize(); i++) {
-                    ItemStack item = inInventory.getItem(i);
-                    if (item != null && item.getAmount() > 0) {
-                        itemToTransfer = item.clone(); // Clone the entire stack
-                        sourceSlot = i;
-                        break;
-                    }
-                }
-
-                if (itemToTransfer == null) {
-                    return "§cNo items in IN hopper!";
-                }
-
-                int transferAmount = itemToTransfer.getAmount(); // Get the entire stack amount
-
-                // Try to add the item to an existing stack first
-                for (int i = 0; i < outInventory.getSize(); i++) {
-                    ItemStack existingItem = outInventory.getItem(i);
-
-                    if (existingItem != null && existingItem.isSimilar(itemToTransfer)) {
-                        int maxStackSize = existingItem.getMaxStackSize();
-                        int currentAmount = existingItem.getAmount();
-
-                        if (currentAmount < maxStackSize) {
-                            int spaceLeft = maxStackSize - currentAmount;
-                            int amountToMove = Math.min(transferAmount, spaceLeft);
-
-                            existingItem.setAmount(currentAmount + amountToMove);
-                            transferAmount -= amountToMove;
-
-                            if (transferAmount <= 0) {
-                                inInventory.setItem(sourceSlot, null); // Remove stack from input
-                                return "§aStack transferred successfully!";
-                            }
-                        }
-                    }
-                }
-
-                // If there is still remaining amount to transfer, find an empty slot
-                int emptySlot = outInventory.firstEmpty();
-                if (emptySlot != -1) {
-                    itemToTransfer.setAmount(transferAmount);
-                    outInventory.setItem(emptySlot, itemToTransfer);
-                    inInventory.setItem(sourceSlot, null); // Remove stack from input
-                    return "§aStack transferred successfully!";
-                }
-
-                return "§cOUT hopper is full!";
-            } catch (NumberFormatException e) {
-                return "§cInvalid coordinate format!";
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "§cError transferring item!";
-            }
+            return stansmith(f1);
         }
 
         
         
         if (f1.startsWith("XRAY-")) {
-            String[] args = f1.substring("XRAY-".length()).split("-");
-            if (args.length != 2) {
-                return "Invalid format! Use: %Archistructure_XRAY-RADIUS-SECONDS%";
-            }
-
-            try {
-                int radius = Integer.parseInt(args[0]);
-                int duration = Integer.parseInt(args[1]) * 20; // Convert seconds to ticks
-
-                f1(f2, radius, duration);
-                return "X-Ray v2 Activated!";
-            } catch (NumberFormatException e) {
-                return "Invalid numbers!";
-            }
+            return tester(f2, f1);
         }
 
         if (f1.equals("eifolderresetperms") && f2 != null) {
 
-            if (!f1(f2, "LuckPerms")) return null;
-
-            User user = g23.getPlayerAdapter(Player.class).getUser(f2);
-
-            // Skip users with "ei.*" or "ei.itemfolderbypass"
-            if (user.getCachedData().getPermissionData().checkPermission("ei.*").asBoolean() ||
-                    user.getCachedData().getPermissionData().checkPermission("ei.itemfolderbypass").asBoolean() ||
-                    user.getCachedData().getPermissionData().checkPermission("ei.item.*").asBoolean()) {
-                return "&aEI Folder-Bypass Detected";
-            }
-
-            try {
-                // STEP 1: Remove "ei.item.*" unless immutable
-                user.getNodes().stream()
-                        .filter(node -> node.getKey().startsWith("ei.item.")) // Find all "ei.item.*" permissions
-                        .filter(node -> {
-                            String itemName = node.getKey().substring("ei.item.".length()); // Extract ITEMNAME
-                            String immutablePermission = "ei.immutableitem." + itemName;
-
-                            // Check if they have "ei.immutableitem.ITEMNAME"
-                            return !user.getCachedData().getPermissionData().checkPermission(immutablePermission).asBoolean();
-                        })
-                        .forEach(node -> user.data().remove(node)); // Remove non-immutable permissions
-
-                // STEP 2: Get inherited and direct "ei.itemfolder.*" permissions
-                List<String> itemFolderPermissions = user.getNodes().stream()
-                        .map(Node::getKey)
-                        .filter(key -> key.startsWith("ei.itemfolder."))
-                        .map(key -> key.substring("ei.itemfolder.".length()).replace(".", "/")) // Convert to directory paths
-                        .toList();
-
-                // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
-                f1(user, itemFolderPermissions);
-
-                // STEP 5: Save changes
-                g23.getUserManager().saveUser(user);
-                return "&aSuccessfully updated EI-Folder permissions.";
-
-            } catch (Exception e) {
-                Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + ": " + e.getMessage());
-                e.printStackTrace();
-                return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
-            }
-            
-
-
+            return free(f2);
 
 
         }
 
         if (f1.startsWith("bossbar_")) {
-            try {
-                if( f2 == null ) throw new IllegalArgumentException();
-
-                String[] args = f1.substring("bossbar_".length()).split(",");
-                if (args.length < 5) {
-                    return "Invalid Format! Use: COLOR,TIME,START,END,TIMESTEP,TEXT,TEXT2";
-                }
-
-
-                // Parse BossBar color
-                BarColor color = BarColor.valueOf(args[0].toUpperCase());
-
-                // Parse time (in ticks)
-                int durationTicks = Integer.parseInt(args[1]);
-
-                // Parse start & end progress (0.0 - 1.0)
-                double startProgress = Math.max(0, Math.min(1, Double.parseDouble(args[2])));
-                double endProgress = Math.max(0, Math.min(1, Double.parseDouble(args[3])));
-
-                // Parse timestep (in ticks)
-                int timeStepTicks = Integer.parseInt(args[4]);
-
-                // Concatenate text arguments
-                List<String> textArgs = Arrays.asList(Arrays.copyOfRange(args, 5, args.length));
-                String barText = String.join(" ", textArgs);
-
-                // Create the BossBar
-                BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
-                bossBar.setProgress(startProgress);
-                bossBar.addPlayer(f2);
-
-                // If TIMESTEP is 0 or -1, keep the bossbar static
-                if (timeStepTicks <= 0) {
-
-                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
-                    return "BossBar displayed!";
-                }
-
-                // Calculate the amount to update each step
-                double stepAmount = (endProgress - startProgress) / (durationTicks / (double) timeStepTicks);
-
-                new BukkitRunnable() {
-                    double currentProgress = startProgress;
-                    int elapsedTicks = 0;
-
-                    @Override
-                    public void run() {
-                        if (elapsedTicks >= durationTicks) {
-                            bossBar.removeAll();
-                            this.cancel();
-                            return;
-                        }
-
-                        currentProgress = Math.max(0, Math.min(1, currentProgress + stepAmount));
-                        bossBar.setProgress(currentProgress);
-                        elapsedTicks += timeStepTicks;
-                    }
-                }.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0, timeStepTicks);
-
-                // Remove the bossbar after the duration expires
-                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
-
-                return "BossBar displayed!";
-            } catch (Exception e) {
-                return "failed";
-            }
+            return randy(f2, f1);
         }
         
         if (f1.equalsIgnoreCase("fireworkboost")) {
-            try {
-                if( f2 != null) {
-                    if( !f2.isGliding() ) throw new IllegalArgumentException();
-                    // Create a Firework ItemStack
-                    ItemStack fireworkItem = new ItemStack(Material.FIREWORK_ROCKET);
-                    FireworkMeta fireworkMeta = (FireworkMeta) fireworkItem.getItemMeta();
-    
-                    if (fireworkMeta != null) {
-                        fireworkMeta.setPower(1); // Duration of 1
-                        fireworkMeta.clearEffects(); // No star effects
-                        fireworkItem.setItemMeta(fireworkMeta);
-                    }
-    
-                    // Apply the firework boost
-                    f2.fireworkBoost(fireworkItem);       
-                }
-
-                return "1";
-            } catch (IllegalArgumentException e) {
-                return "0";
-            }
+            return fieldofdreams(f2);
 
         }
 
@@ -3081,49 +1424,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if (f1.startsWith("sr72-fly-")) {
-            try {
-                // Extract parameters from the identifier
-                String[] params = f1.substring("sr72-fly-".length()).split(",");
-                if (params.length != 3) {
-                    return "Error: Invalid format. Use: %Archistructure_sr72-fly-speed,pitch,BOATUUID%";
-                }
-
-                // Parse the parameters
-                double speed = Double.parseDouble(params[0]); // Speed
-                double pitch = Double.parseDouble(params[1]); // Pitch
-                UUID boatUUID = UUID.fromString(params[2]); // Boat UUID
-
-                // Retrieve the boat entity
-                Entity entity = Bukkit.getEntity(boatUUID);
-                if (!(entity instanceof Boat boat)) {
-                    return "Error: No boat found with UUID " + boatUUID;
-                }
-
-                // Get the boat's yaw and calculate the direction
-                float yaw = boat.getLocation().getYaw();
-                double yawRadians = Math.toRadians(yaw);
-                double pitchRadians = Math.toRadians(pitch);
-
-                // Compute normalized movement vector
-                double x = -Math.sin(yawRadians) * Math.cos(pitchRadians);
-                double y = -1 * Math.sin(pitchRadians);
-                double z = Math.cos(yawRadians) * Math.cos(pitchRadians);
-
-                Vector velocity = new Vector(x, 0, z).normalize().multiply(speed);
-                Vector climb = new Vector( 0, y, 0).multiply(speed / 5 );
-                velocity.add(climb);
-
-                // Apply velocity to the boat
-                boat.setVelocity(velocity);
-                return String.format("Vector(%.3f, %.3f, %.3f)", velocity.getX(), velocity.getY(), velocity.getZ());
-
-            } catch (NumberFormatException e) {
-                return "Error: Invalid number format for speed/pitch.";
-            } catch (IllegalArgumentException e) {
-                return "Error: Invalid UUID format.";
-            } catch (Exception e) {
-                return "Error: " + e.getMessage();
-            }
+            return detainn(f1);
         }
 
         if (f1.startsWith("variables-create-")) {
@@ -3192,88 +1493,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackImpact_")) {
-            String[] parts = f1.substring("trackImpact_".length()).split(",");
-            if (parts.length != 6) return "§cInvalid format";
-
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            World world = Bukkit.getWorld(parts[1]);
-            int x = Integer.parseInt(parts[2]);
-            int y = Integer.parseInt(parts[3]);
-            int z = Integer.parseInt(parts[4]);
-            float damage = Float.parseFloat(parts[5]);
-
-            Location location = new Location(world, x, y, z);
-            f1(world, location);
-            f1(launcherUUID, location, damage);
-
-            return "§6Impact triggered.";
+            return ti(f1);
         }
 
         if (f1.startsWith("trackImpact2_")) {
-            String[] parts = f1.substring("trackImpact2_".length()).split(",");
-            if (parts.length != 3) return "§cInvalid format";
-
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            UUID targetUUID = UUID.fromString(parts[1]);
-            float damage = Float.parseFloat(parts[2]);
-
-            Entity target = Bukkit.getEntity(targetUUID);
-            if (target == null) return "§cTarget not found";
-
-            Location location = target.getLocation();
-            f1(location.getWorld(), location);
-            f1(launcherUUID, location, damage);
-
-            return "§eTarget explosion triggered.";
+            return ti2(f1);
         }
 
         if (f1.startsWith("track_")) {
-            String[] parts = f1.substring("track_".length()).split(",");
-            if (parts.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
-            }
-
-            try {
-                UUID callerUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                double speed = Double.parseDouble(parts[2]);
-                UUID launcherUUID = UUID.fromString(parts[3]);
-
-
-                Entity caller = Bukkit.getEntity(callerUUID);
-                Entity target = Bukkit.getEntity(targetUUID);
-                
-                
-
-                if (caller == null || target == null) {
-                    return "§c§lMissile Impacted"; // No valid target
-                }
-
-                // Check if both entities are in the same world
-                if (!caller.getWorld().equals(target.getWorld())) {
-                    return "§c§lMissile Impacted."; // No valid target
-                }
-
-                // Airburst Mechanic: If within 3 blocks, explode immediately
-                double distance = caller.getLocation().distance(target.getLocation());
-                if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                    f1((Firework) caller, target, launcherUUID, parts[4]);
-                    return "§c§lAirburst Detonation!";
-                }
-
-                // Calculate the interception velocity
-                Vector interceptVelocity = f1(caller, target, speed);
-                caller.setVelocity(interceptVelocity);
-
-                // Get target's name (Player name or Entity type)
-                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
-
-                // Format return message
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "§c§lMissile Impacted"; // Error case
-            }
+            return ti3(f1);
         }
 
         if (f1.startsWith("checkProfession_")) {
@@ -3295,145 +1523,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("saveEntity_")) {
-            String uuidString = f1.substring("saveEntity_".length());
-            try {
-                UUID uuid = UUID.fromString(uuidString);
-                Entity entity = Bukkit.getEntity(uuid);
-                if (entity != null) {
-                    EntitySnapshot snapshot = entity.createSnapshot();
-                    assert snapshot != null;
-                    String nbtData = snapshot.getAsString();
-                    String entityId = "entity_" + System.currentTimeMillis();
-
-                    File entityFile = new File(g12, entityId + ".nbt");
-                    f1(entityFile, nbtData);
-
-                    entity.remove(); // Remove the entity after saving
-                    return entityId;
-                } else {
-                    return "Entity not found";
-                }
-            } catch (IllegalArgumentException e) {
-                return "Invalid UUID";
-            }
+            return pokeball(f1);
         }
 
         if (f1.startsWith("loadEntity_")) {
-            if (f1.startsWith("loadEntity_location_")) {
-                try {
-                    // Parse parameters from the identifier
-                    String[] parts = f1.substring("loadEntity_location_".length()).split(",");
-                    if (parts.length < 5) {
-                        return "Invalid location or UUID format!";
-                    }
-
-                    // Extract location parameters
-                    String worldName = parts[0];
-                    double locX = Double.parseDouble(parts[1]);
-                    double locY = Double.parseDouble(parts[2]);
-                    double locZ = Double.parseDouble(parts[3]);
-                    String entityId = parts[4];
-
-
-                    // Retrieve the world
-                    World world = Bukkit.getWorld(worldName);
-                    if (world == null) {
-                        return "&cWorld '" + worldName + "' not found!";
-                    }
-
-                    // Load the entity data
-                    File entityFile = new File(g12, entityId + ".nbt");
-                    if (!entityFile.exists()) {
-                        return "&cEntity with ID '" + entityId + "' not found!";
-                    }
-
-                    String nbtData = f1(entityFile);
-                    if (nbtData == null) {
-                        return "&cFailed to load entity data!";
-                    }
-
-                    // Create a location and summon the entity
-                    Location spawnLocation = new Location(world, locX, locY, locZ);
-                    EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
-                    snapshot.createEntity(spawnLocation);
-
-                    // Optionally delete the file after summoning the entity
-                    entityFile.delete();
-
-                    return "&aEntity reintroduced at the specified location!";
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return "&cAn error occurred while loading the entity!";
-                }
-            } else {
-                String entityId = f1.substring("loadEntity_".length());
-                File entityFile = new File(g12, entityId + ".nbt");
-
-                if (entityFile.exists()) {
-                    String nbtData = f1(entityFile);
-                    if (nbtData != null) {
-                        Location spawnLocation = f2.getLocation();
-                        EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
-                        snapshot.createEntity(spawnLocation);
-                        entityFile.delete(); // Remove the saved file after reintroducing
-                        return "&cEntity reintroduced into the world!";
-                    }
-                }
-                return "Entity ID not found";
-            }
+            return pokeball2(f2, f1);
         }
 
 
         switch (f1) {
             case "cycle_playeruuid_head" -> {
-                ItemStack mainHandItem = f2.getInventory().getItemInMainHand();
-
-                if (mainHandItem.getType() != Material.PLAYER_HEAD) {
-                    return "Not holding a player head!";
-                }
-
-                SkullMeta skullMeta = (SkullMeta) mainHandItem.getItemMeta();
-                UUID currentUUID = null;
-                String currentName = null;
-
-                // Get all online player names and sort them alphabetically
-                List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
-                onlinePlayers.sort(Comparator.comparing(Player::getName));
-
-                if (onlinePlayers.isEmpty()) {
-                    return "No online players!";
-                }
-
-                // Check if the skull has valid player data
-                if (skullMeta != null && skullMeta.hasOwner()) {
-                    OfflinePlayer currentPlayer = skullMeta.getOwningPlayer();
-                    if (currentPlayer != null) {
-                        currentPlayer.getUniqueId();
-                        currentUUID = currentPlayer.getUniqueId();
-                        currentName = currentPlayer.getName();
-                    }
-                }
-
-                UUID nextUUID;
-
-                nextUUID = onlinePlayers.getFirst().getUniqueId();
-                if (currentUUID != null && currentName != null) {
-                    // Find the next player in the sorted list
-
-                    for (int i = 0; i < onlinePlayers.size(); i++) {
-                        if (onlinePlayers.get(i).getName().equalsIgnoreCase(currentName)) {
-                            nextUUID = onlinePlayers.get((i + 1) % onlinePlayers.size()).getUniqueId();
-                            break;
-                        }
-                    }
-                } 
-
-                // Update the Player Head's metadata to the new player's UUID
-                assert skullMeta != null;
-                skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(nextUUID));
-                mainHandItem.setItemMeta(skullMeta);
-
-                return nextUUID.toString(); // Return the new UUID
+                return harleysaregay(f2);
             }
             case "velocity" -> {
                 return f2.getVelocity().toString();
@@ -3515,6 +1615,1888 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     }
 
+    private static String harleysaregay(Player f2) {
+        ItemStack mainHandItem = f2.getInventory().getItemInMainHand();
+
+        if (mainHandItem.getType() != Material.PLAYER_HEAD) {
+            return "Not holding a player head!";
+        }
+
+        SkullMeta skullMeta = (SkullMeta) mainHandItem.getItemMeta();
+        UUID currentUUID = null;
+        String currentName = null;
+
+        // Get all online player names and sort them alphabetically
+        List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
+        onlinePlayers.sort(Comparator.comparing(Player::getName));
+
+        if (onlinePlayers.isEmpty()) {
+            return "No online players!";
+        }
+
+        // Check if the skull has valid player data
+        if (skullMeta != null && skullMeta.hasOwner()) {
+            OfflinePlayer currentPlayer = skullMeta.getOwningPlayer();
+            if (currentPlayer != null) {
+                currentPlayer.getUniqueId();
+                currentUUID = currentPlayer.getUniqueId();
+                currentName = currentPlayer.getName();
+            }
+        }
+
+        UUID nextUUID;
+
+        nextUUID = onlinePlayers.getFirst().getUniqueId();
+        if (currentUUID != null && currentName != null) {
+            // Find the next player in the sorted list
+
+            for (int i = 0; i < onlinePlayers.size(); i++) {
+                if (onlinePlayers.get(i).getName().equalsIgnoreCase(currentName)) {
+                    nextUUID = onlinePlayers.get((i + 1) % onlinePlayers.size()).getUniqueId();
+                    break;
+                }
+            }
+        }
+
+        // Update the Player Head's metadata to the new player's UUID
+        assert skullMeta != null;
+        skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(nextUUID));
+        mainHandItem.setItemMeta(skullMeta);
+
+        return nextUUID.toString();
+    }
+
+    private @NotNull String pokeball2(Player f2, @NotNull String f1) {
+        if (f1.startsWith("loadEntity_location_")) {
+            try {
+                // Parse parameters from the identifier
+                String[] parts = f1.substring("loadEntity_location_".length()).split(",");
+                if (parts.length < 5) {
+                    return "Invalid location or UUID format!";
+                }
+
+                // Extract location parameters
+                String worldName = parts[0];
+                double locX = Double.parseDouble(parts[1]);
+                double locY = Double.parseDouble(parts[2]);
+                double locZ = Double.parseDouble(parts[3]);
+                String entityId = parts[4];
+
+
+                // Retrieve the world
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) {
+                    return "&cWorld '" + worldName + "' not found!";
+                }
+
+                // Load the entity data
+                File entityFile = new File(g12, entityId + ".nbt");
+                if (!entityFile.exists()) {
+                    return "&cEntity with ID '" + entityId + "' not found!";
+                }
+
+                String nbtData = f1(entityFile);
+                if (nbtData == null) {
+                    return "&cFailed to load entity data!";
+                }
+
+                // Create a location and summon the entity
+                Location spawnLocation = new Location(world, locX, locY, locZ);
+                EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
+                snapshot.createEntity(spawnLocation);
+
+                // Optionally delete the file after summoning the entity
+                entityFile.delete();
+
+                return "&aEntity reintroduced at the specified location!";
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "&cAn error occurred while loading the entity!";
+            }
+        } else {
+            String entityId = f1.substring("loadEntity_".length());
+            File entityFile = new File(g12, entityId + ".nbt");
+
+            if (entityFile.exists()) {
+                String nbtData = f1(entityFile);
+                if (nbtData != null) {
+                    Location spawnLocation = f2.getLocation();
+                    EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
+                    snapshot.createEntity(spawnLocation);
+                    entityFile.delete(); // Remove the saved file after reintroducing
+                    return "&cEntity reintroduced into the world!";
+                }
+            }
+            return "Entity ID not found";
+        }
+    }
+
+    private @NotNull String pokeball(@NotNull String f1) {
+        String uuidString = f1.substring("saveEntity_".length());
+        try {
+            UUID uuid = UUID.fromString(uuidString);
+            Entity entity = Bukkit.getEntity(uuid);
+            if (entity != null) {
+                EntitySnapshot snapshot = entity.createSnapshot();
+                assert snapshot != null;
+                String nbtData = snapshot.getAsString();
+                String entityId = "entity_" + System.currentTimeMillis();
+
+                File entityFile = new File(g12, entityId + ".nbt");
+                f1(entityFile, nbtData);
+
+                entity.remove(); // Remove the entity after saving
+                return entityId;
+            } else {
+                return "Entity not found";
+            }
+        } catch (IllegalArgumentException e) {
+            return "Invalid UUID";
+        }
+    }
+
+    private @NotNull String ti3(@NotNull String f1) {
+        String[] parts = f1.substring("track_".length()).split(",");
+        if (parts.length != 5) {
+            return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
+        }
+
+        try {
+            UUID callerUUID = UUID.fromString(parts[0]);
+            UUID targetUUID = UUID.fromString(parts[1]);
+            double speed = Double.parseDouble(parts[2]);
+            UUID launcherUUID = UUID.fromString(parts[3]);
+
+
+            Entity caller = Bukkit.getEntity(callerUUID);
+            Entity target = Bukkit.getEntity(targetUUID);
+            
+            
+
+            if (caller == null || target == null) {
+                return "§c§lMissile Impacted";
+            }
+
+            // Check if both entities are in the same world
+            if (!caller.getWorld().equals(target.getWorld())) {
+                return "§c§lMissile Impacted.";
+            }
+
+            // Airburst Mechanic: If within 3 blocks, explode immediately
+            double distance = caller.getLocation().distance(target.getLocation());
+            if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
+                f1((Firework) caller, target, launcherUUID, parts[4]);
+                return "§c§lAirburst Detonation!";
+            }
+
+            // Calculate the interception velocity
+            Vector interceptVelocity = f1(caller, target, speed);
+            caller.setVelocity(interceptVelocity);
+
+            // Get target's name (Player name or Entity type)
+            String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+
+            // Format return message
+            return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "§c§lMissile Impacted";
+        }
+    }
+
+    private @NotNull String ti2(@NotNull String f1) {
+        String[] parts = f1.substring("trackImpact2_".length()).split(",");
+        if (parts.length != 3) return "§cInvalid format";
+
+        UUID launcherUUID = UUID.fromString(parts[0]);
+        UUID targetUUID = UUID.fromString(parts[1]);
+        float damage = Float.parseFloat(parts[2]);
+
+        Entity target = Bukkit.getEntity(targetUUID);
+        if (target == null) return "§cTarget not found";
+
+        Location location = target.getLocation();
+        f1(location.getWorld(), location);
+        f1(launcherUUID, location, damage);
+
+        return "§eTarget explosion triggered.";
+    }
+
+    private @NotNull String ti(@NotNull String f1) {
+        String[] parts = f1.substring("trackImpact_".length()).split(",");
+        if (parts.length != 6) return "§cInvalid format";
+
+        UUID launcherUUID = UUID.fromString(parts[0]);
+        World world = Bukkit.getWorld(parts[1]);
+        int x = Integer.parseInt(parts[2]);
+        int y = Integer.parseInt(parts[3]);
+        int z = Integer.parseInt(parts[4]);
+        float damage = Float.parseFloat(parts[5]);
+
+        Location location = new Location(world, x, y, z);
+        f1(world, location);
+        f1(launcherUUID, location, damage);
+
+        return "§6Impact triggered.";
+    }
+
+    private static @NotNull String detainn(@NotNull String f1) {
+        try {
+            // Extract parameters from the identifier
+            String[] params = f1.substring("sr72-fly-".length()).split(",");
+            if (params.length != 3) {
+                return "Error: Invalid format. Use: %Archistructure_sr72-fly-speed,pitch,BOATUUID%";
+            }
+
+            // Parse the parameters
+            double speed = Double.parseDouble(params[0]); // Speed
+            double pitch = Double.parseDouble(params[1]); // Pitch
+            UUID boatUUID = UUID.fromString(params[2]); // Boat UUID
+
+            // Retrieve the boat entity
+            Entity entity = Bukkit.getEntity(boatUUID);
+            if (!(entity instanceof Boat boat)) {
+                return "Error: No boat found with UUID " + boatUUID;
+            }
+
+            // Get the boat's yaw and calculate the direction
+            float yaw = boat.getLocation().getYaw();
+            double yawRadians = Math.toRadians(yaw);
+            double pitchRadians = Math.toRadians(pitch);
+
+            // Compute normalized movement vector
+            double x = -Math.sin(yawRadians) * Math.cos(pitchRadians);
+            double y = -1 * Math.sin(pitchRadians);
+            double z = Math.cos(yawRadians) * Math.cos(pitchRadians);
+
+            Vector velocity = new Vector(x, 0, z).normalize().multiply(speed);
+            Vector climb = new Vector( 0, y, 0).multiply(speed / 5 );
+            velocity.add(climb);
+
+            // Apply velocity to the boat
+            boat.setVelocity(velocity);
+            return String.format("Vector(%.3f, %.3f, %.3f)", velocity.getX(), velocity.getY(), velocity.getZ());
+
+        } catch (NumberFormatException e) {
+            return "Error: Invalid number format for speed/pitch.";
+        } catch (IllegalArgumentException e) {
+            return "Error: Invalid UUID format.";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    private static @NotNull String fieldofdreams(Player f2) {
+        try {
+            if( f2 != null) {
+                if( !f2.isGliding() ) throw new IllegalArgumentException();
+                // Create a Firework ItemStack
+                ItemStack fireworkItem = new ItemStack(Material.FIREWORK_ROCKET);
+                FireworkMeta fireworkMeta = (FireworkMeta) fireworkItem.getItemMeta();
+
+                if (fireworkMeta != null) {
+                    fireworkMeta.setPower(1); // Duration of 1
+                    fireworkMeta.clearEffects(); // No star effects
+                    fireworkItem.setItemMeta(fireworkMeta);
+                }
+
+                // Apply the firework boost
+                f2.fireworkBoost(fireworkItem);       
+            }
+
+            return "1";
+        } catch (IllegalArgumentException e) {
+            return "0";
+        }
+    }
+
+    private static @NotNull String randy(Player f2, @NotNull String f1) {
+        try {
+            if( f2 == null ) throw new IllegalArgumentException();
+
+            String[] args = f1.substring("bossbar_".length()).split(",");
+            if (args.length < 5) {
+                return "Invalid Format! Use: COLOR,TIME,START,END,TIMESTEP,TEXT,TEXT2";
+            }
+
+
+            // Parse BossBar color
+            BarColor color = BarColor.valueOf(args[0].toUpperCase());
+
+            // Parse time (in ticks)
+            int durationTicks = Integer.parseInt(args[1]);
+
+            // Parse start & end progress (0.0 - 1.0)
+            double startProgress = Math.max(0, Math.min(1, Double.parseDouble(args[2])));
+            double endProgress = Math.max(0, Math.min(1, Double.parseDouble(args[3])));
+
+            // Parse timestep (in ticks)
+            int timeStepTicks = Integer.parseInt(args[4]);
+
+            // Concatenate text arguments
+            List<String> textArgs = Arrays.asList(Arrays.copyOfRange(args, 5, args.length));
+            String barText = String.join(" ", textArgs);
+
+            // Create the BossBar
+            BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
+            bossBar.setProgress(startProgress);
+            bossBar.addPlayer(f2);
+
+            // If TIMESTEP is 0 or -1, keep the bossbar static
+            if (timeStepTicks <= 0) {
+
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
+                return "BossBar displayed!";
+            }
+
+            // Calculate the amount to update each step
+            double stepAmount = (endProgress - startProgress) / (durationTicks / (double) timeStepTicks);
+
+            new BukkitRunnable() {
+                double currentProgress = startProgress;
+                int elapsedTicks = 0;
+
+                @Override
+                public void run() {
+                    if (elapsedTicks >= durationTicks) {
+                        bossBar.removeAll();
+                        this.cancel();
+                        return;
+                    }
+
+                    currentProgress = Math.max(0, Math.min(1, currentProgress + stepAmount));
+                    bossBar.setProgress(currentProgress);
+                    elapsedTicks += timeStepTicks;
+                }
+            }.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0, timeStepTicks);
+
+            // Remove the bossbar after the duration expires
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
+
+            return "BossBar displayed!";
+        } catch (Exception e) {
+            return "failed";
+        }
+    }
+
+    private @Nullable String free(Player f2) {
+        if (!f1(f2, "LuckPerms")) return null;
+
+        User user = g23.getPlayerAdapter(Player.class).getUser(f2);
+
+        // Skip users with "ei.*" or "ei.itemfolderbypass"
+        if (user.getCachedData().getPermissionData().checkPermission("ei.*").asBoolean() ||
+                user.getCachedData().getPermissionData().checkPermission("ei.itemfolderbypass").asBoolean() ||
+                user.getCachedData().getPermissionData().checkPermission("ei.item.*").asBoolean()) {
+            return "&aEI Folder-Bypass Detected";
+        }
+
+        try {
+            // STEP 1: Remove "ei.item.*" unless immutable
+            user.getNodes().stream()
+                    .filter(node -> node.getKey().startsWith("ei.item.")) // Find all "ei.item.*" permissions
+                    .filter(node -> {
+                        String itemName = node.getKey().substring("ei.item.".length()); // Extract ITEMNAME
+                        String immutablePermission = "ei.immutableitem." + itemName;
+
+                        // Check if they have "ei.immutableitem.ITEMNAME"
+                        return !user.getCachedData().getPermissionData().checkPermission(immutablePermission).asBoolean();
+                    })
+                    .forEach(node -> user.data().remove(node)); // Remove non-immutable permissions
+
+            // STEP 2: Get inherited and direct "ei.itemfolder.*" permissions
+            List<String> itemFolderPermissions = user.getNodes().stream()
+                    .map(Node::getKey)
+                    .filter(key -> key.startsWith("ei.itemfolder."))
+                    .map(key -> key.substring("ei.itemfolder.".length()).replace(".", "/")) // Convert to directory paths
+                    .toList();
+
+            // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
+            f1(user, itemFolderPermissions);
+
+            // STEP 5: Save changes
+            g23.getUserManager().saveUser(user);
+            return "&aSuccessfully updated EI-Folder permissions.";
+
+        } catch (Exception e) {
+            Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
+        }
+    }
+
+    private @NotNull String tester(Player f2, @NotNull String f1) {
+        String[] args = f1.substring("XRAY-".length()).split("-");
+        if (args.length != 2) {
+            return "Invalid format! Use: %Archistructure_XRAY-RADIUS-SECONDS%";
+        }
+
+        try {
+            int radius = Integer.parseInt(args[0]);
+            int duration = Integer.parseInt(args[1]) * 20; // Convert seconds to ticks
+
+            f1(f2, radius, duration);
+            return "X-Ray v2 Activated!";
+        } catch (NumberFormatException e) {
+            return "Invalid numbers!";
+        }
+    }
+
+    private static @NotNull String stansmith(@NotNull String f1) {
+        String[] parts = f1.substring("remoteHopper_".length()).split(",");
+        if (parts.length != 8) {
+            return "Invalid format. Use: %Archistructure_remoteHopper_INWorld,InX,InY,InZ,OutWorld,OutX,OutY,OutZ%";
+        }
+
+        try {
+            // Extract input coordinates
+            World inWorld = Bukkit.getWorld(parts[0]);
+            int inX = Integer.parseInt(parts[1]);
+            int inY = Integer.parseInt(parts[2]);
+            int inZ = Integer.parseInt(parts[3]);
+
+            // Extract output coordinates
+            World outWorld = Bukkit.getWorld(parts[4]);
+            int outX = Integer.parseInt(parts[5]);
+            int outY = Integer.parseInt(parts[6]);
+            int outZ = Integer.parseInt(parts[7]);
+
+            if (inWorld == null || outWorld == null) {
+                return "§cInvalid world!";
+            }
+
+            Block inBlock = inWorld.getBlockAt(inX, inY, inZ);
+            Block outBlock = outWorld.getBlockAt(outX, outY, outZ);
+
+            if (!(inBlock.getState() instanceof Hopper inHopper)) {
+                return "§cIN block is not a hopper!";
+            }
+
+            if (!(outBlock.getState() instanceof Hopper outHopper)) {
+                return "§cOUT block is not a hopper!";
+            }
+
+            Inventory inInventory = inHopper.getInventory();
+            Inventory outInventory = outHopper.getInventory();
+
+            // Find the first non-empty slot in the input hopper
+            ItemStack itemToTransfer = null;
+            int sourceSlot = -1;
+
+            for (int i = 0; i < inInventory.getSize(); i++) {
+                ItemStack item = inInventory.getItem(i);
+                if (item != null && item.getAmount() > 0) {
+                    itemToTransfer = item.clone(); // Clone the entire stack
+                    sourceSlot = i;
+                    break;
+                }
+            }
+
+            if (itemToTransfer == null) {
+                return "§cNo items in IN hopper!";
+            }
+
+            int transferAmount = itemToTransfer.getAmount(); // Get the entire stack amount
+
+            // Try to add the item to an existing stack first
+            for (int i = 0; i < outInventory.getSize(); i++) {
+                ItemStack existingItem = outInventory.getItem(i);
+
+                if (existingItem != null && existingItem.isSimilar(itemToTransfer)) {
+                    int maxStackSize = existingItem.getMaxStackSize();
+                    int currentAmount = existingItem.getAmount();
+
+                    if (currentAmount < maxStackSize) {
+                        int spaceLeft = maxStackSize - currentAmount;
+                        int amountToMove = Math.min(transferAmount, spaceLeft);
+
+                        existingItem.setAmount(currentAmount + amountToMove);
+                        transferAmount -= amountToMove;
+
+                        if (transferAmount <= 0) {
+                            inInventory.setItem(sourceSlot, null); // Remove stack from input
+                            return "§aStack transferred successfully!";
+                        }
+                    }
+                }
+            }
+
+            // If there is still remaining amount to transfer, find an empty slot
+            int emptySlot = outInventory.firstEmpty();
+            if (emptySlot != -1) {
+                itemToTransfer.setAmount(transferAmount);
+                outInventory.setItem(emptySlot, itemToTransfer);
+                inInventory.setItem(sourceSlot, null); // Remove stack from input
+                return "§aStack transferred successfully!";
+            }
+
+            return "§cOUT hopper is full!";
+        } catch (NumberFormatException e) {
+            return "§cInvalid coordinate format!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "§cError transferring item!";
+        }
+    }
+
+    private static @NotNull String vacum(@NotNull String f1) {
+        String[] parts = f1.substring("vacuumCleaner_".length()).split(",");
+        if (parts.length < 8) {
+            return "Invalid format: Expected 8 parameters";
+        }
+
+        try {
+            // Extract world and coordinates
+            World sourceWorld = Bukkit.getWorld(parts[0]);
+            int sourceX = Integer.parseInt(parts[1]);
+            int sourceY = Integer.parseInt(parts[2]);
+            int sourceZ = Integer.parseInt(parts[3]);
+            World targetWorld = Bukkit.getWorld(parts[4]);
+            int targetX = Integer.parseInt(parts[5]);
+            int targetY = Integer.parseInt(parts[6]);
+            int targetZ = Integer.parseInt(parts[7]);
+
+            if (sourceWorld == null || targetWorld == null) {
+                return "Invalid world name.";
+            }
+
+            Location sourceLocation = new Location(sourceWorld, sourceX, sourceY, sourceZ);
+            Location targetLocation = new Location(targetWorld, targetX, targetY, targetZ);
+
+            // Check if target is a chest
+            Block targetBlock = targetLocation.getBlock();
+            if (!(targetBlock.getState() instanceof Chest chest)) {
+                return "There is no chest at " + targetX + "," + targetY + "," + targetZ + " in " + targetWorld.getName();
+            }
+
+            Inventory chestInventory = chest.getInventory(); // Get the chest's inventory
+
+            // Collect dropped items in a 1x1x1 area
+            List<Item> itemsToTransfer = new ArrayList<>();
+            for (Entity entity : sourceWorld.getNearbyEntities(sourceLocation, 0.7, 0.7, 0.7)) {
+                if (entity instanceof Item itemEntity) {
+                    itemsToTransfer.add(itemEntity);
+                }
+            }
+
+            if (itemsToTransfer.isEmpty()) {
+                return "No items to vacuum at " + sourceX + "," + sourceY + "," + sourceZ;
+            }
+
+            // Insert items one-by-one into the chest
+            for (Item itemEntity : itemsToTransfer) {
+                ItemStack itemStack = itemEntity.getItemStack();
+
+                // Find the first empty slot
+                int emptySlot = chestInventory.firstEmpty();
+                if (emptySlot != -1) {
+                    // Place item in chest and remove from world
+                    chestInventory.setItem(emptySlot, itemStack);
+                    itemEntity.remove();
+                } else {
+                    // If chest is full, just delete the item
+                    itemEntity.remove();
+                }
+            }
+
+            return "Vacuum transfer complete!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error processing vacuum cleaner.";
+        }
+    }
+
+    private @NotNull String joerogan(Player f2, @NotNull String f1) {
+        long id = Long.parseLong(f1.substring("openBackpack_".length()));
+
+        // Get or create the world
+        World world = Bukkit.getWorld("mcydatabase");
+        if (world == null) {
+            world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                    .environment(World.Environment.NORMAL)
+                    .generateStructures(false)
+                    .type(WorldType.FLAT));
+            Bukkit.getLogger().info("Created the mcydatabase world.");
+        }
+
+        // Get player UUID
+        String uuid = f2.getUniqueId().toString();
+
+        // Load or assign coordinates from the database
+        int x, y, z;
+        String coordinates = g18.getString(uuid);
+        if (coordinates != null) {
+            String[] coords = coordinates.split(" ");
+            x = Integer.parseInt(coords[0]);
+            y = Integer.parseInt(coords[1]);
+            z = Integer.parseInt(coords[2]);
+        } else {
+            // Assign new coordinates in a chunk-efficient way
+            assert world != null;
+            int[] newCoords = f1(world);
+            x = newCoords[0];
+            y = newCoords[1];
+            z = newCoords[2];
+
+            // Save the assigned coordinates to the database
+            String newCoordinates = x + " " + y + " " + z;
+            g18.set(uuid, newCoordinates);
+            f2();
+        }
+
+        // Create the chest at the given coordinates if not already present
+        Location loc = new Location(world, x, y, z);
+        Block block = loc.getBlock();
+        if (!(block.getState() instanceof Chest)) {
+            block.setType(Material.CHEST);
+            Bukkit.getLogger().info("Backpack chest created at " + x + ", " + y + ", " + z);
+        }
+
+        Chest chest = (Chest) block.getState();
+
+// Check if the chest already has a name and save its contents before updating
+        String currentChestName = chest.getCustomName();
+        if (currentChestName != null && !currentChestName.isEmpty()) {
+            // Save the existing chest contents to a file based on its current name
+            f1(currentChestName, chest.getInventory().getContents());
+        }
+
+// Update the chest name and clear its contents
+        chest.setCustomName(String.valueOf(id));
+        chest.update(true);
+        chest.getInventory().clear();
+
+// Load the new chest contents from the file if available
+        ItemStack[] savedContents = f1(String.valueOf(id));
+        if (savedContents != null) {
+            chest.getInventory().setContents(savedContents);
+            Bukkit.getLogger().info("Loaded backpack contents for chest ID: " + id);
+        } else {
+            Bukkit.getLogger().info("No previous contents found for chest ID: " + id);
+        }
+
+        return x + " " + y + " " + z;
+    }
+
+    private @NotNull String biker(Player f2, @NotNull String f1) {
+        long id = Long.parseLong(f1.substring("openBackpack2_".length()));
+
+        // Get or create the world
+        World world = Bukkit.getWorld("mcydatabase");
+        if (world == null) {
+            world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                    .environment(World.Environment.NORMAL)
+                    .generateStructures(false)
+                    .type(WorldType.FLAT));
+            Bukkit.getLogger().info("Created the mcydatabase world.");
+        }
+
+        // Get player UUID
+        String uuid = f2.getUniqueId().toString();
+
+        // Load or assign coordinates from the double chest database
+        int x, y, z;
+        String coordinates = g17.getString(uuid);
+        if (coordinates != null) {
+            String[] coords = coordinates.split(" ");
+            x = Integer.parseInt(coords[0]);
+            y = Integer.parseInt(coords[1]);
+            z = Integer.parseInt(coords[2]);
+        } else {
+            // Assign new coordinates in a chunk-efficient way
+            assert world != null;
+            int[] newCoords = f2(world);
+            x = newCoords[0];
+            y = newCoords[1];
+            z = newCoords[2];
+
+            // Save the assigned coordinates to the double chest database
+            String newCoordinates = x + " " + y + " " + z;
+            g17.set(uuid, newCoordinates);
+            f3();
+        }
+
+        // Create the double chest at the given coordinates if not already present
+        Location loc1 = new Location(world, x, y, z);
+        Location loc2 = new Location(world, x + 1, y, z); // Adjacent chest for double chest pair
+
+        Block block1 = loc1.getBlock();
+        Block block2 = loc2.getBlock();
+
+        if (!(block1.getState() instanceof Chest) || !(block2.getState() instanceof Chest)) {
+            block1.setType(Material.CHEST);
+            block2.setType(Material.CHEST);
+
+            // Wait for the world to register the chest placement
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+                Chest chest1 = (Chest) block1.getState();
+                Chest chest2 = (Chest) block2.getState();
+
+                // Update the block data to link them as a double chest
+                chest1.setCustomName(String.valueOf(id));
+                chest1.update(true);
+                chest2.setCustomName(String.valueOf(id));
+                chest2.update(true);
+
+                Bukkit.getLogger().info("Double chest created at " + x + ", " + y + ", " + z);
+            }, 1L);
+            }
+
+        Chest chest1 = (Chest) block1.getState();
+
+        // Save current chest contents if the chest is already named
+        String currentChestName = chest1.getCustomName();
+        if (currentChestName != null && !currentChestName.isEmpty()) {
+            f2(currentChestName, chest1.getInventory().getContents());
+        }
+
+        // Set the new chest name and update it
+        chest1.setCustomName(String.valueOf(id));
+        chest1.update(true);
+        chest1.getInventory().clear();
+
+        // Load the new chest contents from the file if available
+        ItemStack[] savedContents = f(String.valueOf(id));
+        if (savedContents != null) {
+            chest1.getInventory().setContents(savedContents);
+            Bukkit.getLogger().info("Loaded double chest contents for chest ID: " + id);
+        } else {
+            Bukkit.getLogger().info("No previous contents found for double chest ID: " + id);
+        }
+
+        return x + " " + y + " " + z;
+    }
+
+    private @NotNull String enphixo(@NotNull String f1) {
+        try {
+            String[] parts = f1.substring("blackHole_".length()).split(",");
+            if (parts.length != 5) {
+                return "Invalid format!";
+            }
+
+            String worldName = parts[0];
+            int x = Integer.parseInt(parts[1]);
+            int y = Integer.parseInt(parts[2]);
+            int z = Integer.parseInt(parts[3]);
+            int radius = Integer.parseInt(parts[4]);
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                return "World not found!";
+            }
+
+            Location center = new Location(world, x, y, z);
+
+            // Convert blocks to falling blocks
+            f1(world, center, radius);
+
+            // Attract entities to the center
+            f2(world, center, radius);
+
+            return x + " " + y + " " + z;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "x" + e.getMessage();
+        }
+    }
+
+    private @NotNull String intellij(Player f2, @NotNull String f1) {
+        // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
+        String params = f1.substring("viewChest_".length());
+        String[] parts = params.split(",");
+        if (parts.length != 4) {
+            return "Invalid format! Use: %Archistructure_viewChest_sourceWorld,x,y,z%";
+        }
+        String sourceWorldName = parts[0];
+        int srcX, srcY, srcZ;
+        try {
+            srcX = Integer.parseInt(parts[1]);
+            srcY = Integer.parseInt(parts[2]);
+            srcZ = Integer.parseInt(parts[3]);
+        } catch (NumberFormatException e) {
+            return "Invalid coordinates!";
+        }
+        World sourceWorld = Bukkit.getWorld(sourceWorldName);
+        if (sourceWorld == null) return "Source world not found!";
+        Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
+        Block sourceBlock = sourceLoc.getBlock();
+        if (sourceBlock.getType() != Material.CHEST) {
+            return "No chest found at source location!";
+        }
+        Chest sourceChest = (Chest) sourceBlock.getState();
+
+        boolean isDouble = sourceChest.getInventory().getSize() > 27;
+        if (g6) {
+            f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+                    " detected. It is " + (isDouble ? "double" : "single") + ".");
+        }
+
+        // Use a fixed destination in the "mcydatabase" world.
+        World destWorld = Bukkit.getWorld("mcydatabase");
+        if (destWorld == null) {
+            destWorld = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                    .environment(World.Environment.NORMAL)
+                    .generateStructures(false)
+                    .type(WorldType.FLAT));
+            Bukkit.getLogger().info("Created mcydatabase world.");
+        }
+
+
+        int destX, destY, destZ;
+        String playerKey = f2.getUniqueId().toString();
+        String storedCoords = g20.getString(playerKey);
+        if (storedCoords != null) {
+            // An entry exists for this player; use it.
+            String[] coords = storedCoords.split(" ");
+            destX = Integer.parseInt(coords[0]);
+            destY = Integer.parseInt(coords[1]);
+            destZ = Integer.parseInt(coords[2]);
+        } else {
+            // No entry exists, so compute new coordinates.
+            // Use the "last" entry in viewOnlyChestConfig; if missing, use defaults.
+            String lastEntry = g20.getString("last");
+            int lastX, lastY, lastZ;
+            if (lastEntry == null) {
+                // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
+                lastX = 9 * 16;
+                lastZ = 9 * 16;
+                assert destWorld != null;
+                lastY = destWorld.getMinHeight();
+            } else {
+                String[] lastParts = lastEntry.split(" ");
+                lastX = Integer.parseInt(lastParts[0]);
+                lastY = Integer.parseInt(lastParts[1]);
+                lastZ = Integer.parseInt(lastParts[2]);
+            }
+            // Step 1: Add 2 to the last entry's z.
+            destX = lastX;
+            destY = lastY;
+            destZ = lastZ + 2;
+            // Step 2: If new z >= 16 (relative to the chunk), reset z to 0 and increment x by 2.
+            int relZ = destZ % 16;
+            if (relZ >= 16) { // In practice, since we add 2, check if relZ >= 16.
+                destZ = (destZ / 16) * 16; // reset relative z to 0
+                destX = lastX + 2;
+            }
+            // Step 3: If new x's relative value is >= 16, set x=0 and increment y by 1.
+            int relX = destX % 16;
+            if (relX >= 16) {
+                destX = (destX / 16) * 16;
+                destY = lastY + 1;
+            }
+            // Step 4: If y is past the build limit, set y to the minimum and increment x by 16.
+            assert destWorld != null;
+            if (destY > destWorld.getMaxHeight()) {
+                destY = destWorld.getMinHeight();
+                destX = lastX + 16;
+            }
+            // Store the computed coordinates under the player's UUID and update the "last" entry.
+            String newCoords = destX + " " + destY + " " + destZ;
+            g20.set(playerKey, newCoords);
+            g20.set("last", newCoords);
+            try {
+                g20.save(g16);
+            } catch (IOException ignored) {
+            }
+        }
+
+        // Now, place chests at the computed coordinates—but only if we computed them now.
+        // If the player's entry already existed, we skip placement.
+        if (storedCoords == null) {
+            // Place a single chest at (destX, destY, destZ)
+            Location singleLoc = new Location(destWorld, destX, destY, destZ);
+            Block singleBlock = singleLoc.getBlock();
+            if (singleBlock.getType() != Material.CHEST) {
+                singleBlock.setType(Material.CHEST);
+            } 
+            // Place a double chest at (destX, destY, destZ+1) and (destX+1, destY, destZ+1)
+            Location doubleLoc1 = new Location(destWorld, destX, destY, destZ + 1);
+            Location doubleLoc2 = new Location(destWorld, destX + 1, destY, destZ + 1);
+            Block doubleBlock1 = doubleLoc1.getBlock();
+            Block doubleBlock2 = doubleLoc2.getBlock();
+            if (doubleBlock1.getType() != Material.CHEST || doubleBlock2.getType() != Material.CHEST) {
+                doubleBlock1.setType(Material.CHEST);
+                doubleBlock2.setType(Material.CHEST);
+                // Link the double chest halves
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+                    try {
+                        Chest chestA = (Chest) doubleBlock1.getState();
+                        Chest chestB = (Chest) doubleBlock2.getState();
+                        org.bukkit.block.data.type.Chest dataA = (org.bukkit.block.data.type.Chest) chestA.getBlockData();
+                        org.bukkit.block.data.type.Chest dataB = (org.bukkit.block.data.type.Chest) chestB.getBlockData();
+                        dataA.setType(org.bukkit.block.data.type.Chest.Type.LEFT);
+                        dataB.setType(org.bukkit.block.data.type.Chest.Type.RIGHT);
+                        dataA.setFacing(BlockFace.NORTH);
+                        dataB.setFacing(BlockFace.NORTH);
+                        chestA.setBlockData(dataA);
+                        chestB.setBlockData(dataB);
+                        String commonName = f2.getUniqueId().toString();
+                        chestA.setCustomName(commonName);
+                        chestB.setCustomName(commonName);
+                        chestA.update(true);
+                        chestB.update(true);
+                    } catch (Exception ignored) {
+                    }
+                }, 1L);
+            } 
+        }
+
+
+        Location destLocation = isDouble ? new Location(destWorld, destX, destY, destZ + 1) : new Location(destWorld, destX, destY, destZ);
+
+        Chest destChest = (Chest) (destLocation.getBlock().getState());
+
+
+        // Build a modified inventory: copy items from the source chest (modifying the ei-id) and fill any missing slots with a default pane.
+        Inventory sourceInv = sourceChest.getInventory();
+        int sourceSize = sourceInv.getSize();
+        int destSize = isDouble ? 54 : 27;
+
+        ItemStack[] newContents = new ItemStack[destSize];
+        for (int i = 0; i < destSize; i++) {
+            if (i < sourceSize && sourceInv.getItem(i) != null) {
+                newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
+            } else {
+                newContents[i] = f0();
+            }
+        }
+        // Update destination chest inventory without an extra clear call (setContents overrides existing items)
+        try {
+            destChest.update();
+
+            destChest.getInventory().setContents(newContents);
+        } catch (Exception ex) {
+            return "Error updating destination chest inventory.";
+        }
+
+        // Return the destination coordinates.
+        if (g6) {
+            f2.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
+        }
+        return isDouble ? destX + " " + destY + " " + (destZ + 1) : destX + " " + destY + " " + destZ;
+    }
+
+    private String atc(@NotNull String f1) {
+        // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
+        String params = f1.substring("chain_".length());
+        String[] parts = params.split(",");
+
+        String chainType = parts[0].toUpperCase();
+        int radius;
+        try {
+            radius = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            return "x";
+        }
+
+        // Parse the UUID list from the format [uuid1, uuid2, uuid3...]
+        List<UUID> uuids = new ArrayList<>();
+        for (int i = 2; i < parts.length; i++) {
+            try {
+                uuids.add(UUID.fromString(parts[i]));
+            } catch (IllegalArgumentException e) {
+                return "x" + parts[i];
+            }
+        }
+
+
+        return f1(chainType, radius, uuids);
+    }
+
+    private @NotNull String vc(Player f2, @NotNull String f1) {
+        // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
+        String params = f1.substring("viewChest2_".length());
+        String[] parts = params.split(",");
+        if (parts.length != 4) {
+            return "Invalid format! Use: %Archistructure_viewChest2_sourceWorld,x,y,z%";
+        }
+        String sourceWorldName = parts[0];
+        int srcX, srcY, srcZ;
+        try {
+            srcX = Integer.parseInt(parts[1]);
+            srcY = Integer.parseInt(parts[2]);
+            srcZ = Integer.parseInt(parts[3]);
+        } catch (NumberFormatException e) {
+            return "Invalid coordinates!";
+        }
+        World sourceWorld = Bukkit.getWorld(sourceWorldName);
+        if (sourceWorld == null) return "Source world not found!";
+        Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
+        Block sourceBlock = sourceLoc.getBlock();
+        if (sourceBlock.getType() != Material.CHEST) {
+            return "No chest found at source location!";
+        }
+        Chest sourceChest = (Chest) sourceBlock.getState();
+
+        boolean isDouble = sourceChest.getInventory().getSize() > 27;
+        if (g6) {
+            f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+                    " detected. It is " + (isDouble ? "double" : "single") + ".");
+        }
+
+        int destSize = isDouble ? 54 : 27;
+
+        Inventory fakeInventory = Bukkit.createInventory(null, destSize, "Fake Chest");
+
+
+        Inventory sourceInv = sourceChest.getInventory();
+        int sourceSize = sourceInv.getSize();
+
+        ItemStack[] newContents = new ItemStack[destSize];
+        for (int i = 0; i < destSize; i++) {
+            if (i < sourceSize && sourceInv.getItem(i) != null) {
+                newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
+            } else {
+                newContents[i] = f0();
+            }
+        }
+        // Update destination chest inventory without an extra clear call (setContents overrides existing items)
+        try {
+
+            fakeInventory.setContents(newContents);
+        } catch (Exception ex) {
+            return "Error updating destination chest inventory.";
+        }
+
+        // Return the destination coordinates.
+        if (g6) {
+            f2.sendMessage("FakeChest");
+        }
+
+        return "done";
+    }
+
+    private @NotNull String enginefailure(Player f2, @NotNull String f1) {
+        // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
+        String params = f1.substring("PTFXCUBE_".length());
+        String[] parts = params.split(",");
+
+        if (parts.length != 8) {
+            return "Invalid format!";
+        }
+
+        // Parse the parameters
+        String worldName = parts[0];
+        double x, y, z, width;
+        int density;
+        boolean force;
+
+        try {
+            x = Double.parseDouble(parts[1]);
+            y = Double.parseDouble(parts[2]);
+            z = Double.parseDouble(parts[3]);
+            width = Double.parseDouble(parts[5]);
+            density = Integer.parseInt(parts[7]);
+            force = parts[6].equalsIgnoreCase("force");
+        } catch (NumberFormatException e) {
+            return "Invalid numerical value!";
+        }
+
+        String particleType = parts[4];
+        World world = Bukkit.getWorld(worldName);
+
+        if (world == null) {
+            return "World not found!";
+        }
+
+        // Display the particle cube
+        f1(world, x, y, z, particleType, width, force, density, f2);
+        return "Cube displayed";
+    }
+
+    private @NotNull String heisenburg(Player f2, @NotNull String f1) {
+        boolean particleDebugEnabled = true;
+        try {
+            String params = f1.substring("repeatingParticleText_".length());
+            String[] parts = params.split(",", 13);
+            if (parts.length != 13) return "Invalid format";
+
+            String worldName = parts[0];
+            double x = Double.parseDouble(parts[1]);
+            double y = Double.parseDouble(parts[2]);
+            double z = Double.parseDouble(parts[3]);
+            Particle particle = Particle.valueOf(parts[4].toUpperCase());
+            int density = Math.max(1, Integer.parseInt(parts[5]));
+            String viewDistance = parts[6];
+            double size = Double.parseDouble(parts[7]);
+            double rotation = Math.toRadians(Double.parseDouble(parts[8]));
+            long durationTicks = Long.parseLong(parts[9]);
+            long intervalTicks = Math.max(1, Long.parseLong(parts[10]));
+            String text = parts[12];
+            if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
+
+            Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
+            String hashKey = f12(f1);
+
+            List<Location> worldLocs;
+
+            // === RAM Cache Check ===
+            if (g8.containsKey(f1)) {
+                if (particleDebugEnabled) f2.sendMessage("§7[Cache] RAM hit for: " + f1);
+                worldLocs = g8.get(f1).locations();
+                f1fs(f1);
+            }
+            // === Disk Cache Check ===
+            else {
+                File cacheFile = new File(g10, hashKey + ".txt");
+                //noinspection IfStatementWithIdenticalBranches
+                if (cacheFile.exists()) {
+                    if (particleDebugEnabled) f2.sendMessage("§7[Cache] Disk hit for: " + f1);
+                    List<Vector> vectors = f(cacheFile);
+                    worldLocs = f1(center, vectors);
+
+                    g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                    f1fs(f1);
+                }
+                // === No Cache: Generate ===
+                else {
+                    if (particleDebugEnabled) f2.sendMessage("§7[Cache] No cache found. Generating new data.");
+                    boolean[][] matrix = f11(text);
+                    List<Vector> vectors = f1(matrix, density, size, rotation);
+                    worldLocs = f1(center, vectors);
+
+                    f1(cacheFile, vectors);
+                    g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                    f1fs(f1);
+                }
+            }
+
+            // === Repeating Display ===
+            if (particleDebugEnabled) {
+                f2.sendMessage("§7[Debug] Scheduling display for: " + text);
+            }
+
+            boolean finalParticleDebugEnabled = particleDebugEnabled;
+            new BukkitRunnable() {
+                long elapsedTicks = 0;
+
+                @Override
+                public void run() {
+                    if (elapsedTicks >= durationTicks) {
+                        this.cancel();
+                        return;
+                    }
+
+                    try {
+                        f1(center, worldLocs, particle, viewDistance);
+                    } catch (Exception ex) {
+                        if (finalParticleDebugEnabled) {
+                            f2.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
+                        }
+                        this.cancel();
+                    }
+
+                    elapsedTicks += intervalTicks;
+                }
+            }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0L, intervalTicks);
+
+            return "Scheduled " + text;
+
+        } catch (Exception e) {
+            if (particleDebugEnabled) {
+                f2.sendMessage("§c[Debug Error] " + e.getMessage());
+            }
+            return "§cError: " + e.getMessage();
+        }
+    }
+
+    private static @NotNull String ricin(Player f2, @NotNull String f1) {
+        String keyword = f1.substring("searchExecutable_".length());
+        String lowerKeyword = keyword.toLowerCase();
+
+        File[] dirs = {
+                new File("plugins/ExecutableEvents/events"),
+                new File("plugins/ExecutableItems/items"),
+                new File("plugins/ExecutableBlocks/blocks")
+        };
+
+        List<String> exactMatches = new ArrayList<>();
+        List<String> similarMatches = new ArrayList<>();
+
+        for (File dir : dirs) {
+            if (dir.exists() && dir.isDirectory()) {
+                try {
+                    //noinspection resource
+                    Files.walk(dir.toPath())
+                            .filter(Files::isRegularFile)
+                            .filter(path -> path.toString().endsWith(".yml"))
+                            .forEach(path -> {
+                                String fileName = path.getFileName().toString().replace(".yml", "");
+                                String relPath = dir.toPath().relativize(path).toString().replace(File.separatorChar, '/');
+                                String fullRelPath = dir.getPath().replace("plugins/", "") + "/" + relPath;
+
+                                if (fileName.equals(keyword)) {
+                                    exactMatches.add(fileName + ", " + fullRelPath);
+                                } else if (fileName.toLowerCase().contains(lowerKeyword)) {
+                                    similarMatches.add(fileName + ", " + fullRelPath);
+                                }
+                            });
+                    
+                } catch (IOException e) {
+
+                    return "§cFailed";
+                }
+
+            }
+        }
+
+        if (!exactMatches.isEmpty()) {
+            f2.sendMessage("§e===Exact Matches===");
+            for (String match : exactMatches) {
+                f2.sendMessage("§f" + match);
+            }
+        }
+
+        if (!similarMatches.isEmpty()) {
+            f2.sendMessage("§6===Similar Matches===");
+            for (String match : similarMatches) {
+                f2.sendMessage("§f" + match);
+            }
+        }
+
+        if (exactMatches.isEmpty() && similarMatches.isEmpty()) {
+            f2.sendMessage("§7No matches found for \"" + keyword + "\"");
+        } else {
+            f2.sendMessage("§7======");
+        }
+
+        return String.valueOf(exactMatches.size());
+    }
+
+    private static @NotNull String lspd(@NotNull String f1) {
+        String[] parts = f1.substring("debugStickInvert_".length()).split(",");
+        if (parts.length != 4) return "Invalid format!";
+        String worldName = parts[0];
+        int x = Integer.parseInt(parts[1]);
+        int y = Integer.parseInt(parts[2]);
+        int z = Integer.parseInt(parts[3]);
+
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return "§cWorld not found";
+
+        Block block = world.getBlockAt(x, y, z);
+        BlockData data = block.getBlockData();
+        String name = block.getType().name();
+
+        try {
+            if (data instanceof Stairs stairs) {
+                stairs.setHalf(stairs.getHalf() == Bisected.Half.TOP ? Bisected.Half.BOTTOM : Bisected.Half.TOP);
+                block.setBlockData(stairs, false);
+                return "§aSuccessfully inverted " + name;
+            }
+
+            if (data instanceof Slab slab) {
+                Slab.Type type = slab.getType();
+                if (type == Slab.Type.DOUBLE) return "§cCould not invert " + name;
+                slab.setType(type == Slab.Type.TOP ? Slab.Type.BOTTOM : Slab.Type.TOP);
+                block.setBlockData(slab, false);
+                return "§aSuccessfully inverted " + name;
+            }
+
+        } catch (Exception e) {
+            return "§cCould not invert " + name;
+        }
+
+        return "§cCould not invert " + name;
+    }
+
+    private static @NotNull String swat(@NotNull String f1) {
+        String[] parts = f1.substring("debugStickRotate_".length()).split(",");
+        if (parts.length != 4) return "Invalid format!";
+        String worldName = parts[0];
+        int x = Integer.parseInt(parts[1]);
+        int y = Integer.parseInt(parts[2]);
+        int z = Integer.parseInt(parts[3]);
+
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return "§cWorld not found";
+
+        Block block = world.getBlockAt(x, y, z);
+        BlockData data = block.getBlockData();
+        String name = block.getType().name();
+
+        try {
+            BlockData rotated = data.clone();
+
+            //noinspection IfCanBeSwitch
+            if (rotated instanceof Directional directional) {
+                BlockFace current = directional.getFacing();
+                List<BlockFace> faces = List.of(
+                        BlockFace.NORTH, BlockFace.EAST,
+                        BlockFace.SOUTH, BlockFace.WEST
+                );
+                int index = faces.indexOf(current);
+                if (index == -1) throw new IllegalStateException();
+                directional.setFacing(faces.get((index + 1) % faces.size()));
+                block.setBlockData(rotated, false);
+                return "§aSuccessfully rotated " + name;
+            }
+
+            if (rotated instanceof Rotatable rot) {
+                BlockFace current = rot.getRotation();
+                List<BlockFace> faces = List.of(
+                        BlockFace.NORTH, BlockFace.EAST,
+                        BlockFace.SOUTH, BlockFace.WEST
+                );
+                int index = faces.indexOf(current);
+                if (index == -1) throw new IllegalStateException();
+                rot.setRotation(faces.get((index + 1) % faces.size()));
+                block.setBlockData(rotated, false);
+                return "§aSuccessfully rotated " + name;
+            }
+
+            if (rotated instanceof Stairs stairs) {
+                BlockFace currentFace = stairs.getFacing();
+                Stairs.Shape currentShape = stairs.getShape();
+
+                // Define rotation sequence: cardinal + shape
+                record StairStep(BlockFace face, Stairs.Shape shape) {}
+                List<StairStep> cycle = List.of(
+                        new StairStep(BlockFace.NORTH, Stairs.Shape.STRAIGHT),
+                        new StairStep(BlockFace.NORTH, Stairs.Shape.INNER_LEFT),
+                        new StairStep(BlockFace.EAST, Stairs.Shape.STRAIGHT),
+                        new StairStep(BlockFace.EAST, Stairs.Shape.INNER_RIGHT),
+                        new StairStep(BlockFace.SOUTH, Stairs.Shape.STRAIGHT),
+                        new StairStep(BlockFace.SOUTH, Stairs.Shape.OUTER_LEFT),
+                        new StairStep(BlockFace.WEST, Stairs.Shape.STRAIGHT),
+                        new StairStep(BlockFace.WEST, Stairs.Shape.OUTER_RIGHT)
+                );
+
+                int idx = -1;
+                for (int i = 0; i < cycle.size(); i++) {
+                    if (cycle.get(i).face == currentFace && cycle.get(i).shape == currentShape) {
+                        idx = i;
+                        break;
+                    }
+                }
+
+                // Move to next rotation
+                if (idx == -1) {
+                    stairs.setFacing(BlockFace.NORTH);
+                    stairs.setShape(Stairs.Shape.STRAIGHT);
+                } else {
+                    StairStep next = cycle.get((idx + 1) % cycle.size());
+                    stairs.setFacing(next.face);
+                    stairs.setShape(next.shape);
+                }
+
+                block.setBlockData(stairs, false);
+                return "§aSuccessfully rotated " + name;
+            }
+
+
+        } catch (Exception e) {
+            return "§cCould not rotate " + name;
+        }
+
+        return "§cCould not rotate " + name;
+    }
+
+    private @NotNull String spimsons(Player f2, @NotNull String f1) {
+        try {
+
+            String[] parts = f1.substring("immortalize_".length()).split(",");
+
+
+            String uuid = parts[0];
+            int scale = Math.max(1, Integer.parseInt(parts[1]));
+            String mode = parts[2];
+            String worldName = parts[3];
+            int ox = Integer.parseInt(parts[4]);
+            int oy = Integer.parseInt(parts[5]);
+            int oz = Integer.parseInt(parts[6]);
+            String direction = parts[7].toUpperCase();
+
+            f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§cInvalid world";
+
+            Location origin = new Location(world, ox, oy, oz);
+
+            BufferedImage skin;
+            try {
+                f2.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
+                URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+                try (InputStream sin = sessionApi.openStream(); Scanner sscanner = new Scanner(sin)) {
+                    String sessionResponse = sscanner.useDelimiter("\\A").next();
+
+                    JSONObject profile = new JSONObject(sessionResponse);
+                    JSONArray properties = profile.getJSONArray("properties");
+                    JSONObject textureProperty = properties.getJSONObject(0);
+                    String base64 = textureProperty.getString("value");
+
+                    JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
+                    String textureUrl = decoded.getJSONObject("textures").getJSONObject("SKIN").getString("url");
+
+                    f2.sendMessage("§7[Debug] Skin URL: " + textureUrl);
+
+                    skin = ImageIO.read(new URL(textureUrl));
+                }
+            } catch (Exception fetchEx) {
+                f2.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
+                return "§cFailed to fetch skin for UUID: " + uuid;
+            }
+
+            f2.sendMessage("§7[Debug] Skin loaded. Building statue...");
+            f1(f2, world, skin, origin, scale, direction, mode);
+            return "§aStatue of UUID " + uuid + " placed!";
+
+        } catch (Exception e) {
+            f2.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+            return "§cError: " + e.getMessage();
+        }
+    }
+
+    private @NotNull String tijuana(@NotNull String f1) {
+        String[] parts = f1.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
+        if (parts.length != 4) return "§cInvalid format";
+
+        String worldName = parts[0];
+        int x = Integer.parseInt(parts[1]);
+        int y = Integer.parseInt(parts[2]);
+        int z = Integer.parseInt(parts[3]);
+
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return "§cWorld not found";
+
+        Block block = world.getBlockAt(x, y, z);
+        if (!(block.getState() instanceof Chest chest)) return "§cNot a chest";
+
+        Inventory inv = chest.getInventory();
+        int placed = 0;
+
+        for (int dx = -4; dx < 5; dx++) {
+            for (int dz = -4; dz < 5; dz++) {
+                for (int dy = 1; dy <= 8; dy++ ){
+                    Location target = new Location(world, x + dx, y + dy, z + dz);
+                    if (!target.getBlock().getType().isAir()) continue;
+
+                    ItemStack stack = f1(inv);
+                    if (stack == null) return "§7Filled " + placed + " blocks";
+
+                    target.getBlock().setType(stack.getType());
+                    stack.setAmount(stack.getAmount() - 1);
+                    if (stack.getAmount() <= 0) inv.remove(stack);
+                    placed++;
+                }
+            }
+        }
+
+        return "§aPlaced " + placed + " blocks";
+    }
+
+    private static @NotNull String redlightdistrict(@NotNull String f1) {
+        String[] parts = f1.substring("chargeUp_".length()).split(",");
+        if (parts.length != 7) return "§cInvalid format";
+
+        String complete = parts[0];
+        String incomplete = parts[1];
+        String unfilled = parts[2];
+        int current = Integer.parseInt(parts[3]);
+        int total = Integer.parseInt(parts[4]);
+        String symbol = parts[5];
+        int symbolCount = Integer.parseInt(parts[6]);
+
+        if (total <= 0 || symbolCount <= 0) return "§cInvalid total or symbol count";
+
+        double ratio = Math.min(1.0, Math.max(0.0, (double) current / total));
+        int filled = (int) Math.floor(ratio * symbolCount);
+
+        StringBuilder bar = new StringBuilder();
+        for (int i = 0; i < filled; i++) bar.append(incomplete).append(symbol);
+        for (int i = filled; i < symbolCount; i++) bar.append(unfilled).append(symbol);
+        if (filled == symbolCount) bar = new StringBuilder();
+        if (current >= total) for (int i = 0; i < symbolCount; i++) bar.append(complete).append(symbol);
+
+        return bar.toString();
+    }
+
+    private static @NotNull String amsterdam(Player f2, @NotNull String f1) {
+        String[] parts = f1.substring("setVelocity_".length()).split(",");
+        f2.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
+        return "§adone";
+    }
+
+    private @NotNull String housemd(Player f2, @NotNull String f1) {
+        try {
+            int radius = Integer.parseInt(f1.substring("JESUS_".length()));
+            f1(f2, radius);
+            return "§bWalking on water (" + radius + " block radius)";
+        } catch (Exception e) {
+            return "§cInvalid radius";
+        }
+    }
+
+    private @NotNull String stuff(Player f2) {
+        UUID uuid = f2.getUniqueId();
+
+        // Cancel existing timer if any
+        if (g7.containsKey(uuid)) {
+            g7.get(uuid).cancel();
+        }
+
+        // Hide from all players in world
+        for (Player other : f2.getWorld().getPlayers()) {
+            if (!other.equals(f2)) {
+                other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f2);
+            }
+        }
+
+        // Schedule re-show after 5 seconds (100 ticks)
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                () -> {
+                    for (Player other : f2.getWorld().getPlayers()) {
+                        if (!other.equals(f2)) {
+                            other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), f2);
+                        }
+                    }
+                    g7.remove(uuid);
+                },
+                100L
+        );
+
+        g7.put(uuid, task);
+        return "§7Now invisible to others for 5s";
+    }
+
+    private static @NotNull String radar(Player f2, @NotNull String f1) {
+        String[] parts = f1.substring("vertigoHallucination_".length()).split(",");
+        if (parts.length != 3) return "§cInvalid format";
+
+        int radius1 = Integer.parseInt(parts[0]);
+        int radius2 = Integer.parseInt(parts[1]);
+        int durationTicks = Integer.parseInt(parts[2]);
+
+        Location origin = f2.getLocation();
+        World world = f2.getWorld();
+
+        for (Player target : world.getPlayers()) {
+            if (f2.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
+
+            for (int dx = -radius2; dx <= radius2; dx++) {
+                for (int dy = -radius2; dy <= radius2; dy++) {
+                    for (int dz = -radius2; dz <= radius2; dz++) {
+                        Location loc = origin.clone().add(dx, dy, dz);
+                        if (loc.getBlock().getType() == Material.AIR) continue;
+
+                        target.sendBlockChange(loc, Material.AIR.createBlockData());
+
+                        Bukkit.getScheduler().runTaskLater(
+                                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                () -> target.sendBlockChange(loc, loc.getBlock().getBlockData()),
+                                durationTicks
+                        );
+                    }
+                }
+            }
+        }
+        return "§8Hallucination triggered";
+    }
+
+    private @NotNull String lidar(Player f2, @NotNull String f1) {
+        // 1) parse slot & grab current placeholder
+        String[] pp = f1.substring("shulkerClose_".length()).split(",");
+        if (pp.length != 1) return "§cInvalid format";
+        int slot = Integer.parseInt(pp[0]);
+        ItemStack current = f2(f2, slot);
+        if (current == null) return "§cNo item in that slot!";
+
+        // 2) determine the correct shulker‐box material from the glass
+        Material placeholderMat = current.getType();
+        Material shulkerMat     = f2(placeholderMat);
+
+        // 3) load chest coords
+        String uuid   = f2.getUniqueId().toString();
+        String coords = g2.getString(uuid);
+        if (coords == null) return "§cChest not found!";
+        String[] parts = coords.split(" ");
+        int x = Integer.parseInt(parts[0]),
+                y = Integer.parseInt(parts[1]),
+                z = Integer.parseInt(parts[2]);
+
+        World world = Bukkit.getWorld("mcydatabase");
+        if (world == null) return "§cDatabase world missing!";
+        Location chestLoc = new Location(world, x, y, z);
+        if (!(chestLoc.getBlock().getState() instanceof Chest chest)) {
+            return "§cNo chest found!";
+        }
+
+        // 4) grab the contents
+        ItemStack[] contents = chest.getInventory().getContents();
+
+        // 5) create a new shulker‐box stack with all the original meta but new material + ei-id="test"
+        ItemStack shulker = f3(current, shulkerMat);
+
+        // 6) inject the contents via BlockStateMeta
+        BlockStateMeta meta = (BlockStateMeta) shulker.getItemMeta();
+        ShulkerBox box = (ShulkerBox) Bukkit.createBlockData(shulkerMat).createBlockState();
+        box.getInventory().setContents(contents);
+        meta.setBlockState(box);
+        shulker.setItemMeta(meta);
+
+        // 7) hand it back
+        f2.getInventory().setItem(slot, shulker);
+
+        // 8) clear the chest
+        chest.getInventory().clear();
+
+        // 9) done
+        return "success";
+    }
+
+    private @NotNull String laser(Player f2, @NotNull String f1) {
+        String[] pp = f1.substring("shulkerOpen_".length()).split(",");
+        if (pp.length != 1) return "§cInvalid format";
+        int slot = Integer.parseInt(pp[0]);
+
+        ItemStack current = f2(f2, slot);
+        if (current == null) return "§cNo item in that slot!";
+        if (!current.getType().toString().endsWith("SHULKER_BOX")) {
+            return "§cItem is not a shulker box!";
+        }
+
+        World world = Bukkit.getWorld("mcydatabase");
+        if (world == null) {
+            world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                    .environment(World.Environment.NORMAL)
+                    .generateStructures(false)
+                    .type(WorldType.FLAT));
+            Bukkit.getLogger().info("Created the mcydatabase world.");
+        }
+
+
+        String uuid = f2.getUniqueId().toString();
+        String coords = g2.getString(uuid);
+        int x, y, z;
+
+        if (coords != null) {
+            String[] parts = coords.split(" ");
+            x = Integer.parseInt(parts[0]);
+            y = Integer.parseInt(parts[1]);
+            z = Integer.parseInt(parts[2]);
+        } else {
+            int[] loc = f1(world, 9);
+            x = loc[0]; y = loc[1]; z = loc[2];
+            g2.set(uuid, x + " " + y + " " + z);
+            f9();
+        }
+
+        Location chestLoc = new Location(world, x, y, z);
+        if (chestLoc.getBlock().getType() != Material.CHEST) {
+            chestLoc.getBlock().setType(Material.CHEST);
+        }
+        Chest chest = (Chest) chestLoc.getBlock().getState();
+        chest.getInventory().clear();
+
+        if (current.getItemMeta() instanceof BlockStateMeta bsm
+                && bsm.getBlockState() instanceof ShulkerBox sb) {
+            chest.getInventory().setContents(sb.getInventory().getContents());
+        } else {
+            return "§cFailed to read shulker box contents!";
+        }
+
+        Material glassColor = f1(current.getType());
+        ItemStack placeholder = f1(current, glassColor);
+        f2.getInventory().setItem(slot, placeholder);
+
+        return x + " " + y + " " + z;
+    }
+
+    private @NotNull String gatso(@NotNull String f1) {
+        String[] args = f1.substring("leaderboards_".length()).split(",");
+
+
+        String action = args[0].toUpperCase();
+        String name = args[1];
+        String user = args.length > 2 ? args[2] : null;
+        int param = 0;
+        if (args.length > 3) {
+            try {
+                param = Integer.parseInt(args[3]);
+            } catch (NumberFormatException e) {
+                return "§cInvalid number";
+            }
+        }
+
+        switch (action) {
+            case "CLEAR" -> {
+                global1.remove(name);
+                return "§aCleared " + name;
+            }
+            case "INCREMENT" -> {
+                if (user == null) return "§cNo user";
+                f1(name, user, f1(name, user) + param);
+                return "§a+" + param;
+            }
+            case "DECREMENT" -> {
+                if (user == null) return "§cNo user";
+                f1(name, user, f1(name, user) - param);
+                return "§a-" + param;
+            }
+            case "SET" -> {
+                if (user == null) return "§cNo user";
+                f1(name, user, param);
+                return "§aSet to " + param;
+            }
+            case "GET" -> {
+                if (args.length < 4) return "§cNo index";
+                List<Map.Entry<String, Integer>> list = global1.get(name);
+                if (list == null || param < 0 || param >= list.size()) return "N/A";
+                return list.get(param).getKey() + ": " + list.get(param).getValue();
+            }
+        }
+        return "§cUnknown action";
+    }
+
+    private static @NotNull String xband(@NotNull String f1) {
+        String[] parts = f1.substring("xdesugun_001_".length()).split(",");
+        if (parts.length != 5) return "Invalid format";
+
+        String xD = parts[0];
+        int fun = Integer.parseInt(parts[1]);
+        int plankton = Integer.parseInt(parts[2]);
+        int spongebob = Integer.parseInt(parts[3]);
+        int patrick = Integer.parseInt(parts[4]);
+
+        World tazer = Bukkit.getWorld(xD);
+        if (tazer == null) return "Invalid world";
+
+        List<Material> oofica = List.of(
+                Material.COAL_ORE, Material.IRON_ORE, Material.COPPER_ORE, Material.GOLD_ORE,
+                Material.REDSTONE_ORE, Material.LAPIS_ORE, Material.DIAMOND_ORE, Material.EMERALD_ORE,
+                Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_COPPER_ORE,
+                Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
+                Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_EMERALD_ORE
+        );
+
+        List<Material> endereye = List.of(
+                Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
+        );
+
+        List<Material> what = switch (patrick) {
+            case 1 -> oofica;
+            case 2 -> endereye;
+            case 3 -> Stream.concat(oofica.stream(), endereye.stream()).toList();
+            default -> List.of();
+        };
+
+        if (what.isEmpty()) return "Invalid mode";
+
+        Random random = new Random();
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dy = -2; dy <= 2; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    Location loc = new Location(tazer, fun + dx, plankton + dy, spongebob + dz);
+                    Block block = loc.getBlock();
+                    if (block.getType() == Material.STONE || block.getType() == Material.DEEPSLATE) {
+                        block.setType(what.get(random.nextInt(what.size())));
+                    }
+                }
+            }
+        }
+
+        return "DesuGun Complete";
+    }
+
+    private boolean k(Player f2) {
+        if(SCore_Installed && g5 < 0) {
+            f2.sendMessage(g28);
+            return true;
+        }
+        g5--;
+        return false;
+    }
+
+    private @Nullable String ka(Player f2) {
+        World world = f2.getWorld();
+        Location eye = f2.getEyeLocation();
+        Vector direction = eye.getDirection().normalize();
+        Location furthestValid = null;
+
+        // Trace forward up to 10 blocks, skipping non-solid blocks
+        for (double i = 0.0; i <= 10.0; i += 0.1) {
+            Location check = eye.clone().add(direction.clone().multiply(i));
+            Block block = check.getBlock();
+
+            if (!fOne(block.getType())) break;
+
+            furthestValid = check.clone();
+        }
+
+        if(SCore_Installed && g5 < 0) {
+            f2.sendMessage(g28);
+            return null;
+        }
+        g5--;
+
+        // If we hit solid immediately, fall back to eye location
+        if (furthestValid == null) {
+            Location eyeLoc = f2.getEyeLocation();
+            return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
+        }
+
+        // Step backward from furthestValid toward player
+        for (double i = 0.0; i <= 10.0; i += 1.0) {
+            Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
+
+            // Reject if behind or below the eye location
+            Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
+            if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
+
+            // Construct a player-sized hitbox centered at the testLoc
+            double cx = testLoc.getX();
+            double cy = testLoc.getY();
+            double cz = testLoc.getZ();
+
+            BoundingBox hitbox = new BoundingBox(
+                    cx - 0.3, cy, cz - 0.3,
+                    cx + 0.3, cy + 1.8, cz + 0.3
+            );
+
+            boolean collides = false;
+            for (Block b : f1(hitbox, world)) {
+                if (b.getType().isSolid()) {
+                    collides = true;
+                    break;
+                }
+            }
+
+            if (!collides) {
+                return String.format("%.6f %.6f %.6f", cx, cy, cz);
+            }
+        }
+
+        // Fallback to eye location
+        Location fallback = f2.getEyeLocation();
+        return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+    }
+
+    private static @NotNull String getString(Player f2, @NotNull String f1) {
+        while (f1.contains("{") && f1.contains("}")) {
+            int start = f1.indexOf("{");
+            int end = f1.indexOf("}", start);
+
+            if (start < end) {
+                String nestedPlaceholder = f1.substring(start + 1, end);
+                String resolvedNested = PlaceholderAPI.setPlaceholders(f2, "%" + nestedPlaceholder + "%");
+
+                if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
+                    // Replace the nested placeholder with its resolved value
+                    f1 = f1.substring(0, start) + resolvedNested + f1.substring(end + 1);
+                } else {
+                    // If unresolved, replace with an empty string to avoid infinite loop
+                    f1 = f1.substring(0, start) + f1.substring(end + 1);
+                }
+            } else {
+                // Break out if no valid placeholder found
+                break;
+            }
+        }
+        return f1;
+    }
+
     private void f1(File f1, String f2) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
             writer.write(f2);
@@ -3552,21 +3534,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
-    private void f1(Player f1, Location f2) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
-        packet.getBlockPositionModifier().write(0, new BlockPosition(
-                f2.getBlockX(),
-                f2.getBlockY(),
-                f2.getBlockZ()
-        ));
-        packet.getFloat().write(0, 0F); // Angle (Yaw), optional
-
-        try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(f1, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
 
     private Vector f1(Entity f1, Entity f2, double f0) {
