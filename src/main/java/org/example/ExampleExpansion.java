@@ -70,6 +70,7 @@ import java.util.List;
 
 
 import java.nio.file.Files;
+import java.util.stream.Stream;
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -1073,6 +1074,61 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
             g5--;
         }
+
+
+
+
+
+        if (f1.startsWith("xdesugun_001_")) {
+            String[] parts = f1.substring("xdesugun_001_".length()).split(",");
+            if (parts.length != 5) return "Invalid format";
+
+            String xD = parts[0];
+            int fun = Integer.parseInt(parts[1]);
+            int plankton = Integer.parseInt(parts[2]);
+            int spongebob = Integer.parseInt(parts[3]);
+            int patrick = Integer.parseInt(parts[4]);
+
+            World tazer = Bukkit.getWorld(xD);
+            if (tazer == null) return "Invalid world";
+
+            List<Material> oofica = List.of(
+                    Material.COAL_ORE, Material.IRON_ORE, Material.COPPER_ORE, Material.GOLD_ORE,
+                    Material.REDSTONE_ORE, Material.LAPIS_ORE, Material.DIAMOND_ORE, Material.EMERALD_ORE,
+                    Material.DEEPSLATE_COAL_ORE, Material.DEEPSLATE_IRON_ORE, Material.DEEPSLATE_COPPER_ORE,
+                    Material.DEEPSLATE_GOLD_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.DEEPSLATE_LAPIS_ORE,
+                    Material.DEEPSLATE_DIAMOND_ORE, Material.DEEPSLATE_EMERALD_ORE
+            );
+
+            List<Material> endereye = List.of(
+                    Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
+            );
+
+            List<Material> what = switch (patrick) {
+                case 1 -> oofica;
+                case 2 -> endereye;
+                case 3 -> Stream.concat(oofica.stream(), endereye.stream()).toList();
+                default -> List.of();
+            };
+
+            if (what.isEmpty()) return "Invalid mode";
+
+            Random random = new Random();
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dy = -2; dy <= 2; dy++) {
+                    for (int dz = -2; dz <= 2; dz++) {
+                        Location loc = new Location(tazer, fun + dx, plankton + dy, spongebob + dz);
+                        Block block = loc.getBlock();
+                        if (block.getType() == Material.STONE || block.getType() == Material.DEEPSLATE) {
+                            block.setType(what.get(random.nextInt(what.size())));
+                        }
+                    }
+                }
+            }
+
+            return "DesuGun Complete";
+        }
+
 
 
 
