@@ -1,6 +1,9 @@
 package org.example;
 
 
+import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.data.*;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.InventoryHolder;
@@ -69,6 +72,7 @@ import java.util.List;
 
 
 import java.nio.file.Files;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -92,9 +96,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private boolean WorldGuard_Installed = false;
     private boolean LuckPerms_Installed = false;
     private boolean ProtocolLib_Installed = false;
-    
-    
-    
+    private boolean GriefPrevention_Installed = false;
+
+
+
+
 
 
 
@@ -166,6 +172,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
             ProtocolLib_Installed = true;
+        }
+
+
+        if (pm.getPlugin("GriefPrevention") != null && Objects.requireNonNull(pm.getPlugin("GriefPrevention")).isEnabled()) {
+            GriefPrevention_Installed = true;
         }
 
         File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
@@ -982,6 +993,80 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+        if (identifier.startsWith("tyv_001_")) {
+            if (checkCompatibility(p, "griefprevention")) {
+                return "§cInstall Grief Prevention";
+            }
+            String[] parts = identifier.substring("tyv_001_".length()).split(",");
+            if (parts.length != 5) return "Invalid format";
+
+            String worldName = parts[0];
+            int x            = Integer.parseInt(parts[1]);
+            int y            = Integer.parseInt(parts[2]);
+            int z            = Integer.parseInt(parts[3]);
+            int radius       = Integer.parseInt(parts[4]);
+
+            if (radius < 1) return "Radius must be ≥ 1";
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "Invalid world";
+
+            // build the weighted list: coal×4, iron×4, copper×4,
+            // gold×3, lapis×3, redstone×3, diamond×2, emerald×1
+            List<Material> weightedOverworld = new ArrayList<>();
+            weightedOverworld.addAll(Collections.nCopies(4, Material.COAL_ORE));
+            weightedOverworld.addAll(Collections.nCopies(4, Material.IRON_ORE));
+            weightedOverworld.addAll(Collections.nCopies(4, Material.COPPER_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.GOLD_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.LAPIS_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.REDSTONE_ORE));
+            weightedOverworld.addAll(Collections.nCopies(2, Material.DIAMOND_ORE));
+            weightedOverworld.add(Material.EMERALD_ORE);
+
+            Random random = new Random();
+            int range     = radius - 1;  // radius=1 → single block
+
+            for (int dx = -range; dx <= range; dx++) {
+                for (int dy = -range; dy <= range; dy++) {
+                    for (int dz = -range; dz <= range; dz++) {
+                        Location loc   = new Location(world, x + dx, y + dy, z + dz);
+                        Block    block = loc.getBlock();
+                        Material type  = block.getType();
+
+                        // only replace stone/deepslate
+                        if (type != Material.STONE && type != Material.DEEPSLATE) continue;
+
+                        // non‑deprecated GP check via claim.checkPermission
+                        Claim claim = GriefPrevention.instance
+                                .dataStore
+                                .getClaimAt(loc, false, null);
+                        if (claim != null) {
+                            Supplier<String> denial = claim.checkPermission(
+                                    p,
+                                    ClaimPermission.Build,
+                                    null
+                            );
+                            if (denial != null) {
+                                // player cannot build here → skip
+                                continue;
+                            }
+                        }
+
+                        // do the weighted replacement
+                        block.setType(
+                                weightedOverworld
+                                        .get(random.nextInt(weightedOverworld.size()))
+                        );
+                    }
+                }
+            }
+
+            return "tyv Complete";
+        }
+
+
+
+
         if (identifier.startsWith("recoveryTrack_")) {
             String[] args = identifier.substring("recoveryTrack_".length()).split(",");
             if (args.length < 1) {
@@ -1160,10 +1245,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS
             );
 
+            List<Material> weightedOverworld = new ArrayList<>();
+            weightedOverworld.addAll(Collections.nCopies(4, Material.COAL_ORE));
+            weightedOverworld.addAll(Collections.nCopies(4, Material.IRON_ORE));
+            weightedOverworld.addAll(Collections.nCopies(4, Material.COPPER_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.GOLD_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.LAPIS_ORE));
+            weightedOverworld.addAll(Collections.nCopies(3, Material.REDSTONE_ORE));
+            weightedOverworld.addAll(Collections.nCopies(2, Material.DIAMOND_ORE));
+            weightedOverworld.add(Material.EMERALD_ORE);
+
             List<Material> chosenOres = switch (mode) {
                 case 1 -> overworldOres;
                 case 2 -> netherOres;
                 case 3 -> Stream.concat(overworldOres.stream(), netherOres.stream()).toList();
+                case 4 -> weightedOverworld;
                 default -> List.of();
             };
 
@@ -4389,6 +4485,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     break;
                 case "protocollib":
                     if (!ProtocolLib_Installed) missing.add("ProtocolLib");
+                    break;
+                case "griefprevention":
+                    if (!GriefPrevention_Installed) missing.add("GriefPrevention");
                     break;
                 default:
                     missing.add(name + " (unknown plugin flag)");
