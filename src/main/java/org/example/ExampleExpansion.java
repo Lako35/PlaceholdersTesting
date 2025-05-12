@@ -2,11 +2,13 @@ package org.example;
 
 
 import org.bukkit.block.data.*;
+import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,9 +43,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -978,6 +977,162 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
+
+
+
+
+
+        if (identifier.startsWith("recoveryTrack_")) {
+            String[] args = identifier.substring("recoveryTrack_".length()).split(",");
+            if (args.length < 1) {
+                return "§cInvalid args";
+            }
+
+            // Require a recovery compass in hand
+            ItemStack held = p.getInventory().getItemInMainHand();
+            if (held.getType() != Material.COMPASS) {
+                return "§cMust hold a compass";
+            }
+
+            Location target = null;
+            String result   = "";
+            String name     = "";
+
+            // 1) Explicit entity UUID
+            if (args[0].equalsIgnoreCase("entity") && args.length >= 2) {
+                try {
+                    Entity ent = Bukkit.getEntity(UUID.fromString(args[1]));
+                    if (ent != null) {
+                        target = ent.getLocation();
+                        name   = ent.getCustomName() != null
+                                ? ent.getCustomName()
+                                : ent.getType().name();
+                        result = String.format(
+                                "§b%s &7| §d%s &7| §c%d &7| §6%d &7| §e%d",
+                                name,
+                                target.getWorld().getName(),
+                                target.getBlockX(),
+                                target.getBlockY(),
+                                target.getBlockZ()
+                        );
+                    }
+                } catch (Exception ignored) {}
+            }
+            // 2) Block coords
+            else if (args[0].equalsIgnoreCase("block") && args.length >= 4) {
+                World world = Bukkit.getWorld(args[1]);
+                if (world != null) {
+                    try {
+                        int x = Integer.parseInt(args[2]);
+                        int z = Integer.parseInt(args[3]);
+                        int y = world.getHighestBlockYAt(x, z);
+                        target = new Location(world, x + 0.5, y, z + 0.5);
+                        result = String.format(
+                                "§aBlock @ %s:%d,%d,%d",
+                                world.getName(), x, y, z
+                        );
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
+            // 3) Nearest player
+            else if (args[0].equalsIgnoreCase("nearestPlayer")) {
+                double bestDist = Double.MAX_VALUE;
+                Player closest  = null;
+                for (Player other : p.getWorld().getPlayers()) {
+                    if (other.equals(p)) continue;
+                    double dist = other.getLocation().distanceSquared(p.getLocation());
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        closest  = other;
+                    }
+                }
+                if (closest != null) {
+                    target = closest.getLocation();
+                    name   = closest.getName();
+                    result = String.format(
+                            "§b%s &7| §d%s &7| §c%d &7| §6%d &7| §e%d",
+                            name,
+                            target.getWorld().getName(),
+                            target.getBlockX(),
+                            target.getBlockY(),
+                            target.getBlockZ()
+                    );
+                }
+            }
+            // 4) Nearest non‑teammate
+            else if (args[0].equalsIgnoreCase("nearestNonTeammate")) {
+                Scoreboard sb      = Bukkit.getScoreboardManager().getMainScoreboard();
+                Team        selfTm = sb.getEntryTeam(p.getName());
+                double      bestDist = Double.MAX_VALUE;
+                Player      closest  = null;
+
+                for (Player other : p.getWorld().getPlayers()) {
+                    if (other.equals(p)) continue;
+                    Team otherTm = sb.getEntryTeam(other.getName());
+                    if (selfTm != null && selfTm.equals(otherTm)) continue;
+                    double dist = other.getLocation().distanceSquared(p.getLocation());
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        closest  = other;
+                    }
+                }
+                if (closest != null) {
+                    target = closest.getLocation();
+                    name   = closest.getName();
+                    result = String.format(
+                            "§b%s &7| §d%s &7| §c%d &7| §6%d &7| §e%d",
+                            name,
+                            target.getWorld().getName(),
+                            target.getBlockX(),
+                            target.getBlockY(),
+                            target.getBlockZ()
+                    );
+                }
+            }
+            // 5) Nearest entity of given type
+            else if (args[0].equalsIgnoreCase("nearestEntity") && args.length >= 2) {
+                try {
+                    EntityType type     = EntityType.valueOf(args[1].toUpperCase());
+                    double     bestDist = Double.MAX_VALUE;
+                    Entity     closest  = null;
+
+                    for (Entity e : p.getWorld().getEntities()) {
+                        if (e.getType() != type || e.equals(p)) continue;
+                        double dist = e.getLocation().distanceSquared(p.getLocation());
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            closest  = e;
+                        }
+                    }
+                    if (closest != null) {
+                        target = closest.getLocation();
+                        name   = (closest.getCustomName() != null
+                                ? closest.getCustomName()
+                                : closest.getType().name());
+                        result = String.format(
+                                "§b%s &7| §d%s &7| §c%d &7| §6%d &7| §e%d",
+                                name,
+                                target.getWorld().getName(),
+                                target.getBlockX(),
+                                target.getBlockY(),
+                                target.getBlockZ()
+                        );
+                    }
+                } catch (IllegalArgumentException ignored) {}
+            }
+
+            // If we still have no target, fail
+            if (target == null) {
+                return "§c§lFAILED TO TRACK";
+            }
+
+            // Server‑side compass override:
+            // this makes *any* compass (including a recovery compass) point at your target.
+            p.setCompassTarget(target);
+
+            return result;
+        }
+
 
 
         if (identifier.startsWith("xdesugun_001_")) {
