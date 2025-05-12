@@ -79,58 +79,57 @@ import java.nio.file.Files;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
-    private final Map<String, List<Map.Entry<String, Integer>>> leaderboards = new HashMap<>();
+    private final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
 
 
-    private final File shulkerDatabaseFile;
-    private final YamlConfiguration shulkerDatabaseConfig;
+    private final File g1;
+    private final YamlConfiguration g2;
 
-    private final Map<Location, BukkitTask> jesus2Timers = new HashMap<>();
-    private final Map<Location, Integer> shulkerEntityIds = new HashMap<>();
+    private final Map<Location, BukkitTask> g3 = new HashMap<>();
+    private final Map<Location, Integer> g4 = new HashMap<>();
 
     private boolean WorldEdit_Installed = false;
     private boolean WorldGuard_Installed = false;
     private boolean LuckPerms_Installed = false;
     private boolean ProtocolLib_Installed = false;
-    
-    
-    
+    private boolean SCore_Installed = false;
+    private int g5;
 
 
 
 
-    private static final boolean viewChestDebugLogging = false;
 
 
-    private final Map<UUID, BukkitTask> invisTimers = new HashMap<>();
-
-    private static final Map<String, CachedParticleData> memoryCache = new HashMap<>();
-    private static final long EXPIRY_TIME = 1000 * 60 * 60; // 1 hour
-    private static final File PARTICLE_DIR = new File("plugins/Archistructures/particles");
+    private static final boolean g6 = false;
 
 
-    private final boolean trialVersion;
-    private int trialNumber;
-    private final Map<Location, BukkitTask> visualBreakTimers = new HashMap<>();
+    private final Map<UUID, BukkitTask> g7 = new HashMap<>();
 
-    private final File entityStorageDir;
-    private final File backpackDir;
-    private final File databaseFile;
-    private final File doubleDatabaseFile;
-    private final File viewOnlyChestDatabaseFile;
-    private final YamlConfiguration doubleDatabaseConfig;
-    private final YamlConfiguration databaseConfig;
-    private final Map<Location, BlockData> trackedBlockData = new HashMap<>();
-    private final YamlConfiguration viewOnlyChestConfig;
+    private static final Map<String, ffs> g8 = new HashMap<>();
+    private static final long g9 = 1000 * 60 * 60; // 1 hour
+    private static final File g10 = new File("plugins/Archistructures/particles");
 
 
+    private final Map<Location, BukkitTask> g11 = new HashMap<>();
 
-    private final File ftLeaderboardFile;
-    private final Map<UUID, Integer> ftLeaderboard;
-    private final LuckPerms luckPerms;
+    private final File g12;
+    private final File g13;
+    private final File g14;
+    private final File g15;
+    private final File g16;
+    private final YamlConfiguration g17;
+    private final YamlConfiguration g18;
+    private final Map<Location, BlockData> g19 = new HashMap<>();
+    private final YamlConfiguration g20;
 
-    private final Map<UUID, Set<Location>> trackedBlocks = new HashMap<>();
-    private final Set<Material> oresAndImportantBlocks = Set.of(
+
+
+    private final File g21;
+    private final Map<UUID, Integer> g22;
+    private final LuckPerms g23;
+
+    private final Map<UUID, Set<Location>> g24 = new HashMap<>();
+    private final Set<Material> g25 = Set.of(
             Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
             Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
             Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
@@ -140,15 +139,39 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
             Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
             Material.ANCIENT_DEBRIS);
-    private final Map<Location, BukkitTask> jesusTimers = new HashMap<>();
+    private final Map<Location, BukkitTask> g26 = new HashMap<>();
+    private final char[] g27 = new char[] {
+            0x00A7, 0x0063, 0x00A7, 0x006C, 0x0059, 0x006F, 0x0075, 0x0020,
+            0x0068, 0x0061, 0x0076, 0x0065, 0x0020, 0x0065, 0x0078, 0x0063,
+            0x0065, 0x0065, 0x0064, 0x0065, 0x0064, 0x0020, 0x0074, 0x0068,
+            0x0065, 0x0020, 0x006C, 0x0069, 0x006D, 0x0069, 0x0074, 0x0020,
+            0x006F, 0x0066, 0x0020, 0x0074, 0x0068, 0x0065, 0x0020, 0x0066,
+            0x0072, 0x0065, 0x0065, 0x0020, 0x0074, 0x0072, 0x0069, 0x0061,
+            0x006C, 0x002E, 0x0020, 0x0043, 0x006F, 0x006E, 0x0073, 0x0069,
+            0x0064, 0x0065, 0x0072, 0x0020, 0x0070, 0x0075, 0x0072, 0x0063,
+            0x0068, 0x0061, 0x0073, 0x0069, 0x006E, 0x0067, 0x0020, 0x0074,
+            0x0068, 0x0065, 0x0020, 0x0066, 0x0075, 0x006C, 0x006C, 0x0020,
+            0x0070, 0x0061, 0x0063, 0x006B, 0x0020, 0x0066, 0x0072, 0x006F,
+            0x006D, 0x0020, 0x005A, 0x0065, 0x0073, 0x0074, 0x0079, 0x0042,
+            0x0075, 0x0066, 0x0066, 0x0061, 0x006C, 0x006F, 0x0020, 0x006F,
+            0x0072, 0x0020, 0x0064, 0x006F, 0x0020, 0x002F, 0x0070, 0x0061,
+            0x0070, 0x0069, 0x0020, 0x0072, 0x0065, 0x006C, 0x006F, 0x0061,
+            0x0064, 0x0020, 0x0074, 0x006F, 0x0020, 0x0073, 0x0074, 0x0069,
+            0x0063, 0x006B, 0x0020, 0x0077, 0x0069, 0x0074, 0x0068, 0x0020,
+            0x0074, 0x0068, 0x0065, 0x0020, 0x0074, 0x0072, 0x0069, 0x0061,
+            0x006C, 0x0020, 0x0076, 0x0065, 0x0072, 0x0073, 0x0069, 0x006F,
+            0x006E
+    };
+
+
+    private String g28;
 
 
     public ExampleExpansion() {
-        trialVersion = false;
-        trialNumber = 1000;
 
         
 
+        
 
         PluginManager pm = Bukkit.getPluginManager();
 
@@ -166,73 +189,79 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
             ProtocolLib_Installed = true;
+            SCore_Installed = true;
+            g5 = 1000;
+        } else {
+            
         }
+        
+        
 
         File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
         if (!viewOnlyChestDir.exists()) {
             viewOnlyChestDir.mkdirs();
         }
 
-        if (!PARTICLE_DIR.exists()) PARTICLE_DIR.mkdirs();
+        if (!g10.exists()) g10.mkdirs();
 
 
-        this.viewOnlyChestDatabaseFile = new File(viewOnlyChestDir, "viewonlychests.yml");
-        if (!viewOnlyChestDatabaseFile.exists()) {
+        this.g16 = new File(viewOnlyChestDir, "viewonlychests.yml");
+        if (!g16.exists()) {
             try {
-                viewOnlyChestDatabaseFile.createNewFile();
+                g16.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        this.viewOnlyChestConfig = YamlConfiguration.loadConfiguration(viewOnlyChestDatabaseFile);
-        this.backpackDir = new File("plugins/Archistructures/backpacks/");
-        if (!backpackDir.exists()) {
-            backpackDir.mkdirs();
+        this.g20 = YamlConfiguration.loadConfiguration(g16);
+        this.g13 = new File("plugins/Archistructures/backpacks/");
+        if (!g13.exists()) {
+            g13.mkdirs();
         }
-        this.databaseFile = new File(backpackDir, "database.yml");
-        if (!databaseFile.exists()) {
+        this.g14 = new File(g13, "database.yml");
+        if (!g14.exists()) {
             try {
-                databaseFile.createNewFile();
+                g14.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        this.databaseConfig = YamlConfiguration.loadConfiguration(databaseFile);
+        this.g18 = YamlConfiguration.loadConfiguration(g14);
 
         // Double chest database
-        this.doubleDatabaseFile = new File(backpackDir, "database2.yml");
-        if (!doubleDatabaseFile.exists()) {
+        this.g15 = new File(g13, "database2.yml");
+        if (!g15.exists()) {
             try {
-                doubleDatabaseFile.createNewFile();
+                g15.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         
         
+        g28 = new String(g27);
+        this.g17 = YamlConfiguration.loadConfiguration(g15);
         
-        this.doubleDatabaseConfig = YamlConfiguration.loadConfiguration(doubleDatabaseFile);
-        
-        entityStorageDir = new File("plugins/Archistructures/saved-entities/");
-        if (!entityStorageDir.exists()) {
-            entityStorageDir.mkdirs();
+        g12 = new File("plugins/Archistructures/saved-entities/");
+        if (!g12.exists()) {
+            g12.mkdirs();
         }
 
-        ftLeaderboardFile = new File("plugins/Archistructures/FTLeaderboard.txt");
-        ftLeaderboard = new LinkedHashMap<>();
-        loadFTLeaderboard();
-        this.luckPerms = LuckPermsProvider.get();
-        luckPerms.getUserManager();
+        g21 = new File("plugins/Archistructures/FTLeaderboard.txt");
+        g22 = new LinkedHashMap<>();
+        g23();
+        this.g23 = LuckPermsProvider.get();
+        g23.getUserManager();
 
 
         File shulkerDir = new File("plugins/Archistructures/shulkers/");
         if (!shulkerDir.exists()) shulkerDir.mkdirs();
-        this.shulkerDatabaseFile = new File(shulkerDir, "shulkers.yml");
-        if (!shulkerDatabaseFile.exists()) {
-            try { shulkerDatabaseFile.createNewFile(); }
+        this.g1 = new File(shulkerDir, "shulkers.yml");
+        if (!g1.exists()) {
+            try { g1.createNewFile(); }
             catch(IOException e){ e.printStackTrace(); }
         }
-        this.shulkerDatabaseConfig = YamlConfiguration.loadConfiguration(shulkerDatabaseFile);
+        this.g2 = YamlConfiguration.loadConfiguration(g1);
 
 
     }
@@ -287,19 +316,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return null;
     }
 
-    private void incrementFTScore(UUID playerUUID) {
-        if (!ftLeaderboard.containsKey(playerUUID)) {
-            ftLeaderboard.put(playerUUID, 1); // First-time entry
+    private void f1(UUID x) {
+        if (!g22.containsKey(x)) {
+            g22.put(x, 1); // First-time entry
         } else {
-            ftLeaderboard.put(playerUUID, ftLeaderboard.get(playerUUID) + 1); // Increment existing score
+            g22.put(x, g22.get(x) + 1); // Increment existing score
         }
-        saveFTLeaderboard();
+        f1();
     }
 
 
-    private void saveFTLeaderboard() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ftLeaderboardFile))) {
-            for (Map.Entry<UUID, Integer> entry : ftLeaderboard.entrySet()) {
+    private void f1() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(g21))) {
+            for (Map.Entry<UUID, Integer> entry : g22.entrySet()) {
                 writer.write(entry.getKey() + ":" + entry.getValue());
                 writer.newLine();
             }
@@ -309,9 +338,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private String processBook(Player player) {
+    private String f1(Player f1) {
         // Ensure player is holding a written book
-        ItemStack item = player.getInventory().getItemInMainHand();
+        ItemStack item = f1.getInventory().getItemInMainHand();
         if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
             return ChatColor.RED + "You must hold a writable book!";
         }
@@ -392,21 +421,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
      */
-    private void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
+    private void f1(User f1, List<String> f2) {
         Set<String> totalPerms = new HashSet<>();
         String basePath = "plugins/ExecutableItems/items/";
 
-        for (String itemFolderPath : itemFolderPermissions) {
+        for (String itemFolderPath : f2) {
             File folder = new File(basePath + itemFolderPath);
             if (folder.exists() && folder.isDirectory()) {
-                findYamlFiles(folder, totalPerms);
+                f1(folder, totalPerms);
             }
         }
 
         // Assign new item permissions
         totalPerms.forEach(itemName -> {
             Node node = Node.builder("ei.item." + itemName).value(true).build();
-            user.data().add(node);
+            f1.data().add(node);
         });
     }
 
@@ -415,15 +444,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Recursively finds .yml files, extracts names (excluding .yml), and adds them to totalPerms.
      */
-    private void findYamlFiles(File directory, Set<String> totalPerms) {
-        File[] files = directory.listFiles();
+    private void f1(File f1, Set<String> f2) {
+        File[] files = f1.listFiles();
         if (files == null) return;
 
         for (File file : files) {
             if (file.isDirectory()) {
-                findYamlFiles(file, totalPerms);
+                f1(file, f2);
             } else if (file.getName().endsWith(".yml")) {
-                totalPerms.add(file.getName().replace(".yml", ""));
+                f2.add(file.getName().replace(".yml", ""));
             }
         }
     }
@@ -432,26 +461,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Get the next available coordinates in a chunk-efficient manner
      */
-    private int[] getNextAvailableCoordinates(World world) {
+    private int[] f1(World f1) {
         int chunkX = 5;  // Fixed X-coordinate (do not change)
-        int chunkZ = databaseConfig.getInt("last_chunk_z", 0);
+        int chunkZ = g18.getInt("last_chunk_z", 0);
         int xIndex = 0;
         int zIndex = 0;
-        int yIndex = databaseConfig.getInt("last_y", world.getMinHeight());
-        int chunkHeight = world.getMaxHeight(); // Typically 256
-        int chunkMin = world.getMinHeight();    // Typically -64
+        int yIndex = g18.getInt("last_y", f1.getMinHeight());
+        int chunkHeight = f1.getMaxHeight(); // Typically 256
+        int chunkMin = f1.getMinHeight();    // Typically -64
 
         while (true) {
             int x = (chunkX * 16) + xIndex;  // x-coordinate within the chunk (0-15)
             int z = (chunkZ * 16) + zIndex;  // z-coordinate within the chunk (0-15)
             int y = yIndex;
 
-            Location loc = new Location(world, x, y, z);
+            Location loc = new Location(f1, x, y, z);
             if (loc.getBlock().getType() == Material.AIR) {
                 // Save the new chunk coordinates
-                databaseConfig.set("last_chunk_z", chunkZ);
-                databaseConfig.set("last_y", yIndex);
-                saveDatabaseConfig();
+                g18.set("last_chunk_z", chunkZ);
+                g18.set("last_y", yIndex);
+                f2();
                 return new int[]{x, y, z};
             }
 
@@ -475,9 +504,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the database configuration
      */
-    private void saveDatabaseConfig() {
+    private void f2() {
         try {
-            databaseConfig.save(databaseFile);
+            g18.save(g14);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -487,9 +516,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the database configuration for double chests
      */
-    private void saveDoubleDatabaseConfig() {
+    private void f3() {
         try {
-            doubleDatabaseConfig.save(doubleDatabaseFile);
+            g17.save(g15);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -498,11 +527,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the contents of the backpack chest
      */
-    private void saveChestContents(String chestID, ItemStack[] contents) {
-        File file = new File(backpackDir, chestID + ".yml");
+    private void f1(String f1, ItemStack[] f2) {
+        File file = new File(g13, f1 + ".yml");
         YamlConfiguration config = new YamlConfiguration();
-        for (int i = 0; i < contents.length; i++) {
-            config.set("slot" + i, contents[i]);
+        for (int i = 0; i < f2.length; i++) {
+            config.set("slot" + i, f2[i]);
         }
         try {
             config.save(file);
@@ -514,8 +543,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Load the contents of the backpack chest
      */
-    private ItemStack[] loadChestContents(String chestID) {
-        File file = new File(backpackDir, chestID + ".yml");
+    private ItemStack[] f1(String f1) {
+        File file = new File(g13, f1 + ".yml");
         if (!file.exists()) return null;
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         ItemStack[] contents = new ItemStack[27];
@@ -529,29 +558,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Get the next available coordinates in a chunk-efficient manner for double chests
      */
-    private int[] getNextAvailableCoordinatesForDoubleChest(World world) {
+    private int[] f2(World f1) {
         int chunkX = 6;  // Fixed X-coordinate (do not change)
-        int chunkZ = databaseConfig.getInt("last_chunk_z", 0);
+        int chunkZ = g18.getInt("last_chunk_z", 0);
         int xIndex = 0;
         int zIndex = 0;
-        int yIndex = databaseConfig.getInt("last_y", world.getMinHeight());
-        int chunkHeight = world.getMaxHeight(); // Typically 256
-        int chunkMin = world.getMinHeight();    // Typically -64
+        int yIndex = g18.getInt("last_y", f1.getMinHeight());
+        int chunkHeight = f1.getMaxHeight(); // Typically 256
+        int chunkMin = f1.getMinHeight();    // Typically -64
 
         while (true) {
             int x = (chunkX * 16) + xIndex;  // Absolute X-coordinate
             int z = (chunkZ * 16) + zIndex;  // Absolute Z-coordinate
             int y = yIndex;
 
-            Location loc1 = new Location(world, x, y, z);
-            Location loc2 = new Location(world, x + 1, y, z);  // Adjacent block for double chest
+            Location loc1 = new Location(f1, x, y, z);
+            Location loc2 = new Location(f1, x + 1, y, z);  // Adjacent block for double chest
 
             // Check if both locations are available and form a valid double chest
             if (loc1.getBlock().getType() == Material.AIR && loc2.getBlock().getType() == Material.AIR) {
                 // Save the new chunk coordinates
-                databaseConfig.set("last_chunk_z", chunkZ);
-                databaseConfig.set("last_y", yIndex);
-                saveDatabaseConfig();
+                g18.set("last_chunk_z", chunkZ);
+                g18.set("last_y", yIndex);
+                f2();
                 return new int[]{x, y, z};
             }
 
@@ -576,17 +605,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the contents of the double chest
      */
-    private void saveDoubleChestContents(String chestID, ItemStack[] contents) {
-        File file = new File(backpackDir, chestID + ".yml");
+    private void f2(String f1, ItemStack[] f2) {
+        File file = new File(g13, f1 + ".yml");
         YamlConfiguration config = new YamlConfiguration();
-        for (int i = 0; i < contents.length; i++) {
-            config.set("slot" + i, contents[i]);
+        for (int i = 0; i < f2.length; i++) {
+            config.set("slot" + i, f2[i]);
         }
         try {
             config.save(file);
-            Bukkit.getLogger().info("Double chest contents saved for chest ID: " + chestID);
+            Bukkit.getLogger().info("Double chest contents saved for chest ID: " + f1);
         } catch (IOException e) {
-            Bukkit.getLogger().severe("Failed to save double chest contents for chest ID: " + chestID);
+            Bukkit.getLogger().severe("Failed to save double chest contents for chest ID: " + f1);
             e.printStackTrace();
         }
     }
@@ -594,8 +623,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Load the contents of the double chest
      */
-    private ItemStack[] loadDoubleChestContents(String chestID) {
-        File file = new File(backpackDir, chestID + ".yml");
+    private ItemStack[] f(String f) {
+        File file = new File(g13, f + ".yml");
         if (!file.exists()) return null;
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
         ItemStack[] contents = new ItemStack[54]; // Double chest size
@@ -608,19 +637,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Convert all blocks within the radius to falling entities while preserving block states and orientations
      */
-    private void convertBlocksToFallingEntities(World world, Location center, int radius) {
-        int cx = center.getBlockX();
-        int cy = center.getBlockY();
-        int cz = center.getBlockZ();
+    private void f1(World f1, Location f, int f2) {
+        int cx = f.getBlockX();
+        int cy = f.getBlockY();
+        int cz = f.getBlockZ();
 
-        for (int x = cx - radius; x <= cx + radius; x++) {
-            for (int y = cy - radius; y <= cy + radius; y++) {
-                for (int z = cz - radius; z <= cz + radius; z++) {
-                    Location loc = new Location(world, x, y, z);
-                    double distance = loc.distance(center);
+        for (int x = cx - f2; x <= cx + f2; x++) {
+            for (int y = cy - f2; y <= cy + f2; y++) {
+                for (int z = cz - f2; z <= cz + f2; z++) {
+                    Location loc = new Location(f1, x, y, z);
+                    double distance = loc.distance(f);
 
                     // Check if within radius
-                    if (distance <= radius) {
+                    if (distance <= f2) {
                         Block block = loc.getBlock();
                         if (block.getType() != Material.AIR) {
                             try {
@@ -628,7 +657,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 BlockData blockData = block.getBlockData();
 
                                 // Spawn the falling block with the correct data and state
-                                FallingBlock fallingBlock = world.spawnFallingBlock(loc, blockData);
+                                FallingBlock fallingBlock = f1.spawnFallingBlock(loc, blockData);
                                 fallingBlock.setDropItem(true); // Prevent block drops
 
                                 // Set fall damage immunity for specific block types (like Anvils)
@@ -653,22 +682,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Attract entities towards the black hole center
      */
-    private void attractEntities(World world, Location center, int radius) {
+    private void f2(World f1, Location f2, int f3) {
 
 
-        for (Entity entity : world.getNearbyEntities(center, radius, radius, radius)) {
+        for (Entity entity : f1.getNearbyEntities(f2, f3, f3, f3)) {
             if (entity.getCustomName() != null && entity.getCustomName().equals("BlackHolev2")) {
                 continue; // Skip entities named "BlackHolev2"
             }
 
-            double distance = entity.getLocation().distance(center);
+            double distance = entity.getLocation().distance(f2);
 
-            if (distance > 0 && distance <= radius) {
+            if (distance > 0 && distance <= f3) {
                 // Calculate the attraction strength (1 to 4) with linear falloff
-                double strength = 4 - 3 * (distance / radius);
+                double strength = 4 - 3 * (distance / f3);
 
                 // Calculate the vector towards the center
-                Vector direction = center.toVector().subtract(entity.getLocation().toVector()).normalize();
+                Vector direction = f2.toVector().subtract(entity.getLocation().toVector()).normalize();
                 Vector velocity = direction.multiply(strength);
 
                 // Apply the velocity to the entity
@@ -695,10 +724,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * <p>
      * Debug messages are sent to the player.
      */
-    private ItemStack modifyItemForView(ItemStack item) {
+    private ItemStack f1(ItemStack f1) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", item);
+        config.set("slot0", f1);
         String yaml = config.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
@@ -745,7 +774,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         ItemStack newItem = config.getItemStack("slot0");
         if (newItem == null) {
-            newItem = item;
+            newItem = f1;
         } 
 
         return newItem;
@@ -754,7 +783,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack getDefaultGlassPane() {
+    private ItemStack f0() {
         YamlConfiguration config = new YamlConfiguration();
 
 
@@ -785,9 +814,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private String findNextInChain(String chainType, int radius, List<UUID> uuids) {
+    private String f1(String f1, int f2, List<UUID> f3) {
         // Step 1: Get the last UUID from the list
-        UUID lastUUID = uuids.getLast();
+        UUID lastUUID = f3.getLast();
         Entity lastEntity = Bukkit.getEntity(lastUUID);
 
         // If the last entity is null, return '?'
@@ -802,9 +831,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         try {
             // Step 2: Find nearby entities based on chain type
-            for (Entity entity : Objects.requireNonNull(lastLocation.getWorld()).getNearbyEntities(lastLocation, radius, radius, radius)) {
+            for (Entity entity : Objects.requireNonNull(lastLocation.getWorld()).getNearbyEntities(lastLocation, f2, f2, f2)) {
                 // Skip entities already in the chain
-                if (uuids.contains(entity.getUniqueId())) {
+                if (f3.contains(entity.getUniqueId())) {
                     continue;
                 }
 
@@ -814,7 +843,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 // Apply chain type filtering
-                switch (chainType.toUpperCase()) {
+                switch (f1.toUpperCase()) {
                     case "ENTITY":
                         if (entity instanceof Player) continue;
 
@@ -846,82 +875,82 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Displays a particle cube at the specified location.
      */
-    private void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
-        double halfWidth = width / 2.0;
-        Particle particle = Particle.valueOf(particleType.toUpperCase());
+    private void f1(World f1, double f2, double f, double f0, String xd, double a, boolean b, int c, Player d) {
+        double halfWidth = a / 2.0;
+        Particle particle = Particle.valueOf(xd.toUpperCase());
 
         // Calculate the 8 corners of the cube
         Location[] corners = new Location[8];
-        corners[0] = new Location(world, x - halfWidth, y - halfWidth, z - halfWidth); // Bottom NW
-        corners[1] = new Location(world, x + halfWidth, y - halfWidth, z - halfWidth); // Bottom NE
-        corners[2] = new Location(world, x - halfWidth, y - halfWidth, z + halfWidth); // Bottom SW
-        corners[3] = new Location(world, x + halfWidth, y - halfWidth, z + halfWidth); // Bottom SE
-        corners[4] = new Location(world, x - halfWidth, y + halfWidth, z - halfWidth); // Top NW
-        corners[5] = new Location(world, x + halfWidth, y + halfWidth, z - halfWidth); // Top NE
-        corners[6] = new Location(world, x - halfWidth, y + halfWidth, z + halfWidth); // Top SW
-        corners[7] = new Location(world, x + halfWidth, y + halfWidth, z + halfWidth); // Top SE
+        corners[0] = new Location(f1, f2 - halfWidth, f - halfWidth, f0 - halfWidth); // Bottom NW
+        corners[1] = new Location(f1, f2 + halfWidth, f - halfWidth, f0 - halfWidth); // Bottom NE
+        corners[2] = new Location(f1, f2 - halfWidth, f - halfWidth, f0 + halfWidth); // Bottom SW
+        corners[3] = new Location(f1, f2 + halfWidth, f - halfWidth, f0 + halfWidth); // Bottom SE
+        corners[4] = new Location(f1, f2 - halfWidth, f + halfWidth, f0 - halfWidth); // Top NW
+        corners[5] = new Location(f1, f2 + halfWidth, f + halfWidth, f0 - halfWidth); // Top NE
+        corners[6] = new Location(f1, f2 - halfWidth, f + halfWidth, f0 + halfWidth); // Top SW
+        corners[7] = new Location(f1, f2 + halfWidth, f + halfWidth, f0 + halfWidth); // Top SE
 
         // Render cube edges
-        displayLine(p, particle, corners[0], corners[1], density, force); // Bottom North
-        displayLine(p, particle, corners[0], corners[2], density, force); // Bottom West
-        displayLine(p, particle, corners[1], corners[3], density, force); // Bottom East
-        displayLine(p, particle, corners[2], corners[3], density, force); // Bottom South
-        displayLine(p, particle, corners[4], corners[5], density, force); // Top North
-        displayLine(p, particle, corners[4], corners[6], density, force); // Top West
-        displayLine(p, particle, corners[5], corners[7], density, force); // Top East
-        displayLine(p, particle, corners[6], corners[7], density, force); // Top South
-        displayLine(p, particle, corners[0], corners[4], density, force); // Vertical NW
-        displayLine(p, particle, corners[1], corners[5], density, force); // Vertical NE
-        displayLine(p, particle, corners[2], corners[6], density, force); // Vertical SW
-        displayLine(p, particle, corners[3], corners[7], density, force); // Vertical SE
+        f1(d, particle, corners[0], corners[1], c, b); // Bottom North
+        f1(d, particle, corners[0], corners[2], c, b); // Bottom West
+        f1(d, particle, corners[1], corners[3], c, b); // Bottom East
+        f1(d, particle, corners[2], corners[3], c, b); // Bottom South
+        f1(d, particle, corners[4], corners[5], c, b); // Top North
+        f1(d, particle, corners[4], corners[6], c, b); // Top West
+        f1(d, particle, corners[5], corners[7], c, b); // Top East
+        f1(d, particle, corners[6], corners[7], c, b); // Top South
+        f1(d, particle, corners[0], corners[4], c, b); // Vertical NW
+        f1(d, particle, corners[1], corners[5], c, b); // Vertical NE
+        f1(d, particle, corners[2], corners[6], c, b); // Vertical SW
+        f1(d, particle, corners[3], corners[7], c, b); // Vertical SE
 
         // Render cube faces
-        renderFace(p, particle, corners[0], corners[1], corners[4], corners[5], density, force); // North Face
-        renderFace(p, particle, corners[2], corners[3], corners[6], corners[7], density, force); // South Face
-        renderFace(p, particle, corners[0], corners[2], corners[4], corners[6], density, force); // West Face
-        renderFace(p, particle, corners[1], corners[3], corners[5], corners[7], density, force); // East Face
-        renderFace(p, particle, corners[4], corners[5], corners[6], corners[7], density, force); // Top Face
-        renderFace(p, particle, corners[0], corners[1], corners[2], corners[3], density, force); // Bottom Face
+        f1(d, particle, corners[0], corners[1], corners[4], corners[5], c, b); // North Face
+        f1(d, particle, corners[2], corners[3], corners[6], corners[7], c, b); // South Face
+        f1(d, particle, corners[0], corners[2], corners[4], corners[6], c, b); // West Face
+        f1(d, particle, corners[1], corners[3], corners[5], corners[7], c, b); // East Face
+        f1(d, particle, corners[4], corners[5], corners[6], corners[7], c, b); // Top Face
+        f1(d, particle, corners[0], corners[1], corners[2], corners[3], c, b); // Bottom Face
     }
 
-    private void renderFace(Player p, Particle particle, Location corner1, Location corner2, Location corner3, Location corner4, int density, boolean force) {
-        for (int i = 1; i < density; i++) {
-            double t = (double) i / density;
+    private void f1(Player a, Particle aa, Location aaa, Location aaaa, Location f1, Location t0, int ff, boolean test) {
+        for (int i = 1; i < ff; i++) {
+            double t = (double) i / ff;
 
             // Create intermediate lines between edges
-            Location start = interpolate(corner1, corner2, t);
-            Location end = interpolate(corner3, corner4, t);
-            displayLine(p, particle, start, end, density, force);
+            Location start = f1(aaa, aaaa, t);
+            Location end = f1(f1, t0, t);
+            f1(a, aa, start, end, ff, test);
 
-            start = interpolate(corner1, corner3, t);
-            end = interpolate(corner2, corner4, t);
-            displayLine(p, particle, start, end, density, force);
+            start = f1(aaa, f1, t);
+            end = f1(aaaa, t0, t);
+            f1(a, aa, start, end, ff, test);
         }
     }
 
-    private Location interpolate(Location start, Location end, double t) {
-        double x = start.getX() + (end.getX() - start.getX()) * t;
-        double y = start.getY() + (end.getY() - start.getY()) * t;
-        double z = start.getZ() + (end.getZ() - start.getZ()) * t;
-        return new Location(start.getWorld(), x, y, z);
+    private Location f1(Location f1, Location f0, double f2) {
+        double x = f1.getX() + (f0.getX() - f1.getX()) * f2;
+        double y = f1.getY() + (f0.getY() - f1.getY()) * f2;
+        double z = f1.getZ() + (f0.getZ() - f1.getZ()) * f2;
+        return new Location(f1.getWorld(), x, y, z);
     }
 
-    private void displayLine(Player p, Particle particle, Location start, Location end, int density, boolean force) {
-        World world = start.getWorld();
+    private void f1(Player a, Particle b, Location c, Location d, int f1, boolean test) {
+        World world = c.getWorld();
         if (world == null) return;
 
         List<Player> viewers = new ArrayList<>(world.getPlayers());
 
-        for (int i = 0; i <= density; i++) {
-            double t = (double) i / density;
-            double x = start.getX() + (end.getX() - start.getX()) * t;
-            double y = start.getY() + (end.getY() - start.getY()) * t;
-            double z = start.getZ() + (end.getZ() - start.getZ()) * t;
+        for (int i = 0; i <= f1; i++) {
+            double t = (double) i / f1;
+            double x = c.getX() + (d.getX() - c.getX()) * t;
+            double y = c.getY() + (d.getY() - c.getY()) * t;
+            double z = c.getZ() + (d.getZ() - c.getZ()) * t;
             Location loc = new Location(world, x, y, z);
 
             for (Player viewer : viewers) {
-                if (!force && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
-                viewer.spawnParticle(particle, loc, 0, 0, 0, 0, 0, null, force);
+                if (!test && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
+                viewer.spawnParticle(b, loc, 0, 0, 0, 0, 0, null, test);
             }
         }
     }
@@ -932,40 +961,35 @@ public class ExampleExpansion extends PlaceholderExpansion {
      */
     @SuppressWarnings({"ConstantValue"})
     @Override
-        public String onPlaceholderRequest(Player p, @NotNull String identifier) {
+        public String onPlaceholderRequest(Player f2, @NotNull String f1) {
         
-        if(trialVersion && trialNumber < 0) {
-            p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
-            return null;
-        }
-        trialNumber--;
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
 
-        boolean parseNested = false;
+        boolean test = false;
 
         // Check if the identifier starts with "parseNested_"
-        if (identifier.startsWith("parseNested_")) {
-            parseNested = true;
-            identifier = identifier.substring("parseNested_".length());
+        if (f1.startsWith("parseNested_")) {
+            test = true;
+            f1 = f1.substring("parseNested_".length());
         }
 
         // If nested parsing is enabled, resolve all nested placeholders
-        if (parseNested) {
-            while (identifier.contains("{") && identifier.contains("}")) {
-                int start = identifier.indexOf("{");
-                int end = identifier.indexOf("}", start);
+        if (test) {
+            while (f1.contains("{") && f1.contains("}")) {
+                int start = f1.indexOf("{");
+                int end = f1.indexOf("}", start);
 
                 if (start < end) {
-                    String nestedPlaceholder = identifier.substring(start + 1, end);
-                    String resolvedNested = PlaceholderAPI.setPlaceholders(p, "%" + nestedPlaceholder + "%");
+                    String nestedPlaceholder = f1.substring(start + 1, end);
+                    String resolvedNested = PlaceholderAPI.setPlaceholders(f2, "%" + nestedPlaceholder + "%");
 
                     if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
                         // Replace the nested placeholder with its resolved value
-                        identifier = identifier.substring(0, start) + resolvedNested + identifier.substring(end + 1);
+                        f1 = f1.substring(0, start) + resolvedNested + f1.substring(end + 1);
                     } else {
                         // If unresolved, replace with an empty string to avoid infinite loop
-                        identifier = identifier.substring(0, start) + identifier.substring(end + 1);
+                        f1 = f1.substring(0, start) + f1.substring(end + 1);
                     }
                 } else {
                     // Break out if no valid placeholder found
@@ -979,9 +1003,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
-        if (identifier.equals("vanta")) {
-            World world = p.getWorld();
-            Location eye = p.getEyeLocation();
+        if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
+            World world = f2.getWorld();
+            Location eye = f2.getEyeLocation();
             Vector direction = eye.getDirection().normalize();
             Location furthestValid = null;
 
@@ -990,14 +1014,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Location check = eye.clone().add(direction.clone().multiply(i));
                 Block block = check.getBlock();
 
-                if (!isNonSolid(block.getType())) break;
+                if (!fOne(block.getType())) break;
 
                 furthestValid = check.clone();
             }
 
+            if(SCore_Installed && g5 < 0) {
+                f2.sendMessage(g28);
+                return null;
+            }
+            g5--;
+
             // If we hit solid immediately, fall back to eye location
             if (furthestValid == null) {
-                Location eyeLoc = p.getEyeLocation();
+                Location eyeLoc = f2.getEyeLocation();
                 return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
             }
 
@@ -1020,7 +1050,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 );
 
                 boolean collides = false;
-                for (Block b : getBlocksAround(hitbox, world)) {
+                for (Block b : f1(hitbox, world)) {
                     if (b.getType().isSolid()) {
                         collides = true;
                         break;
@@ -1033,8 +1063,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Fallback to eye location
-            Location fallback = p.getEyeLocation();
+            Location fallback = f2.getEyeLocation();
             return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+        } else {
+
+            if(SCore_Installed && g5 < 0) {
+                f2.sendMessage(g28);
+                return null;
+            }
+            g5--;
         }
 
 
@@ -1042,9 +1079,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("leaderboards_")) {
+        if (f1.startsWith("leaderboards_")) {
             
-            String[] args = identifier.substring("leaderboards_".length()).split(",");
+            String[] args = f1.substring("leaderboards_".length()).split(",");
             
 
             String action = args[0].toUpperCase();
@@ -1061,27 +1098,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             switch (action) {
                 case "CLEAR" -> {
-                    leaderboards.remove(name);
+                    global1.remove(name);
                     return "§aCleared " + name;
                 }
                 case "INCREMENT" -> {
                     if (user == null) return "§cNo user";
-                    updateScore(name, user, getScore(name, user) + param);
+                    f1(name, user, f1(name, user) + param);
                     return "§a+" + param;
                 }
                 case "DECREMENT" -> {
                     if (user == null) return "§cNo user";
-                    updateScore(name, user, getScore(name, user) - param);
+                    f1(name, user, f1(name, user) - param);
                     return "§a-" + param;
                 }
                 case "SET" -> {
                     if (user == null) return "§cNo user";
-                    updateScore(name, user, param);
+                    f1(name, user, param);
                     return "§aSet to " + param;
                 }
                 case "GET" -> {
                     if (args.length < 4) return "§cNo index";
-                    List<Map.Entry<String, Integer>> list = leaderboards.get(name);
+                    List<Map.Entry<String, Integer>> list = global1.get(name);
                     if (list == null || param < 0 || param >= list.size()) return "N/A";
                     return list.get(param).getKey() + ": " + list.get(param).getValue();
                 }
@@ -1092,16 +1129,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
 
-            if( identifier.equalsIgnoreCase("shulkerCheck")) {
-            return isShulkerBoxOpen(p) ? "yes" : "no";
+            if( f1.equalsIgnoreCase("shulkerCheck")) {
+            return f123(f2) ? "yes" : "no";
         }
 
-        if (identifier.startsWith("shulkerOpen_")) {
-            String[] pp = identifier.substring("shulkerOpen_".length()).split(",");
+        if (f1.startsWith("shulkerOpen_")) {
+            String[] pp = f1.substring("shulkerOpen_".length()).split(",");
             if (pp.length != 1) return "§cInvalid format";
             int slot = Integer.parseInt(pp[0]);
 
-            ItemStack current = getItemInSlot(p, slot);
+            ItemStack current = f2(f2, slot);
             if (current == null) return "§cNo item in that slot!";
             if (!current.getType().toString().endsWith("SHULKER_BOX")) {
                 return "§cItem is not a shulker box!";
@@ -1117,8 +1154,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
             
             
-            String uuid = p.getUniqueId().toString();
-            String coords = shulkerDatabaseConfig.getString(uuid);
+            String uuid = f2.getUniqueId().toString();
+            String coords = g2.getString(uuid);
             int x, y, z;
 
             if (coords != null) {
@@ -1127,10 +1164,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 y = Integer.parseInt(parts[1]);
                 z = Integer.parseInt(parts[2]);
             } else {
-                int[] loc = getNextAvailableCoordinatesCustom(world, 9);
+                int[] loc = f1(world, 9);
                 x = loc[0]; y = loc[1]; z = loc[2];
-                shulkerDatabaseConfig.set(uuid, x + " " + y + " " + z);
-                saveShulkerConfig();
+                g2.set(uuid, x + " " + y + " " + z);
+                f9();
             }
 
             Location chestLoc = new Location(world, x, y, z);
@@ -1147,29 +1184,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§cFailed to read shulker box contents!";
             }
 
-            Material glassColor = getGlassForShulker(current.getType());
-            ItemStack placeholder = modifyItemForShulker(current, glassColor);
-            p.getInventory().setItem(slot, placeholder);
+            Material glassColor = f1(current.getType());
+            ItemStack placeholder = f1(current, glassColor);
+            f2.getInventory().setItem(slot, placeholder);
 
             return x + " " + y + " " + z;
         }
 
 
-        if (identifier.startsWith("shulkerClose_")) {
+        if (f1.startsWith("shulkerClose_")) {
             // 1) parse slot & grab current placeholder
-            String[] pp = identifier.substring("shulkerClose_".length()).split(",");
+            String[] pp = f1.substring("shulkerClose_".length()).split(",");
             if (pp.length != 1) return "§cInvalid format";
             int slot = Integer.parseInt(pp[0]);
-            ItemStack current = getItemInSlot(p, slot);
+            ItemStack current = f2(f2, slot);
             if (current == null) return "§cNo item in that slot!";
 
             // 2) determine the correct shulker‐box material from the glass
             Material placeholderMat = current.getType();
-            Material shulkerMat     = getShulkerFromGlass(placeholderMat);
+            Material shulkerMat     = f2(placeholderMat);
 
             // 3) load chest coords
-            String uuid   = p.getUniqueId().toString();
-            String coords = shulkerDatabaseConfig.getString(uuid);
+            String uuid   = f2.getUniqueId().toString();
+            String coords = g2.getString(uuid);
             if (coords == null) return "§cChest not found!";
             String[] parts = coords.split(" ");
             int x = Integer.parseInt(parts[0]),
@@ -1187,7 +1224,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             ItemStack[] contents = chest.getInventory().getContents();
 
             // 5) create a new shulker‐box stack with all the original meta but new material + ei-id="test"
-            ItemStack shulker = modifyItemForShulker2(current, shulkerMat);
+            ItemStack shulker = f3(current, shulkerMat);
 
             // 6) inject the contents via BlockStateMeta
             BlockStateMeta meta = (BlockStateMeta) shulker.getItemMeta();
@@ -1197,7 +1234,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             shulker.setItemMeta(meta);
 
             // 7) hand it back
-            p.getInventory().setItem(slot, shulker);
+            f2.getInventory().setItem(slot, shulker);
 
             // 8) clear the chest
             chest.getInventory().clear();
@@ -1210,19 +1247,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
 
-        if (identifier.startsWith("vertigoHallucination_")) {
-            String[] parts = identifier.substring("vertigoHallucination_".length()).split(",");
+        if (f1.startsWith("vertigoHallucination_")) {
+            String[] parts = f1.substring("vertigoHallucination_".length()).split(",");
             if (parts.length != 3) return "§cInvalid format";
 
             int radius1 = Integer.parseInt(parts[0]);
             int radius2 = Integer.parseInt(parts[1]);
             int durationTicks = Integer.parseInt(parts[2]);
 
-            Location origin = p.getLocation();
-            World world = p.getWorld();
+            Location origin = f2.getLocation();
+            World world = f2.getWorld();
 
             for (Player target : world.getPlayers()) {
-                if (p.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
+                if (f2.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
 
                 for (int dx = -radius2; dx <= radius2; dx++) {
                     for (int dy = -radius2; dy <= radius2; dy++) {
@@ -1245,18 +1282,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         
-        if (identifier.equals("invis")) {
-            UUID uuid = p.getUniqueId();
+        if (f1.equals("invis")) {
+            UUID uuid = f2.getUniqueId();
 
             // Cancel existing timer if any
-            if (invisTimers.containsKey(uuid)) {
-                invisTimers.get(uuid).cancel();
+            if (g7.containsKey(uuid)) {
+                g7.get(uuid).cancel();
             }
 
             // Hide from all players in world
-            for (Player other : p.getWorld().getPlayers()) {
-                if (!other.equals(p)) {
-                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), p);
+            for (Player other : f2.getWorld().getPlayers()) {
+                if (!other.equals(f2)) {
+                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f2);
                 }
             }
 
@@ -1264,24 +1301,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
             BukkitTask task = Bukkit.getScheduler().runTaskLater(
                     Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
                     () -> {
-                        for (Player other : p.getWorld().getPlayers()) {
-                            if (!other.equals(p)) {
-                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), p);
+                        for (Player other : f2.getWorld().getPlayers()) {
+                            if (!other.equals(f2)) {
+                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), f2);
                             }
                         }
-                        invisTimers.remove(uuid);
+                        g7.remove(uuid);
                     },
                     100L
             );
 
-            invisTimers.put(uuid, task);
+            g7.put(uuid, task);
             return "§7Now invisible to others for 5s";
         }
 
-        if (identifier.startsWith("JESUS_")) {
+        if (f1.startsWith("JESUS_")) {
             try {
-                int radius = Integer.parseInt(identifier.substring("JESUS_".length()));
-                applyJesusEffect(p, radius);
+                int radius = Integer.parseInt(f1.substring("JESUS_".length()));
+                f1(f2, radius);
                 return "§bWalking on water (" + radius + " block radius)";
             } catch (Exception e) {
                 return "§cInvalid radius";
@@ -1291,16 +1328,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("setVelocity_")) {
-            String[] parts = identifier.substring("setVelocity_".length()).split(",");
-            p.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
+        if (f1.startsWith("setVelocity_")) {
+            String[] parts = f1.substring("setVelocity_".length()).split(",");
+            f2.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
             return "§adone";
         }
 
 
 
-        if (identifier.startsWith("chargeUp_")) {
-            String[] parts = identifier.substring("chargeUp_".length()).split(",");
+        if (f1.startsWith("chargeUp_")) {
+            String[] parts = f1.substring("chargeUp_".length()).split(",");
             if (parts.length != 7) return "§cInvalid format";
 
             String complete = parts[0];
@@ -1325,8 +1362,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return bar.toString();
         }
 
-        if (identifier.startsWith("ENCHANTRESSMINEREFILL_")) {
-            String[] parts = identifier.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
+        if (f1.startsWith("ENCHANTRESSMINEREFILL_")) {
+            String[] parts = f1.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
             if (parts.length != 4) return "§cInvalid format";
 
             String worldName = parts[0];
@@ -1349,7 +1386,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         Location target = new Location(world, x + dx, y + dy, z + dz);
                         if (!target.getBlock().getType().isAir()) continue;
 
-                        ItemStack stack = findPlaceableStack(inv);
+                        ItemStack stack = f1(inv);
                         if (stack == null) return "§7Filled " + placed + " blocks";
 
                         target.getBlock().setType(stack.getType());
@@ -1363,12 +1400,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return "§aPlaced " + placed + " blocks";
         }
 
-        if (identifier.startsWith("immortalize_")) {
+        if (f1.startsWith("immortalize_")) {
 
             try {
-                p.sendMessage("§7[Debug] Received identifier: " + identifier);
 
-                String[] parts = identifier.substring("immortalize_".length()).split(",");
+                String[] parts = f1.substring("immortalize_".length()).split(",");
    
 
                 String uuid = parts[0];
@@ -1380,7 +1416,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int oz = Integer.parseInt(parts[6]);
                 String direction = parts[7].toUpperCase();
 
-                p.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
+                f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
 
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) return "§cInvalid world";
@@ -1389,7 +1425,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 BufferedImage skin;
                 try {
-                    p.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
+                    f2.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
                     URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                     try (InputStream sin = sessionApi.openStream(); Scanner sscanner = new Scanner(sin)) {
                         String sessionResponse = sscanner.useDelimiter("\\A").next();
@@ -1402,27 +1438,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
                         String textureUrl = decoded.getJSONObject("textures").getJSONObject("SKIN").getString("url");
 
-                        p.sendMessage("§7[Debug] Skin URL: " + textureUrl);
+                        f2.sendMessage("§7[Debug] Skin URL: " + textureUrl);
 
                         skin = ImageIO.read(new URL(textureUrl));
                     }
                 } catch (Exception fetchEx) {
-                    p.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
+                    f2.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
                     return "§cFailed to fetch skin for UUID: " + uuid;
                 }
 
-                p.sendMessage("§7[Debug] Skin loaded. Building statue...");
-                buildPlayerStatueFromSkin(p, world, skin, origin, scale, direction, mode);
+                f2.sendMessage("§7[Debug] Skin loaded. Building statue...");
+                f1(f2, world, skin, origin, scale, direction, mode);
                 return "§aStatue of UUID " + uuid + " placed!";
 
             } catch (Exception e) {
-                p.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
+                f2.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
                 return "§cError: " + e.getMessage();
             }
         }
 
-        if (identifier.startsWith("debugStickRotate_")) {
-            String[] parts = identifier.substring("debugStickRotate_".length()).split(",");
+        if (f1.startsWith("debugStickRotate_")) {
+            String[] parts = f1.substring("debugStickRotate_".length()).split(",");
             if (parts.length != 4) return "Invalid format!";
             String worldName = parts[0];
             int x = Integer.parseInt(parts[1]);
@@ -1514,8 +1550,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("debugStickInvert_")) {
-            String[] parts = identifier.substring("debugStickInvert_".length()).split(",");
+        if (f1.startsWith("debugStickInvert_")) {
+            String[] parts = f1.substring("debugStickInvert_".length()).split(",");
             if (parts.length != 4) return "Invalid format!";
             String worldName = parts[0];
             int x = Integer.parseInt(parts[1]);
@@ -1552,8 +1588,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("searchExecutable_")) {
-            String keyword = identifier.substring("searchExecutable_".length());
+        if (f1.startsWith("searchExecutable_")) {
+            String keyword = f1.substring("searchExecutable_".length());
             String lowerKeyword = keyword.toLowerCase();
 
             File[] dirs = {
@@ -1593,32 +1629,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             if (!exactMatches.isEmpty()) {
-                p.sendMessage("§e===Exact Matches===");
+                f2.sendMessage("§e===Exact Matches===");
                 for (String match : exactMatches) {
-                    p.sendMessage("§f" + match);
+                    f2.sendMessage("§f" + match);
                 }
             }
 
             if (!similarMatches.isEmpty()) {
-                p.sendMessage("§6===Similar Matches===");
+                f2.sendMessage("§6===Similar Matches===");
                 for (String match : similarMatches) {
-                    p.sendMessage("§f" + match);
+                    f2.sendMessage("§f" + match);
                 }
             }
 
             if (exactMatches.isEmpty() && similarMatches.isEmpty()) {
-                p.sendMessage("§7No matches found for \"" + keyword + "\"");
+                f2.sendMessage("§7No matches found for \"" + keyword + "\"");
             } else {
-                p.sendMessage("§7======");
+                f2.sendMessage("§7======");
             }
 
             return String.valueOf(exactMatches.size());
         }
 
-        if (identifier.startsWith("repeatingParticleText_")) {
+        if (f1.startsWith("repeatingParticleText_")) {
             boolean particleDebugEnabled = true;
             try {
-                String params = identifier.substring("repeatingParticleText_".length());
+                String params = f1.substring("repeatingParticleText_".length());
                 String[] parts = params.split(",", 13);
                 if (parts.length != 13) return "Invalid format";
 
@@ -1637,44 +1673,44 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
 
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
-                String hashKey = hashSHA256(identifier);
+                String hashKey = f12(f1);
 
                 List<Location> worldLocs;
 
                 // === RAM Cache Check ===
-                if (memoryCache.containsKey(identifier)) {
-                    if (particleDebugEnabled) p.sendMessage("§7[Cache] RAM hit for: " + identifier);
-                    worldLocs = memoryCache.get(identifier).locations();
-                    refreshCacheExpiry(identifier);
+                if (g8.containsKey(f1)) {
+                    if (particleDebugEnabled) f2.sendMessage("§7[Cache] RAM hit for: " + f1);
+                    worldLocs = g8.get(f1).locations();
+                    f1fs(f1);
                 }
                 // === Disk Cache Check ===
                 else {
-                    File cacheFile = new File(PARTICLE_DIR, hashKey + ".txt");
+                    File cacheFile = new File(g10, hashKey + ".txt");
                     //noinspection IfStatementWithIdenticalBranches
                     if (cacheFile.exists()) {
-                        if (particleDebugEnabled) p.sendMessage("§7[Cache] Disk hit for: " + identifier);
-                        List<Vector> vectors = loadFromDisk(cacheFile);
-                        worldLocs = applyToWorld(center, vectors);
+                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] Disk hit for: " + f1);
+                        List<Vector> vectors = f(cacheFile);
+                        worldLocs = f1(center, vectors);
 
-                        memoryCache.put(identifier, new CachedParticleData(worldLocs, System.currentTimeMillis()));
-                        refreshCacheExpiry(identifier);
+                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                        f1fs(f1);
                     }
                     // === No Cache: Generate ===
                     else {
-                        if (particleDebugEnabled) p.sendMessage("§7[Cache] No cache found. Generating new data.");
-                        boolean[][] matrix = renderTextToMatrix(text);
-                        List<Vector> vectors = matrixToVectors(matrix, density, size, rotation);
-                        worldLocs = applyToWorld(center, vectors);
+                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] No cache found. Generating new data.");
+                        boolean[][] matrix = f11(text);
+                        List<Vector> vectors = f1(matrix, density, size, rotation);
+                        worldLocs = f1(center, vectors);
 
-                        saveToDisk(cacheFile, vectors);
-                        memoryCache.put(identifier, new CachedParticleData(worldLocs, System.currentTimeMillis()));
-                        refreshCacheExpiry(identifier);
+                        f1(cacheFile, vectors);
+                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                        f1fs(f1);
                     }
                 }
 
                 // === Repeating Display ===
                 if (particleDebugEnabled) {
-                    p.sendMessage("§7[Debug] Scheduling display for: " + text);
+                    f2.sendMessage("§7[Debug] Scheduling display for: " + text);
                 }
 
                 boolean finalParticleDebugEnabled = particleDebugEnabled;
@@ -1689,10 +1725,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         }
 
                         try {
-                            displayToNearby(center, worldLocs, particle, viewDistance);
+                            f1(center, worldLocs, particle, viewDistance);
                         } catch (Exception ex) {
                             if (finalParticleDebugEnabled) {
-                                p.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
+                                f2.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
                             }
                             this.cancel();
                         }
@@ -1705,7 +1741,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             } catch (Exception e) {
                 if (particleDebugEnabled) {
-                    p.sendMessage("§c[Debug Error] " + e.getMessage());
+                    f2.sendMessage("§c[Debug Error] " + e.getMessage());
                 }
                 return "§cError: " + e.getMessage();
             }
@@ -1713,10 +1749,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("nearestPlayerNotTeam2_")) {
-            if (!checkCompatibility(p, "WorldGuard")) return null;
+        if (f1.startsWith("nearestPlayerNotTeam2_")) {
+            if (!f1(f2, "WorldGuard")) return null;
 
-            String params = identifier.substring("nearestPlayerNotTeam2_".length());
+            String params = f1.substring("nearestPlayerNotTeam2_".length());
             String[] parts = params.split(",");
 
             if (parts.length != 6) {
@@ -1793,15 +1829,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("visualBreak_")) {
-            if (!checkCompatibility(p, "ProtocolLib")) return null;
+        if (f1.startsWith("visualBreak_")) {
+            if (!f1(f2, "ProtocolLib")) return null;
 
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
-            String params = identifier.substring("visualBreak_".length());
+            String params = f1.substring("visualBreak_".length());
             String[] parts = params.split(",");
 
             if (parts.length != 5) {
-                return "Invalid format!" + identifier;
+                return "Invalid format!" + f1;
             }
 
             int stage;
@@ -1837,15 +1873,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 packet.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
                 packet.getIntegers().write(1, breakStage);
 
-                ProtocolLibrary.getProtocolManager().sendServerPacket(p, packet);
+                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, packet);
             } catch (Exception e) {
                 e.printStackTrace();
                 return "Animation error";
             }
 
             // Reset any previous task
-            if (visualBreakTimers.containsKey(loc)) {
-                visualBreakTimers.get(loc).cancel();
+            if (g11.containsKey(loc)) {
+                g11.get(loc).cancel();
             }
 
             // Schedule removal after 2 seconds (40 ticks)
@@ -1860,23 +1896,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         resetPacket.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
                         resetPacket.getIntegers().write(1, -1); // remove animation
 
-                        ProtocolLibrary.getProtocolManager().sendServerPacket(p, resetPacket);
+                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, resetPacket);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
 
-                visualBreakTimers.remove(loc);
+                g11.remove(loc);
             }, 40L); // 40 ticks = 2 seconds
 
-            visualBreakTimers.put(loc, task);
+            g11.put(loc, task);
 
             return "Visual break stage " + breakStage + " set with reset";
         }
 
-        if (identifier.startsWith("PTFXCUBE_")) {
+        if (f1.startsWith("PTFXCUBE_")) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
-            String params = identifier.substring("PTFXCUBE_".length());
+            String params = f1.substring("PTFXCUBE_".length());
             String[] parts = params.split(",");
 
             if (parts.length != 8) {
@@ -1908,16 +1944,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Display the particle cube
-            displayCubeWithParticles(world, x, y, z, particleType, width, force, density, p);
+            f1(world, x, y, z, particleType, width, force, density, f2);
             return "Cube displayed";
         }
 
 
         
         
-        if (identifier.startsWith("viewChest2_")) {
+        if (f1.startsWith("viewChest2_")) {
             // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
-            String params = identifier.substring("viewChest2_".length());
+            String params = f1.substring("viewChest2_".length());
             String[] parts = params.split(",");
             if (parts.length != 4) {
                 return "Invalid format! Use: %Archistructure_viewChest2_sourceWorld,x,y,z%";
@@ -1941,8 +1977,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Chest sourceChest = (Chest) sourceBlock.getState();
 
             boolean isDouble = sourceChest.getInventory().getSize() > 27;
-            if (viewChestDebugLogging) {
-                p.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+            if (g6) {
+                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
                         " detected. It is " + (isDouble ? "double" : "single") + ".");
             }
 
@@ -1957,9 +1993,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             ItemStack[] newContents = new ItemStack[destSize];
             for (int i = 0; i < destSize; i++) {
                 if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
+                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
                 } else {
-                    newContents[i] = getDefaultGlassPane();
+                    newContents[i] = f0();
                 }
             }
             // Update destination chest inventory without an extra clear call (setContents overrides existing items)
@@ -1971,18 +2007,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Return the destination coordinates.
-            if (viewChestDebugLogging) {
-                p.sendMessage("FakeChest");
+            if (g6) {
+                f2.sendMessage("FakeChest");
             }
             
             return "done";
         }
         
 
-        if (identifier.startsWith("repeat_")) return identifier.substring("repeat".length());
-        if (identifier.startsWith("chain_")) {
+        if (f1.startsWith("repeat_")) return f1.substring("repeat".length());
+        if (f1.startsWith("chain_")) {
             // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
-            String params = identifier.substring("chain_".length());
+            String params = f1.substring("chain_".length());
             String[] parts = params.split(",");
 
             String chainType = parts[0].toUpperCase();
@@ -2004,14 +2040,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
 
-            return findNextInChain(chainType, radius, uuids);
+            return f1(chainType, radius, uuids);
         }
 
 
 
-        if (identifier.startsWith("viewChest_")) {
+        if (f1.startsWith("viewChest_")) {
             // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
-            String params = identifier.substring("viewChest_".length());
+            String params = f1.substring("viewChest_".length());
             String[] parts = params.split(",");
             if (parts.length != 4) {
                 return "Invalid format! Use: %Archistructure_viewChest_sourceWorld,x,y,z%";
@@ -2035,8 +2071,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Chest sourceChest = (Chest) sourceBlock.getState();
 
             boolean isDouble = sourceChest.getInventory().getSize() > 27;
-            if (viewChestDebugLogging) {
-                p.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
+            if (g6) {
+                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
                         " detected. It is " + (isDouble ? "double" : "single") + ".");
             }
 
@@ -2052,8 +2088,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
             int destX, destY, destZ;
-            String playerKey = p.getUniqueId().toString();
-            String storedCoords = viewOnlyChestConfig.getString(playerKey);
+            String playerKey = f2.getUniqueId().toString();
+            String storedCoords = g20.getString(playerKey);
             if (storedCoords != null) {
                 // An entry exists for this player; use it.
                 String[] coords = storedCoords.split(" ");
@@ -2063,7 +2099,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             } else {
                 // No entry exists, so compute new coordinates.
                 // Use the "last" entry in viewOnlyChestConfig; if missing, use defaults.
-                String lastEntry = viewOnlyChestConfig.getString("last");
+                String lastEntry = g20.getString("last");
                 int lastX, lastY, lastZ;
                 if (lastEntry == null) {
                     // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
@@ -2101,10 +2137,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
                 // Store the computed coordinates under the player's UUID and update the "last" entry.
                 String newCoords = destX + " " + destY + " " + destZ;
-                viewOnlyChestConfig.set(playerKey, newCoords);
-                viewOnlyChestConfig.set("last", newCoords);
+                g20.set(playerKey, newCoords);
+                g20.set("last", newCoords);
                 try {
-                    viewOnlyChestConfig.save(viewOnlyChestDatabaseFile);
+                    g20.save(g16);
                 } catch (IOException ignored) {
                 }
             }
@@ -2139,7 +2175,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             dataB.setFacing(BlockFace.NORTH);
                             chestA.setBlockData(dataA);
                             chestB.setBlockData(dataB);
-                            String commonName = p.getUniqueId().toString();
+                            String commonName = f2.getUniqueId().toString();
                             chestA.setCustomName(commonName);
                             chestB.setCustomName(commonName);
                             chestA.update(true);
@@ -2164,9 +2200,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             ItemStack[] newContents = new ItemStack[destSize];
             for (int i = 0; i < destSize; i++) {
                 if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = modifyItemForView(Objects.requireNonNull(sourceInv.getItem(i)));
+                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
                 } else {
-                    newContents[i] = getDefaultGlassPane();
+                    newContents[i] = f0();
                 }
             }
             // Update destination chest inventory without an extra clear call (setContents overrides existing items)
@@ -2179,8 +2215,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Return the destination coordinates.
-            if (viewChestDebugLogging) {
-                p.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
+            if (g6) {
+                f2.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
             }
             return isDouble ? destX + " " + destY + " " + (destZ + 1 ): destX + " " + destY + " " + destZ;
         }
@@ -2188,9 +2224,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("blackHole_")) {
+        if (f1.startsWith("blackHole_")) {
             try {
-                String[] parts = identifier.substring("blackHole_".length()).split(",");
+                String[] parts = f1.substring("blackHole_".length()).split(",");
                 if (parts.length != 5) {
                     return "Invalid format!";
                 }
@@ -2209,10 +2245,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Location center = new Location(world, x, y, z);
 
                 // Convert blocks to falling blocks
-                convertBlocksToFallingEntities(world, center, radius);
+                f1(world, center, radius);
 
                 // Attract entities to the center
-                attractEntities(world, center, radius);
+                f2(world, center, radius);
 
                 return x + " " + y + " " + z;
             } catch (Exception e) {
@@ -2222,8 +2258,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("x_")) {
-            String uuidString = identifier.substring("x_".length());
+        if (f1.startsWith("x_")) {
+            String uuidString = f1.substring("x_".length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -2237,8 +2273,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return "x";
         }
 
-        if (identifier.startsWith("y_")) {
-            String uuidString = identifier.substring("y_".length());
+        if (f1.startsWith("y_")) {
+            String uuidString = f1.substring("y_".length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -2252,8 +2288,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return "x";
         }
 
-        if (identifier.startsWith("z_")) {
-            String uuidString = identifier.substring("z_".length());
+        if (f1.startsWith("z_")) {
+            String uuidString = f1.substring("z_".length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -2269,8 +2305,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("openBackpack2_")) {
-            long id = Long.parseLong(identifier.substring("openBackpack2_".length()));
+        if (f1.startsWith("openBackpack2_")) {
+            long id = Long.parseLong(f1.substring("openBackpack2_".length()));
 
             // Get or create the world
             World world = Bukkit.getWorld("mcydatabase");
@@ -2283,11 +2319,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Get player UUID
-            String uuid = p.getUniqueId().toString();
+            String uuid = f2.getUniqueId().toString();
 
             // Load or assign coordinates from the double chest database
             int x, y, z;
-            String coordinates = doubleDatabaseConfig.getString(uuid);
+            String coordinates = g17.getString(uuid);
             if (coordinates != null) {
                 String[] coords = coordinates.split(" ");
                 x = Integer.parseInt(coords[0]);
@@ -2296,15 +2332,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             } else {
                 // Assign new coordinates in a chunk-efficient way
                 assert world != null;
-                int[] newCoords = getNextAvailableCoordinatesForDoubleChest(world);
+                int[] newCoords = f2(world);
                 x = newCoords[0];
                 y = newCoords[1];
                 z = newCoords[2];
 
                 // Save the assigned coordinates to the double chest database
                 String newCoordinates = x + " " + y + " " + z;
-                doubleDatabaseConfig.set(uuid, newCoordinates);
-                saveDoubleDatabaseConfig();
+                g17.set(uuid, newCoordinates);
+                f3();
             }
 
             // Create the double chest at the given coordinates if not already present
@@ -2338,7 +2374,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Save current chest contents if the chest is already named
             String currentChestName = chest1.getCustomName();
             if (currentChestName != null && !currentChestName.isEmpty()) {
-                saveDoubleChestContents(currentChestName, chest1.getInventory().getContents());
+                f2(currentChestName, chest1.getInventory().getContents());
             }
 
             // Set the new chest name and update it
@@ -2347,7 +2383,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             chest1.getInventory().clear();
 
             // Load the new chest contents from the file if available
-            ItemStack[] savedContents = loadDoubleChestContents(String.valueOf(id));
+            ItemStack[] savedContents = f(String.valueOf(id));
             if (savedContents != null) {
                 chest1.getInventory().setContents(savedContents);
                 Bukkit.getLogger().info("Loaded double chest contents for chest ID: " + id);
@@ -2360,8 +2396,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         
-        if (identifier.startsWith("openBackpack_")) {
-            long id = Long.parseLong(identifier.substring("openBackpack_".length()));
+        if (f1.startsWith("openBackpack_")) {
+            long id = Long.parseLong(f1.substring("openBackpack_".length()));
 
             // Get or create the world
             World world = Bukkit.getWorld("mcydatabase");
@@ -2374,11 +2410,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Get player UUID
-            String uuid = p.getUniqueId().toString();
+            String uuid = f2.getUniqueId().toString();
 
             // Load or assign coordinates from the database
             int x, y, z;
-            String coordinates = databaseConfig.getString(uuid);
+            String coordinates = g18.getString(uuid);
             if (coordinates != null) {
                 String[] coords = coordinates.split(" ");
                 x = Integer.parseInt(coords[0]);
@@ -2387,15 +2423,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             } else {
                 // Assign new coordinates in a chunk-efficient way
                 assert world != null;
-                int[] newCoords = getNextAvailableCoordinates(world);
+                int[] newCoords = f1(world);
                 x = newCoords[0];
                 y = newCoords[1];
                 z = newCoords[2];
 
                 // Save the assigned coordinates to the database
                 String newCoordinates = x + " " + y + " " + z;
-                databaseConfig.set(uuid, newCoordinates);
-                saveDatabaseConfig();
+                g18.set(uuid, newCoordinates);
+                f2();
             }
 
             // Create the chest at the given coordinates if not already present
@@ -2412,7 +2448,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String currentChestName = chest.getCustomName();
             if (currentChestName != null && !currentChestName.isEmpty()) {
                 // Save the existing chest contents to a file based on its current name
-                saveChestContents(currentChestName, chest.getInventory().getContents());
+                f1(currentChestName, chest.getInventory().getContents());
             }
 
 // Update the chest name and clear its contents
@@ -2421,7 +2457,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             chest.getInventory().clear();
 
 // Load the new chest contents from the file if available
-            ItemStack[] savedContents = loadChestContents(String.valueOf(id));
+            ItemStack[] savedContents = f1(String.valueOf(id));
             if (savedContents != null) {
                 chest.getInventory().setContents(savedContents);
                 Bukkit.getLogger().info("Loaded backpack contents for chest ID: " + id);
@@ -2434,9 +2470,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         final double NUDGE_AMOUNT = 0.05;
 
-        if (identifier.startsWith("bounce2_")) {
+        if (f1.startsWith("bounce2_")) {
             // Format: %Archistructure_bounce2_UUID,FACE,PITCH,YAW,VELOCITY%
-            String[] parts = identifier.substring("bounce2_".length()).split(",");
+            String[] parts = f1.substring("bounce2_".length()).split(",");
 
             if (parts.length != 5) return "Invalid format!";
 
@@ -2536,8 +2572,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         
-        if (identifier.startsWith("checkVelocity_")) {
-            String uuidStr = identifier.substring("checkVelocity_".length());
+        if (f1.startsWith("checkVelocity_")) {
+            String uuidStr = f1.substring("checkVelocity_".length());
 
             UUID uuid;
             try {
@@ -2567,9 +2603,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // Tunable displacement to help unstick projectiles
 
-        if (identifier.startsWith("bounce_")) {
+        if (f1.startsWith("bounce_")) {
             // Format: %Archistructure_bounce_UUID,FACE,SCALE%
-            String[] parts = identifier.substring("bounce_".length()).split(",");
+            String[] parts = f1.substring("bounce_".length()).split(",");
 
             if (parts.length != 3) return "Invalid format!";
 
@@ -2650,8 +2686,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("vacuumCleaner_")) {
-            String[] parts = identifier.substring("vacuumCleaner_".length()).split(",");
+        if (f1.startsWith("vacuumCleaner_")) {
+            String[] parts = f1.substring("vacuumCleaner_".length()).split(",");
             if (parts.length < 8) {
                 return "Invalid format: Expected 8 parameters";
             }
@@ -2720,8 +2756,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (identifier.startsWith("remoteHopper_")) {
-            String[] parts = identifier.substring("remoteHopper_".length()).split(",");
+        if (f1.startsWith("remoteHopper_")) {
+            String[] parts = f1.substring("remoteHopper_".length()).split(",");
             if (parts.length != 8) {
                 return "Invalid format. Use: %Archistructure_remoteHopper_INWorld,InX,InY,InZ,OutWorld,OutX,OutY,OutZ%";
             }
@@ -2819,8 +2855,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         
-        if (identifier.startsWith("XRAY-")) {
-            String[] args = identifier.substring("XRAY-".length()).split("-");
+        if (f1.startsWith("XRAY-")) {
+            String[] args = f1.substring("XRAY-".length()).split("-");
             if (args.length != 2) {
                 return "Invalid format! Use: %Archistructure_XRAY-RADIUS-SECONDS%";
             }
@@ -2829,18 +2865,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int radius = Integer.parseInt(args[0]);
                 int duration = Integer.parseInt(args[1]) * 20; // Convert seconds to ticks
 
-                activateXRay(p, radius, duration);
+                f1(f2, radius, duration);
                 return "X-Ray v2 Activated!";
             } catch (NumberFormatException e) {
                 return "Invalid numbers!";
             }
         }
 
-        if (identifier.equals("eifolderresetperms") && p != null) {
+        if (f1.equals("eifolderresetperms") && f2 != null) {
 
-            if (!checkCompatibility(p, "LuckPerms")) return null;
+            if (!f1(f2, "LuckPerms")) return null;
 
-            User user = luckPerms.getPlayerAdapter(Player.class).getUser(p);
+            User user = g23.getPlayerAdapter(Player.class).getUser(f2);
 
             // Skip users with "ei.*" or "ei.itemfolderbypass"
             if (user.getCachedData().getPermissionData().checkPermission("ei.*").asBoolean() ||
@@ -2870,14 +2906,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         .toList();
 
                 // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
-                processItemFolderPermissions(user, itemFolderPermissions);
+                f1(user, itemFolderPermissions);
 
                 // STEP 5: Save changes
-                luckPerms.getUserManager().saveUser(user);
+                g23.getUserManager().saveUser(user);
                 return "&aSuccessfully updated EI-Folder permissions.";
 
             } catch (Exception e) {
-                Bukkit.getLogger().severe("Error processing permissions for " + p.getName() + ": " + e.getMessage());
+                Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + ": " + e.getMessage());
                 e.printStackTrace();
                 return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
             }
@@ -2888,11 +2924,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         }
 
-        if (identifier.startsWith("bossbar_")) {
+        if (f1.startsWith("bossbar_")) {
             try {
-                if( p == null ) throw new IllegalArgumentException();
+                if( f2 == null ) throw new IllegalArgumentException();
 
-                String[] args = identifier.substring("bossbar_".length()).split(",");
+                String[] args = f1.substring("bossbar_".length()).split(",");
                 if (args.length < 5) {
                     return "Invalid Format! Use: COLOR,TIME,START,END,TIMESTEP,TEXT,TEXT2";
                 }
@@ -2918,7 +2954,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Create the BossBar
                 BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
                 bossBar.setProgress(startProgress);
-                bossBar.addPlayer(p);
+                bossBar.addPlayer(f2);
 
                 // If TIMESTEP is 0 or -1, keep the bossbar static
                 if (timeStepTicks <= 0) {
@@ -2957,10 +2993,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         
-        if (identifier.equalsIgnoreCase("fireworkboost")) {
+        if (f1.equalsIgnoreCase("fireworkboost")) {
             try {
-                if( p != null) {
-                    if( !p.isGliding() ) throw new IllegalArgumentException();
+                if( f2 != null) {
+                    if( !f2.isGliding() ) throw new IllegalArgumentException();
                     // Create a Firework ItemStack
                     ItemStack fireworkItem = new ItemStack(Material.FIREWORK_ROCKET);
                     FireworkMeta fireworkMeta = (FireworkMeta) fireworkItem.getItemMeta();
@@ -2972,7 +3008,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
     
                     // Apply the firework boost
-                    p.fireworkBoost(fireworkItem);       
+                    f2.fireworkBoost(fireworkItem);       
                 }
 
                 return "1";
@@ -2983,15 +3019,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.equalsIgnoreCase("DN")) { // %Archistructure_DN%
-            return processBook(p);
+        if (f1.equalsIgnoreCase("DN")) { // %Archistructure_DN%
+            return f1(f2);
         }
         
         
-        if (identifier.startsWith("sr72-fly-")) {
+        if (f1.startsWith("sr72-fly-")) {
             try {
                 // Extract parameters from the identifier
-                String[] params = identifier.substring("sr72-fly-".length()).split(",");
+                String[] params = f1.substring("sr72-fly-".length()).split(",");
                 if (params.length != 3) {
                     return "Error: Invalid format. Use: %Archistructure_sr72-fly-speed,pitch,BOATUUID%";
                 }
@@ -3034,10 +3070,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (identifier.startsWith("variables-create-")) {
+        if (f1.startsWith("variables-create-")) {
 
             try {
-                        String[] args = identifier.substring("variables-create-".length()).split(",");
+                        String[] args = f1.substring("variables-create-".length()).split(",");
 
                         if (args.length < 3) {
                             return "Invalid format. Expected at least 3 arguments.";
@@ -3083,14 +3119,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         }
 
-        if (identifier.equalsIgnoreCase("FT-increment")) {
-            incrementFTScore(p.getUniqueId());
+        if (f1.equalsIgnoreCase("FT-increment")) {
+            f1(f2.getUniqueId());
             return "done"; // Return "done" if successful
         }
 
-        if (identifier.equalsIgnoreCase("FT-leaderboard")) {
+        if (f1.equalsIgnoreCase("FT-leaderboard")) {
             try {
-                sendFTLeaderboardViaTellraw(p);
+                f3(f2);
                 return "&aLeaderboard Displayed!"; // Success: return empty string
             } catch (Exception e) {
                 e.printStackTrace();
@@ -3099,8 +3135,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("trackImpact_")) {
-            String[] parts = identifier.substring("trackImpact_".length()).split(",");
+        if (f1.startsWith("trackImpact_")) {
+            String[] parts = f1.substring("trackImpact_".length()).split(",");
             if (parts.length != 6) return "§cInvalid format";
 
             UUID launcherUUID = UUID.fromString(parts[0]);
@@ -3111,14 +3147,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             float damage = Float.parseFloat(parts[5]);
 
             Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion(world, location);
-            triggerPlayerHitEvent(launcherUUID, location, damage);
+            f1(world, location);
+            f1(launcherUUID, location, damage);
 
             return "§6Impact triggered.";
         }
 
-        if (identifier.startsWith("trackImpact2_")) {
-            String[] parts = identifier.substring("trackImpact2_".length()).split(",");
+        if (f1.startsWith("trackImpact2_")) {
+            String[] parts = f1.substring("trackImpact2_".length()).split(",");
             if (parts.length != 3) return "§cInvalid format";
 
             UUID launcherUUID = UUID.fromString(parts[0]);
@@ -3129,16 +3165,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (target == null) return "§cTarget not found";
 
             Location location = target.getLocation();
-            spawnCustomFireworkExplosion(location.getWorld(), location);
-            triggerPlayerHitEvent(launcherUUID, location, damage);
+            f1(location.getWorld(), location);
+            f1(launcherUUID, location, damage);
 
             return "§eTarget explosion triggered.";
         }
 
-        if (identifier.startsWith("track_")) {
-            String[] parts = identifier.substring("track_".length()).split(",");
+        if (f1.startsWith("track_")) {
+            String[] parts = f1.substring("track_".length()).split(",");
             if (parts.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + identifier;
+                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
             }
 
             try {
@@ -3165,12 +3201,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Airburst Mechanic: If within 3 blocks, explode immediately
                 double distance = caller.getLocation().distance(target.getLocation());
                 if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                    airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                    f1((Firework) caller, target, launcherUUID, parts[4]);
                     return "§c§lAirburst Detonation!";
                 }
 
                 // Calculate the interception velocity
-                Vector interceptVelocity = calculateInterceptionVelocity(caller, target, speed);
+                Vector interceptVelocity = f1(caller, target, speed);
                 caller.setVelocity(interceptVelocity);
 
                 // Get target's name (Player name or Entity type)
@@ -3184,8 +3220,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (identifier.startsWith("checkProfession_")) {
-            String uuidString = identifier.substring("checkProfession_".length());
+        if (f1.startsWith("checkProfession_")) {
+            String uuidString = f1.substring("checkProfession_".length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -3202,8 +3238,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("saveEntity_")) {
-            String uuidString = identifier.substring("saveEntity_".length());
+        if (f1.startsWith("saveEntity_")) {
+            String uuidString = f1.substring("saveEntity_".length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -3213,8 +3249,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     String nbtData = snapshot.getAsString();
                     String entityId = "entity_" + System.currentTimeMillis();
 
-                    File entityFile = new File(entityStorageDir, entityId + ".nbt");
-                    saveNBTToFile(entityFile, nbtData);
+                    File entityFile = new File(g12, entityId + ".nbt");
+                    f1(entityFile, nbtData);
 
                     entity.remove(); // Remove the entity after saving
                     return entityId;
@@ -3226,11 +3262,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (identifier.startsWith("loadEntity_")) {
-            if (identifier.startsWith("loadEntity_location_")) {
+        if (f1.startsWith("loadEntity_")) {
+            if (f1.startsWith("loadEntity_location_")) {
                 try {
                     // Parse parameters from the identifier
-                    String[] parts = identifier.substring("loadEntity_location_".length()).split(",");
+                    String[] parts = f1.substring("loadEntity_location_".length()).split(",");
                     if (parts.length < 5) {
                         return "Invalid location or UUID format!";
                     }
@@ -3250,12 +3286,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
 
                     // Load the entity data
-                    File entityFile = new File(entityStorageDir, entityId + ".nbt");
+                    File entityFile = new File(g12, entityId + ".nbt");
                     if (!entityFile.exists()) {
                         return "&cEntity with ID '" + entityId + "' not found!";
                     }
 
-                    String nbtData = loadNBTFromFile(entityFile);
+                    String nbtData = f1(entityFile);
                     if (nbtData == null) {
                         return "&cFailed to load entity data!";
                     }
@@ -3274,13 +3310,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return "&cAn error occurred while loading the entity!";
                 }
             } else {
-                String entityId = identifier.substring("loadEntity_".length());
-                File entityFile = new File(entityStorageDir, entityId + ".nbt");
+                String entityId = f1.substring("loadEntity_".length());
+                File entityFile = new File(g12, entityId + ".nbt");
 
                 if (entityFile.exists()) {
-                    String nbtData = loadNBTFromFile(entityFile);
+                    String nbtData = f1(entityFile);
                     if (nbtData != null) {
-                        Location spawnLocation = p.getLocation();
+                        Location spawnLocation = f2.getLocation();
                         EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
                         snapshot.createEntity(spawnLocation);
                         entityFile.delete(); // Remove the saved file after reintroducing
@@ -3292,9 +3328,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        switch (identifier) {
+        switch (f1) {
             case "cycle_playeruuid_head" -> {
-                ItemStack mainHandItem = p.getInventory().getItemInMainHand();
+                ItemStack mainHandItem = f2.getInventory().getItemInMainHand();
 
                 if (mainHandItem.getType() != Material.PLAYER_HEAD) {
                     return "Not holding a player head!";
@@ -3344,22 +3380,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return nextUUID.toString(); // Return the new UUID
             }
             case "velocity" -> {
-                return p.getVelocity().toString();
+                return f2.getVelocity().toString();
             }
             case "copyMainHand" -> {
-                dropMainHandCopy(p);
+                f2(f2);
                 return "done";
             }
             case "critical" -> {
-                boolean falling = p.getFallDistance() > 0 && p.getVelocity().getY() < 0;
-                boolean onGround = p.isOnGround(); // DEPRECATED! Remove if necessary
+                boolean falling = f2.getFallDistance() > 0 && f2.getVelocity().getY() < 0;
+                boolean onGround = f2.isOnGround(); // DEPRECATED! Remove if necessary
 
-                boolean isClimbing = p.isClimbing();
-                boolean inWater = p.isSwimming() || p.isInWater();
-                boolean blind = p.hasPotionEffect(PotionEffectType.BLINDNESS);
-                boolean slowFalling = p.hasPotionEffect(PotionEffectType.SLOW_FALLING);
-                boolean mounted = p.getVehicle() != null;
-                boolean horizontalSpeedValid = !p.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
+                boolean isClimbing = f2.isClimbing();
+                boolean inWater = f2.isSwimming() || f2.isInWater();
+                boolean blind = f2.hasPotionEffect(PotionEffectType.BLINDNESS);
+                boolean slowFalling = f2.hasPotionEffect(PotionEffectType.SLOW_FALLING);
+                boolean mounted = f2.getVehicle() != null;
+                boolean horizontalSpeedValid = !f2.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
 
                 // Unknown how to implement without passing in event. boolean validDamage = p.damage?
                 return falling &&
@@ -3375,7 +3411,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Unknown how to implement without passing in event. boolean validDamage = p.damage?
             }
             case "rayTraceBlock" -> {
-                return Objects.requireNonNull(Objects.requireNonNull(p.rayTraceBlocks(30)).getHitBlock()).toString();
+                return Objects.requireNonNull(Objects.requireNonNull(f2.rayTraceBlocks(30)).getHitBlock()).toString();
             }
         }
 
@@ -3423,16 +3459,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     }
 
-    private void saveNBTToFile(File file, String nbtData) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(nbtData);
+    private void f1(File f1, String f2) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
+            writer.write(f2);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private String loadNBTFromFile(File file) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    private String f1(File f1) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(f1))) {
             StringBuilder nbtData = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -3446,148 +3482,148 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void dropMainHandCopy(Player player) {
-        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+    private void f2(Player f1) {
+        ItemStack itemInHand = f1.getInventory().getItemInMainHand();
 
         if (itemInHand.getType() == Material.AIR) {
-            player.sendMessage("You're not holding anything!");
+            f1.sendMessage("You're not holding anything!");
             return;
         }
 
         ItemStack copiedItem = itemInHand.clone();
-        Location dropLocation = player.getLocation();
-        Item droppedItem = player.getWorld().dropItemNaturally(dropLocation, copiedItem);
+        Location dropLocation = f1.getLocation();
+        Item droppedItem = f1.getWorld().dropItemNaturally(dropLocation, copiedItem);
         droppedItem.setPickupDelay(20);
     }
 
-    private void sendFakeRespawnPoint(Player player, Location fakeRespawnLocation) {
+    private void f1(Player f1, Location f2) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
         packet.getBlockPositionModifier().write(0, new BlockPosition(
-                fakeRespawnLocation.getBlockX(),
-                fakeRespawnLocation.getBlockY(),
-                fakeRespawnLocation.getBlockZ()
+                f2.getBlockX(),
+                f2.getBlockY(),
+                f2.getBlockZ()
         ));
         packet.getFloat().write(0, 0F); // Angle (Yaw), optional
 
         try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
+            ProtocolLibrary.getProtocolManager().sendServerPacket(f1, packet);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
 
-    private Vector calculateInterceptionVelocity(Entity caller, Entity target, double speed) {
-        Location callerLoc = caller.getLocation();
-        Location targetLoc = target.getLocation().add(0, target.getHeight() / 2, 0);
+    private Vector f1(Entity f1, Entity f2, double f0) {
+        Location ff = f1.getLocation();
+        Location f01 = f2.getLocation().add(0, f2.getHeight() / 2, 0);
 
-        if( target instanceof Player )  targetLoc = target.getLocation().add(0, ((Player) target).getEyeHeight(), 0);
+        if( f2 instanceof Player )  f01 = f2.getLocation().add(0, ((Player) f2).getEyeHeight(), 0);
 
-        Vector targetVelocity = target.getVelocity();
+        Vector intermediary = f2.getVelocity();
 
         // Distance between entities
-        double distance = callerLoc.distance(targetLoc);
+        double g30 = ff.distance(f01);
 
         // Maximum prediction range
-        double maxPredictDistance = speed * 20;
+        double g31 = f0 * 20;
 
         // Calculate estimated time to reach the target
-        double relativeSpeedSquared = speed * speed - targetVelocity.lengthSquared();
+        double g32 = f0 * f0 - intermediary.lengthSquared();
 
-        if (relativeSpeedSquared > 0) {
+        if (g32 > 0) {
             // Calculate time to intercept using a quadratic equation
-            Vector relativePosition = targetLoc.toVector().subtract(callerLoc.toVector());
+            Vector g33 = f01.toVector().subtract(ff.toVector());
 
-            double a = targetVelocity.dot(targetVelocity) - (speed * speed);
-            double b = 2 * targetVelocity.dot(relativePosition);
-            double c = relativePosition.dot(relativePosition);
+            double a = intermediary.dot(intermediary) - (f0 * f0);
+            double b = 2 * intermediary.dot(g33);
+            double c = g33.dot(g33);
 
-            double discriminant = (b * b) - (4 * a * c);
+            double girlfriend = (b * b) - (4 * a * c);
 
-            if (discriminant >= 0) {
+            if (girlfriend >= 0) {
                 // Solve for T (time to intercept)
-                double t1 = (-b + Math.sqrt(discriminant)) / (2 * a);
-                double t2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+                double g35 = (-b + Math.sqrt(girlfriend)) / (2 * a);
+                double f00 = (-b - Math.sqrt(girlfriend)) / (2 * a);
 
-                double timeToIntercept = Math.max(t1, t2);
-                if (timeToIntercept < 0) timeToIntercept = Math.min(t1, t2);
+                double fff = Math.max(g35, f00);
+                if (fff < 0) fff = Math.min(g35, f00);
 
                 // Ensure valid interception time
-                if (timeToIntercept > 0) {
-                    Vector interceptPoint = targetLoc.toVector().add(targetVelocity.clone().multiply(timeToIntercept));
+                if (fff > 0) {
+                    Vector fda = f01.toVector().add(intermediary.clone().multiply(fff));
 
                     // Check for rare "missile stuck in front" case
-                    if (isMissileInFrontOfTarget(callerLoc, targetLoc, targetVelocity)) {
-                        return targetVelocity.clone().multiply(-1).normalize().multiply(speed); // Reverse movement
+                    if (x(ff, f01, intermediary)) {
+                        return intermediary.clone().multiply(-1).normalize().multiply(f0); // Reverse movement
                     }
 
                     // If within max prediction range, move to exact intercept
-                    if (distance <= maxPredictDistance) {
-                        return interceptPoint.subtract(callerLoc.toVector()).normalize().multiply(speed);
+                    if (g30 <= g31) {
+                        return fda.subtract(ff.toVector()).normalize().multiply(f0);
                     }
                 }
             }
         }
 
         // If unable to calculate exact intercept, fallback to best effort prediction
-        Vector directionToTarget = targetLoc.toVector().subtract(callerLoc.toVector()).normalize();
-        return directionToTarget.multiply(speed);
+        Vector gg = f01.toVector().subtract(ff.toVector()).normalize();
+        return gg.multiply(f0);
     }
 
     /**
      * Determines if the missile is stuck in front of the target's movement direction (within 2-3 degrees).
      */
-    private boolean isMissileInFrontOfTarget(Location missileLoc, Location targetLoc, Vector targetVelocity) {
-        if (targetVelocity.lengthSquared() == 0) return false; // Target is stationary
+    private boolean x(Location y, Location z, Vector f1) {
+        if (f1.lengthSquared() == 0) return false; // Target is stationary
 
-        Vector toMissile = missileLoc.toVector().subtract(targetLoc.toVector()).normalize();
-        Vector targetDirection = targetVelocity.clone().normalize();
+        Vector f2 = y.toVector().subtract(z.toVector()).normalize();
+        Vector g30 = f1.clone().normalize();
 
-        double angle = Math.toDegrees(Math.acos(toMissile.dot(targetDirection)));
+        double g31 = Math.toDegrees(Math.acos(f2.dot(g30)));
 
-        return angle < 3.0; // Within 3 degrees = missile stuck in front
+        return g31 < 3.0; // Within 3 degrees = missile stuck in front
     }
 
-    private void airburstExplode(Firework firework, Entity target, UUID launcherUUID, String damage) {
-        if (firework == null || firework.isDead() || !firework.isValid()) return;
+    private void f1(Firework f1, Entity f, UUID f2, String f0) {
+        if (f1 == null || f1.isDead() || !f1.isValid()) return;
 
-        firework.teleport(target.getLocation());
-        World world = firework.getWorld();
-        Location explosionLocation = firework.getLocation();
+        f1.teleport(f.getLocation());
+        World world = f1.getWorld();
+        Location explosionLocation = f1.getLocation();
 
         // Retrieve explosion power based on firework stars
-        float damage2 = Float.parseFloat(damage);
+        float damage2 = Float.parseFloat(f0);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!firework.isValid() || firework.isDead()) return;
+                if (!f1.isValid() || f1.isDead()) return;
 
                 // Create the visual firework explosion
-                spawnCustomFireworkExplosion(world, explosionLocation);
+                f1(world, explosionLocation);
 
                 // Apply explosion damage
 
                 // Trigger a player hit event (simulate firework explosion hitting a player)
-                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage2);
+                f1(f2, explosionLocation, damage2);
 
                 // Remove the original firework
-                firework.remove();
+                f1.remove();
             }
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
 
-    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower) {
-        Player launcher = Bukkit.getPlayer(launcherUUID);
-        if (launcher == null) return; // Launcher is offline or invalid
+    private void f1(UUID f1, Location g30, float f) {
+        Player f0 = Bukkit.getPlayer(f1);
+        if (f0 == null) return; // Launcher is offline or invalid
 
-        double explosionRadius = 5.0; // Firework explosion hit radius
+        double ft = 5.0; // Firework explosion hit radius
 
-        for (Entity entity : Objects.requireNonNull(explosionLocation.getWorld()).getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
+        for (Entity entity : Objects.requireNonNull(g30.getWorld()).getNearbyEntities(g30, ft, ft, ft)) {
             if (entity instanceof LivingEntity hitPlayer) {
 
                 // Apply direct damage as if caused by the launcher
-                hitPlayer.damage(explosionPower, launcher);
+                hitPlayer.damage(f, f0);
 
                 // Optional: Add custom effects
                 ; // Small knockback
@@ -3601,7 +3637,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private float getFireworkExplosionPower(Firework firework) {
+    private float f(Firework firework) {
         FireworkMeta meta = firework.getFireworkMeta();
 
         // Count the number of firework stars
@@ -3616,8 +3652,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return 0.5F * fireworkStars; // Closer to vanilla damage
     }
 
-    private void spawnCustomFireworkExplosion(World world, Location location) {
-        Firework firework = world.spawn(location, Firework.class);
+    private void f1(World f1, Location f) {
+        Firework firework = f1.spawn(f, Firework.class);
         FireworkMeta meta = firework.getFireworkMeta();
 
         // Large Ball Effect: Yellow, Orange, Gray with sparkles
@@ -3645,17 +3681,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void loadFTLeaderboard() {
-        if (!ftLeaderboardFile.exists()) return;
+    private void g23() {
+        if (!g21.exists()) return;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(ftLeaderboardFile))) {
+        try (BufferedReader f1 = new BufferedReader(new FileReader(g21))) {
             String line;
-            while ((line = reader.readLine()) != null) {
+            while ((line = f1.readLine()) != null) {
                 String[] parts = line.split(":");
                 if (parts.length == 2) {
                     UUID uuid = UUID.fromString(parts[0]);
                     int score = Integer.parseInt(parts[1]);
-                    ftLeaderboard.put(uuid, score);
+                    g22.put(uuid, score);
                 }
             }
         } catch (IOException e) {
@@ -3664,9 +3700,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void sendFTLeaderboardViaTellraw(Player player) {
+    private void f3(Player f1) {
         try {
-            List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(ftLeaderboard.entrySet());
+            List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(g22.entrySet());
 
             // Sorting: First by score (descending), then by insertion order (first to score stays ahead)
             sortedList.sort((a, b) -> {
@@ -3691,7 +3727,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             tellraw.append(",{\"text\":\"§6-----------------\"}]");
 
             // Execute tellraw command
-            String tellrawCommand = String.format("tellraw %s %s", player.getName(), tellraw);
+            String tellrawCommand = String.format("tellraw %s %s", f1.getName(), tellraw);
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), tellrawCommand);
 
         } catch (Exception e) {
@@ -3700,19 +3736,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void activateXRay(Player player, int radius, int duration) {
-        World world = player.getWorld();
-        Location playerLoc = player.getLocation();
-        UUID playerUUID = player.getUniqueId();
+    private void f1(Player f2, int f1, int f) {
+        World world = f2.getWorld();
+        Location playerLoc = f2.getLocation();
+        UUID playerUUID = f2.getUniqueId();
 
         // Track just the locations, not the original state
         Set<Location> xrayLocations = new HashSet<>();
-        trackedBlocks.put(playerUUID, xrayLocations);
+        g24.put(playerUUID, xrayLocations);
 
         // Scan surrounding blocks
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
+        for (int x = -f1; x <= f1; x++) {
+            for (int y = -f1; y <= f1; y++) {
+                for (int z = -f1; z <= f1; z++) {
                     Location loc = new Location(
                             world,
                             playerLoc.getBlockX() + x,
@@ -3721,9 +3757,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     );
 
                     Block block = loc.getBlock();
-                    if (shouldTurnToGlass(block)) {
+                    if (f1(block)) {
                         xrayLocations.add(loc);
-                        player.sendBlockChange(loc, Material.GLASS.createBlockData());
+                        f2.sendBlockChange(loc, Material.GLASS.createBlockData());
                     }
                 }
             }
@@ -3733,45 +3769,45 @@ public class ExampleExpansion extends PlaceholderExpansion {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!trackedBlocks.containsKey(playerUUID)) return;
+                if (!g24.containsKey(playerUUID)) return;
 
-                for (Location loc : trackedBlocks.get(playerUUID)) {
+                for (Location loc : g24.get(playerUUID)) {
                     Block current = loc.getBlock();
-                    player.sendBlockChange(loc, current.getBlockData()); // Re-fetch the actual block state at time of restore
+                    f2.sendBlockChange(loc, current.getBlockData()); // Re-fetch the actual block state at time of restore
                 }
 
                 // Cleanup
-                trackedBlocks.remove(playerUUID);
+                g24.remove(playerUUID);
             }
-        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), duration);
+        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f);
     }
 
 
-    private boolean shouldTurnToGlass(Block block) {
-        return block.getType() != Material.AIR
-                && block.getType() != Material.WATER
-                && block.getType() != Material.LAVA
-                && !oresAndImportantBlocks.contains(block.getType());
+    private boolean f1(Block f1) {
+        return f1.getType() != Material.AIR
+                && f1.getType() != Material.WATER
+                && f1.getType() != Material.LAVA
+                && !g25.contains(f1.getType());
     }
 
-    private List<Vector> matrixToVectors(boolean[][] matrix, int density, double size, double rotationRadians) {
+    private List<Vector> f1(boolean[][] f1, int f, double f0, double test) {
         List<Vector> vectors = new ArrayList<>();
 
-        int height = matrix.length;
-        int width = Arrays.stream(matrix).mapToInt(row -> row.length).max().orElse(0);
+        int height = f1.length;
+        int width = Arrays.stream(f1).mapToInt(row -> row.length).max().orElse(0);
 
         for (int row = 0; row < height; row++) {
-            for (int col = 0; col < matrix[row].length; col++) {
-                if (!matrix[row][col]) continue;
+            for (int col = 0; col < f1[row].length; col++) {
+                if (!f1[row][col]) continue;
 
-                for (int dy = 0; dy < density; dy++) {
-                    for (int dx = 0; dx < density; dx++) {
-                        double offsetZ = (col + dx / (double) density - width / 2.0) * size;
-                        double offsetY = (-row - dy / (double) density + height / 2.0) * size;
+                for (int dy = 0; dy < f; dy++) {
+                    for (int dx = 0; dx < f; dx++) {
+                        double offsetZ = (col + dx / (double) f - width / 2.0) * f0;
+                        double offsetY = (-row - dy / (double) f + height / 2.0) * f0;
 
                         // The text is vertical (YZ), and rotated around Y
-                        double rotatedX = offsetZ * Math.sin(rotationRadians);
-                        double rotatedZ = offsetZ * Math.cos(rotationRadians);
+                        double rotatedX = offsetZ * Math.sin(test);
+                        double rotatedZ = offsetZ * Math.cos(test);
 
                         vectors.add(new Vector(rotatedX, offsetY, rotatedZ));
                     }
@@ -3785,13 +3821,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static boolean[][] renderTextToMatrix(String text) {
+    private static boolean[][] f11(String f1) {
         Font font = new Font("Dialog", Font.PLAIN, 16);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setFont(font);
         FontMetrics fm = g.getFontMetrics();
-        int width = fm.stringWidth(text);
+        int width = fm.stringWidth(f1);
         int height = fm.getHeight();
         g.dispose();
 
@@ -3799,7 +3835,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         g = img.createGraphics();
         g.setFont(font);
         g.setColor(java.awt.Color.WHITE);
-        g.drawString(text, 0, fm.getAscent());
+        g.drawString(f1, 0, fm.getAscent());
         g.dispose();
 
         boolean[][] matrix = new boolean[height][width];
@@ -3811,40 +3847,40 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return matrix;
     }
 
-    private static List<Location> applyToWorld(Location center, List<Vector> offsets) {
+    private static List<Location> f1(Location f1, List<Vector> f11) {
         List<Location> result = new ArrayList<>();
-        for (Vector v : offsets) {
-            result.add(center.clone().add(v));
+        for (Vector v : f11) {
+            result.add(f1.clone().add(v));
         }
         return result;
     }
 
-    private void displayToNearby(Location center, List<Location> locs, Particle particle, String mode) {
-        boolean isForce = mode.equalsIgnoreCase("force");
+    private void f1(Location f1, List<Location> f, Particle particle, String g30) {
+        boolean isForce = g30.equalsIgnoreCase("force");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!isForce && player.getLocation().getWorld() != center.getWorld()) continue;
-            if (!isForce && player.getLocation().distanceSquared(center) > 256) continue;
+            if (!isForce && player.getLocation().getWorld() != f1.getWorld()) continue;
+            if (!isForce && player.getLocation().distanceSquared(f1) > 256) continue;
 
-            for (Location loc : locs) {
+            for (Location loc : f) {
                 player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, null, isForce);
             }
         }
     }
 
 
-    private static void saveToDisk(File file, List<Vector> vectors) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (Vector v : vectors) {
+    private static void f1(File f1, List<Vector> f) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
+            for (Vector v : f) {
                 writer.write(v.getX() + "," + v.getY() + "," + v.getZ());
                 writer.newLine();
             }
         }
     }
 
-    private static List<Vector> loadFromDisk(File file) throws IOException {
+    private static List<Vector> f(File f1) throws IOException {
         List<Vector> vectors = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(f1))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -3857,34 +3893,34 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return vectors;
     }
 
-    private String hashSHA256(String input) {
+    private String f12(String f) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            byte[] hashBytes = digest.digest(f.getBytes(StandardCharsets.UTF_8));
             StringBuilder hex = new StringBuilder();
             for (byte b : hashBytes) hex.append(String.format("%02x", b));
             return hex.toString();
         } catch (NoSuchAlgorithmException e) {
-            return Integer.toHexString(input.hashCode()); // Fallback
+            return Integer.toHexString(f.hashCode()); // Fallback
         }
     }
     
 
-    private static String sanitize(String text) {
+    private static String ffa(String text) {
         return Base64.getUrlEncoder().encodeToString(text.getBytes());
     }
 
-    private record CachedParticleData(List<Location> locations, long timestamp) {}
+    private record ffs(List<Location> locations, long timestamp) {}
 
-    private void refreshCacheExpiry(String fullKey) {
+    private void f1fs(String fullKey) {
         // Cancel and reschedule the cache removal in 1 minute
         Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
-                () -> memoryCache.remove(fullKey), 20L * 60); // 60 seconds
+                () -> g8.remove(fullKey), 20L * 60); // 60 seconds
     }
 
 
     @SuppressWarnings("deprecation")
-    private BufferedImage getSkinImage(String playerIdOrUuid) throws IOException {
+    private BufferedImage f9(String playerIdOrUuid) throws IOException {
         String uuid = playerIdOrUuid;
 
         // Step 1: Convert username to UUID if needed
@@ -3916,33 +3952,33 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static final int SKIN_WIDTH = 64;
-    private static final int SKIN_HEIGHT = 64;
+    private static final int ffff = 64;
+    private static final int aaaa = 64;
 
-    record SkinLayers(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
-    private SkinLayers extractPixelLayers(BufferedImage skin) {
-        java.awt.Color[][] base = new java.awt.Color[SKIN_HEIGHT][SKIN_WIDTH];
-        java.awt.Color[][] overlay = new java.awt.Color[SKIN_HEIGHT][SKIN_WIDTH];
+    record f123(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
+    private f123 f1(BufferedImage skin) {
+        java.awt.Color[][] base = new java.awt.Color[aaaa][ffff];
+        java.awt.Color[][] overlay = new java.awt.Color[aaaa][ffff];
 
-        for (int y = 0; y < SKIN_HEIGHT; y++) {
-            for (int x = 0; x < SKIN_WIDTH; x++) {
+        for (int y = 0; y < aaaa; y++) {
+            for (int x = 0; x < ffff; x++) {
                 int argb = skin.getRGB(x, y);
-                base[y][x] = getColorFromARGB(argb);
+                base[y][x] = f1(argb);
             }
         }
 
-        for (int y = 0; y < SKIN_HEIGHT; y++) {
-            for (int x = 0; x < SKIN_WIDTH; x++) {
-                java.awt.Color color = getColorFromARGB(skin.getRGB(x, y));
+        for (int y = 0; y < aaaa; y++) {
+            for (int x = 0; x < ffff; x++) {
+                java.awt.Color color = f1(skin.getRGB(x, y));
                 overlay[y][x] = (color.getAlpha() > 0) ? color : null;
             }
         }
 
-        return new SkinLayers(base, overlay);
+        return new f123(base, overlay);
     }
 
 
-    private java.awt.Color getColorFromARGB(int argb) {
+    private java.awt.Color f1(int argb) {
         int alpha = (argb >> 24) & 0xFF;
         int red   = (argb >> 16) & 0xFF;
         int green = (argb >> 8) & 0xFF;
@@ -3952,149 +3988,149 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void placeBlock(World world, Location loc, Material mat, int scale) {
-        for (int dx = 0; dx < scale; dx++) {
-            for (int dy = 0; dy < scale; dy++) {
-                for (int dz = 0; dz < scale; dz++) {
-                    Location sub = loc.clone().add(dx, dy, dz);
-                    sub.getBlock().setType(mat);
+    private void f1(World f1, Location f, Material f0, int ff) {
+        for (int dx = 0; dx < ff; dx++) {
+            for (int dy = 0; dy < ff; dy++) {
+                for (int dz = 0; dz < ff; dz++) {
+                    Location sub = f.clone().add(dx, dy, dz);
+                    sub.getBlock().setType(f0);
                 }
             }
         }
     }
     
     
-    private record BlockColor(Material material, java.awt.Color color) {}
+    private record g40(Material material, java.awt.Color color) {}
 
 
-    private static final List<BlockColor> blockPalette = List.of(
+    private static final List<g40> g41 = List.of(
             // === CONCRETES ===
-            new BlockColor(Material.WHITE_CONCRETE, new java.awt.Color(207, 213, 214)),
-            new BlockColor(Material.LIGHT_GRAY_CONCRETE, new java.awt.Color(125, 125, 115)),
-            new BlockColor(Material.GRAY_CONCRETE, new java.awt.Color(54, 57, 61)),
-            new BlockColor(Material.BLACK_CONCRETE, new java.awt.Color(8, 10, 15)),
-            new BlockColor(Material.RED_CONCRETE, new java.awt.Color(142, 32, 32)),
-            new BlockColor(Material.ORANGE_CONCRETE, new java.awt.Color(224, 97, 0)),
-            new BlockColor(Material.YELLOW_CONCRETE, new java.awt.Color(240, 175, 21)),
-            new BlockColor(Material.LIME_CONCRETE, new java.awt.Color(94, 168, 24)),
-            new BlockColor(Material.GREEN_CONCRETE, new java.awt.Color(73, 91, 36)),
-            new BlockColor(Material.CYAN_CONCRETE, new java.awt.Color(21, 137, 145)),
-            new BlockColor(Material.LIGHT_BLUE_CONCRETE, new java.awt.Color(36, 137, 199)),
-            new BlockColor(Material.BLUE_CONCRETE, new java.awt.Color(44, 46, 143)),
-            new BlockColor(Material.PURPLE_CONCRETE, new java.awt.Color(100, 32, 156)),
-            new BlockColor(Material.MAGENTA_CONCRETE, new java.awt.Color(170, 45, 160)),
-            new BlockColor(Material.PINK_CONCRETE, new java.awt.Color(210, 97, 137)),
-            new BlockColor(Material.BROWN_CONCRETE, new java.awt.Color(96, 59, 31)),
+            new g40(Material.WHITE_CONCRETE, new java.awt.Color(207, 213, 214)),
+            new g40(Material.LIGHT_GRAY_CONCRETE, new java.awt.Color(125, 125, 115)),
+            new g40(Material.GRAY_CONCRETE, new java.awt.Color(54, 57, 61)),
+            new g40(Material.BLACK_CONCRETE, new java.awt.Color(8, 10, 15)),
+            new g40(Material.RED_CONCRETE, new java.awt.Color(142, 32, 32)),
+            new g40(Material.ORANGE_CONCRETE, new java.awt.Color(224, 97, 0)),
+            new g40(Material.YELLOW_CONCRETE, new java.awt.Color(240, 175, 21)),
+            new g40(Material.LIME_CONCRETE, new java.awt.Color(94, 168, 24)),
+            new g40(Material.GREEN_CONCRETE, new java.awt.Color(73, 91, 36)),
+            new g40(Material.CYAN_CONCRETE, new java.awt.Color(21, 137, 145)),
+            new g40(Material.LIGHT_BLUE_CONCRETE, new java.awt.Color(36, 137, 199)),
+            new g40(Material.BLUE_CONCRETE, new java.awt.Color(44, 46, 143)),
+            new g40(Material.PURPLE_CONCRETE, new java.awt.Color(100, 32, 156)),
+            new g40(Material.MAGENTA_CONCRETE, new java.awt.Color(170, 45, 160)),
+            new g40(Material.PINK_CONCRETE, new java.awt.Color(210, 97, 137)),
+            new g40(Material.BROWN_CONCRETE, new java.awt.Color(96, 59, 31)),
 
             // === TERRACOTTA ===
-            new BlockColor(Material.TERRACOTTA, new java.awt.Color(152, 94, 68)),
-            new BlockColor(Material.WHITE_TERRACOTTA, new java.awt.Color(209, 178, 161)),
-            new BlockColor(Material.LIGHT_GRAY_TERRACOTTA, new java.awt.Color(135, 107, 98)),
-            new BlockColor(Material.GRAY_TERRACOTTA, new java.awt.Color(57, 42, 35)),
-            new BlockColor(Material.BLACK_TERRACOTTA, new java.awt.Color(37, 23, 16)),
-            new BlockColor(Material.RED_TERRACOTTA, new java.awt.Color(143, 61, 47)),
-            new BlockColor(Material.ORANGE_TERRACOTTA, new java.awt.Color(161, 83, 37)),
-            new BlockColor(Material.YELLOW_TERRACOTTA, new java.awt.Color(186, 133, 35)),
-            new BlockColor(Material.LIME_TERRACOTTA, new java.awt.Color(103, 117, 53)),
-            new BlockColor(Material.GREEN_TERRACOTTA, new java.awt.Color(76, 83, 42)),
-            new BlockColor(Material.CYAN_TERRACOTTA, new java.awt.Color(86, 91, 91)),
-            new BlockColor(Material.LIGHT_BLUE_TERRACOTTA, new java.awt.Color(113, 108, 137)),
-            new BlockColor(Material.BLUE_TERRACOTTA, new java.awt.Color(74, 59, 91)),
-            new BlockColor(Material.PURPLE_TERRACOTTA, new java.awt.Color(118, 70, 86)),
-            new BlockColor(Material.MAGENTA_TERRACOTTA, new java.awt.Color(149, 87, 108)),
-            new BlockColor(Material.PINK_TERRACOTTA, new java.awt.Color(160, 77, 78)),
-            new BlockColor(Material.BROWN_TERRACOTTA, new java.awt.Color(77, 51, 35)),
+            new g40(Material.TERRACOTTA, new java.awt.Color(152, 94, 68)),
+            new g40(Material.WHITE_TERRACOTTA, new java.awt.Color(209, 178, 161)),
+            new g40(Material.LIGHT_GRAY_TERRACOTTA, new java.awt.Color(135, 107, 98)),
+            new g40(Material.GRAY_TERRACOTTA, new java.awt.Color(57, 42, 35)),
+            new g40(Material.BLACK_TERRACOTTA, new java.awt.Color(37, 23, 16)),
+            new g40(Material.RED_TERRACOTTA, new java.awt.Color(143, 61, 47)),
+            new g40(Material.ORANGE_TERRACOTTA, new java.awt.Color(161, 83, 37)),
+            new g40(Material.YELLOW_TERRACOTTA, new java.awt.Color(186, 133, 35)),
+            new g40(Material.LIME_TERRACOTTA, new java.awt.Color(103, 117, 53)),
+            new g40(Material.GREEN_TERRACOTTA, new java.awt.Color(76, 83, 42)),
+            new g40(Material.CYAN_TERRACOTTA, new java.awt.Color(86, 91, 91)),
+            new g40(Material.LIGHT_BLUE_TERRACOTTA, new java.awt.Color(113, 108, 137)),
+            new g40(Material.BLUE_TERRACOTTA, new java.awt.Color(74, 59, 91)),
+            new g40(Material.PURPLE_TERRACOTTA, new java.awt.Color(118, 70, 86)),
+            new g40(Material.MAGENTA_TERRACOTTA, new java.awt.Color(149, 87, 108)),
+            new g40(Material.PINK_TERRACOTTA, new java.awt.Color(160, 77, 78)),
+            new g40(Material.BROWN_TERRACOTTA, new java.awt.Color(77, 51, 35)),
 
             // === WOOL ===
-            new BlockColor(Material.WHITE_WOOL, new java.awt.Color(234, 236, 237)),
-            new BlockColor(Material.LIGHT_GRAY_WOOL, new java.awt.Color(142, 142, 135)),
-            new BlockColor(Material.GRAY_WOOL, new java.awt.Color(63, 68, 72)),
-            new BlockColor(Material.BLACK_WOOL, new java.awt.Color(29, 29, 33)),
-            new BlockColor(Material.RED_WOOL, new java.awt.Color(161, 39, 34)),
-            new BlockColor(Material.ORANGE_WOOL, new java.awt.Color(241, 118, 20)),
-            new BlockColor(Material.YELLOW_WOOL, new java.awt.Color(249, 198, 39)),
-            new BlockColor(Material.LIME_WOOL, new java.awt.Color(110, 185, 25)),
-            new BlockColor(Material.GREEN_WOOL, new java.awt.Color(85, 110, 27)),
-            new BlockColor(Material.CYAN_WOOL, new java.awt.Color(21, 137, 145)),
-            new BlockColor(Material.LIGHT_BLUE_WOOL, new java.awt.Color(113, 166, 221)),
-            new BlockColor(Material.BLUE_WOOL, new java.awt.Color(53, 57, 157)),
-            new BlockColor(Material.PURPLE_WOOL, new java.awt.Color(123, 47, 190)),
-            new BlockColor(Material.MAGENTA_WOOL, new java.awt.Color(195, 84, 205)),
-            new BlockColor(Material.PINK_WOOL, new java.awt.Color(243, 139, 170)),
-            new BlockColor(Material.BROWN_WOOL, new java.awt.Color(112, 71, 40)),
+            new g40(Material.WHITE_WOOL, new java.awt.Color(234, 236, 237)),
+            new g40(Material.LIGHT_GRAY_WOOL, new java.awt.Color(142, 142, 135)),
+            new g40(Material.GRAY_WOOL, new java.awt.Color(63, 68, 72)),
+            new g40(Material.BLACK_WOOL, new java.awt.Color(29, 29, 33)),
+            new g40(Material.RED_WOOL, new java.awt.Color(161, 39, 34)),
+            new g40(Material.ORANGE_WOOL, new java.awt.Color(241, 118, 20)),
+            new g40(Material.YELLOW_WOOL, new java.awt.Color(249, 198, 39)),
+            new g40(Material.LIME_WOOL, new java.awt.Color(110, 185, 25)),
+            new g40(Material.GREEN_WOOL, new java.awt.Color(85, 110, 27)),
+            new g40(Material.CYAN_WOOL, new java.awt.Color(21, 137, 145)),
+            new g40(Material.LIGHT_BLUE_WOOL, new java.awt.Color(113, 166, 221)),
+            new g40(Material.BLUE_WOOL, new java.awt.Color(53, 57, 157)),
+            new g40(Material.PURPLE_WOOL, new java.awt.Color(123, 47, 190)),
+            new g40(Material.MAGENTA_WOOL, new java.awt.Color(195, 84, 205)),
+            new g40(Material.PINK_WOOL, new java.awt.Color(243, 139, 170)),
+            new g40(Material.BROWN_WOOL, new java.awt.Color(112, 71, 40)),
 
             // === PLANKS (WOOD) ===
-            new BlockColor(Material.OAK_PLANKS, new java.awt.Color(162, 130, 79)),
-            new BlockColor(Material.SPRUCE_PLANKS, new java.awt.Color(115, 84, 52)),
-            new BlockColor(Material.BIRCH_PLANKS, new java.awt.Color(197, 179, 123)),
-            new BlockColor(Material.JUNGLE_PLANKS, new java.awt.Color(171, 124, 85)),
-            new BlockColor(Material.ACACIA_PLANKS, new java.awt.Color(175, 92, 66)),
-            new BlockColor(Material.DARK_OAK_PLANKS, new java.awt.Color(66, 43, 20)),
-            new BlockColor(Material.MANGROVE_PLANKS, new java.awt.Color(132, 38, 38)),
-            new BlockColor(Material.CHERRY_PLANKS, new java.awt.Color(216, 132, 145)),
-            new BlockColor(Material.BAMBOO_PLANKS, new java.awt.Color(197, 176, 96)),
-            new BlockColor(Material.CRIMSON_PLANKS, new java.awt.Color(137, 58, 90)),
-            new BlockColor(Material.WARPED_PLANKS, new java.awt.Color(58, 142, 140)),
+            new g40(Material.OAK_PLANKS, new java.awt.Color(162, 130, 79)),
+            new g40(Material.SPRUCE_PLANKS, new java.awt.Color(115, 84, 52)),
+            new g40(Material.BIRCH_PLANKS, new java.awt.Color(197, 179, 123)),
+            new g40(Material.JUNGLE_PLANKS, new java.awt.Color(171, 124, 85)),
+            new g40(Material.ACACIA_PLANKS, new java.awt.Color(175, 92, 66)),
+            new g40(Material.DARK_OAK_PLANKS, new java.awt.Color(66, 43, 20)),
+            new g40(Material.MANGROVE_PLANKS, new java.awt.Color(132, 38, 38)),
+            new g40(Material.CHERRY_PLANKS, new java.awt.Color(216, 132, 145)),
+            new g40(Material.BAMBOO_PLANKS, new java.awt.Color(197, 176, 96)),
+            new g40(Material.CRIMSON_PLANKS, new java.awt.Color(137, 58, 90)),
+            new g40(Material.WARPED_PLANKS, new java.awt.Color(58, 142, 140)),
 
             // === PRECIOUS BLOCKS ===
-            new BlockColor(Material.DIAMOND_BLOCK, new java.awt.Color(97, 219, 213)),
-            new BlockColor(Material.EMERALD_BLOCK, new java.awt.Color(63, 217, 58)),
-            new BlockColor(Material.GOLD_BLOCK, new java.awt.Color(249, 236, 78)),
-            new BlockColor(Material.IRON_BLOCK, new java.awt.Color(224, 224, 224)),
-            new BlockColor(Material.NETHERITE_BLOCK, new java.awt.Color(64, 59, 65)),
+            new g40(Material.DIAMOND_BLOCK, new java.awt.Color(97, 219, 213)),
+            new g40(Material.EMERALD_BLOCK, new java.awt.Color(63, 217, 58)),
+            new g40(Material.GOLD_BLOCK, new java.awt.Color(249, 236, 78)),
+            new g40(Material.IRON_BLOCK, new java.awt.Color(224, 224, 224)),
+            new g40(Material.NETHERITE_BLOCK, new java.awt.Color(64, 59, 65)),
 
             // === COPPER TYPES ===
-            new BlockColor(Material.COPPER_BLOCK, new java.awt.Color(183, 106, 53)),
-            new BlockColor(Material.EXPOSED_COPPER, new java.awt.Color(168, 138, 113)),
-            new BlockColor(Material.WEATHERED_COPPER, new java.awt.Color(74, 153, 135)),
-            new BlockColor(Material.OXIDIZED_COPPER, new java.awt.Color(90, 161, 151)),
+            new g40(Material.COPPER_BLOCK, new java.awt.Color(183, 106, 53)),
+            new g40(Material.EXPOSED_COPPER, new java.awt.Color(168, 138, 113)),
+            new g40(Material.WEATHERED_COPPER, new java.awt.Color(74, 153, 135)),
+            new g40(Material.OXIDIZED_COPPER, new java.awt.Color(90, 161, 151)),
 
             // === PURPUR ===
-            new BlockColor(Material.PURPUR_BLOCK, new java.awt.Color(172, 124, 172)),
+            new g40(Material.PURPUR_BLOCK, new java.awt.Color(172, 124, 172)),
 
             // === PRISMARINE ===
-            new BlockColor(Material.PRISMARINE, new java.awt.Color(99, 156, 143)),
-            new BlockColor(Material.PRISMARINE_BRICKS, new java.awt.Color(70, 194, 175)),
-            new BlockColor(Material.DARK_PRISMARINE, new java.awt.Color(46, 102, 90)),
+            new g40(Material.PRISMARINE, new java.awt.Color(99, 156, 143)),
+            new g40(Material.PRISMARINE_BRICKS, new java.awt.Color(70, 194, 175)),
+            new g40(Material.DARK_PRISMARINE, new java.awt.Color(46, 102, 90)),
 
             // === SANDSTONES ===
-            new BlockColor(Material.SANDSTONE, new java.awt.Color(219, 211, 160)),
-            new BlockColor(Material.CUT_SANDSTONE, new java.awt.Color(215, 205, 152)),
-            new BlockColor(Material.RED_SANDSTONE, new java.awt.Color(177, 90, 47)),
-            new BlockColor(Material.CUT_RED_SANDSTONE, new java.awt.Color(170, 83, 42)),
+            new g40(Material.SANDSTONE, new java.awt.Color(219, 211, 160)),
+            new g40(Material.CUT_SANDSTONE, new java.awt.Color(215, 205, 152)),
+            new g40(Material.RED_SANDSTONE, new java.awt.Color(177, 90, 47)),
+            new g40(Material.CUT_RED_SANDSTONE, new java.awt.Color(170, 83, 42)),
 
             // === END STONE ===
-            new BlockColor(Material.END_STONE, new java.awt.Color(230, 230, 170))
+            new g40(Material.END_STONE, new java.awt.Color(230, 230, 170))
 
     );
 
 
 
-    private Material getClosestMaterial(java.awt.Color target) {
-        return blockPalette.stream()
-                .min(Comparator.comparingDouble(p -> colorDistance(target, p.color())))
-                .map(BlockColor::material)
+    private Material f1(java.awt.Color f1) {
+        return g41.stream()
+                .min(Comparator.comparingDouble(p -> f1(f1, p.color())))
+                .map(g40::material)
                 .orElse(Material.BARRIER);
     }
 
 
-    private double colorDistance(java.awt.Color c1, java.awt.Color c2) {
-        int dr = c1.getRed() - c2.getRed();
-        int dg = c1.getGreen() - c2.getGreen();
-        int db = c1.getBlue() - c2.getBlue();
+    private double f1(java.awt.Color f1, java.awt.Color g30) {
+        int dr = f1.getRed() - g30.getRed();
+        int dg = f1.getGreen() - g30.getGreen();
+        int db = f1.getBlue() - g30.getBlue();
         return Math.sqrt(dr * dr + dg * dg + db * db);
     }
-    private Vector rotateY(Vector v, double degrees) {
-        double rad = Math.toRadians(degrees);
+    private Vector f1(Vector f1, double g29) {
+        double rad = Math.toRadians(g29);
         double cos = Math.cos(rad);
         double sin = Math.sin(rad);
-        double x = v.getX() * cos - v.getZ() * sin;
-        double z = v.getX() * sin + v.getZ() * cos;
-        return new Vector(x, v.getY(), z);
+        double x = f1.getX() * cos - f1.getZ() * sin;
+        double z = f1.getX() * sin + f1.getZ() * cos;
+        return new Vector(x, f1.getY(), z);
     }
 
-    private void buildPlayerStatueFromSkin(Player p, World world, BufferedImage skin, Location origin, int scale, String direction, String mode) {
-        double rotation = switch (direction) {
+    private void f1(Player f1, World f2, BufferedImage a, Location b, int c, String ffa, String ffs) {
+        double rotation = switch (ffa) {
             case "N" -> 180;
             case "E" -> -90;
             case "W" -> 90;
@@ -4102,24 +4138,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
         };
 
         // Head (base layer): size 8x8x8, using full 6-sided unwrap
-        buildHeadFromSkin(skin, world, origin.clone().add(0, 24, -2), scale, rotation);
+        f1(a, f2, b.clone().add(0, 24, -2), c, rotation);
 
         // Torso front: 8x12x4
-        buildCubeFromSkin(skin, world, origin.clone().add(0, 12, 0), scale, 8, rotation, new Point(20, 20));
+        f1(a, f2, b.clone().add(0, 12, 0), c, 8, rotation, new Point(20, 20));
 
         // Right Arm (44,20), 4x12x4
-        buildCubeFromSkin(skin, world, origin.clone().add(-4, 12, 0), scale, 4, rotation, new Point(44, 20));
+        f1(a, f2, b.clone().add(-4, 12, 0), c, 4, rotation, new Point(44, 20));
 
         // Left Arm (36,52), 4x12x4
-        buildCubeFromSkin(skin, world, origin.clone().add(8, 12, 0), scale, 4, rotation, new Point(36, 52));
+        f1(a, f2, b.clone().add(8, 12, 0), c, 4, rotation, new Point(36, 52));
 
         // Right Leg (4,20), 4x12x4
-        buildCubeFromSkin(skin, world, origin.clone().add(0, 0, 0), scale, 4, rotation, new Point(4, 20));
+        f1(a, f2, b.clone().add(0, 0, 0), c, 4, rotation, new Point(4, 20));
 
         // Left Leg (20,52), 4x12x4
-        buildCubeFromSkin(skin, world, origin.clone().add(4, 0, 0), scale, 4, rotation, new Point(20, 52));
+        f1(a, f2, b.clone().add(4, 0, 0), c, 4, rotation, new Point(20, 52));
     }
-    private void buildHeadFromSkin(BufferedImage skin, World world, Location origin, int scale, double rotation) {
+    private void f1(BufferedImage f1, World f12, Location continued, int returned, double test) {
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 for (int z = 0; z < 8; z++) {
@@ -4131,64 +4167,64 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     };
                     int skinY = 8 + (7 - y);
 
-                    java.awt.Color color = new java.awt.Color(skin.getRGB(skinX, skinY), true);
+                    java.awt.Color color = new java.awt.Color(f1.getRGB(skinX, skinY), true);
                     if (color.getAlpha() < 10) continue;
 
-                    Vector offset = new Vector(x * scale, y * scale, z * scale);
-                    offset = rotateY(offset, rotation);
-                    Location loc = origin.clone().add(offset);
-                    Material material = getClosestMaterial(color);
-                    placeBlock(world, loc, material, scale);
+                    Vector offset = new Vector(x * returned, y * returned, z * returned);
+                    offset = f1(offset, test);
+                    Location loc = continued.clone().add(offset);
+                    Material material = f1(color);
+                    f1(f12, loc, material, returned);
                 }
             }
         }
     }
 
-    private void buildCubeFromSkin(BufferedImage skin, World world, Location origin, int scale, int width, double rotation, Point start) {
+    private void f1(BufferedImage f1, World test, Location mcydatabase, int archi, int f, double Is, Point q) {
         for (int y = 0; y < 12; y++) {
-            for (int x = 0; x < width; x++) {
+            for (int x = 0; x < f; x++) {
                 for (int z = 0; z < 4; z++) {
-                    int pixelX = start.x + x % width;
-                    int pixelY = start.y + (12 - y - 1) % 12;
-                    int rgb = skin.getRGB(pixelX, pixelY);
+                    int pixelX = q.x + x % f;
+                    int pixelY = q.y + (12 - y - 1) % 12;
+                    int rgb = f1.getRGB(pixelX, pixelY);
                     java.awt.Color color = new java.awt.Color(rgb, true);
                     if (color.getAlpha() < 10) continue;
 
-                    Vector offset = new Vector(x * scale, y * scale, z * scale);
-                    offset = rotateY(offset, rotation);
-                    Location loc = origin.clone().add(offset);
-                    Material material = getClosestMaterial(color);
-                    placeBlock(world, loc, material, scale);
+                    Vector offset = new Vector(x * archi, y * archi, z * archi);
+                    offset = f1(offset, Is);
+                    Location loc = mcydatabase.clone().add(offset);
+                    Material material = f1(color);
+                    f1(test, loc, material, archi);
                 }
             }
         }
     }
 
 
-    private boolean checkCompatibility(Player p, String... pluginNames) {
-        List<String> missing = new ArrayList<>();
+    private boolean f1(Player f1, String... f) {
+        List<String> ff = new ArrayList<>();
 
-        for (String name : pluginNames) {
+        for (String name : f) {
             switch (name.toLowerCase()) {
                 case "worldedit":
-                    if (!WorldEdit_Installed) missing.add("WorldEdit");
+                    if (!WorldEdit_Installed) ff.add("WorldEdit");
                     break;
                 case "worldguard":
-                    if (!WorldGuard_Installed) missing.add("WorldGuard");
+                    if (!WorldGuard_Installed) ff.add("WorldGuard");
                     break;
                 case "luckperms":
-                    if (!LuckPerms_Installed) missing.add("LuckPerms");
+                    if (!LuckPerms_Installed) ff.add("LuckPerms");
                     break;
                 case "protocollib":
-                    if (!ProtocolLib_Installed) missing.add("ProtocolLib");
+                    if (!ProtocolLib_Installed) ff.add("ProtocolLib");
                     break;
                 default:
-                    missing.add(name + " (unknown plugin flag)");
+                    ff.add(name + " (unknown plugin flag)");
             }
         }
 
-        if (!missing.isEmpty()) {
-            p.sendMessage("§c§lMissing required plugin(s): §r" + String.join(", ", missing));
+        if (!ff.isEmpty()) {
+            f1.sendMessage("§c§lMissing required plugin(s): §r" + String.join(", ", ff));
             return false;
         }
 
@@ -4196,15 +4232,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean isPlaceable(Material mat) {
-        return mat.isBlock() && mat.isSolid(); // optionally refine further
+    private boolean f(Material f) {
+        return f.isBlock() && f.isSolid(); // optionally refine further
     }
 
-    private ItemStack findPlaceableStack(Inventory inv) {
-        for (ItemStack item : inv.getContents()) {
+    private ItemStack f1(Inventory f1) {
+        for (ItemStack item : f1.getContents()) {
             if (item == null) continue;
             Material mat = item.getType();
-            if (isPlaceable(mat)) return item;
+            if (f(mat)) return item;
         }
         return null;
     }
@@ -4212,14 +4248,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void applyJesusEffect(Player p, int radius) {
-        Location center = p.getLocation();
+    private void f1(Player f1, int test) {
+        Location center = f1.getLocation();
         World world = center.getWorld();
         if (world == null) return;
 
-        for (int dx = -radius; dx <= radius; dx++) {
+        for (int dx = -test; dx <= test; dx++) {
             for (int dy = - 2; dy <= 0; dy++) {
-                for (int dz = -radius; dz <= radius; dz++) {
+                for (int dz = -test; dz <= test; dz++) {
                     Location loc = center.clone().add(dx, dy, dz);
                     Block block = loc.getBlock();
                     Material type = block.getType();
@@ -4232,22 +4268,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                     if (waterLogged || type == Material.WATER || type == Material.LAVA  || type == Material.BUBBLE_COLUMN) {
 
-                        if (jesusTimers.containsKey(loc)) {
-                            jesusTimers.get(loc).cancel();
+                        if (g26.containsKey(loc)) {
+                            g26.get(loc).cancel();
                         }
 
                         Material fakeMat = (type == Material.LAVA  )
                                 ? Material.ORANGE_CONCRETE : Material.LAPIS_BLOCK;
 
-                        p.sendBlockChange(loc, fakeMat.createBlockData());
+                        f1.sendBlockChange(loc, fakeMat.createBlockData());
 
                         BukkitTask task = Bukkit.getScheduler().runTaskLater(
                                 Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
-                                () -> p.sendBlockChange(loc, block.getBlockData()),
+                                () -> f1.sendBlockChange(loc, block.getBlockData()),
                                 100L
                         );
 
-                        jesusTimers.put(loc, task);
+                        g26.put(loc, task);
                     }
                 }
             }
@@ -4257,31 +4293,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack getItemInSlot(Player p, int slot) {
-        if (slot >= 0 && slot <= 8) return p.getInventory().getItem(slot);
-        if (slot >= 9 && slot <= 35) return p.getInventory().getItem(slot);
-        if (slot == 40) return p.getInventory().getItemInOffHand();
+    private ItemStack f2(Player f1, int g30) {
+        if (g30 >= 0 && g30 <= 8) return f1.getInventory().getItem(g30);
+        if (g30 >= 9 && g30 <= 35) return f1.getInventory().getItem(g30);
+        if (g30 == 40) return f1.getInventory().getItemInOffHand();
         return null;
     }
 
-    private int[] getNextAvailableCoordinatesCustom(World world, int chunkXFixed) {
-        int chunkZ = viewOnlyChestConfig.getInt("last_chunk_z", 9);
-        int y = viewOnlyChestConfig.getInt("last_y", world.getMinHeight());
+    private int[] f1(World f1, int f2) {
+        int chunkZ = g20.getInt("last_chunk_z", 9);
+        int y = g20.getInt("last_y", f1.getMinHeight());
 
         while (true) {
-            int x = chunkXFixed * 16;
+            int x = f2 * 16;
             int z = chunkZ * 16;
-            Location loc = new Location(world, x, y, z);
+            Location loc = new Location(f1, x, y, z);
             if (loc.getBlock().getType() == Material.AIR) {
-                viewOnlyChestConfig.set("last_chunk_z", chunkZ);
-                viewOnlyChestConfig.set("last_y", y);
-                try { viewOnlyChestConfig.save(viewOnlyChestDatabaseFile); } catch (IOException ignored) {}
+                g20.set("last_chunk_z", chunkZ);
+                g20.set("last_y", y);
+                try { g20.save(g16); } catch (IOException ignored) {}
                 return new int[] {x, y, z};
             }
 
             y++;
-            if (y >= world.getMaxHeight()) {
-                y = world.getMinHeight();
+            if (y >= f1.getMaxHeight()) {
+                y = f1.getMinHeight();
                 chunkZ++;
             }
         }
@@ -4295,11 +4331,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  • ...etc...
      * Falls back to GLASS if something’s unexpected.
      */
-    private Material getGlassForShulker(Material shulker) {
-        if (shulker == Material.SHULKER_BOX) {
+    private Material f1(Material f1) {
+        if (f1 == Material.SHULKER_BOX) {
             return Material.GLASS;
         }
-        String name = shulker.name();
+        String name = f1.name();
         if (name.endsWith("_SHULKER_BOX")) {
             try {
                 return Material.valueOf(name.replace("_SHULKER_BOX", "_STAINED_GLASS"));
@@ -4315,11 +4351,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  • ...etc...
      * Falls back to SHULKER_BOX if something’s unexpected.
      */
-    private Material getShulkerFromGlass(Material glass) {
-        if (glass == Material.GLASS) {
+    private Material f2(Material f1) {
+        if (f1 == Material.GLASS) {
             return Material.SHULKER_BOX;
         }
-        String name = glass.name();
+        String name = f1.name();
         if (name.endsWith("_STAINED_GLASS")) {
             try {
                 return Material.valueOf(name.replace("_STAINED_GLASS", "_SHULKER_BOX"));
@@ -4332,10 +4368,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack modifyItemForShulker(ItemStack item, Material glassColor) {
+    private ItemStack f1(ItemStack f1, Material fg3) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", item);
+        config.set("slot0", f1);
         String yaml = config.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
@@ -4383,9 +4419,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ItemStack newItem = config.getItemStack("slot0");
         
         if (newItem == null) {
-            newItem = item;
+            newItem = f1;
         }
-        newItem.setType(glassColor);
+        newItem.setType(fg3);
 
         return newItem;
     }
@@ -4393,10 +4429,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack modifyItemForShulker2(ItemStack item, Material newMat) {
+    private ItemStack f3(ItemStack recorded, Material test) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", item);
+        config.set("slot0", recorded);
         String yaml = config.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
@@ -4444,16 +4480,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ItemStack newItem = config.getItemStack("slot0");
 
         if (newItem == null) {
-            newItem = item;
+            newItem = recorded;
         }
-        newItem.setType(newMat);
+        newItem.setType(test);
 
         return newItem;
     }
 
 
-    private void saveShulkerConfig() {
-        try { shulkerDatabaseConfig.save(shulkerDatabaseFile); }
+    private void f9() {
+        try { g2.save(g1); }
         catch(IOException e){ e.printStackTrace(); }
     }
 
@@ -4462,9 +4498,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Returns true if the player currently has their “Shulker Box” placeholder chest open.
      */
-    private boolean isShulkerBoxOpen(Player player) {
+    private boolean f123(Player f1) {
         // 1) Get the open-inventory view
-        InventoryView view = player.getOpenInventory();
+        InventoryView view = f1.getOpenInventory();
         Inventory topInv = view.getTopInventory();
 
         // 2) It must be a real chest block state
@@ -4476,8 +4512,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // 3) Compare its location against the saved shulker chest coords
         Location loc = chest.getLocation();
-        String uuid = player.getUniqueId().toString();
-        String saved = shulkerDatabaseConfig.getString(uuid, "");
+        String uuid = f1.getUniqueId().toString();
+        String saved = g2.getString(uuid, "");
         if (saved.isEmpty()) {
             return false;
         }
@@ -4494,44 +4530,44 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void updateScore(String boardName, String user, int newScore) {
-        List<Map.Entry<String, Integer>> list = leaderboards.computeIfAbsent(boardName, k -> new ArrayList<>());
-        list.removeIf(e -> e.getKey().equals(user));
-        Map.Entry<String, Integer> newEntry = Map.entry(user, newScore);
+    private void f1(String f1, String f, int g30) {
+        List<Map.Entry<String, Integer>> list = global1.computeIfAbsent(f1, k -> new ArrayList<>());
+        list.removeIf(e -> e.getKey().equals(f));
+        Map.Entry<String, Integer> newEntry = Map.entry(f, g30);
 
         int index = 0;
         while (index < list.size()) {
             Map.Entry<String, Integer> current = list.get(index);
-            if (newScore > current.getValue()) break;
+            if (g30 > current.getValue()) break;
             index++;
         }
         list.add(index, newEntry);
     }
 
-    private int getScore(String boardName, String user) {
-        List<Map.Entry<String, Integer>> list = leaderboards.get(boardName);
+    private int f1(String f1, String fone) {
+        List<Map.Entry<String, Integer>> list = global1.get(f1);
         if (list == null) return 0;
-        return list.stream().filter(e -> e.getKey().equals(user)).map(Map.Entry::getValue).findFirst().orElse(0);
+        return list.stream().filter(e -> e.getKey().equals(fone)).map(Map.Entry::getValue).findFirst().orElse(0);
     }
 
 
-    private boolean isNonSolid(Material mat) {
-        return !mat.isSolid() || mat == Material.STRING || mat == Material.COBWEB || mat == Material.WATER || mat == Material.LAVA || mat == Material.TALL_GRASS;
+    private boolean fOne(Material fOne) {
+        return !fOne.isSolid() || fOne == Material.STRING || fOne == Material.COBWEB || fOne == Material.WATER || fOne == Material.LAVA || fOne == Material.TALL_GRASS;
     }
 
-    private List<Block> getBlocksAround(BoundingBox box, World world) {
+    private List<Block> f1(BoundingBox TEST_VARAIBLE, World f1) {
         List<Block> blocks = new ArrayList<>();
-        int minX = (int) Math.floor(box.getMinX());
-        int maxX = (int) Math.ceil(box.getMaxX());
-        int minY = (int) Math.floor(box.getMinY());
-        int maxY = (int) Math.ceil(box.getMaxY());
-        int minZ = (int) Math.floor(box.getMinZ());
-        int maxZ = (int) Math.ceil(box.getMaxZ());
+        int minX = (int) Math.floor(TEST_VARAIBLE.getMinX());
+        int maxX = (int) Math.ceil(TEST_VARAIBLE.getMaxX());
+        int minY = (int) Math.floor(TEST_VARAIBLE.getMinY());
+        int maxY = (int) Math.ceil(TEST_VARAIBLE.getMaxY());
+        int minZ = (int) Math.floor(TEST_VARAIBLE.getMinZ());
+        int maxZ = (int) Math.ceil(TEST_VARAIBLE.getMaxZ());
 
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    blocks.add(world.getBlockAt(x, y, z));
+                    blocks.add(f1.getBlockAt(x, y, z));
                 }
             }
         }
