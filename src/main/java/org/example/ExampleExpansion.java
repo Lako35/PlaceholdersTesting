@@ -157,29 +157,39 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         PluginManager pm = Bukkit.getPluginManager();
+        
+        try {
+            if (pm.getPlugin("WorldEdit") != null && Objects.requireNonNull(pm.getPlugin("WorldEdit")).isEnabled()) {
+                WorldEdit_Installed = true;
+            }
+        } catch (Exception e ) {}
 
-        if (pm.getPlugin("WorldEdit") != null && Objects.requireNonNull(pm.getPlugin("WorldEdit")).isEnabled()) {
-            WorldEdit_Installed = true;
-        }
-
-        if (pm.getPlugin("WorldGuard") != null && Objects.requireNonNull(pm.getPlugin("WorldGuard")).isEnabled()) {
-            WorldGuard_Installed = true;
-        }
-
-        if (pm.getPlugin("LuckPerms") != null && Objects.requireNonNull(pm.getPlugin("LuckPerms")).isEnabled()) {
-            LuckPerms_Installed = true;
-        }
-
-        if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
-            ProtocolLib_Installed = true;
-        }
+        try {
+            if (pm.getPlugin("WorldGuard") != null && Objects.requireNonNull(pm.getPlugin("WorldGuard")).isEnabled()) {
+                WorldGuard_Installed = true;
+        }        } catch (Exception e ) {}
 
 
-        if (pm.getPlugin("GriefPrevention") != null && Objects.requireNonNull(pm.getPlugin("GriefPrevention")).isEnabled()) {
-            GriefPrevention_Installed = true;
-        }
+        try {
+            if (pm.getPlugin("LuckPerms") != null && Objects.requireNonNull(pm.getPlugin("LuckPerms")).isEnabled()) {
+                LuckPerms_Installed = true;
+        }        } catch (Exception e ) {}
 
-        File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
+
+        try {
+            if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
+                ProtocolLib_Installed = true;
+        }        } catch (Exception e ) {}
+
+
+        
+        try {
+            if (pm.getPlugin("GriefPrevention") != null && Objects.requireNonNull(pm.getPlugin("GriefPrevention")).isEnabled()) {
+                GriefPrevention_Installed = true;
+            }        } catch (Exception e ) {}
+
+
+    File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
         if (!viewOnlyChestDir.exists()) {
             viewOnlyChestDir.mkdirs();
         }
