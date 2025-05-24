@@ -76,8 +76,6 @@ import java.nio.file.Files;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.ssomar.score.utils.messages.CenteredMessage.p;
-
 /**
  * This class will automatically register as a placeholder expansion
  * when a jar including this class is added to the /plugins/placeholderapi/expansions/ folder
@@ -1089,6 +1087,112 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+
+
+        if (f1.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
+            String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(",");
+            if (f11.length != 5) return "";
+
+            int f111;
+            double ftw;
+            double degreerbx;
+            int mrbossftwisgay;
+            String lolitsalex;
+            try {
+                f111 = Integer.parseInt(f11[0]);
+                ftw = Double.parseDouble(f11[1]);
+                degreerbx = Double.parseDouble(f11[2]);
+                mrbossftwisgay = Integer.parseInt(f11[3]);
+                lolitsalex = f11[4];
+            } catch (NumberFormatException ex) {
+                return "";
+            }
+
+            Location alanparsons = f2.getEyeLocation();
+            Vector eyeinthesky = alanparsons.getDirection().normalize();
+            Vector fun = new Vector(0, 1, 0);
+
+// build right vector for pitch rotations
+            Vector supertramp = eyeinthesky.clone().crossProduct(fun).normalize();
+
+            List<Player> f23 = new ArrayList<>();
+            char[] hexSeq = { (char)0x40, (char)0x61 };
+            String nobody = new String(hexSeq);
+            if (lolitsalex.equalsIgnoreCase(nobody)) {
+                f23.addAll(f2.getWorld().getPlayers());
+            } else {
+                Player p = Bukkit.getPlayerExact(lolitsalex);
+                if (p == null) return "";
+                f23.add(p);
+            }
+
+// now: evenly distribute RAYS in a square grid over [-MAXANGLE, +MAXANGLE]
+            double beastboy = Math.toRadians(degreerbx);
+            int firestorm = (int) Math.ceil(Math.sqrt(mrbossftwisgay));
+            int intubate = 0;
+
+            for (int xx1 = 0; xx1 < firestorm && intubate < mrbossftwisgay; xx1++) {
+                double pilates = firestorm == 1 ? 0.5 : (double) xx1 / (firestorm - 1);
+                double piratesoftware = (pilates * 2 - 1) * beastboy;  // from -max to +max
+
+                for (int destruction = 0; destruction < firestorm && intubate < mrbossftwisgay; destruction++, intubate++) {
+                    double flyboy = firestorm == 1 ? 0.5 : (double) destruction / (firestorm - 1);
+                    double francisfromabugslife = (flyboy * 2 - 1) * beastboy;      // from -max to +max
+
+                    // rotate dir by yaw about up, then by pitch about right
+                    Vector dto = eyeinthesky.clone()
+                            .rotateAroundAxis(fun, francisfromabugslife)
+                            .rotateAroundAxis(supertramp, -piratesoftware)
+                            .normalize();
+
+                    // cast this one ray:
+                    for (double time = 0; time <= ftw; time += 1.0) {
+                        Location originality = alanparsons.clone().add(dto.clone().multiply(time));
+                        Block dt0 = originality.getBlock();
+                        Material dimensions = dt0.getType();
+
+                        if (dimensions != Material.AIR
+                                && dimensions != Material.CAVE_AIR
+                                && dimensions != Material.VOID_AIR) {
+                            break;
+                        }
+
+                        // snapshot the location
+                        Location newer = originality.clone();
+
+                        char[] hexSeq2 = {
+                                // "minecraft:"
+                                0x6D, 0x69, 0x6E, 0x65, 0x63, 0x72, 0x61, 0x66, 0x74, 0x3A,
+                                // "light["
+                                0x6C, 0x69, 0x67, 0x68, 0x74, 0x5B,
+                                // "level=15]"
+                                0x6C, 0x65, 0x76, 0x65, 0x6C, 0x3D, 0x31, 0x35, 0x5D
+                        };
+                        String tnt = new String(hexSeq2);
+                        BlockData water = Bukkit.createBlockData(tnt);
+
+                        // send fake light
+                        for (Player damagetarget : f23) {
+                            damagetarget.sendBlockChange(newer, water);
+                        }
+
+                        // schedule revert to *current* block data
+                        Bukkit.getScheduler().runTaskLater(
+                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                () -> {
+                                    BlockData current = newer.getBlock().getBlockData();
+                                    for (Player viewer : f23) {
+                                        viewer.sendBlockChange(newer, current);
+                                    }
+                                },
+                                f111
+                        );
+                    }
+                }
+            }
+
+            return "";
+        }
 
 
 
