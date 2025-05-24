@@ -963,7 +963,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (identifier.startsWith("trackImpact_")) {
             String[] parts = identifier.substring("trackImpact_".length()).split(",");
-            if (parts.length != 6) return "§cInvalid format";
+            if (parts.length != 7) return "§cInvalid format";
 
             UUID launcherUUID = UUID.fromString(parts[0]);
             World world = Bukkit.getWorld(parts[1]);
@@ -971,20 +971,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
             int y = Integer.parseInt(parts[3]);
             int z = Integer.parseInt(parts[4]);
             float damage = Float.parseFloat(parts[5]);
+            UUID targetUUID = UUID.fromString(parts[6]);
+
 
             Location location = new Location(world, x, y, z);
             spawnCustomFireworkExplosion(world, location);
-            triggerPlayerHitEvent(launcherUUID, location, damage);
+            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity((targetUUID)));
 
             return "§6Impact triggered.";
         }
 
         if (identifier.startsWith("trackImpact2_")) {
             String[] parts = identifier.substring("trackImpact2_".length()).split(",");
-            if (parts.length != 3) return "§cInvalid format";
+            if (parts.length != 4) return "§cInvalid format";
 
             UUID launcherUUID = UUID.fromString(parts[0]);
             UUID targetUUID = UUID.fromString(parts[1]);
+            UUID trackedUUID = UUID.fromString(parts[3]);
             float damage = Float.parseFloat(parts[2]);
 
             Entity target = Bukkit.getEntity(targetUUID);
@@ -992,7 +995,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             Location location = target.getLocation();
             spawnCustomFireworkExplosion(location.getWorld(), location);
-            triggerPlayerHitEvent(launcherUUID, location, damage);
+            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(targetUUID));
+            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(trackedUUID));
 
             return "§eTarget explosion triggered.";
         }
@@ -1180,7 +1184,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Apply explosion damage
 
                 // Trigger a player hit event (simulate firework explosion hitting a player)
-                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage2);
+                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage2, target);
 
                 // Remove the original firework
                 firework.remove();
@@ -1188,14 +1192,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
 
-    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower) {
+    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower, Entity target) {
         Player launcher = Bukkit.getPlayer(launcherUUID);
         if (launcher == null) return; // Launcher is offline or invalid
 
         double explosionRadius = 5.0; // Firework explosion hit radius
 
+        if( target == null ) return;
         for (Entity entity : Objects.requireNonNull(explosionLocation.getWorld()).getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
-            if (entity instanceof LivingEntity hitPlayer) {
+            if (entity instanceof LivingEntity hitPlayer && target instanceof LivingEntity targetPlayer && hitPlayer.getName().equals(targetPlayer.getName())) {
 
                 // Apply direct damage as if caused by the launcher
                 hitPlayer.damage(explosionPower, launcher);
