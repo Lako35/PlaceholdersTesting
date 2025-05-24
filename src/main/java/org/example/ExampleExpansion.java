@@ -1000,7 +1000,100 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+        if (identifier.startsWith("flashlight_")) {
+            String[] parts = identifier.substring("flashlight_".length()).split(",");
+            if (parts.length != 5) return "";
 
+            int timeTicks;
+            double maxDistance;
+            double maxAngleDeg;
+            int raysCount;
+            String targetSel;
+            try {
+                timeTicks = Integer.parseInt(parts[0]);
+                maxDistance = Double.parseDouble(parts[1]);
+                maxAngleDeg = Double.parseDouble(parts[2]);
+                raysCount = Integer.parseInt(parts[3]);
+                targetSel = parts[4];
+            } catch (NumberFormatException ex) {
+                return "";
+            }
+
+            Location eye = p.getEyeLocation();
+            Vector dir = eye.getDirection().normalize();
+            Vector up = new Vector(0, 1, 0);
+
+// build right vector for pitch rotations
+            Vector right = dir.clone().crossProduct(up).normalize();
+
+            List<Player> viewers = new ArrayList<>();
+            if (targetSel.equalsIgnoreCase("@a")) {
+                viewers.addAll(p.getWorld().getPlayers());
+            } else {
+                Player t = Bukkit.getPlayerExact(targetSel);
+                if (t == null) return "";
+                viewers.add(t);
+            }
+
+// now: evenly distribute RAYS in a square grid over [-MAXANGLE, +MAXANGLE]
+            double maxAngle = Math.toRadians(maxAngleDeg);
+            int gridSize = (int) Math.ceil(Math.sqrt(raysCount));
+            int used = 0;
+
+            for (int row = 0; row < gridSize && used < raysCount; row++) {
+                double pitchFrac = gridSize == 1 ? 0.5 : (double) row / (gridSize - 1);
+                double pitchAng = (pitchFrac * 2 - 1) * maxAngle;  // from -max to +max
+
+                for (int col = 0; col < gridSize && used < raysCount; col++, used++) {
+                    double yawFrac = gridSize == 1 ? 0.5 : (double) col / (gridSize - 1);
+                    double yawAng = (yawFrac * 2 - 1) * maxAngle;      // from -max to +max
+
+                    // rotate dir by yaw about up, then by pitch about right
+                    Vector ray = dir.clone()
+                            .rotateAroundAxis(up, yawAng)
+                            .rotateAroundAxis(right, -pitchAng)
+                            .normalize();
+
+                    // cast this one ray:
+                    for (double d = 0; d <= maxDistance; d += 1.0) {
+                        Location loc = eye.clone().add(ray.clone().multiply(d));
+                        Block block = loc.getBlock();
+                        Material mat = block.getType();
+
+                        if (mat != Material.AIR
+                                && mat != Material.CAVE_AIR
+                                && mat != Material.VOID_AIR) {
+                            break;
+                        }
+
+                        // snapshot the location
+                        Location snapshot = loc.clone();
+
+                        // use a LIGHT block at full power
+                        BlockData lightData = Bukkit.createBlockData("minecraft:light[level=15]");
+
+                        // send fake light
+                        for (Player viewer : viewers) {
+                            viewer.sendBlockChange(snapshot, lightData);
+                        }
+
+                        // schedule revert to *current* block data
+                        Bukkit.getScheduler().runTaskLater(
+                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                () -> {
+                                    BlockData current = snapshot.getBlock().getBlockData();
+                                    for (Player viewer : viewers) {
+                                        viewer.sendBlockChange(snapshot, current);
+                                    }
+                                },
+                                timeTicks
+                        );
+                    }
+                }
+            }
+
+            return "";
+        }
 
 
         if (identifier.startsWith("tyv_001_")) {
