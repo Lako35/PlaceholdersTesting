@@ -999,6 +999,174 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         // INSERT HERE 
 
+        if (identifier.startsWith("laserPointer_")) {
+            String[] parts = identifier.substring("laserPointer_".length()).split(",");
+            if (parts.length < 9) return "";
+
+            double maxRadius, cylinderRadius, dx, size;
+            int totalTime, period;
+            String targetSel, viewDistMode;
+            Particle particle;
+            Particle.DustOptions dustOpts = null;
+            String baseColorName = "RED";  // default
+
+            try {
+                maxRadius      = Double.parseDouble(parts[0]);
+                cylinderRadius = Double.parseDouble(parts[1]);
+                totalTime      = Integer.parseInt(parts[2]);
+                period         = Integer.parseInt(parts[3]);
+                dx             = Double.parseDouble(parts[4]);
+                size           = Double.parseDouble(parts[5]);
+                targetSel      = parts[6];
+                viewDistMode   = parts[7];
+                particle       = Particle.valueOf(parts[8].toUpperCase());
+
+                if (particle == Particle.DUST && parts.length >= 10) {
+                    // named dye color, e.g. RED, BLUE, CYAN, etc.
+                    baseColorName = parts[9].toUpperCase();
+                    org.bukkit.DyeColor dye = org.bukkit.DyeColor.valueOf(baseColorName);
+                    dustOpts = new Particle.DustOptions(dye.getColor(), (float)size);
+                }
+            } catch (Exception ex) {
+                return "&cFailure1";
+            }
+
+            Location eye = p.getEyeLocation();
+            Vector    dir = eye.getDirection().normalize();
+
+            // build viewers
+            List<Player> viewers = new ArrayList<>();
+            if (targetSel.equalsIgnoreCase("@a")) {
+                viewers.addAll(p.getWorld().getPlayers());
+            } else {
+                try {
+                    Player t = Bukkit.getPlayer(UUID.fromString(targetSel));
+                    if (t != null) viewers.add(t);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (viewers.isEmpty()) return "&cFailure2";
+
+            // ─── Block‐hit detection + immediate change ───
+            Entity   hitEnt  = null;
+            Location stopLoc = null;
+            DETECTION:
+            for (double d = 0; d <= maxRadius; d += dx) {
+                Location loc  = eye.clone().add(dir.clone().multiply(d));
+                Block    block = loc.getBlock();
+                Material m     = block.getType();
+
+                if (!(m.isAir()
+                        || m == Material.WATER || m == Material.LAVA
+                        || m == Material.BARRIER
+                        || m == Material.GLASS
+                        || m == Material.GLASS_PANE
+                        || m.toString().endsWith("_GLASS"))) {
+                    stopLoc = loc.clone();
+                    break DETECTION;
+                }
+                for (Entity e : loc.getWorld().getNearbyEntities(
+                        loc, cylinderRadius, cylinderRadius, cylinderRadius)) {
+                    if (e instanceof LivingEntity && !e.equals(p)) {
+                        hitEnt = e;
+                        break DETECTION;
+                    }
+                }
+            }
+
+            String result;
+            if (hitEnt != null) {
+                ((LivingEntity)hitEnt).addPotionEffect(
+                        new PotionEffect(PotionEffectType.GLOWING, 20, 0)
+                );
+                result = hitEnt.getUniqueId().toString();
+            }
+            else if (stopLoc != null) {
+                Block at = stopLoc.getBlock();
+                String concreteName = baseColorName + "_CONCRETE";
+                String woolName     = baseColorName + "_WOOL";
+                Material concrete  = Material.valueOf(concreteName);
+                Material wool      = Material.valueOf(woolName);
+                BlockData newData  = (at.getType() == concrete
+                        ? wool.createBlockData()
+                        : concrete.createBlockData()
+                );
+
+                for (Player viewer : viewers) {
+                    double dsq = viewer.getLocation().distanceSquared(stopLoc);
+                    if (viewDistMode.equalsIgnoreCase("force") || dsq <= 64*64) {
+                        viewer.sendBlockChange(stopLoc, newData);
+                    }
+                }
+
+                Location snapshot = stopLoc.clone();
+                Bukkit.getScheduler().runTaskLater(
+                        Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                        () -> {
+                            BlockData current = snapshot.getBlock().getBlockData();
+                            for (Player viewer : viewers) {
+                                double dsq = viewer.getLocation().distanceSquared(snapshot);
+                                if (viewDistMode.equalsIgnoreCase("force") || dsq <= 64*64) {
+                                    viewer.sendBlockChange(snapshot, current);
+                                }
+                            }
+                        },
+                        totalTime
+                );
+
+                result = String.format(
+                        "block%s,%d,%d,%d",
+                        snapshot.getWorld().getName(),
+                        snapshot.getBlockX(),
+                        snapshot.getBlockY(),
+                        snapshot.getBlockZ()
+                );
+            }
+            else {
+                result = "n/a";
+            }
+
+            // ─── Particle repeat via BukkitRunnable ───
+            Particle.DustOptions finalOpts = dustOpts;
+            new BukkitRunnable() {
+                int elapsed = 0;
+                @Override public void run() {
+                    if (elapsed >= totalTime) {
+                        this.cancel();
+                        return;
+                    }
+                    for (double d = 0; d <= maxRadius; d += dx) {
+                        Location loc = eye.clone().add(dir.clone().multiply(d));
+                        Material m   = loc.getBlock().getType();
+                        if (!(m.isAir()
+                                || m == Material.WATER || m == Material.LAVA
+                                || m == Material.BARRIER
+                                || m == Material.GLASS
+                                || m == Material.GLASS_PANE
+                                || m.toString().endsWith("_GLASS"))) {
+                            break;
+                        }
+                        for (Player viewer : viewers) {
+                            double dsq = viewer.getLocation().distanceSquared(loc);
+                            if (viewDistMode.equalsIgnoreCase("force") || dsq <= 64*64) {
+                                if (particle == Particle.DUST && finalOpts != null) {
+                                    viewer.spawnParticle(particle, loc, 1, 0,0,0, 0, finalOpts);
+                                } else {
+                                    viewer.spawnParticle(particle, loc, 1, 0,0,0, size);
+                                }
+                            }
+                        }
+                    }
+                    elapsed += period;
+                }
+            }.runTaskTimer(
+                    Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                    0L, period
+            );
+
+            return result;
+        }
+
+
 
         if (identifier.startsWith("flashlight_")) {
             String[] parts = identifier.substring("flashlight_".length()).split(",");
