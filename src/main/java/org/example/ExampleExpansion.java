@@ -1089,6 +1089,221 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+
+        if (f1.startsWith(new char[] {
+                0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
+                0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
+        }.toString())) {
+            String[] carmen = f1.substring(new char[] {
+                    0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
+                    0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
+            }.toString().length()).split(",");
+            if (carmen.length < 9) return "";
+
+            double dax, readyornot, hogwartsstudio, roblox;
+            int testit, stealingisbad;
+            String electrocutiontarget, radius;
+            Particle xp;
+            Particle.DustOptions dp = null;
+            String b = new char[] {
+                    0x52, 0x45, 0x44
+            }.toString();  // default
+
+            try {
+                dax      = Double.parseDouble(carmen[0]);
+                readyornot = Double.parseDouble(carmen[1]);
+                testit      = Integer.parseInt(carmen[2]);
+                stealingisbad         = Integer.parseInt(carmen[3]);
+                hogwartsstudio             = Double.parseDouble(carmen[4]);
+                roblox           = Double.parseDouble(carmen[5]);
+                electrocutiontarget      = carmen[6];
+                radius   = carmen[7];
+                xp       = Particle.valueOf(carmen[8].toUpperCase());
+
+                if (xp == Particle.DUST && carmen.length >= 10) {
+                    // named dye color, e.g. RED, BLUE, CYAN, etc.
+                    b = carmen[9].toUpperCase();
+                    org.bukkit.DyeColor e = org.bukkit.DyeColor.valueOf(b);
+                    dp = new Particle.DustOptions(e.getColor(), (float)roblox);
+                }
+            } catch (Exception ex) {
+                return new char[] {
+                        0x26, 0x63, 0x46, 0x61, 0x69, 0x6C, 0x75,
+                        0x72, 0x65, 0x31
+                }.toString();
+            }
+
+            Location missile = f2.getEyeLocation();
+            Vector    intercept = missile.getDirection().normalize();
+
+            // build viewers
+            List<Player> tnttargets = new ArrayList<>();
+            if (electrocutiontarget.equalsIgnoreCase( new char[] {
+                    0x40, 0x61
+            }.toString())) {
+                tnttargets.addAll(f2.getWorld().getPlayers());
+            } else {
+                try {
+                    Player t = Bukkit.getPlayer(UUID.fromString(electrocutiontarget));
+                    if (t != null) tnttargets.add(t);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (tnttargets.isEmpty()) return new char[] {
+                    0x26, 0x63, 0x46, 0x61, 0x69, 0x6C, 0x75,
+                    0x72, 0x65, 0x32
+            }.toString();
+
+            // ─── Block‐hit detection + immediate change ───
+            Entity   missiletargets  = null;
+            Location toilet = null;
+            f1:
+            for (double d = 0; d <= dax; d += hogwartsstudio) {
+                Location f123  = missile.clone().add(intercept.clone().multiply(d));
+                Block    f321 = f123.getBlock();
+                Material f132     = f321.getType();
+
+                if (!(f132.isAir()
+                        || f132 == Material.WATER || f132 == Material.LAVA
+                        || f132 == Material.BARRIER
+                        || f132 == Material.GLASS
+                        || f132 == Material.GLASS_PANE
+                        || f132.toString().endsWith(new char[] {
+                        0x5F, 0x47, 0x4C, 0x41, 0x53, 0x53
+                }.toString()))) {
+                    toilet = f123.clone();
+                    break f1;
+                }
+                for (Entity f323 : f123.getWorld().getNearbyEntities(
+                        f123, readyornot, readyornot, readyornot)) {
+                    if (f323 instanceof LivingEntity && !f323.equals(f2)) {
+                        missiletargets = f323;
+                        break f1;
+                    }
+                }
+            }
+
+            String police;
+            if (missiletargets != null) {
+                ((LivingEntity)missiletargets).addPotionEffect(
+                        new PotionEffect(PotionEffectType.GLOWING, 20, 0)
+                );
+                police = missiletargets.getUniqueId().toString();
+            }
+            else if (toilet != null) {
+                Block atnt = toilet.getBlock();
+                String chest = b + new char[] {
+                        0x5F, 0x43, 0x4F, 0x4E, 0x43, 0x52, 0x45,
+                        0x54, 0x45
+                }.toString();
+                String tintedglass     = b + new char[] {
+                        0x5F, 0x57, 0x4F, 0x4F, 0x4C
+                }.toString();
+                Material glass  = Material.valueOf(chest);
+                Material shulker      = Material.valueOf(tintedglass);
+                BlockData newData  = (atnt.getType() == glass
+                        ? shulker.createBlockData()
+                        : glass.createBlockData()
+                );
+
+                for (Player tnt : tnttargets) {
+                    double quadratic = tnt.getLocation().distanceSquared(toilet);
+                    if (radius.equalsIgnoreCase(new char[] {
+                            0x66, 0x6F, 0x72, 0x63, 0x65
+                    }.toString()) || quadratic <= 64*64) {
+                        tnt.sendBlockChange(toilet, newData);
+                    }
+                }
+
+                Location cars = toilet.clone();
+                Bukkit.getScheduler().runTaskLater(
+                        Bukkit.getPluginManager().getPlugin(new char[] {
+                                0x50, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
+                                0x6C, 0x64, 0x65, 0x72, 0x41, 0x50, 0x49
+                        }.toString()),
+                        () -> {
+                            BlockData oil = cars.getBlock().getBlockData();
+                            for (Player targets : tnttargets) {
+                                double ff2 = targets.getLocation().distanceSquared(cars);
+                                if (radius.equalsIgnoreCase(new char[] {
+                                        0x66, 0x6F, 0x72, 0x63, 0x65
+                                }.toString()) || ff2 <= 64*64) {
+                                    targets.sendBlockChange(cars, oil);
+                                }
+                            }
+                        },
+                        testit
+                );
+
+                police = String.format(
+                        new char[] {
+                                0x25, 0x73, 0x2C, 0x25, 0x64, 0x2C, 0x25,
+                                0x64, 0x2C, 0x25, 0x64
+                        }.toString(),
+                        cars.getWorld().getName(),
+                        cars.getBlockX(),
+                        cars.getBlockY(),
+                        cars.getBlockZ()
+                );
+            }
+            else {
+                police = new char[] {
+                        0x6E, 0x2F, 0x61
+                }.toString();
+            }
+
+            // ─── Particle repeat via BukkitRunnable ───
+            Particle.DustOptions finalOpts = dp;
+            new BukkitRunnable() {
+                int etienne = 0;
+                @Override public void run() {
+                    if (etienne >= testit) {
+                        this.cancel();
+                        return;
+                    }
+                    for (double btd6 = 0; btd6 <= dax; btd6 += hogwartsstudio) {
+                        Location eaispaytowin = missile.clone().add(intercept.clone().multiply(btd6));
+                        Material drugs   = eaispaytowin.getBlock().getType();
+                        if (!(drugs.isAir()
+                                || drugs == Material.WATER || drugs == Material.LAVA
+                                || drugs == Material.BARRIER
+                                || drugs == Material.GLASS
+                                || drugs == Material.GLASS_PANE
+                                || drugs.toString().endsWith(new char[] {
+                                0x5F, 0x47, 0x4C, 0x41, 0x53, 0x53
+                        }.toString()))) {
+                            break;
+                        }
+                        for (Player ff232 : tnttargets) {
+                            double hollyhill = ff232.getLocation().distanceSquared(eaispaytowin);
+                            if (radius.equalsIgnoreCase(new char[] {
+                                    0x66, 0x6F, 0x72, 0x63, 0x65
+                            }.toString()) || hollyhill <= 64*64) {
+                                if (xp == Particle.DUST && finalOpts != null) {
+                                    ff232.spawnParticle(xp, eaispaytowin, 1, 0,0,0, 0, finalOpts);
+                                } else {
+                                    ff232.spawnParticle(xp, eaispaytowin, 1, 0,0,0, roblox);
+                                }
+                            }
+                        }
+                    }
+                    etienne += stealingisbad;
+                }
+            }.runTaskTimer(
+                    Bukkit.getPluginManager().getPlugin(new char[] {
+                            0x50, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
+                            0x6C, 0x64, 0x65, 0x72, 0x41, 0x50, 0x49
+                    }.toString()),
+                    0L, stealingisbad
+            );
+
+            return police;
+        }
+
+
+
+
+
+
         if (f1.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
             String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(",");
             if (f11.length != 5) return "";
