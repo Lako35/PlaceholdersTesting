@@ -4,15 +4,19 @@ package org.example;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.data.*;
 import org.bukkit.entity.Damageable;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.util.EulerAngle;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -44,8 +48,6 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -72,8 +74,11 @@ import java.util.List;
 
 
 import java.nio.file.Files;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import static com.ssomar.score.SCore.plugin;
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -82,6 +87,21 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private final Random random = new Random();
+
+
+    private final Set<UUID> activeDice = ConcurrentHashMap.newKeySet();
+
+    // Pre-defined upright face rotations for a dice
+    private static final EulerAngle[] DICE_FACES = new EulerAngle[] {
+            new EulerAngle(0, 0, 0),
+            new EulerAngle(Math.PI/2, 0, 0),
+            new EulerAngle(-Math.PI/2, 0, 0),
+            new EulerAngle(Math.PI, 0, 0),
+            new EulerAngle(0, Math.PI/2, 0),
+            new EulerAngle(0, -Math.PI/2, 0)
+    };
+    
 
     private final Map<String, List<Map.Entry<String, Integer>>> leaderboards = new HashMap<>();
 
@@ -99,6 +119,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private boolean GriefPrevention_Installed = false;
 
 
+    private final Map<UUID, BukkitTask> resetTasks = new ConcurrentHashMap<>();
 
 
 
@@ -147,6 +168,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
             Material.ANCIENT_DEBRIS);
     private final Map<Location, BukkitTask> jesusTimers = new HashMap<>();
+
+    private final Map< UUID, Map<Location, BukkitTask> > jesusTimers2 = new ConcurrentHashMap<>();
+
+
 
 
     public ExampleExpansion() {
@@ -998,6 +1023,386 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
+                 if (identifier.startsWith("clearBundle")) {
+            String[] parts;
+            boolean clearAll = identifier.equals("clearBundle");
+
+            if (!clearAll) {
+                // after "clearBundle_"
+                if (!identifier.startsWith("clearBundle_")) {
+                    return "§c§lError";
+                }
+                parts = identifier.substring("clearBundle_".length()).split(",");
+                // must be either 2 or 4 parts (material,amount[,material,amount])
+                if (!(parts.length == 2 || parts.length == 4)) {
+                    return "§c§lError";
+                }
+            } else {
+                parts = new String[0];
+            }
+
+            // get the bundle in main hand
+            ItemStack held = p.getInventory().getItemInMainHand();
+            if (held == null || held.getType() != Material.BUNDLE) {
+                return "§c§lError";
+            }
+            ItemMeta im = held.getItemMeta();
+            if (!(im instanceof BundleMeta bundleMeta)) {
+                return "§c§lError";
+            }
+
+            try {
+                // copy existing contents
+                List<ItemStack> items = new ArrayList<>(bundleMeta.getItems());
+
+                if (clearAll) {
+                    // remove everything
+                    items.clear();
+                } else {
+                    // remove specified amounts per material
+                    for (int i = 0; i < parts.length; i += 2) {
+                        Material mat = Material.valueOf(parts[i].toUpperCase());
+                        int toRemove = Integer.parseInt(parts[i+1]);
+                        Iterator<ItemStack> it = items.iterator();
+                        while (it.hasNext() && toRemove > 0) {
+                            ItemStack is = it.next();
+                            if (is.getType() == mat) {
+                                int amt = is.getAmount();
+                                if (amt <= toRemove) {
+                                    toRemove -= amt;
+                                    it.remove();
+                                } else {
+                                    is.setAmount(amt - toRemove);
+                                    toRemove = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // apply updated contents
+                bundleMeta.setItems(items);
+                held.setItemMeta(bundleMeta);
+                return "";  // success: no visible placeholder text
+
+            } catch (Exception e) {
+                return "§c§lError";
+            }
+        }
+
+
+        if (identifier.startsWith("checkBundle_")) {
+            String[] parts = identifier.substring("checkBundle_".length()).split(",");
+            if (parts.length != 2) {
+                return "§c§lError";
+            }
+
+            Material mat;
+            int required;
+            try {
+                mat = Material.valueOf(parts[0].toUpperCase());
+                required = Integer.parseInt(parts[1]);
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+
+            ItemStack held = p.getInventory().getItemInMainHand();
+            if (held == null || held.getType() != Material.BUNDLE) {
+                return "§c§lError";
+            }
+
+            ItemMeta meta = held.getItemMeta();
+            if (!(meta instanceof BundleMeta bundleMeta)) {
+                return "§c§lError";
+            }
+
+            int total = 0;
+            for (ItemStack inside : bundleMeta.getItems()) {
+                if (inside != null && inside.getType() == mat) {
+                    total += inside.getAmount();
+                }
+            }
+
+            // return "true" if bundle contains at least the required amount, else "false"
+            return (total >= required) ? "true" : "false";
+        }
+        
+        
+        
+        
+        if (identifier.startsWith("dice_")) {
+            UUID pid = p.getUniqueId();
+
+            if (!activeDice.add(pid)) {
+                return "";
+            }
+
+            String args = identifier.substring("dice_".length());
+
+            new BukkitRunnable() {
+                ArmorStand stand;
+                Vector     forwardVel;
+                double     velY = 0;
+                final double accelY = -1.0 / 20.0;
+                final double speed  =  0.25;
+                int        tick = 0;
+
+                @Override
+                public void run() {
+                    if (tick == 0) {
+                        Location loc = p.getEyeLocation();
+                        stand = (ArmorStand)p.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+                        stand.setVisible(false);
+                        stand.setSmall(true);
+                        stand.setGravity(false);
+
+                        // Random initial head rotation
+                        stand.setHeadPose(new EulerAngle(
+                                Math.random()*Math.PI,
+                                Math.random()*Math.PI,
+                                Math.random()*Math.PI
+                        ));
+
+                        ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+                        SkullMeta meta = (SkullMeta)head.getItemMeta();
+                        meta.setDisplayName("§6§lDice");
+                        meta.setLore(List.of(
+                                "§7Player Head ID: 27433",
+                                "§9www.minecraft-heads.com"
+                        ));
+                        OfflinePlayer owner = Bukkit.getOfflinePlayer("LuckyYuckyDucky");
+                        meta.setOwningPlayer(owner);
+                        head.setItemMeta(meta);
+                        stand.getEquipment().setHelmet(head);
+
+                        forwardVel = p.getEyeLocation().getDirection().setY(0).normalize().multiply(speed);
+                    }
+
+                    // Physics and random tumble
+                    velY += accelY;
+                    Location cur  = stand.getLocation();
+                    Location next = cur.clone().add(forwardVel.getX(), velY, forwardVel.getZ());
+
+                    // randomize rotation each tick
+                    stand.setHeadPose(new EulerAngle(
+                            Math.random()*Math.PI,
+                            Math.random()*Math.PI,
+                            Math.random()*Math.PI
+                    ));
+                    stand.teleport(next);
+
+                    // Landed?
+                    if (next.getBlock().getRelative(0, -1, 0).getType().isSolid()) {
+                        new Snapper(stand, p, args).runTaskTimer(
+                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                0L, 1L
+                        );
+                        cancel();
+                    }
+                    // Void?
+                    else if (next.getY() < 0) {
+                        int face = random.nextInt(6) + 1;
+                        stand.remove();
+                        p.performCommand(args + " " + face);
+                        activeDice.remove(pid);
+                        cancel();
+                    }
+
+                    tick++;
+                }
+            }.runTaskTimer(
+                    Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                    0L, 1L
+            );
+
+            return "";
+        }
+
+
+
+
+        if (identifier.startsWith("thunderbird_")) {
+            String mode = identifier.substring("thunderbird_".length());
+            if (mode.isEmpty()) {
+                return "§c§lThunderbird Mismatch";
+            }
+
+            // Always remove any "madcity" gravity modifier
+            Entity mount = p.getVehicle();
+            if (mount instanceof Horse) {
+                Horse horse = (Horse) mount;
+                AttributeInstance grav = horse.getAttribute(Attribute.GENERIC_GRAVITY);
+                if (grav != null) {
+                    grav.getModifiers().stream()
+                            .filter(mod -> "madcity".equals(mod.getName()))
+                            .forEach(grav::removeModifier);
+                }
+            }
+
+            // Hover mode
+            if (mode.equals("hover")) {
+                new BukkitRunnable() {
+                    int runs = 0;
+
+                    @Override
+                    public void run() {
+                        if (runs++ >= 10) {
+                            this.cancel();
+                        } else {
+                            applyJesusEffect2(p, 4);
+                        }
+                    }
+                }.runTaskTimer(
+                        Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                        0L,
+                        2L
+                );
+                return mode.equals("flight") ? "§b§lFlight" : "§d§lHover";
+            }
+
+            // Flight mode
+            else if (mode.equals("flight")) {
+                if (!(mount instanceof Horse)) {
+                    return "§c§lThunderbird Mismatch";
+                }
+                Horse horse = (Horse) mount;
+
+                // Compute gravity g ∈ [–0.04, +0.04]
+                float pitch = -1 * p.getEyeLocation().getPitch();  // -90 up, +90 down
+                double g;
+                if (Math.abs(pitch) <= 10.0) {
+                    g = 0.0;
+                } else {
+                    double factor = -pitch / 90.0;
+                    g = 0.08 * factor;
+                    g = Math.max(-0.02, Math.min(0.02, g));
+                }
+
+                // Apply to GENERIC_GRAVITY
+                AttributeInstance attr = horse.getAttribute(Attribute.GENERIC_GRAVITY);
+                if (attr == null) {
+                    return "§c§lThunderbird Mismatch";
+                }
+                attr.setBaseValue(g);
+
+                // Cancel any previous reset task for this horse
+                UUID hid = horse.getUniqueId();
+                BukkitTask prev = resetTasks.remove(hid);
+                if (prev != null) prev.cancel();
+
+                // Schedule reset back to 0.08 after 21 ticks
+                BukkitTask reset = Bukkit.getScheduler().runTaskLater(
+                        Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                        () -> {
+                            if (horse.isValid()) {
+                                AttributeInstance a = horse.getAttribute(Attribute.GENERIC_GRAVITY);
+                                if (a != null) a.setBaseValue(0.08);
+                            }
+                            resetTasks.remove(hid);
+                        },
+                        21L
+                );
+                resetTasks.put(hid, reset);
+
+                return mode.equals("flight") ? "§b§lFlight" : "§d§lHover";
+            }
+
+            // Unknown mode
+            return "§c§lThunderbird Mismatch";
+        
+        }
+
+        
+
+        if (identifier.startsWith("hoverEject_")) {
+            // extract the UUID part
+            String uuidPart = identifier.substring("hoverEject_".length());
+            UUID horseId;
+            try {
+                horseId = UUID.fromString(uuidPart);
+            } catch (IllegalArgumentException e) {
+                // invalid UUID format
+                return "";
+            }
+
+            // look up the entity by UUID
+            Entity ent = Bukkit.getEntity(horseId);
+            if (!(ent instanceof Horse)) {
+                // not a horse (or not found)
+                return "";
+            }
+            Horse horse = (Horse) ent;
+
+            // check if the horse is in the air...
+            boolean inAir = !horse.isOnGround();
+            // …or standing over any liquid
+            Block blockBelow = horse.getLocation().clone().subtract(0, 1, 0).getBlock();
+            boolean overLiquid = blockBelow.isLiquid();
+
+            if (inAir || overLiquid) {
+                // enable hover
+                horse.setGravity(false);
+                return "§aHover enabled";
+            }
+
+            // otherwise, nothing to do
+            return "";
+        }
+
+
+
+        if (identifier.equals("horseHealth")) {
+            Entity vehicle = p.getVehicle();
+            if (!(vehicle instanceof Horse)) {
+                return "n/a";
+            }
+            Horse horse = (Horse) vehicle;
+            // get current health
+            double health = horse.getHealth();
+            // round to one decimal place
+            return String.format("%.1f", health);
+        }
+
+        // %Archistructure_horseTotems%
+        if (identifier.equals("horseTotems")) {
+            Entity mount = p.getVehicle();
+            if (!(mount instanceof Horse)) {
+                return "n/a";
+            }
+            Horse horse = (Horse) mount;
+            EntityEquipment equip = horse.getEquipment();
+            if (equip == null) {
+                return "0";
+            }
+            ItemStack inHand = equip.getItemInMainHand();
+            if (inHand == null || inHand.getType() != Material.TOTEM_OF_UNDYING) {
+                return "0";
+            }
+            // return count of totems in its main hand
+            return Integer.toString(inHand.getAmount());
+        }
+        
+        
+        
+        if (identifier.equals("checkAutoTransmission")) {
+            // horizontal velocity
+            Vector vel = p.getVelocity().clone().setY(0);
+            // horizontal look direction
+            Vector look = p.getEyeLocation().getDirection().clone().setY(0);
+
+            // if either is zero-length, can’t be moving forward
+            if (vel.lengthSquared() < 1e-6 || look.lengthSquared() < 1e-6) {
+                return "no";
+            }
+
+            // normalize to compare direction only
+            vel.normalize();
+            look.normalize();
+
+            // dot = 1.0 when perfectly aligned, >0.7 within ~45°
+            double dot = vel.dot(look);
+            return (dot > 0.7) ? "yes" : "no";
+        }
 
         if (identifier.startsWith("laserPointer_")) {
             String[] parts = identifier.substring("laserPointer_".length()).split(",");
@@ -4787,8 +5192,64 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return null;
     }
 
+    private void applyJesusEffect2(Player p, int radius) {
+        UUID pid = p.getUniqueId();
+        Map<Location,BukkitTask> playerMap =
+                jesusTimers2.computeIfAbsent(pid, k -> new ConcurrentHashMap<>());
 
+        Location center = p.getLocation();
+        World world = center.getWorld();
+        if (world == null) return;
 
+        Plugin placeholderApi = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -2; dy <= 0; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    Location blockLoc = new Location(
+                            world,
+                            center.getBlockX() + dx,
+                            center.getBlockY() + dy,
+                            center.getBlockZ() + dz
+                    );
+
+                    Block block = world.getBlockAt(blockLoc);
+                    Material type = block.getType();
+                    BlockData data = block.getBlockData();
+                    boolean waterLogged = (data instanceof Waterlogged wl && wl.isWaterlogged());
+
+                    if (waterLogged
+                            || type == Material.WATER
+                            || type == Material.LAVA
+                            || type == Material.BUBBLE_COLUMN
+                            || type == Material.KELP
+                            || type == Material.KELP_PLANT
+                    ) {
+                        // cancel *this player's* existing timer for that loc
+                        BukkitTask prev = playerMap.remove(blockLoc);
+                        if (prev != null) prev.cancel();
+
+                        // send fake block
+                        Material fakeMat = type == Material.LAVA
+                                ? Material.ORANGE_CONCRETE
+                                : Material.LAPIS_BLOCK;
+                        p.sendBlockChange(blockLoc, fakeMat.createBlockData());
+
+                        // schedule a revert for *this player* at that loc
+                        BlockData original = block.getBlockData();
+                        Location snapshot = blockLoc.clone();
+                        BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                                placeholderApi,
+                                () -> p.sendBlockChange(snapshot, original),
+                                100L
+                        );
+
+                        playerMap.put(blockLoc, task);
+                    }
+                }
+            }
+        }
+    }
 
     private void applyJesusEffect(Player p, int radius) {
         Location center = p.getLocation();
@@ -4831,6 +5292,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
     }
+    
+    
 
 
 
@@ -5114,5 +5577,78 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         return blocks;
+    }
+
+
+
+
+
+
+    private class Snapper extends BukkitRunnable {
+        private final ArmorStand as;
+        private final Player     owner;
+        private final String     args;
+        private final EulerAngle startPose, targetPose;
+        private final int        faceNumber;
+        private int               step = 0;
+
+        Snapper(ArmorStand stand, Player p, String args) {
+            this.as         = stand;
+            this.owner      = p;
+            this.args       = args;
+            this.startPose  = stand.getHeadPose();
+            int idx         = pickNearestFaceIndex(startPose);
+            this.targetPose = DICE_FACES[idx];
+            this.faceNumber = idx + 1;
+        }
+
+        @Override
+        public void run() {
+            if (step < 5) {
+                double t = step / 5.0;
+                as.setHeadPose(new EulerAngle(
+                        lerp(startPose.getX(), targetPose.getX(), t),
+                        lerp(startPose.getY(), targetPose.getY(), t),
+                        lerp(startPose.getZ(), targetPose.getZ(), t)
+                ));
+            }
+            else if (step == 5) {
+                as.setHeadPose(targetPose);
+            }
+            else if (step == 45) {
+                as.remove();
+                owner.performCommand(args + " " + faceNumber);
+                activeDice.remove(owner.getUniqueId());
+                cancel();
+            }
+            step++;
+        }
+    }
+
+    private int pickNearestFaceIndex(EulerAngle pose) {
+        double best = Double.MAX_VALUE;
+        int    bestIdx = 0;
+        for (int i = 0; i < DICE_FACES.length; i++) {
+            EulerAngle f = DICE_FACES[i];
+            double dx = wrapAngle(pose.getX() - f.getX());
+            double dy = wrapAngle(pose.getY() - f.getY());
+            double dz = wrapAngle(pose.getZ() - f.getZ());
+            double dist2 = dx*dx + dy*dy + dz*dz;
+            if (dist2 < best) {
+                best = dist2;
+                bestIdx = i;
+            }
+        }
+        return bestIdx;
+    }
+
+    private double wrapAngle(double a) {
+        a = (a + Math.PI) % (2*Math.PI);
+        if (a < 0) a += 2*Math.PI;
+        return a - Math.PI;
+    }
+
+    private double lerp(double a, double b, double t) {
+        return a + (b - a) * t;
     }
 }
