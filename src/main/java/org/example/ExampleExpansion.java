@@ -2407,7 +2407,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Display the particle cube
-            f1(world, x, y, z, particleType, width, force, density, f2);
+            f1(world, x, y, z, particleType, width, force, density, f2); // TODO Fix to show to all
             return "Cube displayed";
         }
 
