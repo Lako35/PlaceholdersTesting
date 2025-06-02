@@ -1071,6 +1071,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
+        
+        
+        
+        if (identifier.startsWith("echo_")) return identifier.substring("echo".length());
 
 
 /*
