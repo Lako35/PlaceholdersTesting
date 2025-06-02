@@ -1014,6 +1014,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+        if (f1.startsWith("echo_")) return f1.substring("echo".length());
+
+
+
         if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
             World world = f2.getWorld();
             Location eye = f2.getEyeLocation();
