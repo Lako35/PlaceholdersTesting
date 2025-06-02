@@ -898,13 +898,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Step 3: Return the UUID of the closest entity, or '?' if not found
         return (closestEntity != null) ? closestEntity.getUniqueId().toString() : "x";
     }
-
     /**
-     * Displays a particle cube at the specified location.
+     * Displays a particle cube at the specified location to all players
+     * within 'radius' blocks of the cube’s center.
      */
-    private void displayCubeWithParticles(World world, double x, double y, double z, String particleType, double width, boolean force, int density, Player p) {
+    public void displayCubeWithParticles(World world,
+                                         double x, double y, double z,
+                                         String particleType,
+                                         double width,
+                                         boolean force,
+                                         int density,
+                                         int radius)
+    {
         double halfWidth = width / 2.0;
         Particle particle = Particle.valueOf(particleType.toUpperCase());
+        Location center = new Location(world, x, y, z);
+        double radiusSq = radius * radius;
+
+        // Collect all viewers within 'radius' of center
+        List<Player> viewers = new ArrayList<>();
+        for (Player viewer : world.getPlayers()) {
+            if (force || viewer.getLocation().distanceSquared(center) <= radiusSq) {
+                viewers.add(viewer);
+            }
+        }
+        if (viewers.isEmpty()) return;
 
         // Calculate the 8 corners of the cube
         Location[] corners = new Location[8];
@@ -918,40 +936,50 @@ public class ExampleExpansion extends PlaceholderExpansion {
         corners[7] = new Location(world, x + halfWidth, y + halfWidth, z + halfWidth); // Top SE
 
         // Render cube edges
-        displayLine(p, particle, corners[0], corners[1], density, force); // Bottom North
-        displayLine(p, particle, corners[0], corners[2], density, force); // Bottom West
-        displayLine(p, particle, corners[1], corners[3], density, force); // Bottom East
-        displayLine(p, particle, corners[2], corners[3], density, force); // Bottom South
-        displayLine(p, particle, corners[4], corners[5], density, force); // Top North
-        displayLine(p, particle, corners[4], corners[6], density, force); // Top West
-        displayLine(p, particle, corners[5], corners[7], density, force); // Top East
-        displayLine(p, particle, corners[6], corners[7], density, force); // Top South
-        displayLine(p, particle, corners[0], corners[4], density, force); // Vertical NW
-        displayLine(p, particle, corners[1], corners[5], density, force); // Vertical NE
-        displayLine(p, particle, corners[2], corners[6], density, force); // Vertical SW
-        displayLine(p, particle, corners[3], corners[7], density, force); // Vertical SE
+        displayLine(viewers, particle, corners[0], corners[1], density, force, center, radiusSq); // Bottom North
+        displayLine(viewers, particle, corners[0], corners[2], density, force, center, radiusSq); // Bottom West
+        displayLine(viewers, particle, corners[1], corners[3], density, force, center, radiusSq); // Bottom East
+        displayLine(viewers, particle, corners[2], corners[3], density, force, center, radiusSq); // Bottom South
+        displayLine(viewers, particle, corners[4], corners[5], density, force, center, radiusSq); // Top North
+        displayLine(viewers, particle, corners[4], corners[6], density, force, center, radiusSq); // Top West
+        displayLine(viewers, particle, corners[5], corners[7], density, force, center, radiusSq); // Top East
+        displayLine(viewers, particle, corners[6], corners[7], density, force, center, radiusSq); // Top South
+        displayLine(viewers, particle, corners[0], corners[4], density, force, center, radiusSq); // Vertical NW
+        displayLine(viewers, particle, corners[1], corners[5], density, force, center, radiusSq); // Vertical NE
+        displayLine(viewers, particle, corners[2], corners[6], density, force, center, radiusSq); // Vertical SW
+        displayLine(viewers, particle, corners[3], corners[7], density, force, center, radiusSq); // Vertical SE
 
         // Render cube faces
-        renderFace(p, particle, corners[0], corners[1], corners[4], corners[5], density, force); // North Face
-        renderFace(p, particle, corners[2], corners[3], corners[6], corners[7], density, force); // South Face
-        renderFace(p, particle, corners[0], corners[2], corners[4], corners[6], density, force); // West Face
-        renderFace(p, particle, corners[1], corners[3], corners[5], corners[7], density, force); // East Face
-        renderFace(p, particle, corners[4], corners[5], corners[6], corners[7], density, force); // Top Face
-        renderFace(p, particle, corners[0], corners[1], corners[2], corners[3], density, force); // Bottom Face
+        renderFace(viewers, particle, corners[0], corners[1], corners[4], corners[5], density, force, center, radiusSq); // North Face
+        renderFace(viewers, particle, corners[2], corners[3], corners[6], corners[7], density, force, center, radiusSq); // South Face
+        renderFace(viewers, particle, corners[0], corners[2], corners[4], corners[6], density, force, center, radiusSq); // West Face
+        renderFace(viewers, particle, corners[1], corners[3], corners[5], corners[7], density, force, center, radiusSq); // East Face
+        renderFace(viewers, particle, corners[4], corners[5], corners[6], corners[7], density, force, center, radiusSq); // Top Face
+        renderFace(viewers, particle, corners[0], corners[1], corners[2], corners[3], density, force, center, radiusSq); // Bottom Face
     }
 
-    private void renderFace(Player p, Particle particle, Location corner1, Location corner2, Location corner3, Location corner4, int density, boolean force) {
+    private void renderFace(List<Player> viewers,
+                            Particle particle,
+                            Location corner1,
+                            Location corner2,
+                            Location corner3,
+                            Location corner4,
+                            int density,
+                            boolean force,
+                            Location center,
+                            double radiusSq)
+    {
         for (int i = 1; i < density; i++) {
             double t = (double) i / density;
 
             // Create intermediate lines between edges
             Location start = interpolate(corner1, corner2, t);
-            Location end = interpolate(corner3, corner4, t);
-            displayLine(p, particle, start, end, density, force);
+            Location end   = interpolate(corner3, corner4, t);
+            displayLine(viewers, particle, start, end, density, force, center, radiusSq);
 
             start = interpolate(corner1, corner3, t);
-            end = interpolate(corner2, corner4, t);
-            displayLine(p, particle, start, end, density, force);
+            end   = interpolate(corner2, corner4, t);
+            displayLine(viewers, particle, start, end, density, force, center, radiusSq);
         }
     }
 
@@ -962,25 +990,35 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return new Location(start.getWorld(), x, y, z);
     }
 
-    private void displayLine(Player p, Particle particle, Location start, Location end, int density, boolean force) {
+    private void displayLine(List<Player> viewers,
+                             Particle particle,
+                             Location start,
+                             Location end,
+                             int density,
+                             boolean force,
+                             Location center,
+                             double radiusSq)
+    {
         World world = start.getWorld();
         if (world == null) return;
 
-        List<Player> viewers = new ArrayList<>(world.getPlayers());
-
         for (int i = 0; i <= density; i++) {
             double t = (double) i / density;
-            double x = start.getX() + (end.getX() - start.getX()) * t;
-            double y = start.getY() + (end.getY() - start.getY()) * t;
-            double z = start.getZ() + (end.getZ() - start.getZ()) * t;
-            Location loc = new Location(world, x, y, z);
+            double px = start.getX() + (end.getX()   - start.getX()) * t;
+            double py = start.getY() + (end.getY()   - start.getY()) * t;
+            double pz = start.getZ() + (end.getZ()   - start.getZ()) * t;
+            Location point = new Location(world, px, py, pz);
 
             for (Player viewer : viewers) {
-                if (!force && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
-                viewer.spawnParticle(particle, loc, 0, 0, 0, 0, 0, null, force);
+                // If not forced, skip viewer if outside radius from center
+                if (!force && viewer.getLocation().distanceSquared(center) > radiusSq) {
+                    continue;
+                }
+                viewer.spawnParticle(particle, point, 0, 0, 0, 0, 0, null, force);
             }
         }
     }
+
 
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
@@ -3040,7 +3078,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String params = identifier.substring("PTFXCUBE_".length());
             String[] parts = params.split(",");
 
-            if (parts.length != 8) {
+            if (parts.length != 9) {
                 return "Invalid format!";
             }
 
@@ -3049,6 +3087,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             double x, y, z, width;
             int density;
             boolean force;
+            int radius;
 
             try {
                 x = Double.parseDouble(parts[1]);
@@ -3057,6 +3096,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 width = Double.parseDouble(parts[5]);
                 density = Integer.parseInt(parts[7]);
                 force = parts[6].equalsIgnoreCase("force");
+                radius = Integer.parseInt(parts[8]);
             } catch (NumberFormatException e) {
                 return "Invalid numerical value!";
             }
@@ -3069,7 +3109,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Display the particle cube
-            displayCubeWithParticles(world, x, y, z, particleType, width, force, density, p);
+            displayCubeWithParticles(world, x, y, z, particleType, width, force, density, radius);
             return "Cube displayed";
         }
 
