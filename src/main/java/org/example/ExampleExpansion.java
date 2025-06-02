@@ -1,6 +1,8 @@
 package org.example;
 
 
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.wrappers.*;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -22,7 +24,6 @@ import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
@@ -75,6 +76,7 @@ import java.util.List;
 
 import java.nio.file.Files;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -87,6 +89,14 @@ import static com.ssomar.score.SCore.plugin;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+
+
+    private final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+    private final AtomicInteger nextFakeEntityId = new AtomicInteger(200_000);
+    private final Map<UUID,Integer> cloneEntityIds   = new ConcurrentHashMap<>();
+    
+    
+    
     private final Random random = new Random();
 
 
@@ -1023,7 +1033,91 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
-                 if (identifier.startsWith("clearBundle")) {
+
+
+/*
+
+
+        if (identifier.startsWith("fakeClone_CREATE,")) {
+            String[] parts = identifier.substring("fakeClone_CREATE,".length()).split(",");
+            if (parts.length != 7) return "§c§lError";
+
+            // parse args
+            String worldName = parts[0];
+            double x, y, z, pitch, yaw, radius;
+            try {
+                x       = Double.parseDouble(parts[1]);
+                y       = Double.parseDouble(parts[2]);
+                z       = Double.parseDouble(parts[3]);
+                pitch   = Float .parseFloat(parts[4]);
+                yaw     = Float .parseFloat(parts[5]);
+                radius  = Double.parseDouble(parts[6]);
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§c§lError";
+
+            // generate UUID + entityId
+            UUID cloneUuid = UUID.randomUUID();
+            int  entityId  = nextFakeEntityId.getAndIncrement();
+            cloneEntityIds.put(cloneUuid, entityId);
+
+            Location center = new Location(world, x, y, z);
+            double radSq = radius * radius;
+
+            // send spawn packets to each player in radius
+            for (Player other : world.getPlayers()) {
+                if (other.getLocation().distanceSquared(center) <= radSq) {
+                    spawnCloneForViewer(other, cloneUuid, entityId, center, (float)pitch, (float)yaw);
+                }
+            }
+
+            return cloneUuid.toString();
+        }
+
+        // --- DELETE ---
+        if (identifier.startsWith("fakeClone_DELETE,")) {
+            String[] parts = identifier.substring("fakeClone_DELETE,".length()).split(",");
+            if (parts.length != 6) return "§c§lError";
+
+            UUID cloneUuid;
+            String worldName = parts[1];
+            double x, y, z, radius;
+            try {
+                cloneUuid = UUID.fromString(parts[0]);
+                x       = Double.parseDouble(parts[2]);
+                y       = Double.parseDouble(parts[3]);
+                z       = Double.parseDouble(parts[4]);
+                radius  = Double.parseDouble(parts[5]);
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§c§lError";
+
+            Integer entityId = cloneEntityIds.remove(cloneUuid);
+            if (entityId == null) return "§c§lError";
+
+            Location center = new Location(world, x, y, z);
+            double radSq = radius * radius;
+
+            for (Player other : world.getPlayers()) {
+                if (other.getLocation().distanceSquared(center) <= radSq) {
+                    destroyCloneForViewer(other, entityId, cloneUuid);
+                }
+            }
+
+            return cloneUuid.toString();
+        }
+        
+        
+        
+        */
+        
+        
+        
+         if (identifier.startsWith("clearBundle")) {
             String[] parts;
             boolean clearAll = identifier.equals("clearBundle");
 
@@ -2752,6 +2846,93 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
                 boolean inCriminalBase = set.getRegions().stream()
                         .anyMatch(r -> r.getId().toLowerCase().contains("criminalbase"));
+
+                if (!inCriminalBase) {
+                    continue;
+                }
+
+                // Calculate distance
+                double distance = origin.distance(loc);
+                if (distance <= radius && distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestPlayer = target;
+                }
+            }
+
+            if (nearestPlayer != null) {
+                return nearestPlayer.getUniqueId().toString();
+            }
+
+            return "?";
+        }
+
+
+
+
+
+
+
+        if (identifier.startsWith("nearestPlayerNotTeam3_")) {
+            if (!checkCompatibility(p, "WorldGuard")) return null;
+
+            String params = identifier.substring("nearestPlayerNotTeam2_".length());
+            String[] parts = params.split(",");
+
+            if (parts.length != 7) {
+                return "?";
+            }
+
+            String teamName = parts[0];
+            String regionName = parts[6];
+
+            int radius;
+            String worldName = parts[2];
+            double x, y, z;
+
+            try {
+                radius = Integer.parseInt(parts[1]);
+                x = Double.parseDouble(parts[3]);
+                y = Double.parseDouble(parts[4]);
+                z = Double.parseDouble(parts[5]);
+            } catch (NumberFormatException e) {
+                return "?";
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) {
+                return "?";
+            }
+
+            Location origin = new Location(world, x, y, z);
+
+            // Get the specified team from the scoreboard
+            Team team = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard().getTeam(teamName);
+            if (team == null) {
+                return "?";
+            }
+
+            Player nearestPlayer = null;
+            double nearestDistance = Double.MAX_VALUE;
+
+            for (Player target : world.getPlayers()) {
+                // Skip players on the specified team
+                if (team.hasEntry(target.getName())) {
+                    continue;
+                }
+
+                // Check if player is inside a region that includes "criminalbase" in its ID
+                Location loc = target.getLocation();
+                com.sk89q.worldedit.util.Location wgLoc = BukkitAdapter.adapt(loc);
+                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+                RegionManager regions = container.get(BukkitAdapter.adapt(world));
+
+                if (regions == null) {
+                    continue;
+                }
+
+                ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
+                boolean inCriminalBase = set.getRegions().stream()
+                        .anyMatch(r -> r.getId().toLowerCase().contains(regionName));
 
                 if (!inCriminalBase) {
                     continue;
@@ -5231,8 +5412,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                         // send fake block
                         Material fakeMat = type == Material.LAVA
-                                ? Material.ORANGE_CONCRETE
-                                : Material.LAPIS_BLOCK;
+                                ? Material.ORANGE_STAINED_GLASS
+                                : Material.LIGHT_BLUE_STAINED_GLASS;
                         p.sendBlockChange(blockLoc, fakeMat.createBlockData());
 
                         // schedule a revert for *this player* at that loc
@@ -5651,4 +5832,84 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private double lerp(double a, double b, double t) {
         return a + (b - a) * t;
     }
+
+    private void spawnCloneForViewer(Player viewer,
+                                     UUID cloneUuid,
+                                     int entityId,
+                                     Location loc,
+                                     float pitch,
+                                     float yaw) {
+        try {
+            // 1) PLAYER_INFO ADD
+            WrappedGameProfile profile = new WrappedGameProfile(cloneUuid, "Clone");
+            PlayerInfoData infoData = new PlayerInfoData(
+                    profile, 0, EnumWrappers.NativeGameMode.SURVIVAL,
+                    WrappedChatComponent.fromText("Clone")
+            );
+            PacketContainer addInfo = protocolManager
+                    .createPacket(PacketType.Play.Server.PLAYER_INFO);
+            addInfo.getPlayerInfoAction()
+                    .write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+            addInfo.getPlayerInfoDataLists()
+                    .write(0, Collections.singletonList(infoData));
+            protocolManager.sendServerPacket(viewer, addInfo);
+
+            // 2) NAMED_ENTITY_SPAWN
+            PacketContainer spawn = protocolManager
+                    .createPacket(PacketType.Play.Server.NAMED_ENTITY_SPAWN);
+            spawn.getIntegers().write(0, entityId);
+            spawn.getUUIDs()   .write(0, cloneUuid);
+            spawn.getDoubles().write(0, loc.getX());
+            spawn.getDoubles().write(1, loc.getY());
+            spawn.getDoubles().write(2, loc.getZ());
+            spawn.getBytes()  .write(0, (byte)(yaw * 256f / 360f));
+            spawn.getBytes()  .write(1, (byte)(pitch * 256f / 360f));
+            protocolManager.sendServerPacket(viewer, spawn);
+
+            // 3) remove from tab after a few ticks
+            Bukkit.getScheduler().runTaskLater(
+                    plugin,
+                    () -> {
+                        try {
+                            PacketContainer remove = protocolManager
+                                    .createPacket(PacketType.Play.Server.PLAYER_INFO);
+                            remove.getPlayerInfoAction()
+                                    .write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+                            remove.getPlayerInfoDataLists()
+                                    .write(0, Collections.singletonList(infoData));
+                            protocolManager.sendServerPacket(viewer, remove);
+                        } catch (Exception ignored) {}
+                    },
+                    5L
+            );
+        } catch (Exception ignored) {}
+    }
+
+    private void destroyCloneForViewer(Player viewer,
+                                       int entityId,
+                                       UUID cloneUuid) {
+        try {
+            // 1) ENTITY_DESTROY
+            PacketContainer destroy = protocolManager
+                    .createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+            destroy.getIntLists()
+                    .write(0, Collections.singletonList(entityId));
+            protocolManager.sendServerPacket(viewer, destroy);
+
+            // 2) PLAYER_INFO REMOVE
+            WrappedGameProfile profile = new WrappedGameProfile(cloneUuid, "Clone");
+            PlayerInfoData infoData = new PlayerInfoData(
+                    profile, 0, EnumWrappers.NativeGameMode.SURVIVAL,
+                    WrappedChatComponent.fromText("Clone")
+            );
+            PacketContainer remove = protocolManager
+                    .createPacket(PacketType.Play.Server.PLAYER_INFO);
+            remove.getPlayerInfoAction()
+                    .write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+            remove.getPlayerInfoDataLists()
+                    .write(0, Collections.singletonList(infoData));
+            protocolManager.sendServerPacket(viewer, remove);
+        } catch (Exception ignored) {}
+    }
+
 }
