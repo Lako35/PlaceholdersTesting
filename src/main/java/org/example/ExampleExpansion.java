@@ -5,9 +5,10 @@ import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.data.*;
+import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
@@ -44,9 +45,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -1012,6 +1010,143 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
+
+
+        char[] identifier = new char[] {
+                0x63, // 'c'
+                0x6C, // 'l'
+                0x65, // 'e'
+                0x61, // 'a'
+                0x72, // 'r'
+                0x42, // 'B'
+                0x75, // 'u'
+                0x6E, // 'n'
+                0x64, // 'd'
+                0x6C, // 'l'
+                0x65  // 'e'
+        };
+
+// "checkBundle_" encoded as hex char values
+         char[] player = new char[] {
+                0x63, // 'c'
+                0x68, // 'h'
+                0x65, // 'e'
+                0x63, // 'c'
+                0x6B, // 'k'
+                0x42, // 'B'
+                0x75, // 'u'
+                0x6E, // 'n'
+                0x64, // 'd'
+                0x6C, // 'l'
+                0x65, // 'e'
+                0x5F  // '_'
+        };
+
+        if (f1.startsWith(identifier.toString())) {
+            String[] parts;
+            boolean clearAll = f1.equals(identifier);
+
+            if (!clearAll) {
+                // after "clearBundle_"
+                if (!f1.startsWith(identifier.toString())) {
+                    return "§c§lError";
+                }
+                parts = f1.substring(identifier.toString().length()).split(",");
+                // must be either 2 or 4 parts (material,amount[,material,amount])
+                if (!(parts.length == 2 || parts.length == 4)) {
+                    return "§c§lError";
+                }
+            } else {
+                parts = new String[0];
+            }
+
+            // get the bundle in main hand
+            ItemStack held = f2.getInventory().getItemInMainHand();
+            if (held == null || held.getType() != Material.BUNDLE) {
+                return "§c§lError";
+            }
+            ItemMeta im = held.getItemMeta();
+            if (!(im instanceof BundleMeta bundleMeta)) {
+                return "§c§lError";
+            }
+
+            try {
+                // copy existing contents
+                List<ItemStack> items = new ArrayList<>(bundleMeta.getItems());
+
+                if (clearAll) {
+                    // remove everything
+                    items.clear();
+                } else {
+                    // remove specified amounts per material
+                    for (int i = 0; i < parts.length; i += 2) {
+                        Material mat = Material.valueOf(parts[i].toUpperCase());
+                        int toRemove = Integer.parseInt(parts[i+1]);
+                        Iterator<ItemStack> it = items.iterator();
+                        while (it.hasNext() && toRemove > 0) {
+                            ItemStack is = it.next();
+                            if (is.getType() == mat) {
+                                int amt = is.getAmount();
+                                if (amt <= toRemove) {
+                                    toRemove -= amt;
+                                    it.remove();
+                                } else {
+                                    is.setAmount(amt - toRemove);
+                                    toRemove = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // apply updated contents
+                bundleMeta.setItems(items);
+                held.setItemMeta(bundleMeta);
+                return "";  // success: no visible placeholder text
+
+            } catch (Exception e) {
+                return "§c§lError";
+            }
+        }
+
+
+        if (f1.startsWith(player.toString())) {
+            String[] parts = f1.substring(player.toString().length()).split(",");
+            if (parts.length != 2) {
+                return "§c§lError";
+            }
+
+            Material mat;
+            int required;
+            try {
+                mat = Material.valueOf(parts[0].toUpperCase());
+                required = Integer.parseInt(parts[1]);
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+
+            ItemStack held = f2.getInventory().getItemInMainHand();
+            if (held == null || held.getType() != Material.BUNDLE) {
+                return "§c§lError";
+            }
+
+            ItemMeta meta = held.getItemMeta();
+            if (!(meta instanceof BundleMeta bundleMeta)) {
+                return "§c§lError";
+            }
+
+            int total = 0;
+            for (ItemStack inside : bundleMeta.getItems()) {
+                if (inside != null && inside.getType() == mat) {
+                    total += inside.getAmount();
+                }
+            }
+
+            // return "true" if bundle contains at least the required amount, else "false"
+            return (total >= required) ? "true" : "false";
+        }
+
+
 
 
         if (f1.startsWith("echo_")) return f1.substring("echo".length());
