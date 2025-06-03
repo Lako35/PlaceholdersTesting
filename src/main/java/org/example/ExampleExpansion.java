@@ -1027,8 +1027,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
-        
-        if(trialVersion && trialNumber < 0) {
+
+        if (trialVersion && trialNumber < 0) {
             p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
             return null;
         }
@@ -1067,10 +1067,139 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
         }
-        
-        
-        
+
+
         // INSERT HERE 
+        if (identifier.startsWith("fakeExplode_")) {
+
+            String[] parts = identifier.substring("fakeExplode_".length()).split(",");
+            if (parts.length != 7) return "§c§lError";
+
+            double radius, x, y, z;
+            long duration;
+            String worldName;
+            boolean ignoreContainers;
+            try {
+                radius = Double.parseDouble(parts[0]);
+                duration = Long.parseLong(parts[1]);
+                worldName = parts[2];
+                x = Double.parseDouble(parts[3]);
+                y = Double.parseDouble(parts[4]);
+                z = Double.parseDouble(parts[5]);
+                ignoreContainers = Boolean.parseBoolean(parts[6]);
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§c§lError";
+
+            Location center = new Location(world, x, y, z);
+            double radiusSq = radius * radius;
+
+            // 1) Play explosion particle & sound once
+            world.spawnParticle(Particle.EXPLOSION_EMITTER, center, 1, 0, 0, 0, 0);
+            world.playSound(center, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
+
+            // 2) Determine which blocks to “destroy” via ray‐trace
+            Set<Location> destroyed = new HashSet<>();
+            // explosion‐proof materials (e.g. BEDROCK, BARRIER, etc.)
+            Set<Material> immune = Set.of(
+                    Material.BEDROCK,
+                    Material.BARRIER,
+                    Material.END_PORTAL_FRAME,
+                    Material.NETHER_PORTAL,
+                    Material.END_PORTAL
+            );
+
+            // Cast rays in a spherical pattern (sampling by yaw/pitch)
+            int stepsYaw = 36;
+            int stepsPitch = 18;
+            for (int i = 0; i < stepsYaw; i++) {
+                double yaw = (2 * Math.PI / stepsYaw) * i;
+                for (int j = 0; j < stepsPitch; j++) {
+                    double pitch = (Math.PI / (stepsPitch - 1)) * j - Math.PI / 2;
+                    Vector dir = new Vector(
+                            Math.cos(pitch) * Math.cos(yaw),
+                            Math.sin(pitch),
+                            Math.cos(pitch) * Math.sin(yaw)
+                    );
+                    dir.normalize();
+                    Location traceLoc = center.clone();
+                    for (double d = 0; d <= 7; d += 0.5) {
+                        traceLoc = center.clone().add(dir.clone().multiply(d));
+                        Block block = traceLoc.getBlock();
+                        if (destroyed.contains(block.getLocation())) {
+                            continue;
+                        }
+                        Material m = block.getType();
+                        if (m == Material.WATER || m == Material.LAVA || immune.contains(m) || m == Material.AIR) {
+                            continue;
+                        }
+                        destroyed.add(block.getLocation());
+                        break;
+                    }
+                }
+            }
+
+            // 3) Send block‐change “to air” for destroyed blocks, drop items, then schedule revert
+            for (Location loc : destroyed) {
+                try {
+                    // 3a) Fake‐break: send “air” packet to viewers within radius
+                    for (Player viewer : world.getPlayers()) {
+                        if (viewer.getLocation().distanceSquared(center) <= radiusSq) {
+                            viewer.sendBlockChange(loc, Material.AIR.createBlockData());
+                        }
+                    }
+                    // 3b) Immediately drop the block’s item (modify with modifyItemForShulker3)
+                    Material brokenMat = loc.getBlock().getType();
+                    ItemStack dropped = new ItemStack(brokenMat);
+                    ItemStack modified = modifyItemForShulker3(dropped, brokenMat);
+                    world.dropItemNaturally(loc, modified);
+
+                    // 3c) Schedule live‐lookup reversion after duration
+                    Bukkit.getScheduler().runTaskLater(
+                            Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                            () -> {
+                                BlockData current = loc.getBlock().getBlockData();
+                                for (Player viewer : world.getPlayers()) {
+                                    if (viewer.getLocation().distanceSquared(center) <= radiusSq) {
+                                        viewer.sendBlockChange(loc, current);
+                                    }
+                                }
+                            },
+                            duration
+                    );
+                } catch (Exception ignored) {}
+            }
+            // 4) Drop items from containers if not ignored
+            if (!ignoreContainers) {
+                int intRadius = 7;
+                for (int dx = -intRadius; dx <= intRadius; dx++) {
+                    for (int dy = -intRadius; dy <= intRadius; dy++) {
+                        for (int dz = -intRadius; dz <= intRadius; dz++) {
+                            Location checkLoc = center.clone().add(dx, dy, dz);
+                            if (checkLoc.distanceSquared(center) > intRadius) continue;
+                            Block block = checkLoc.getBlock();
+                            if (block.getState() instanceof InventoryHolder holder) {
+                                Inventory inv = holder.getInventory();
+                                for (ItemStack item : inv.getContents()) {
+                                    try {
+                                        if (item == null) continue;
+                                        ItemStack modified = modifyItemForShulker3(item, item.getType());
+                                        world.dropItemNaturally(checkLoc, modified);
+                                    } catch (Exception ignored ) {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return "§6FakeTnt";
+        }
+        
+    
         
         
         
@@ -5655,6 +5784,68 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         return newItem;
     }
+
+
+
+
+    private ItemStack modifyItemForShulker3(ItemStack item, Material newMat) {
+        YamlConfiguration config = new YamlConfiguration();
+        // Place the item under a known section "slot0"
+        config.set("slot0", item);
+        String yaml = config.saveToString();
+
+        // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
+        yaml = yaml.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
+
+        // Replace any existing "executableitems:ei-id" value with "GUINoClick"
+        yaml = yaml.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1FakeItem\"");
+
+        // Ensure that a meta section exists in slot0.
+        // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
+        if (!yaml.contains("meta:")) {
+            @SuppressWarnings("TextBlockMigration") String metaBlock =
+                    "\n  meta:\n" +
+                            "    ==: ItemMeta\n" +
+                            "    meta-type: UNSPECIFIC\n" +
+                            "    PublicBukkitValues: |-\n" +
+                            "      {\n" +
+                            "          \"executableitems:ei-id\": \"FakeItem\",\n" +
+                            "          \"score:usage\": 1\n" +
+                            "      }";
+            // Append the meta block to the slot0 section.
+            yaml += metaBlock;
+        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        {
+            // Meta exists but PublicBukkitValues is missing.
+            // Insert PublicBukkitValues before the closing of meta.
+            // This regex finds the last line in the meta section that is just whitespace followed by a "}".
+            //noinspection TextBlockMigration
+            yaml = yaml.replaceFirst(" {2}meta:\n" +
+                    " {4}==:", "  meta:\n" +
+                    "    PublicBukkitValues: |-\n" +
+                    "      {\n" +
+                    "          \"executableitems:ei-id\": \"FakeItem\",\n" +
+                    "          \"score:usage\": 1\n" +
+                    "      }\n" +
+                    "    ==:");
+        }
+
+        try {
+            config.loadFromString(yaml);
+        } catch (InvalidConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+
+        ItemStack newItem = config.getItemStack("slot0");
+
+        if (newItem == null) {
+            newItem = item;
+        }
+        newItem.setType(newMat);
+
+        return newItem;
+    }
+
 
 
 
