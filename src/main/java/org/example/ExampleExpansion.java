@@ -3640,7 +3640,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("track_")) {
             String[] parts = f1.substring("track_".length()).split(",");
-            if (parts.length != 4) {
+            if (parts.length != 5) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
             }
 
