@@ -61,6 +61,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -1069,6 +1070,57 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+        if (identifier.startsWith("webhook_")) {
+            // Strip off "webhook_" prefix
+            String rest = identifier.substring("webhook_".length());
+            int commaIdx = rest.indexOf(',');
+            if (commaIdx < 0) {
+                // No comma → invalid format; just return empty
+                return "Webhook Attempting send!";
+            }
+
+            String webhookUrl = rest.substring(0, commaIdx);
+            String message = rest.substring(commaIdx + 1);
+
+            // Schedule an asynchronous task to send the HTTP POST so we don't block the server thread
+            Plugin papiPlugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+            if (papiPlugin != null) {
+                Bukkit.getScheduler().runTaskAsynchronously(papiPlugin, () -> {
+                    try {
+                        // Build JSON payload: {"content":"<escaped message>"}
+                        String escaped = message
+                                .replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\n", "\\n")
+                                .replace("\r", "");
+                        String jsonPayload = "{\"content\":\"" + escaped + "\"}";
+
+                        // Open connection to the Discord webhook URL
+                        URL url = new URL(webhookUrl);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setDoOutput(true);
+
+                        // Send the JSON body
+                        try (OutputStream os = conn.getOutputStream()) {
+                            os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                        }
+
+                        // Trigger the request and ignore the response
+                        int responseCode = conn.getResponseCode();
+                        conn.disconnect();
+                        // (Optionally, you could log non-2xx responses—for brevity, we just fire and forget.)
+                    } catch (Exception ex) {
+                        // Silently ignore any exception; placeholder still returns ""
+                    }
+                });
+            }
+        }
+        
+        
+        
 
             // %Archistructure_laserDamageHostiles_UUID,RADIUS,DAMAGE,world,x,y,z,ParticleDisplacement,PARTICLEType,DustColorHexOptional,DustParticleSize%
             if (identifier.startsWith("laserDamageHostiles_")) {
