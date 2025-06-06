@@ -1,6 +1,7 @@
 package org.example;
 
 
+import org.bukkit.Color;
 import org.bukkit.plugin.PluginManager;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -218,6 +219,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Displays a particle cube at the specified location to all players
      * within 'radius' blocks of the cube’s center.
+     *
+     * If `particleType` begins with "DUST-", it must follow the pattern:
+     *   "DUST-<6hexcolor><size>"
+     * where <6hexcolor> is a hex color string (e.g. "FF00AA") and <size> is an integer.
+     * In that case, a dust particle with the given color and size is used.
+     * Otherwise, `particleType` is treated as a standard Particle enum name.
      */
     public void displayCubeWithParticles(World world,
                                          double x, double y, double z,
@@ -228,11 +235,47 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                          int radius)
     {
         double halfWidth = width / 2.0;
-        Particle particle = Particle.valueOf(particleType.toUpperCase());
         Location center = new Location(world, x, y, z);
-        double radiusSq = radius * radius;
+        double radiusSq = (double) radius * radius;
 
-        // Collect all viewers within 'radius' of center
+        // Determine Particle enum and, if needed, DustOptions
+        Particle particleEnum;
+        Particle.DustOptions dustOpts = null;
+
+        String upper = particleType.toUpperCase(Locale.ROOT);
+        if (upper.startsWith("DUST-")) {
+            // Format: "DUST-<HEX><SIZE>"
+            String remainder = upper.substring("DUST-".length());
+            if (remainder.length() < 7) {
+                // Must have at least 6 hex chars + 1 digit size
+                return;
+            }
+            String hexPart = remainder.substring(0, 6);
+            String sizePart = remainder.substring(6);
+
+            int rgb;
+            int sizeInt;
+            try {
+                rgb = Integer.parseInt(hexPart, 16);
+                sizeInt = Integer.parseInt(sizePart);
+            } catch (NumberFormatException ex) {
+                return;
+            }
+            int r = (rgb >> 16) & 0xFF;
+            int g = (rgb >> 8)  & 0xFF;
+            int b =  rgb        & 0xFF;
+            // DustOptions uses BGR order
+            dustOpts = new Particle.DustOptions(Color.fromBGR(b, g, r), (float) sizeInt);
+            particleEnum = Particle.DUST;
+        } else {
+            try {
+                particleEnum = Particle.valueOf(upper);
+            } catch (IllegalArgumentException ex) {
+                return;
+            }
+        }
+
+        // Collect all viewers within 'radius' of center (or all if force == true)
         List<Player> viewers = new ArrayList<>();
         for (Player viewer : world.getPlayers()) {
             if (force || viewer.getLocation().distanceSquared(center) <= radiusSq) {
@@ -253,30 +296,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
         corners[7] = new Location(world, x + halfWidth, y + halfWidth, z + halfWidth); // Top SE
 
         // Render cube edges
-        displayLine(viewers, particle, corners[0], corners[1], density, force, center, radiusSq); // Bottom North
-        displayLine(viewers, particle, corners[0], corners[2], density, force, center, radiusSq); // Bottom West
-        displayLine(viewers, particle, corners[1], corners[3], density, force, center, radiusSq); // Bottom East
-        displayLine(viewers, particle, corners[2], corners[3], density, force, center, radiusSq); // Bottom South
-        displayLine(viewers, particle, corners[4], corners[5], density, force, center, radiusSq); // Top North
-        displayLine(viewers, particle, corners[4], corners[6], density, force, center, radiusSq); // Top West
-        displayLine(viewers, particle, corners[5], corners[7], density, force, center, radiusSq); // Top East
-        displayLine(viewers, particle, corners[6], corners[7], density, force, center, radiusSq); // Top South
-        displayLine(viewers, particle, corners[0], corners[4], density, force, center, radiusSq); // Vertical NW
-        displayLine(viewers, particle, corners[1], corners[5], density, force, center, radiusSq); // Vertical NE
-        displayLine(viewers, particle, corners[2], corners[6], density, force, center, radiusSq); // Vertical SW
-        displayLine(viewers, particle, corners[3], corners[7], density, force, center, radiusSq); // Vertical SE
+        displayLine(viewers, particleEnum, dustOpts, corners[0], corners[1], density, force, center, radiusSq); // Bottom North
+        displayLine(viewers, particleEnum, dustOpts, corners[0], corners[2], density, force, center, radiusSq); // Bottom West
+        displayLine(viewers, particleEnum, dustOpts, corners[1], corners[3], density, force, center, radiusSq); // Bottom East
+        displayLine(viewers, particleEnum, dustOpts, corners[2], corners[3], density, force, center, radiusSq); // Bottom South
+        displayLine(viewers, particleEnum, dustOpts, corners[4], corners[5], density, force, center, radiusSq); // Top North
+        displayLine(viewers, particleEnum, dustOpts, corners[4], corners[6], density, force, center, radiusSq); // Top West
+        displayLine(viewers, particleEnum, dustOpts, corners[5], corners[7], density, force, center, radiusSq); // Top East
+        displayLine(viewers, particleEnum, dustOpts, corners[6], corners[7], density, force, center, radiusSq); // Top South
+        displayLine(viewers, particleEnum, dustOpts, corners[0], corners[4], density, force, center, radiusSq); // Vertical NW
+        displayLine(viewers, particleEnum, dustOpts, corners[1], corners[5], density, force, center, radiusSq); // Vertical NE
+        displayLine(viewers, particleEnum, dustOpts, corners[2], corners[6], density, force, center, radiusSq); // Vertical SW
+        displayLine(viewers, particleEnum, dustOpts, corners[3], corners[7], density, force, center, radiusSq); // Vertical SE
 
         // Render cube faces
-        renderFace(viewers, particle, corners[0], corners[1], corners[4], corners[5], density, force, center, radiusSq); // North Face
-        renderFace(viewers, particle, corners[2], corners[3], corners[6], corners[7], density, force, center, radiusSq); // South Face
-        renderFace(viewers, particle, corners[0], corners[2], corners[4], corners[6], density, force, center, radiusSq); // West Face
-        renderFace(viewers, particle, corners[1], corners[3], corners[5], corners[7], density, force, center, radiusSq); // East Face
-        renderFace(viewers, particle, corners[4], corners[5], corners[6], corners[7], density, force, center, radiusSq); // Top Face
-        renderFace(viewers, particle, corners[0], corners[1], corners[2], corners[3], density, force, center, radiusSq); // Bottom Face
+        renderFace(viewers, particleEnum, dustOpts, corners[0], corners[1], corners[4], corners[5], density, force, center, radiusSq); // North Face
+        renderFace(viewers, particleEnum, dustOpts, corners[2], corners[3], corners[6], corners[7], density, force, center, radiusSq); // South Face
+        renderFace(viewers, particleEnum, dustOpts, corners[0], corners[2], corners[4], corners[6], density, force, center, radiusSq); // West Face
+        renderFace(viewers, particleEnum, dustOpts, corners[1], corners[3], corners[5], corners[7], density, force, center, radiusSq); // East Face
+        renderFace(viewers, particleEnum, dustOpts, corners[4], corners[5], corners[6], corners[7], density, force, center, radiusSq); // Top Face
+        renderFace(viewers, particleEnum, dustOpts, corners[0], corners[1], corners[2], corners[3], density, force, center, radiusSq); // Bottom Face
     }
 
     private void renderFace(List<Player> viewers,
                             Particle particle,
+                            Particle.DustOptions dustOpts,
                             Location corner1,
                             Location corner2,
                             Location corner3,
@@ -292,11 +336,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Create intermediate lines between edges
             Location start = interpolate(corner1, corner2, t);
             Location end   = interpolate(corner3, corner4, t);
-            displayLine(viewers, particle, start, end, density, force, center, radiusSq);
+            displayLine(viewers, particle, dustOpts, start, end, density, force, center, radiusSq);
 
             start = interpolate(corner1, corner3, t);
             end   = interpolate(corner2, corner4, t);
-            displayLine(viewers, particle, start, end, density, force, center, radiusSq);
+            displayLine(viewers, particle, dustOpts, start, end, density, force, center, radiusSq);
         }
     }
 
@@ -309,6 +353,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private void displayLine(List<Player> viewers,
                              Particle particle,
+                             Particle.DustOptions dustOpts,
                              Location start,
                              Location end,
                              int density,
@@ -331,12 +376,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (!force && viewer.getLocation().distanceSquared(center) > radiusSq) {
                     continue;
                 }
-                viewer.spawnParticle(particle, point, 0, 0, 0, 0, 0, null, force);
+                if (particle == Particle.DUST && dustOpts != null) {
+                    viewer.spawnParticle(particle, point, 1, 0, 0, 0, 0, dustOpts);
+                } else {
+                    viewer.spawnParticle(particle, point, 1, 0, 0, 0, 0);
+                }
             }
         }
     }
-
-
+    
+    
+    
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -442,7 +492,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double x = Double.parseDouble(parts[1]);
                 double y = Double.parseDouble(parts[2]);
                 double z = Double.parseDouble(parts[3]);
-                Particle particle = Particle.valueOf(parts[4].toUpperCase());
+
+                // ─────── UPDATED: parse parts[4] for "DUST-<HEX><SIZE>" ───────
+                Particle particle;
+                Particle.DustOptions dustOpts = null;
+                String rawType = parts[4].toUpperCase(Locale.ROOT);
+                if (rawType.startsWith("DUST-")) {
+                    // Expected form: "DUST-<6hexcolor><size>"
+                    String remainder = rawType.substring("DUST-".length());
+                    if (remainder.length() < 7) {
+                        return "Invalid dust format"; // must have 6 hex + at least 1 digit
+                    }
+                    String hexPart  = remainder.substring(0, 6);
+                    String sizePart = remainder.substring(6);
+                    int rgb;
+                    int sizeInt;
+                    try {
+                        rgb     = Integer.parseInt(hexPart, 16);
+                        sizeInt = Integer.parseInt(sizePart);
+                    } catch (NumberFormatException ex) {
+                        return "Invalid dust color/size";
+                    }
+                    int r = (rgb >> 16) & 0xFF;
+                    int g = (rgb >>  8) & 0xFF;
+                    int b =  (rgb)       & 0xFF;
+                    // DustOptions wants a Bukkit Color in BGR order
+                    dustOpts = new Particle.DustOptions(Color.fromBGR(b, g, r), (float) sizeInt);
+                    particle = Particle.DUST;
+                } else {
+                    try {
+                        particle = Particle.valueOf(rawType);
+                    } catch (IllegalArgumentException ex) {
+                        return "Invalid particle type";
+                    }
+                }
+                // ─────────────────────────────────────────────────────────────────────
+
                 int density = Math.max(1, Integer.parseInt(parts[5]));
                 String viewDistance = parts[6];
                 double size = Double.parseDouble(parts[7]);
@@ -450,7 +535,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 long durationTicks = Long.parseLong(parts[9]);
                 long intervalTicks = Math.max(1, Long.parseLong(parts[10]));
                 String text = parts[12];
-                if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
+                if (parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
 
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
                 String hashKey = hashSHA256(identifier);
@@ -466,7 +551,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // === Disk Cache Check ===
                 else {
                     File cacheFile = new File(PARTICLE_DIR, hashKey + ".txt");
-                    //noinspection IfStatementWithIdenticalBranches
                     if (cacheFile.exists()) {
                         if (particleDebugEnabled) p.sendMessage("§7[Cache] Disk hit for: " + identifier);
                         List<Vector> vectors = loadFromDisk(cacheFile);
@@ -493,7 +577,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     p.sendMessage("§7[Debug] Scheduling display for: " + text);
                 }
 
-                boolean finalParticleDebugEnabled = particleDebugEnabled;
+                Particle.DustOptions finalDustOpts = dustOpts;
                 new BukkitRunnable() {
                     long elapsedTicks = 0;
 
@@ -505,17 +589,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         }
 
                         try {
-                            displayToNearby(center, worldLocs, particle, viewDistance);
+                            // ─── UPDATED: pass finalDustOpts into displayToNearby ───
+                            displayToNearby(center, worldLocs, particle, viewDistance, finalDustOpts);
                         } catch (Exception ex) {
-                            if (finalParticleDebugEnabled) {
-                                p.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
-                            }
+                          
                             this.cancel();
                         }
 
                         elapsedTicks += intervalTicks;
                     }
-                }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0L, intervalTicks);
+                }.runTaskTimerAsynchronously(
+                        Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                        0L,
+                        intervalTicks
+                );
 
                 return "Scheduled " + text;
 
@@ -597,16 +684,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         return result;
     }
-
-    private void displayToNearby(Location center, List<Location> locs, Particle particle, String mode) {
+    
+    
+    private void displayToNearby(Location center,
+                                 List<Location> locs,
+                                 Particle particle,
+                                 String mode,
+                                 Particle.DustOptions dustOpts)
+    {
         boolean isForce = mode.equalsIgnoreCase("force");
+        double maxDistanceSq = 64 * 64;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!isForce && player.getLocation().getWorld() != center.getWorld()) continue;
-            if (!isForce && player.getLocation().distanceSquared(center) > 256) continue;
+            if (!isForce && player.getLocation().distanceSquared(center) > maxDistanceSq) continue;
 
             for (Location loc : locs) {
-                player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, null, isForce);
+                if (dustOpts != null && particle == Particle.DUST) {
+                    player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, dustOpts);
+                } else {
+                    player.spawnParticle(particle, loc, 1, 0, 0, 0, 0);
+                }
             }
         }
     }
