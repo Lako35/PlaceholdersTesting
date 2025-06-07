@@ -1,9 +1,6 @@
 package org.example;
 
 
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.ClaimPermission;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.data.*;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.InventoryView;
@@ -14,15 +11,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.BoundingBox;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.BlockPosition;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
@@ -1236,7 +1224,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 // %Archistructure_restoreHotbar%
-        if(f1.equals(vids.toString())) {
+        if(f1.equals("restoreHotbar")) {
             File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
             if(!fighterJet.exists()) {
                 return csection.toString();
@@ -1656,81 +1644,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return "";
         }
-
-
-
-        if (f1.startsWith("tyv_001_")) {
-            if (f1(f2, "griefprevention")) {
-                return "§cInstall Grief Prevention";
-            }
-            String[] parts = f1.substring("tyv_001_".length()).split(",");
-            if (parts.length != 5) return "Invalid format";
-
-            String worldName = parts[0];
-            int x            = Integer.parseInt(parts[1]);
-            int y            = Integer.parseInt(parts[2]);
-            int z            = Integer.parseInt(parts[3]);
-            int radius       = Integer.parseInt(parts[4]);
-
-            if (radius < 1) return "Radius must be ≥ 1";
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) return "Invalid world";
-
-            // build the weighted list: coal×4, iron×4, copper×4,
-            // gold×3, lapis×3, redstone×3, diamond×2, emerald×1
-            List<Material> weightedOverworld = new ArrayList<>();
-            weightedOverworld.addAll(Collections.nCopies(4, Material.COAL_ORE));
-            weightedOverworld.addAll(Collections.nCopies(4, Material.IRON_ORE));
-            weightedOverworld.addAll(Collections.nCopies(4, Material.COPPER_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.GOLD_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.LAPIS_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.REDSTONE_ORE));
-            weightedOverworld.addAll(Collections.nCopies(2, Material.DIAMOND_ORE));
-            weightedOverworld.add(Material.EMERALD_ORE);
-
-            Random random = new Random();
-            int range     = radius - 1;  // radius=1 → single block
-
-            for (int dx = -range; dx <= range; dx++) {
-                for (int dy = -range; dy <= range; dy++) {
-                    for (int dz = -range; dz <= range; dz++) {
-                        Location loc   = new Location(world, x + dx, y + dy, z + dz);
-                        Block    block = loc.getBlock();
-                        Material type  = block.getType();
-
-                        // only replace stone/deepslate
-                        if (type != Material.STONE && type != Material.DEEPSLATE) continue;
-
-                        // non‑deprecated GP check via claim.checkPermission
-                        Claim claim = GriefPrevention.instance
-                                .dataStore
-                                .getClaimAt(loc, false, null);
-                        if (claim != null) {
-                            Supplier<String> denial = claim.checkPermission(
-                                    f2,
-                                    ClaimPermission.Build,
-                                    null
-                            );
-                            if (denial != null) {
-                                // player cannot build here → skip
-                                continue;
-                            }
-                        }
-
-                        // do the weighted replacement
-                        block.setType(
-                                weightedOverworld
-                                        .get(random.nextInt(weightedOverworld.size()))
-                        );
-                    }
-                }
-            }
-
-            return "tyv Complete";
-        }
-
-
 
 
 
@@ -2511,166 +2424,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("nearestPlayerNotTeam2_")) {
-            if (!f1(f2, "WorldGuard")) return null;
-
-            String params = f1.substring("nearestPlayerNotTeam2_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 6) {
-                return "?";
-            }
-
-            String teamName = parts[0];
-            int radius;
-            String worldName = parts[2];
-            double x, y, z;
-
-            try {
-                radius = Integer.parseInt(parts[1]);
-                x = Double.parseDouble(parts[3]);
-                y = Double.parseDouble(parts[4]);
-                z = Double.parseDouble(parts[5]);
-            } catch (NumberFormatException e) {
-                return "?";
-            }
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "?";
-            }
-
-            Location origin = new Location(world, x, y, z);
-
-            // Get the specified team from the scoreboard
-            Team team = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard().getTeam(teamName);
-            if (team == null) {
-                return "?";
-            }
-
-            Player nearestPlayer = null;
-            double nearestDistance = Double.MAX_VALUE;
-
-            for (Player target : world.getPlayers()) {
-                // Skip players on the specified team
-                if (team.hasEntry(target.getName())) {
-                    continue;
-                }
-
-                // Check if player is inside a region that includes "criminalbase" in its ID
-                Location loc = target.getLocation();
-                com.sk89q.worldedit.util.Location wgLoc = BukkitAdapter.adapt(loc);
-                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-                RegionManager regions = container.get(BukkitAdapter.adapt(world));
-
-                if (regions == null) {
-                    continue;
-                }
-
-                ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
-                boolean inCriminalBase = set.getRegions().stream()
-                        .anyMatch(r -> r.getId().toLowerCase().contains("criminalbase"));
-
-                if (!inCriminalBase) {
-                    continue;
-                }
-
-                // Calculate distance
-                double distance = origin.distance(loc);
-                if (distance <= radius && distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestPlayer = target;
-                }
-            }
-
-            if (nearestPlayer != null) {
-                return nearestPlayer.getUniqueId().toString();
-            }
-
-            return "?";
-        }
-
-
-        if (f1.startsWith("visualBreak_")) {
-            if (!f1(f2, "ProtocolLib")) return null;
-
-            // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
-            String params = f1.substring("visualBreak_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 5) {
-                return "Invalid format!" + f1;
-            }
-
-            int stage;
-            String worldName = parts[1];
-            int x, y, z;
-
-            try {
-                stage = Integer.parseInt(parts[0]); // 1-10
-                if (stage < 1 || stage > 10) return "Stage must be 1–10";
-
-                x = Integer.parseInt(parts[2]);
-                y = Integer.parseInt(parts[3]);
-                z = Integer.parseInt(parts[4]);
-            } catch (NumberFormatException e) {
-                return "Invalid number!";
-            }
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "World not found!";
-            }
-
-            Location loc = new Location(world, x, y, z);
-            int breakStage = stage - 1;
-
-            // Send animation to player
-            try {
-                PacketContainer packet = ProtocolLibrary.getProtocolManager()
-                        .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-
-                int animationId = loc.hashCode();
-                packet.getIntegers().write(0, animationId);
-                packet.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                packet.getIntegers().write(1, breakStage);
-
-                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, packet);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "Animation error";
-            }
-
-            // Reset any previous task
-            if (g11.containsKey(loc)) {
-                g11.get(loc).cancel();
-            }
-
-            // Schedule removal after 2 seconds (40 ticks)
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                if (loc.getBlock().getType() != Material.AIR) {
-                    try {
-                        PacketContainer resetPacket = ProtocolLibrary.getProtocolManager()
-                                .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-
-                        int animationId = loc.hashCode();
-                        resetPacket.getIntegers().write(0, animationId);
-                        resetPacket.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                        resetPacket.getIntegers().write(1, -1); // remove animation
-
-                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, resetPacket);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
-
-                g11.remove(loc);
-            }, 40L); // 40 ticks = 2 seconds
-
-            g11.put(loc, task);
-
-            return "Visual break stage " + breakStage + " set with reset";
-        }
 
         if (f1.startsWith("PTFXCUBE_")) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
@@ -4258,21 +4011,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
-    private void f1(Player f1, Location f2) {
-        PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
-        packet.getBlockPositionModifier().write(0, new BlockPosition(
-                f2.getBlockX(),
-                f2.getBlockY(),
-                f2.getBlockZ()
-        ));
-        packet.getFloat().write(0, 0F); // Angle (Yaw), optional
-
-        try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(f1, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
 
     private Vector f1(Entity f1, Entity f2, double f0) {
