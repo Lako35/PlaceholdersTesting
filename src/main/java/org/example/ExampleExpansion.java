@@ -1071,6 +1071,67 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // INSERT HERE 
 
+        
+        if(identifier.equals("hasSavedHotbar")) {
+            File file = new File("plugins/Archistructures/hotbars/", p.getUniqueId().toString() + ".yml");
+            return file.exists() ? "true" : "false";
+        }
+        
+
+        if(identifier.equals("saveHotbar")) {
+            // ensure directory exists
+            File dir = new File("plugins/Archistructures/hotbars");
+            if(!dir.exists()) dir.mkdirs();
+
+            // file for this player
+            File file = new File(dir, p.getUniqueId().toString() + ".yml");
+            if(file.exists()) {
+                return "§cfailed";
+            }
+
+            // snapshot hotbar (slots 0–8)
+            YamlConfiguration cfg = new YamlConfiguration();
+            for(int slot = 0; slot < 9; slot++) {
+                ItemStack item = p.getInventory().getItem(slot);
+                cfg.set("hotbar." + slot, item);
+            }
+
+            // save to disk
+            try {
+                cfg.save(file);
+            } catch(IOException e) {
+                e.printStackTrace();
+                return "§cfailed";
+            }
+
+            // clear player's hotbar
+            for(int slot = 0; slot < 9; slot++) {
+                p.getInventory().setItem(slot, null);
+            }
+
+            return "§asuccess";
+        }
+
+// %Archistructure_restoreHotbar%
+        if(identifier.equals("restoreHotbar")) {
+            File file = new File("plugins/Archistructures/hotbars", p.getUniqueId().toString() + ".yml");
+            if(!file.exists()) {
+                return "§cfailed";
+            }
+
+            // load and overwrite slots 0–8
+            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+            for(int slot = 0; slot < 9; slot++) {
+                ItemStack item = cfg.getItemStack("hotbar." + slot);
+                p.getInventory().setItem(slot, item);
+            }
+
+            // delete the saved file
+            file.delete();
+
+            return "§asuccess";
+        }
+
         if (identifier.startsWith("webhook_")) {
             // Strip off "webhook_" prefix
             String rest = identifier.substring("webhook_".length());
