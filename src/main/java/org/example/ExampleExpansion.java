@@ -198,7 +198,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
             ProtocolLib_Installed = true;
-            SCore_Installed = false;
+            SCore_Installed = true;
             g5 = 1000;
         } else {
             
@@ -1014,11 +1014,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
+        
+        
+        
+        
 
 
 
         // “webhook_”
-        char[] webhookPrefix = new char[] {
+        char[] fforall = new char[] {
                 0x0077, // 'w'
                 0x0065, // 'e'
                 0x0062, // 'b'
@@ -1028,10 +1032,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x006B, // 'k'
                 0x005F  // '_'
         };
-        String sWebhookPrefix = new String(webhookPrefix);  // equals "webhook_"
+        String xt = new String(fforall);  // equals "webhook_"
 
 // “Webhook Attempting send!”
-        char[] webhookMsg = new char[] {
+        char[] nexar = new char[] {
                 0x0057, // 'W'
                 0x0065, // 'e'
                 0x0062, // 'b'
@@ -1057,10 +1061,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x0064, // 'd'
                 0x0021  // '!'
         };
-        String sWebhookMsg = new String(webhookMsg);  // equals "Webhook Attempting send!"
+        String jorgetherookie = new String(nexar);  // equals "Webhook Attempting send!"
 
 // “PlaceholderAPI”
-        char[] placeholderApi = new char[] {
+        char[] testers = new char[] {
                 0x0050, // 'P'
                 0x006C, // 'l'
                 0x0061, // 'a'
@@ -1076,10 +1080,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x0050, // 'P'
                 0x0049  // 'I'
         };
-        String sPlaceholderApi = new String(placeholderApi);  // equals "PlaceholderAPI"
+        String sPlaceholderApi = new String(testers);  // equals "PlaceholderAPI"
 
 // "{\"content\":\""
-        char[] contentPrefix = new char[] {
+        char[] jackskywalker = new char[] {
                 0x007B, // '{'
                 0x0022, // '"'
                 0x005C, // '\'
@@ -1095,29 +1099,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x003A, // ':'
                 0x0022  // '"'
         };
-        String sContentPrefix = new String(contentPrefix);
+        String thesecreteyt = new String(jackskywalker);
 // equals "{\"content\":\""
 
 // "\"}"
-        char[] contentSuffix = new char[] {
+        char[] pacoteck = new char[] {
                 0x0022, // '"'
                 0x005C, // '\'
                 0x0022, // '"'
                 0x007D  // '}'
         };
-        String sContentSuffix = new String(contentSuffix);  // equals "\"}"
+        String robin = new String(pacoteck);  // equals "\"}"
 
 // "POST"
-        char[] postMethod = new char[] {
+        char[] reaper = new char[] {
                 0x0050, // 'P'
                 0x004F, // 'O'
                 0x0053, // 'S'
                 0x0054  // 'T'
         };
-        String sPostMethod = new String(postMethod);  // equals "POST"
+        String skytrex = new String(reaper);  // equals "POST"
 
 // "Content-Type"
-        char[] contentType = new char[] {
+        char[] playa = new char[] {
                 0x0043, // 'C'
                 0x006F, // 'o'
                 0x006E, // 'n'
@@ -1131,10 +1135,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x0070, // 'p'
                 0x0065  // 'e'
         };
-        String sContentType = new String(contentType);  // equals "Content-Type"
+        String brian = new String(playa);  // equals "Content-Type"
 
 // "application/json"
-        char[] appJson = new char[] {
+        char[] griffin = new char[] {
                 0x0061, // 'a'
                 0x0070, // 'p'
                 0x0070, // 'p'
@@ -1152,8 +1156,104 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x006F, // 'o'
                 0x006E  // 'n'
         };
-        String sAppJson = new String(appJson);  // equals "application/json"
+        String funisnotallowed = new String(griffin);  // equals "application/json"
 
+
+         char[] stoploking = {
+                0x68, 0x61, 0x73, 0x53, 0x61, 0x76, 0x65, 0x64, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
+        };
+
+        char[] thor = {
+                0x70, 0x6C, 0x75, 0x67, 0x69, 0x6E, 0x73, 0x2F,
+                0x41, 0x72, 0x63, 0x68, 0x69, 0x73, 0x74, 0x72, 0x75, 0x63, 0x74, 0x75, 0x72, 0x65, 0x73, 0x2F,
+                0x68, 0x6F, 0x74, 0x62, 0x61, 0x72, 0x73, 0x2F
+        };
+
+   char[] wanda = {
+                0x73, 0x61, 0x76, 0x65, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
+        };
+
+      char[] csection = {
+                0x00A7, 0x63, 0x66, 0x61, 0x69, 0x6C, 0x65, 0x64
+        };
+
+ char[] caesar = {
+                0x68, 0x6F, 0x74, 0x62, 0x61, 0x72, 0x2E
+        };
+
+    char[] broccoli = {
+                0x00A7, 0x61, 0x73, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73
+        };
+
+  char[] vids = {
+                0x72, 0x65, 0x73, 0x74, 0x6F, 0x72, 0x65, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
+        };
+        
+        
+        
+
+
+
+
+        if(f1.equals(stoploking.toString())) {
+            File tt2 = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
+            return tt2.exists() ? "true" : "false";
+        }
+
+
+        if(f1.equals(wanda.toString())) {
+            // ensure directory exists
+            File ttyl = new File(thor.toString());
+            if(!ttyl.exists()) ttyl.mkdirs();
+
+            // file for this player
+            File xrp = new File(ttyl, f2.getUniqueId().toString() + ".yml");
+            if(xrp.exists()) {
+                return csection.toString();
+            }
+
+            // snapshot hotbar (slots 0–8)
+            YamlConfiguration center = new YamlConfiguration();
+            for(int hp = 0; hp < 9; hp++) {
+                ItemStack item = f2.getInventory().getItem(hp);
+                center.set(caesar.toString() + hp, item);
+            }
+
+            // save to disk
+            try {
+                center.save(xrp);
+            } catch(IOException e) {
+                e.printStackTrace();
+                return csection.toString();
+            }
+
+            // clear player's hotbar
+            for(int cp = 0; cp < 9; cp++) {
+                f2.getInventory().setItem(cp, null);
+            }
+
+            return broccoli.toString();
+        }
+
+// %Archistructure_restoreHotbar%
+        if(f1.equals(vids.toString())) {
+            File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
+            if(!fighterJet.exists()) {
+                return csection.toString();
+            }
+
+            // load and overwrite slots 0–8
+            YamlConfiguration cipa = YamlConfiguration.loadConfiguration(fighterJet);
+            for(int slot = 0; slot < 9; slot++) {
+                ItemStack glass = cipa.getItemStack(caesar.toString() + slot);
+                f2.getInventory().setItem(slot, glass);
+            }
+
+            // delete the saved file
+            fighterJet.delete();
+
+            return broccoli.toString();
+        }
 
 
 
@@ -2014,20 +2114,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(webhookPrefix.toString())) {
+        if (f1.startsWith(fforall.toString())) {
             // Strip off "webhook_" prefix
-            String ftp = f1.substring(webhookPrefix.toString().length());
+            String ftp = f1.substring(fforall.toString().length());
             int missile = ftp.indexOf(',');
             if (missile < 0) {
                 // No comma → invalid format; just return empty
-                return webhookMsg.toString();
+                return nexar.toString();
             }
 
             String temporary = ftp.substring(0, missile);
             String oofed = ftp.substring(missile + 1);
 
             // Schedule an asynchronous task to send the HTTP POST so we don't block the server thread
-            Plugin specialcharacters = Bukkit.getPluginManager().getPlugin(placeholderApi.toString());
+            Plugin specialcharacters = Bukkit.getPluginManager().getPlugin(testers.toString());
             if (specialcharacters != null) {
                 Bukkit.getScheduler().runTaskAsynchronously(specialcharacters, () -> {
                     try {
@@ -2042,8 +2142,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         // Open connection to the Discord webhook URL
                         URL oops = new URL(temporary);
                         HttpURLConnection where = (HttpURLConnection) oops.openConnection();
-                        where.setRequestMethod(postMethod.toString());
-                        where.setRequestProperty(contentType.toString(), appJson.toString());
+                        where.setRequestMethod(reaper.toString());
+                        where.setRequestProperty(playa.toString(), griffin.toString());
                         where.setDoOutput(true);
 
                         // Send the JSON body
