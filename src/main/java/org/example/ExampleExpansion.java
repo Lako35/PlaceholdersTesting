@@ -1002,8 +1002,70 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE 
-        
-        
+
+
+
+
+
+        if(f1.equals("hasSavedHotbar")) {
+            File file = new File("plugins/Archistructures/hotbars/", f2.getUniqueId().toString() + ".yml");
+            return file.exists() ? "true" : "false";
+        }
+
+
+        if(f1.equals("saveHotbar")) {
+            // ensure directory exists
+            File dir = new File("plugins/Archistructures/hotbars");
+            if(!dir.exists()) dir.mkdirs();
+
+            // file for this player
+            File file = new File(dir, f2.getUniqueId().toString() + ".yml");
+            if(file.exists()) {
+                return "§cfailed";
+            }
+
+            // snapshot hotbar (slots 0–8)
+            YamlConfiguration cfg = new YamlConfiguration();
+            for(int slot = 0; slot < 9; slot++) {
+                ItemStack item = f2.getInventory().getItem(slot);
+                cfg.set("hotbar." + slot, item);
+            }
+
+            // save to disk
+            try {
+                cfg.save(file);
+            } catch(IOException e) {
+                e.printStackTrace();
+                return "§cfailed";
+            }
+
+            // clear player's hotbar
+            for(int slot = 0; slot < 9; slot++) {
+                f2.getInventory().setItem(slot, null);
+            }
+
+            return "§asuccess";
+        }
+
+// %Archistructure_restoreHotbar%
+        if(f1.equals("restoreHotbar")) {
+            File file = new File("plugins/Archistructures/hotbars", f2.getUniqueId().toString() + ".yml");
+            if(!file.exists()) {
+                return "§cfailed";
+            }
+
+            // load and overwrite slots 0–8
+            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+            for(int slot = 0; slot < 9; slot++) {
+                ItemStack item = cfg.getItemStack("hotbar." + slot);
+                f2.getInventory().setItem(slot, item);
+            }
+
+            // delete the saved file
+            file.delete();
+
+            return "§asuccess";
+        }
         
         
 
@@ -1181,67 +1243,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
 
 
-
-
-        if(f1.equals(stoploking.toString())) {
-            File tt2 = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
-            return tt2.exists() ? "true" : "false";
-        }
-
-
-        if(f1.equals(wanda.toString())) {
-            // ensure directory exists
-            File ttyl = new File(thor.toString());
-            if(!ttyl.exists()) ttyl.mkdirs();
-
-            // file for this player
-            File xrp = new File(ttyl, f2.getUniqueId().toString() + ".yml");
-            if(xrp.exists()) {
-                return csection.toString();
-            }
-
-            // snapshot hotbar (slots 0–8)
-            YamlConfiguration center = new YamlConfiguration();
-            for(int hp = 0; hp < 9; hp++) {
-                ItemStack item = f2.getInventory().getItem(hp);
-                center.set(caesar.toString() + hp, item);
-            }
-
-            // save to disk
-            try {
-                center.save(xrp);
-            } catch(IOException e) {
-                e.printStackTrace();
-                return csection.toString();
-            }
-
-            // clear player's hotbar
-            for(int cp = 0; cp < 9; cp++) {
-                f2.getInventory().setItem(cp, null);
-            }
-
-            return broccoli.toString();
-        }
-
-// %Archistructure_restoreHotbar%
-        if(f1.equals("restoreHotbar")) {
-            File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
-            if(!fighterJet.exists()) {
-                return csection.toString();
-            }
-
-            // load and overwrite slots 0–8
-            YamlConfiguration cipa = YamlConfiguration.loadConfiguration(fighterJet);
-            for(int slot = 0; slot < 9; slot++) {
-                ItemStack glass = cipa.getItemStack(caesar.toString() + slot);
-                f2.getInventory().setItem(slot, glass);
-            }
-
-            // delete the saved file
-            fighterJet.delete();
-
-            return broccoli.toString();
-        }
 
 
 
