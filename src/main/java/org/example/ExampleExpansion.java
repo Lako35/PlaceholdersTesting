@@ -1071,6 +1071,133 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // INSERT HERE 
 
+        if (identifier.startsWith("lightning_")) {
+            // lightning_SOURCE|DEST|ARG3|DISPLACEMENT|CHAIN|CYLINDER_RADIUS
+            String raw = identifier.substring("lightning_".length());
+            String[] parts = raw.split("\\|");
+            if (parts.length != 6) return "";
+
+            // 1) Parse SOURCE
+            Location sourceLoc;
+            String src = parts[0];
+            if (src.contains(",")) {
+                String[] s = src.split(",");
+                if (s.length != 6) return "";
+                World w = Bukkit.getWorld(s[0]); if (w == null) return "";
+                double sx   = Double.parseDouble(s[1]);
+                double sy   = Double.parseDouble(s[2]);
+                double sz   = Double.parseDouble(s[3]);
+                float  sp   = Float .parseFloat(s[4]);
+                float syaw = Float.parseFloat(s[5]);
+                sourceLoc = new Location(w, sx, sy, sz, syaw, sp);
+            } else {
+                Entity ent = Bukkit.getEntity(UUID.fromString(src));
+                if (!(ent instanceof LivingEntity le)) return "";
+                sourceLoc = le.getLocation().clone().add(0, le.getHeight()/2.0, 0);
+            }
+
+            // 2) Parse DESTINATION
+            Location destLoc;
+            String dst = parts[1];
+            if (dst.contains(",")) {
+                String[] s = dst.split(",");
+                if (s.length != 6) return "";
+                World w = Bukkit.getWorld(s[0]); if (w == null) return "";
+                double dx   = Double.parseDouble(s[1]);
+                double dy   = Double.parseDouble(s[2]);
+                double dz   = Double.parseDouble(s[3]);
+                float  dp   = Float .parseFloat(s[4]);
+                float dyaw = Float.parseFloat(s[5]);
+                destLoc = new Location(w, dx, dy, dz, dyaw, dp);
+            } else {
+                Entity ent = Bukkit.getEntity(UUID.fromString(dst));
+                if (!(ent instanceof LivingEntity le)) return "";
+                destLoc = le.getLocation().clone().add(0, le.getHeight()/2.0, 0);
+            }
+
+            // 3) Parse ARG3 (particle or DUST:hex:size)
+            String arg3 = parts[2];
+            Particle particle;
+            Particle.DustOptions dustOpts = null;
+            String up = arg3.toUpperCase(Locale.ROOT);
+            if (up.startsWith("DUST:")) {
+                String rem = up.substring("DUST:".length());
+                if (rem.length() < 7) return "";
+                String hexPart  = rem.substring(0,6);
+                String sizePart = rem.substring(6);
+                int rgb, sizeInt;
+                try {
+                    rgb     = Integer.parseInt(hexPart,16);
+                    sizeInt = Integer.parseInt(sizePart);
+                } catch (Exception ex) {
+                    return "";
+                }
+                int r = (rgb>>16)&0xFF, g=(rgb>>8)&0xFF, b=rgb&0xFF;
+                dustOpts = new Particle.DustOptions(Color.fromBGR(b,g,r),(float)sizeInt);
+                particle = Particle.DUST;
+            } else {
+                try {
+                    particle = Particle.valueOf(up);
+                } catch (Exception ex) {
+                    return "";
+                }
+            }
+
+            // 4) Parse DISPLACEMENT
+            double displacement;
+            try {
+                displacement = Double.parseDouble(parts[3]);
+            } catch (Exception ex) {
+                return "";
+            }
+
+            // 5) Parse CHAIN length
+            int chain;
+            try {
+                chain = Integer.parseInt(parts[4]);
+            } catch (Exception ex) {
+                return "";
+            }
+
+            // 6) Parse CYLINDER_RADIUS
+            double cylRadius;
+            try {
+                cylRadius = Double.parseDouble(parts[5]);
+            } catch (Exception ex) {
+                return "";
+            }
+
+            // --- Draw instantly ---
+            World world = sourceLoc.getWorld();
+            Vector axis = destLoc.toVector().subtract(sourceLoc.toVector());
+            double totalDist = axis.length();
+            axis.normalize();
+
+            // initial spawning at source
+            spawnParticle(sourceLoc, particle, dustOpts);
+
+            double traveled = displacement;
+            while (traveled < totalDist) {
+                // base point along axis
+                Vector base = sourceLoc.toVector().add(axis.clone().multiply(traveled));
+
+                // pick one random perpendicular offset within cylinder radius
+                Vector perp = randomPerpInCircle(axis, cylRadius);
+
+                // spawn 'chain' points using this same offset
+                for (int i = 0; i < chain && traveled < totalDist; i++) {
+                    Location loc = base.clone().add(perp).toLocation(world);
+                    spawnParticle(loc, particle, dustOpts);
+                    traveled += displacement;
+                    base = base.add(axis.clone().multiply(displacement));
+                }
+            }
+
+            // final at destination
+            spawnParticle(destLoc, particle, dustOpts);
+            return "";
+        }
+        
         
         if(identifier.equals("hasSavedHotbar")) {
             File file = new File("plugins/Archistructures/hotbars/", p.getUniqueId().toString() + ".yml");
@@ -6396,4 +6523,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
         } catch (Exception ignored) {}
     }
 
+
+
+    // Helper: spawn one particle for all players in world
+    private void spawnParticle(Location loc, Particle particle, Particle.DustOptions dustOpts) {
+        for (Player viewer : loc.getWorld().getPlayers()) {
+            if (particle == Particle.DUST && dustOpts != null) {
+                viewer.spawnParticle(particle, loc, 1, 0, 0, 0, 0, dustOpts);
+            } else {
+                viewer.spawnParticle(particle, loc, 1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    // Helper: pick a random perpendicular vector within a circle of radius 'r'
+    private Vector randomPerpInCircle(Vector axis, double r) {
+        // find two orthonormal basis vectors u, v perpendicular to axis
+        Vector u = axis.clone().crossProduct(new Vector(0,1,0));
+        if (u.lengthSquared() < 1e-6) u = axis.clone().crossProduct(new Vector(1,0,0));
+        u.normalize();
+        Vector v = axis.clone().crossProduct(u).normalize();
+
+        double θ = Math.random() * 2 * Math.PI;
+        double ρ = Math.sqrt(Math.random()) * r;
+        return u.clone().multiply(Math.cos(θ)*ρ)
+                .add(v.clone().multiply(Math.sin(θ)*ρ));
+    }
 }
