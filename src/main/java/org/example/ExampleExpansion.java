@@ -1013,20 +1013,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if(f1.equals("saveHotbar")) {
+
+        if (f1.equals("saveHotbar")) {
             // ensure directory exists
             File dir = new File("plugins/Archistructures/hotbars");
-            if(!dir.exists()) dir.mkdirs();
+            if (!dir.exists()) dir.mkdirs();
 
-            // file for this player
-            File file = new File(dir, f2.getUniqueId().toString() + ".yml");
-            if(file.exists()) {
-                return "§cfailed";
-            }
+            // generate a fresh UUID for this save
+            UUID saveId = UUID.randomUUID();
+            File file = new File(dir, saveId.toString() + ".yml");
 
             // snapshot hotbar (slots 0–8)
             YamlConfiguration cfg = new YamlConfiguration();
-            for(int slot = 0; slot < 9; slot++) {
+            for (int slot = 0; slot < 9; slot++) {
                 ItemStack item = f2.getInventory().getItem(slot);
                 cfg.set("hotbar." + slot, item);
             }
@@ -1034,31 +1033,45 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // save to disk
             try {
                 cfg.save(file);
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 return "§cfailed";
             }
 
             // clear player's hotbar
-            for(int slot = 0; slot < 9; slot++) {
+            for (int slot = 0; slot < 9; slot++) {
                 f2.getInventory().setItem(slot, null);
             }
 
-            return "§asuccess";
+            // return the UUID so the user can later call %restoreHotbar_<UUID>%
+            return saveId.toString();
         }
 
-// %Archistructure_restoreHotbar%
-        if(f1.equals("restoreHotbar")) {
-            File file = new File("plugins/Archistructures/hotbars", f2.getUniqueId().toString() + ".yml");
-            if(!file.exists()) {
+
+
+// %Archistructure_restoreHotbar_<UUID>%
+        if (f1.startsWith("restoreHotbar_")) {
+            // extract the UUID suffix
+            String saveId = f1.substring("restoreHotbar_".length());
+
+            File dir = new File("plugins/Archistructures/hotbars");
+            File file = new File(dir, saveId + ".yml");
+
+            if (!file.exists()) {
                 return "§cfailed";
             }
 
-            // load and overwrite slots 0–8
             YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
-            for(int slot = 0; slot < 9; slot++) {
-                ItemStack item = cfg.getItemStack("hotbar." + slot);
-                f2.getInventory().setItem(slot, item);
+
+
+            for (int slot = 0; slot < 9; slot++) {
+                ItemStack existing = f2.getInventory().getItem(slot);
+                if (existing != null) {
+                    // drop the existing item at the player's location
+                    f2.getWorld().dropItemNaturally(f2.getLocation(), existing);
+                }
+                ItemStack saved = cfg.getItemStack("hotbar." + slot);
+                f2.getInventory().setItem(slot, saved);
             }
 
             // delete the saved file
@@ -1066,8 +1079,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return "§asuccess";
         }
-        
-        
+
+
+
 
 
 
