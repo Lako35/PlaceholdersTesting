@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.RayTraceResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -90,6 +91,168 @@ import static com.ssomar.score.SCore.plugin;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+
+    private final Set<Material> enumSet = EnumSet.of(
+    Material.ACTIVATOR_RAIL,
+    Material.AIR,
+    Material.BAMBOO,
+    Material.BLACK_BANNER,
+    Material.BLUE_BANNER,
+    Material.BEETROOT_SEEDS,
+    Material.STONE_BUTTON,
+    Material.OAK_BUTTON,
+    Material.BIRCH_BUTTON,
+    Material.SPRUCE_BUTTON,
+    Material.JUNGLE_BUTTON,
+    Material.DARK_OAK_BUTTON,
+    Material.ACACIA_BUTTON,
+    Material.MANGROVE_BUTTON,
+    Material.CHERRY_BUTTON,
+    Material.CRIMSON_BUTTON,
+    Material.WARPED_BUTTON,
+    Material.LIGHT_BLUE_BANNER,
+    Material.BROWN_BANNER,
+    Material.CYAN_BANNER,
+    Material.GRAY_BANNER,
+    Material.GREEN_BANNER,
+    Material.LIGHT_GRAY_BANNER,
+    Material.LIME_BANNER,
+    Material.MAGENTA_BANNER,
+    Material.ORANGE_BANNER,
+    Material.PINK_BANNER,
+    Material.PURPLE_BANNER,
+    Material.RED_BANNER,
+    Material.WHITE_BANNER,
+    Material.YELLOW_BANNER,
+    Material.CARROTS,
+    Material.CHORUS_FLOWER,
+    Material.CHORUS_PLANT,
+    Material.COBWEB,
+    Material.COCOA,
+    Material.BRAIN_CORAL,
+    Material.BUBBLE_CORAL,
+    Material.FIRE_CORAL,
+    Material.HORN_CORAL,
+    Material.TUBE_CORAL,
+    Material.BRAIN_CORAL_FAN,
+    Material.BUBBLE_CORAL_FAN,
+    Material.FIRE_CORAL_FAN,
+    Material.HORN_CORAL_FAN,
+    Material.TUBE_CORAL_FAN,
+    Material.DEAD_BUSH,
+    Material.DETECTOR_RAIL,
+    Material.END_GATEWAY,
+    Material.END_PORTAL,
+    Material.FIRE,
+    Material.DANDELION,
+    Material.POPPY,
+    Material.BLUE_ORCHID,
+    Material.ALLIUM,
+    Material.AZURE_BLUET,
+    Material.RED_TULIP,
+    Material.ORANGE_TULIP,
+    Material.WHITE_TULIP,
+    Material.PINK_TULIP,
+    Material.OXEYE_DAISY,
+    Material.CORNFLOWER,
+    Material.LILY_OF_THE_VALLEY,
+    Material.WITHER_ROSE,
+    Material.FLOWER_POT,
+    Material.FROGSPAWN,
+    Material.WARPED_FUNGUS,
+    Material.CRIMSON_FUNGUS,
+    Material.GLOW_BERRIES,
+    Material.GLOW_LICHEN,
+    Material.SHORT_GRASS,
+    
+    Material.HANGING_ROOTS,
+    Material.PLAYER_HEAD,
+    Material.SKELETON_SKULL,
+    Material.CREEPER_HEAD,
+    Material.WITHER_SKELETON_SKULL,
+    Material.ZOMBIE_HEAD,
+    Material.DRAGON_HEAD,
+    Material.PIGLIN_HEAD,
+    Material.KELP,
+    Material.LADDER,
+    Material.LAVA,
+    Material.LEVER,
+    Material.LIGHT,
+    Material.LILY_PAD,
+    Material.MANGROVE_PROPAGULE,
+    Material.MELON_SEEDS,
+    Material.MOSS_CARPET,
+    Material.RED_MUSHROOM,
+    Material.BROWN_MUSHROOM,
+    Material.NETHER_PORTAL,
+    Material.NETHER_SPROUTS,
+    Material.NETHER_WART,
+    Material.PINK_PETALS,
+    Material.PITCHER_PLANT,
+    Material.PITCHER_POD,
+    Material.POTATOES,
+    Material.POWDER_SNOW,
+    Material.POWERED_RAIL,
+    Material.OAK_PRESSURE_PLATE,
+    Material.BIRCH_PRESSURE_PLATE,
+    Material.SPRUCE_PRESSURE_PLATE,
+    Material.JUNGLE_PRESSURE_PLATE,
+    Material.DARK_OAK_PRESSURE_PLATE,
+    Material.ACACIA_PRESSURE_PLATE,
+    Material.MANGROVE_PRESSURE_PLATE,
+    Material.CHERRY_PRESSURE_PLATE,
+    Material.CRIMSON_PRESSURE_PLATE,
+    Material.WARPED_PRESSURE_PLATE,
+    Material.STONE_PRESSURE_PLATE,
+    Material.LIGHT_WEIGHTED_PRESSURE_PLATE,
+    Material.HEAVY_WEIGHTED_PRESSURE_PLATE,
+    Material.PUMPKIN_SEEDS,
+    Material.RAIL,
+    Material.COMPARATOR,
+    Material.REDSTONE_WIRE,
+    Material.REPEATER,
+    Material.REDSTONE_TORCH,
+    Material.REDSTONE_WALL_TORCH,
+    Material.OAK_SAPLING,
+    Material.BIRCH_SAPLING,
+    Material.SPRUCE_SAPLING,
+    Material.JUNGLE_SAPLING,
+    Material.DARK_OAK_SAPLING,
+    Material.ACACIA_SAPLING,
+    Material.CHERRY_SAPLING,
+    Material.SCULK_VEIN,
+    Material.SEA_PICKLE,
+    Material.SEAGRASS,
+    Material.SHORT_GRASS,
+    Material.DEAD_BUSH, // Re-listed for redundancy
+    Material.OAK_SIGN,
+    Material.BIRCH_SIGN,
+    Material.SPRUCE_SIGN,
+    Material.JUNGLE_SIGN,
+    Material.DARK_OAK_SIGN,
+    Material.ACACIA_SIGN,
+    Material.CHERRY_SIGN,
+    Material.MANGROVE_SIGN,
+    Material.CRIMSON_SIGN,
+    Material.WARPED_SIGN,
+    Material.SMALL_DRIPLEAF,
+    Material.SNOW,
+    Material.SPORE_BLOSSOM,
+    Material.STRING,
+    Material.STRUCTURE_VOID,
+    Material.SUGAR_CANE,
+    Material.SWEET_BERRY_BUSH,
+    Material.TORCH,
+    Material.TORCHFLOWER_SEEDS,
+    Material.TRIPWIRE_HOOK,
+    Material.TURTLE_EGG,
+    Material.TWISTING_VINES,
+    Material.VINE,
+    Material.WATER,
+    Material.WEEPING_VINES,
+    Material.WHEAT_SEEDS,
+    Material.WHITE_TULIP
+);
 
 
     private final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
@@ -1387,8 +1550,117 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§c§lMissile Impacted";
             }
         }
-        
-        
+
+        if (identifier.startsWith("trackv3_")) {
+            String[] parts = identifier.substring("trackv3_".length()).split(",");
+            if (parts.length != 5) {
+                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + identifier;
+            }
+
+            try {
+                UUID callerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                double speed = Double.parseDouble(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[3]);
+
+
+                // Airburst: If close, explode
+
+                Entity caller = Bukkit.getEntity(callerUUID);
+                Entity target = Bukkit.getEntity(targetUUID);
+                double distanceCheck = Bukkit.getEntity(callerUUID).getLocation().distance(Bukkit.getEntity(targetUUID).getLocation());
+                if (distanceCheck <= 5.0 && caller instanceof Firework) {
+                    airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                    return "§c§lAirburst Detonation!";
+                }
+
+                if (caller == null || target == null || !caller.getWorld().equals(target.getWorld())) {
+                    return "§c§lMissile Impacted";
+                }
+
+                Location locCaller = caller.getLocation();
+                Location locTarget = target.getLocation();
+                Vector R = locTarget.toVector().subtract(locCaller.toVector());
+                Vector V = target.getVelocity();
+                double Sm = speed;
+
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+                double discriminant = b * b - 4 * a * c;
+
+                Vector desiredVelocity;
+                if (discriminant < 0 || a == 0) {
+                    desiredVelocity = R.normalize().multiply(Sm);
+                } else {
+                    double sqrtDisc = Math.sqrt(discriminant);
+                    double t1 = (-b - sqrtDisc) / (2 * a);
+                    double t2 = (-b + sqrtDisc) / (2 * a);
+                    double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+
+                    if (t <= 0) {
+                        desiredVelocity = R.normalize().multiply(Sm);
+                    } else {
+                        Vector interceptPoint = locTarget.toVector().add(V.clone().multiply(t));
+                        desiredVelocity = interceptPoint.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                    }
+                }
+
+                // Terrain Avoidance: Raytrace 5 ticks ahead
+                Location rayStart = locCaller.clone();
+                Vector rayDir = desiredVelocity.clone().normalize();
+                double rayLength = desiredVelocity.length() * 5;
+
+                RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
+                        rayStart,
+                        rayDir,
+                        rayLength,
+                        FluidCollisionMode.NEVER,
+                        true
+                );
+
+                Set<Material> passThrough = getPassThroughMaterials();
+                boolean needsAvoidance = result != null && result.getHitBlock() != null &&
+                        !passThrough.contains(result.getHitBlock().getType());
+
+                if (needsAvoidance) {
+                    Vector bestVelocity = desiredVelocity;
+                    double bestScore = -1;
+                    for (int pitch = 0; pitch <= 90; pitch += 5) {
+                        Vector pitched = pitchVectorUpwards(desiredVelocity.clone(), Math.toRadians(pitch)).normalize().multiply(Sm);
+                        Vector pitchedDir = pitched.clone().normalize();
+                        RayTraceResult testResult = rayStart.getWorld().rayTraceBlocks(
+                                rayStart,
+                                pitchedDir,
+                                pitched.length() * 5,
+                                FluidCollisionMode.NEVER,
+                                true
+                        );
+                        boolean clear = testResult == null || testResult.getHitBlock() == null ||
+                                passThrough.contains(testResult.getHitBlock().getType());
+                        if (clear) {
+                            double angleCost = pitch;
+                            double score = 100 - angleCost;
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestVelocity = pitched;
+                            }
+                        }
+                    }
+                    desiredVelocity = bestVelocity;
+                }
+
+                caller.setVelocity(desiredVelocity);
+                double distance = locCaller.distance(locTarget);
+                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                return String.format("\u00a76\u00a7l%s  \u00a77\u00a7l| \u00a7d\u00a7l%.1f", targetName, distance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
+        }
+
 
 
         if (identifier.startsWith("fakeGlowing_")) {
@@ -7063,4 +7335,25 @@ p.sendMessage("debug1");
 
         return term1.add(term2).add(term3).normalize();
     }
+
+
+
+    // Helper method placeholders
+    private Set<Material> getPassThroughMaterials() {
+        return enumSet;
+    }
+
+    private Vector pitchVectorUpwards(Vector vec, double radians) {
+        double xzLen = Math.sqrt(vec.getX() * vec.getX() + vec.getZ() * vec.getZ());
+        double currentPitch = Math.atan2(vec.getY(), xzLen);
+        double newPitch = Math.min(Math.PI / 2, currentPitch + radians);
+        double len = vec.length();
+        double y = Math.sin(newPitch) * len;
+        double xz = Math.cos(newPitch) * len;
+        double yaw = Math.atan2(vec.getZ(), vec.getX());
+        double x = Math.cos(yaw) * xz;
+        double z = Math.sin(yaw) * xz;
+        return new Vector(x, y, z);
+    }
+
 }
