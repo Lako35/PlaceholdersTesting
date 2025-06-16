@@ -1185,7 +1185,134 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+        if (f1.startsWith("laserDamageHostiles_")) {
+            String[] parts = f1.substring("laserDamageHostiles_".length()).split(",");
+            if (parts.length < 9 || parts.length > 11) return "§c§lError";
 
+            // Parse parameters
+            String uuidStr, worldName, particleType, dustHex = null;
+            double radius, x, y, z, displacement, damage;
+            float dustSize = 0f;
+
+            try {
+                uuidStr       = parts[0];
+                radius        = Double.parseDouble(parts[1]);
+                damage        = Double.parseDouble(parts[2]);
+                worldName     = parts[3];
+                x             = Double.parseDouble(parts[4]);
+                y             = Double.parseDouble(parts[5]);
+                z             = Double.parseDouble(parts[6]);
+                displacement  = Double.parseDouble(parts[7]);
+                particleType  = parts[8];
+                if (parts.length == 11) {
+                    dustHex   = parts[9];
+                    dustSize  = Float.parseFloat(parts[10]);
+                }
+            } catch (Exception ex) {
+                return "§c§lError";
+            }
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "§c§lError";
+
+            Location center = new Location(world, x, y, z);
+            double radiusSq = radius * radius;
+
+            // Resolve the damager entity by UUID
+            Entity damagerEntity = null;
+            try {
+                UUID damagerUUID = UUID.fromString(uuidStr);
+                damagerEntity = (damagerUUID != null) ? Bukkit.getEntity(damagerUUID) : null;
+            } catch (IllegalArgumentException ignored) {}
+
+            // Prepare particle settings
+            Particle particleEnum;
+            try {
+                particleEnum = Particle.valueOf(particleType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                return "§c§lError";
+            }
+            Particle.DustOptions dustOpts = null;
+            if (particleEnum == Particle.DUST && dustHex != null) {
+                String hex = dustHex.startsWith("#") ? dustHex.substring(1) : dustHex;
+                try {
+                    int rgb = Integer.parseInt(hex, 16);
+                    int r = (rgb >> 16) & 0xFF;
+                    int g = (rgb >>  8) & 0xFF;
+                    int b =  rgb        & 0xFF;
+                    dustOpts = new Particle.DustOptions(Color.fromBGR(b, g, r), dustSize);
+                } catch (NumberFormatException ex) {
+                    return "§c§lError";
+                }
+            }
+
+            // 1) Find all valid targets and damage them
+            List<LivingEntity> damaged = new ArrayList<>();
+            for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+                if (!(e instanceof LivingEntity le)) continue;
+
+                // skip tamed wolves entirely
+                if (le instanceof Wolf wolf && wolf.isTamed()) {
+                    continue;
+                }
+
+                // Any inherently hostile mob (this now includes Phantoms, Pillagers, etc.)
+                boolean isHostile = e instanceof Monster || e instanceof Phantom;
+
+                // Check for “angry” state on specific anger-capable mobs
+                boolean isAngry = false;
+                if (le instanceof Wolf w && w.isAngry() && !w.isTamed()) {
+                    isAngry = true;
+                }
+                else if (le instanceof Piglin pl) {
+                    isAngry = true;
+                }
+                else if (le instanceof PiglinBrute pb ) {
+                    isAngry = true;
+                }
+                else if (le instanceof PigZombie zp && zp.isAngry()) {
+                    isAngry = true;
+                }
+                else if (le instanceof Zoglin zg ) {
+                    isAngry = true;
+                }
+                else if (le instanceof IronGolem ig ) {
+                    isAngry = true;
+                }
+
+                if (!isHostile && !isAngry) continue;
+
+                // damage with MAGIC by damagerEntity if it exists
+                if (damagerEntity != null) {
+                    le.damage(damage, damagerEntity);
+                } else {
+                    // fallback: plain magic damage
+                    le.damage(damage);
+                }
+                damaged.add(le);
+            }
+
+            // 2) For each damaged, draw a laser of particles from center to that entity
+            for (LivingEntity target : damaged) {
+                Location targetLoc = target.getLocation().clone().add(0, target.getHeight() / 2.0, 0);
+                Vector direction = targetLoc.toVector().subtract(center.toVector());
+                double distance = direction.length();
+                direction.normalize();
+
+                for (double dStep = 0; dStep <= distance; dStep += displacement) {
+                    Location loc = center.clone().add(direction.clone().multiply(dStep));
+                    // Spawn to all players in world (no range check)
+                    for (Player viewer : world.getPlayers()) {
+                        if (particleEnum == Particle.DUST && dustOpts != null) {
+                            viewer.spawnParticle(particleEnum, loc, 1, 0, 0, 0, 0, dustOpts);
+                        } else {
+                            viewer.spawnParticle(particleEnum, loc, 1, 0, 0, 0, 0);
+                        }
+                    }
+                }
+            }
+
+        }
 
 
         // “webhook_”
