@@ -1375,7 +1375,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (xp == Particle.DUST && carmen.length >= 10) {
                     // named dye color, e.g. RED, BLUE, CYAN, etc.
                     b = carmen[9].toUpperCase();
-                    org.bukkit.DyeColor e = org.bukkit.DyeColor.valueOf(b);
+                    DyeColor e = DyeColor.valueOf(b);
                     dp = new Particle.DustOptions(e.getColor(), (float)roblox);
                 }
             } catch (Exception ex) {
@@ -2845,7 +2845,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Use a fixed destination in the "mcydatabase" world.
             World destWorld = Bukkit.getWorld("mcydatabase");
             if (destWorld == null) {
-                destWorld = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                destWorld = Bukkit.createWorld(new WorldCreator("mcydatabase")
                         .environment(World.Environment.NORMAL)
                         .generateStructures(false)
                         .type(WorldType.FLAT));
@@ -3077,10 +3077,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Get or create the world
             World world = Bukkit.getWorld("mcydatabase");
             if (world == null) {
-                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
                         .environment(World.Environment.NORMAL)
                         .generateStructures(false)
-                        .type(org.bukkit.WorldType.FLAT));
+                        .type(WorldType.FLAT));
                 Bukkit.getLogger().info("Created the mcydatabase world.");
             }
 
@@ -3168,10 +3168,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Get or create the world
             World world = Bukkit.getWorld("mcydatabase");
             if (world == null) {
-                world = Bukkit.createWorld(new org.bukkit.WorldCreator("mcydatabase")
+                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
                         .environment(World.Environment.NORMAL)
                         .generateStructures(false)
-                        .type(org.bukkit.WorldType.FLAT));
+                        .type(WorldType.FLAT));
                 Bukkit.getLogger().info("Created the mcydatabase world.");
             }
 
@@ -3944,47 +3944,221 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             try {
-                UUID callerUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                double speed = Double.parseDouble(parts[2]);
-                UUID launcherUUID = UUID.fromString(parts[3]);
+                UUID x1 = UUID.fromString(parts[0]);
+                UUID wolverine = UUID.fromString(parts[1]);
+                double ishowspeed = Double.parseDouble(parts[2]);
+                UUID mrbeast = UUID.fromString(parts[3]);
 
 
-                Entity caller = Bukkit.getEntity(callerUUID);
-                Entity target = Bukkit.getEntity(targetUUID);
+                Entity tester = Bukkit.getEntity(x1);
+                Entity qa = Bukkit.getEntity(wolverine);
                 
                 
 
-                if (caller == null || target == null) {
+                if (tester == null || qa == null) {
                     return "§c§lMissile Impacted"; // No valid target
                 }
 
                 // Check if both entities are in the same world
-                if (!caller.getWorld().equals(target.getWorld())) {
+                if (!tester.getWorld().equals(qa.getWorld())) {
                     return "§c§lMissile Impacted."; // No valid target
                 }
 
                 // Airburst Mechanic: If within 3 blocks, explode immediately
-                double distance = caller.getLocation().distance(target.getLocation());
-                if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                    f1((Firework) caller, target, launcherUUID, parts[4]);
+                double speed = tester.getLocation().distance(qa.getLocation());
+                if (speed <= 5.0 && tester instanceof Firework && qa instanceof Entity) {
+                    f1((Firework) tester, qa, mrbeast, parts[4]);
                     return "§c§lAirburst Detonation!";
                 }
 
                 // Calculate the interception velocity
-                Vector interceptVelocity = f1(caller, target, speed);
-                caller.setVelocity(interceptVelocity);
+                Vector offset = f1(tester, qa, ishowspeed);
+                tester.setVelocity(offset);
 
                 // Get target's name (Player name or Entity type)
-                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                String redirector = (qa instanceof Player) ? qa.getName() : qa.getType().name();
 
                 // Format return message
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+                return String.format("§6§l%s  §7§l| §d§l%.1f", redirector, speed);
             } catch (Exception e) {
                 e.printStackTrace();
                 return "§c§lMissile Impacted"; // Error case
             }
         }
+
+
+
+
+        if (f1.startsWith("trackLimitedRotation_")) {
+            String[] privateparts = f1.substring("trackLimitedRotation_".length()).split(",");
+            if (privateparts.length != 5) {
+                return "Invalid format. Use: %Archistructure_trackLimitedRotation_uuid,targetuuid,speed,damage,maxDegrees%";
+            }
+
+            try {
+                UUID trst1 = UUID.fromString(privateparts[0]);
+                UUID setn32 = UUID.fromString(privateparts[1]);
+                double ft3 = Double.parseDouble(privateparts[2]);
+                UUID st2 = UUID.fromString(privateparts[3]);
+                double arst43 = Double.parseDouble(privateparts[4]);
+
+                Entity rst4 = Bukkit.getEntity(trst1);
+                Entity art4 = Bukkit.getEntity(setn32);
+
+                if (rst4 == null || art4 == null || !rst4.getWorld().equals(art4.getWorld())) {
+                    return "§c§lMissile Impacted";
+                }
+
+                Location xd34 = rst4.getLocation();
+                Location st34 = art4.getLocation();
+
+                double longdistance = xd34.distance(st34);
+
+                // Airburst
+                if (longdistance <= 5.0 && rst4 instanceof Firework) {
+                    f1((Firework) rst4, art4, st2, privateparts[4]);
+                    return "§c§lAirburst Detonation!";
+                }
+
+                // Intercept calculation
+                Vector R = st34.toVector().subtract(xd34.toVector());
+                Vector V = art4.getVelocity();
+                double Sm = ft3;
+
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+
+                Vector xrp;
+                if (a == 0 || b * b - 4 * a * c < 0) {
+                    // fallback to direct
+                    xrp = R.normalize().multiply(Sm);
+                } else {
+                    double t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+                    Vector interceptPoint = st34.toVector().add(V.clone().multiply(t));
+                    xrp = interceptPoint.subtract(xd34.toVector()).normalize().multiply(Sm);
+                }
+
+                // Limit turning angle
+                Vector bitcoin = rst4.getVelocity();
+                if (bitcoin.lengthSquared() == 0) {
+                    // Avoid NaNs on spawn tick — just set directly
+                    rst4.setVelocity(xrp);
+                } else {
+                    Vector red = bitcoin.clone().normalize();
+                    Vector orange = xrp.clone().normalize();
+
+                    double yellow = red.angle(orange);
+                    double blue = Math.toRadians(arst43);
+
+                    Vector xd;
+                    if (yellow <= blue) {
+                        xd = orange;
+                    } else {
+                        // Rotate toward desired direction by maxRad
+                        xd = f1racer(red, orange, blue);
+                    }
+
+                    Vector xp = xd.multiply(Sm);
+                    rst4.setVelocity(xp);
+                }
+
+                String tn = (art4 instanceof Player) ? art4.getName() : art4.getType().name();
+                return String.format("§b§l[%s]  §7§l| §d§l%.1f", tn, longdistance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
+        }
+
+        if (f1.startsWith("trackv2_")) {
+            String[] pen = f1.substring("trackv2_".length()).split(",");
+            if (pen.length != 5) {
+                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + " and you used " + f1;
+            }
+
+            try {
+                UUID fish = UUID.fromString(pen[0]);
+                UUID cow = UUID.fromString(pen[1]);
+                double blanket = Double.parseDouble(pen[2]);
+                UUID flashlight = UUID.fromString(pen[3]);
+
+                Entity pillow = Bukkit.getEntity(fish);
+                Entity dalion = Bukkit.getEntity(cow);
+
+                if (pillow == null || dalion == null) {
+                    return "§c§lMissile Impacted"; // No valid target
+                }
+
+                if (!pillow.getWorld().equals(dalion.getWorld())) {
+                    return "§c§lMissile Impacted."; // Different worlds
+                }
+
+                Location fatima = pillow.getLocation();
+                Location is = dalion.getLocation();
+
+                double literally = fatima.distance(is);
+
+                // Airburst: If close, explode
+                if (literally <= 5.0 && pillow instanceof Firework) {
+                    f1((Firework) pillow, dalion, flashlight, pen[4]);
+                    return "§c§lAirburst Detonation!";
+                }
+
+                // --- Begin Optimal Intercept Calculation ---
+                Vector R = is.toVector().subtract(fatima.toVector());   // Relative position
+                Vector V = dalion.getVelocity();                                  // Target velocity
+                double Sm = blanket;
+
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+
+                double the = b * b - 4 * a * c;
+                Vector best;
+
+                if (the < 0 || a == 0) {
+                    // No valid intercept path, fallback to direct pursuit
+                    best = R.normalize().multiply(Sm);
+                } else {
+                    double person = Math.sqrt(the);
+                    double t1 = (-b - person) / (2 * a);
+                    double t2 = (-b + person) / (2 * a);
+
+                    double t;
+                    if (t1 > 0 && t2 > 0) {
+                        t = Math.min(t1, t2);
+                    } else if (t1 > 0) {
+                        t = t1;
+                    } else if (t2 > 0) {
+                        t = t2;
+                    } else {
+                        // Both times are in the past — fallback
+                        best = R.normalize().multiply(Sm);
+                        pillow.setVelocity(best);
+                        String have = (dalion instanceof Player) ? dalion.getName() : dalion.getType().name();
+                        return String.format("§6§l%s  §7§l| §d§l%.1f", have, literally);
+                    }
+
+                    Vector i = is.toVector().add(V.clone().multiply(t));
+                    best = i.subtract(fatima.toVector()).normalize().multiply(Sm);
+                }
+
+                pillow.setVelocity(best);
+
+                String everMet = (dalion instanceof Player) ? dalion.getName() : dalion.getType().name();
+                return String.format("§6§l%s  §7§l| §d§l%.1f", everMet, literally);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
+        }
+
+
+
+
 
         if (f1.startsWith("checkProfession_")) {
             String uuidString = f1.substring("checkProfession_".length());
@@ -4310,7 +4484,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         float scale = Float.parseFloat(hexScale.substring(6));
                         java.awt.Color c = java.awt.Color.decode("#" + hex);
                         dustOptions = new Particle.DustOptions(
-                                org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
+                                Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
                         particle = Particle.DUST;
                         particleSummary = "§bUsing DUST particle (#" + hex + ", scale " + scale + ")";
                     } catch (Exception e) {
@@ -5486,5 +5660,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         return blocks;
+    }
+
+
+
+    private Vector f1racer(Vector from, Vector to, double maxRad) {
+        from = from.clone().normalize();
+        to = to.clone().normalize();
+
+        // Axis of rotation
+        Vector axis = from.clone().crossProduct(to).normalize();
+        if (axis.lengthSquared() == 0) {
+            return to; // Vectors are parallel
+        }
+
+        // Rodrigues' rotation formula
+        double cos = Math.cos(maxRad);
+        double sin = Math.sin(maxRad);
+
+        Vector term1 = from.clone().multiply(cos);
+        Vector term2 = axis.clone().crossProduct(from).multiply(sin);
+        Vector term3 = axis.clone().multiply(axis.dot(from)).multiply(1 - cos);
+
+        return term1.add(term2).add(term3).normalize();
     }
 }
