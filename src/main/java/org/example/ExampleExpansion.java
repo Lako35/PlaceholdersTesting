@@ -9,6 +9,7 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.data.*;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
@@ -1070,6 +1071,322 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+
+
+        if (identifier.startsWith("growCropParticle_")) {
+            try {
+                String[] parts = identifier.substring("growCropParticle_".length()).split(",");
+                if (parts.length != 5) {
+                    return "§c[DEBUG] Invalid parameter count: " + parts.length;
+                }
+
+                int radius = Integer.parseInt(parts[0]);
+                String particleInput = parts[1];
+                double dx = Double.parseDouble(parts[2]); // spacing between particles
+                int maxCount = Integer.parseInt(parts[3]);
+
+                String[] locParts = parts[4].split(":");
+                if (locParts.length != 4) {
+                    return "§c[DEBUG] Invalid world:x:y:z format.";
+                }
+
+                World world = Bukkit.getWorld(locParts[0]);
+                if (world == null) {
+                    return "§c[DEBUG] Invalid world: " + locParts[0];
+                }
+
+                double x = Double.parseDouble(locParts[1]);
+                double y = Double.parseDouble(locParts[2]);
+                double z = Double.parseDouble(locParts[3]);
+                Location origin = new Location(world, x, y, z);
+                Location originCenter = origin.clone().add(0.5, 0.5, 0.5);
+
+                List<Block> growableBlocks = new ArrayList<>();
+                int checked = 0;
+                int ageableTotal = 0;
+                int ageableFull = 0;
+                int ageableNotFull = 0;
+
+                for (int dx_ = -radius; dx_ <= radius; dx_++) {
+                    for (int dy_ = -radius; dy_ <= radius; dy_++) {
+                        for (int dz_ = -radius; dz_ <= radius; dz_++) {
+                            Location check = origin.clone().add(dx_, dy_, dz_);
+                            Block block = check.getBlock();
+                            checked++;
+
+                            BlockData data = block.getBlockData();
+                            if (data instanceof Ageable) {
+                                ageableTotal++;
+                                Ageable ageable = (Ageable) data;
+                                if (ageable.getAge() < ageable.getMaximumAge()) {
+                                    ageableNotFull++;
+                                    growableBlocks.add(block);
+                                } else {
+                                    ageableFull++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (growableBlocks.isEmpty()) {
+                    return String.join("\n",
+                            "§c[DEBUG] No crops found.",
+                            "§6Radius: " + radius,
+                            "§6Origin: " + origin.getWorld().getName() + " " +
+                                    origin.getBlockX() + " " + origin.getBlockY() + " " + origin.getBlockZ(),
+                            "§6Total blocks scanned: " + checked,
+                            "§dAgeable block stats:",
+                            "§7Total Ageable blocks: " + ageableTotal,
+                            "§7Non-full-age: " + ageableNotFull,
+                            "§7Full-age: " + ageableFull
+                    );
+                }
+
+                if (maxCount != -1 && maxCount < growableBlocks.size()) {
+                    Collections.shuffle(growableBlocks);
+                    growableBlocks = growableBlocks.subList(0, maxCount);
+                }
+
+                Particle particle;
+                Particle.DustOptions dustOptions = null;
+                String particleSummary = "";
+
+                if (particleInput.toUpperCase().startsWith("DUST:")) {
+                    try {
+                        String hexScale = particleInput.substring(5);
+                        String hex = hexScale.substring(0, 6);
+                        float scale = Float.parseFloat(hexScale.substring(6));
+                        java.awt.Color c = java.awt.Color.decode("#" + hex);
+                        dustOptions = new Particle.DustOptions(
+                                org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
+                        particle = Particle.DUST;
+                        particleSummary = "§bUsing DUST particle (#" + hex + ", scale " + scale + ")";
+                    } catch (Exception e) {
+                        return "§c[DEBUG] Invalid DUST particle format: " + e.getMessage();
+                    }
+                } else {
+                    try {
+                        particle = Particle.valueOf(particleInput.toUpperCase());
+                        particleSummary = "§bUsing particle: " + particle;
+                    } catch (IllegalArgumentException ex) {
+                        return "§c[DEBUG] Invalid particle type: " + particleInput;
+                    }
+                }
+
+                for (Block b : growableBlocks) {
+                    Location target = b.getLocation().add(0.5, 0.5, 0.5);
+                    Vector toTarget = target.toVector().subtract(originCenter.toVector());
+                    double distance = toTarget.length();
+
+                    if (dx <= 0.0) dx = 0.1;
+                    int steps = (int) Math.floor(distance / dx);
+                    if (steps <= 0) steps = 1;
+
+                    Vector step = toTarget.normalize().multiply(dx);
+                    Location current = originCenter.clone();
+
+                    for (int i = 0; i <= steps; i++) {
+                        if (particle == Particle.DUST && dustOptions != null) {
+                            world.spawnParticle(particle, current, 0, dustOptions);
+                        } else {
+                            world.spawnParticle(particle, current, 0);
+                        }
+                        current.add(step);
+                    }
+                }
+
+                return String.join("\n",
+                        "§a[DEBUG] Rendered particle lines: " + growableBlocks.size(),
+                        "§6Origin: " + origin.getWorld().getName() + " " +
+                                origin.getBlockX() + " " + origin.getBlockY() + " " + origin.getBlockZ(),
+                        "§6Total blocks scanned: " + checked,
+                        "§dAgeable block stats:",
+                        "§7Total Ageable blocks: " + ageableTotal,
+                        "§7Non-full-age: " + ageableNotFull,
+                        "§7Full-age: " + ageableFull,
+                        particleSummary
+                );
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c[ERROR] " + e.getClass().getSimpleName() + ": " + e.getMessage();
+            }
+        }
+
+
+        if (identifier.startsWith("fakeGlowing_")) {
+            // format: fakeGlowing_RADIUS,TIME
+            String[] parts = identifier.substring("fakeGlowing_".length()).split(",");
+            if (parts.length != 2) return "";
+            double radius;
+            int    duration;
+            try {
+                radius   = Double .parseDouble(parts[0]);
+                duration = Integer.parseInt(parts[1]);
+            } catch (NumberFormatException ex) {
+                return "";
+            }
+
+            ProtocolManager protocol = ProtocolLibrary.getProtocolManager();
+            Location center = p.getLocation();
+            double   r2     = radius * radius;
+p.sendMessage("debug1");
+
+            for (Player target : p.getWorld().getPlayers()) {
+                p.sendMessage("debug2"+ target.getName());
+
+                if (target.equals(p)) continue;
+                if (target.getLocation().distanceSquared(center) > r2) continue;
+                p.sendMessage("debug3"+ target.getName());
+
+                PacketContainer packet = protocol.createPacket(PacketType.Play.Server.ENTITY_EFFECT);
+
+// 1) Entity ID
+                packet.getIntegers().write(0, target.getEntityId());
+                packet.getBytes().write(0, (byte) PotionEffectType.GLOWING.getId());
+                packet.getBytes().write(1, (byte) 0);
+                packet.getShorts().write(0, (short) duration);
+
+                protocol.sendServerPacket(p, packet);
+
+                p.sendMessage("debug4"+ target.getName());
+
+                try {
+                    protocol.sendServerPacket(p, packet);
+                } catch (Exception e) {
+                    p.sendMessage(e.getMessage());
+                    // if something goes wrong, skip this target
+                    continue;
+                }
+                p.sendMessage("debug5"+ target.getName());
+
+                // 2) schedule REMOVE_ENTITY_EFFECT after 'duration' ticks
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        p.sendMessage("debug6"+ target.getName());
+
+                        PacketContainer remove = new PacketContainer(PacketType.Play.Server.REMOVE_ENTITY_EFFECT);
+                        remove.getIntegers().write(0, target.getEntityId());
+                        remove.getBytes   ().write(0, (byte)PotionEffectType.GLOWING.getId());
+                        p.sendMessage("debug7"+ target.getName());
+
+                        try {
+                            protocol.sendServerPacket(p, remove);
+                        } catch (Exception e) {
+                            p.sendMessage("debug8"+ target.getName());
+
+                            p.sendMessage(e.getMessage());
+
+                        }
+                    }
+                }.runTaskLater(
+                        Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                        duration
+                );
+            }
+
+            return "";
+        }
+
+        if (identifier.startsWith("checkElevators_")) {
+            String[] parts = identifier.substring("checkElevators_".length()).split(",");
+            if (parts.length != 5) return "§cError";
+            World world = Bukkit.getWorld(parts[0]);
+            if (world == null) return "§cError";
+            int bx, by, bz;
+            Material mat;
+            try {
+                bx  = Integer.parseInt(parts[1]);
+                by  = Integer.parseInt(parts[2]);
+                bz  = Integer.parseInt(parts[3]);
+                mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            } catch (Exception ex) {
+                return "§cError";
+            }
+
+            boolean foundUp   = false;
+            boolean foundDown = false;
+
+            // search upwards
+            for (int y = by + 1; y <= world.getMaxHeight(); y++) {
+                if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                    foundUp = true;
+                    break;
+                }
+            }
+            // search downwards
+            for (int y = by - 1; y >= world.getMinHeight(); y--) {
+                if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                    foundDown = true;
+                    break;
+                }
+            }
+
+            if (foundUp && foundDown) return "both";
+            if (foundUp)             return "up";
+            if (foundDown)           return "down";
+            return "none";
+        }
+
+// %Archistructure_elevatorUp_world,x,y,z,BLOCKTYPE%
+        if (identifier.startsWith("elevatorUp_")) {
+            String[] parts = identifier.substring("elevatorUp_".length()).split(",");
+            if (parts.length != 5) return "§cError";
+            World world = Bukkit.getWorld(parts[0]);
+            if (world == null) return "§cError";
+            int bx, by, bz;
+            Material mat;
+            try {
+                bx  = Integer.parseInt(parts[1]);
+                by  = Integer.parseInt(parts[2]);
+                bz  = Integer.parseInt(parts[3]);
+                mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            } catch (Exception ex) {
+                return "§cError";
+            }
+
+            for (int y = by + 1; y <= world.getMaxHeight(); y++) {
+                if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                    return String.valueOf(y);
+                }
+            }
+            return "§cNo block found";
+        }
+
+// %Archistructure_elevatorDown_world,x,y,z,BLOCKTYPE%
+        if (identifier.startsWith("elevatorDown_")) {
+            String[] parts = identifier.substring("elevatorDown_".length()).split(",");
+            if (parts.length != 5) return "§cError";
+            World world = Bukkit.getWorld(parts[0]);
+            if (world == null) return "§cError";
+            int bx, by, bz;
+            Material mat;
+            try {
+                bx  = Integer.parseInt(parts[1]);
+                by  = Integer.parseInt(parts[2]);
+                bz  = Integer.parseInt(parts[3]);
+                mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            } catch (Exception ex) {
+                return "§cError";
+            }
+
+            for (int y = by - 1; y >= world.getMinHeight(); y--) {
+                if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                    return String.valueOf(y);
+                }
+            }
+            return "§cNo block found";
+        }
+
+
+
+
+
+
+
 
         if (identifier.startsWith("lightning_")) {
             // lightning_SOURCE|DEST|ARG3|DISPLACEMENT|CHAIN|CYLINDER_RADIUS
