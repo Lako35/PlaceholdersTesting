@@ -897,8 +897,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
-        
-        if(trialVersion && trialNumber < 0) {
+
+        if (trialVersion && trialNumber < 0) {
             p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
             return null;
         }
@@ -937,12 +937,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
         }
-        
+
         // INSERT HERE 
-        
-        
-        
-        
+
+
         if (identifier.startsWith("XRAY-")) {
             String[] args = identifier.substring("XRAY-".length()).split("-");
             if (args.length != 2) {
@@ -961,99 +959,104 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith("trackImpact_")) {
-            String[] parts = identifier.substring("trackImpact_".length()).split(",");
-            if (parts.length != 7) return "§cInvalid format";
+        try {
+            if (identifier.startsWith("trackImpact_")) {
+                String[] parts = identifier.substring("trackImpact_".length()).split(",");
+                if (parts.length != 7) return "§cInvalid format";
 
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            World world = Bukkit.getWorld(parts[1]);
-            int x = Integer.parseInt(parts[2]);
-            int y = Integer.parseInt(parts[3]);
-            int z = Integer.parseInt(parts[4]);
-            float damage = Float.parseFloat(parts[5]);
-            UUID targetUUID = UUID.fromString(parts[6]);
+                UUID launcherUUID = UUID.fromString(parts[0]);
+                World world = Bukkit.getWorld(parts[1]);
+                int x = Integer.parseInt(parts[2]);
+                int y = Integer.parseInt(parts[3]);
+                int z = Integer.parseInt(parts[4]);
+                float damage = Float.parseFloat(parts[5]);
+                UUID targetUUID = UUID.fromString(parts[6]);
 
 
-            Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion(world, location);
-            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity((targetUUID)));
+                Location location = new Location(world, x, y, z);
+                spawnCustomFireworkExplosion(world, location);
+                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity((targetUUID)));
 
-            return "§6Impact triggered.";
-        }
-
-        if (identifier.startsWith("trackImpact2_")) {
-            String[] parts = identifier.substring("trackImpact2_".length()).split(",");
-            if (parts.length != 4) return "§cInvalid format";
-
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            UUID targetUUID = UUID.fromString(parts[1]);
-            UUID trackedUUID = UUID.fromString(parts[3]);
-            float damage = Float.parseFloat(parts[2]);
-
-            Entity target = Bukkit.getEntity(targetUUID);
-            if (target == null) return "§cTarget not found";
-
-            Location location = target.getLocation();
-            spawnCustomFireworkExplosion(location.getWorld(), location);
-            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(targetUUID));
-            triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(trackedUUID));
-
-            return "§eTarget explosion triggered.";
-        }
-
-        if (identifier.startsWith("track_")) {
-            String[] parts = identifier.substring("track_".length()).split(",");
-            if (parts.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + identifier;
+                return "§6Impact triggered.";
             }
 
-            try {
-                UUID callerUUID = UUID.fromString(parts[0]);
+            if (identifier.startsWith("trackImpact2_")) {
+                String[] parts = identifier.substring("trackImpact2_".length()).split(",");
+                if (parts.length != 4) return "§cInvalid format";
+
+                UUID launcherUUID = UUID.fromString(parts[0]);
                 UUID targetUUID = UUID.fromString(parts[1]);
-                double speed = Double.parseDouble(parts[2]);
-                UUID launcherUUID = UUID.fromString(parts[3]);
+                UUID trackedUUID = UUID.fromString(parts[3]);
+                float damage = Float.parseFloat(parts[2]);
 
-
-                Entity caller = Bukkit.getEntity(callerUUID);
                 Entity target = Bukkit.getEntity(targetUUID);
-                
-                
+                if (target == null) return "§cTarget not found";
 
-                if (caller == null || target == null) {
-                    return "§c§lMissile Impacted"; // No valid target
-                }
+                Location location = target.getLocation();
+                spawnCustomFireworkExplosion(location.getWorld(), location);
+                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(targetUUID));
+                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(trackedUUID));
 
-                // Check if both entities are in the same world
-                if (!caller.getWorld().equals(target.getWorld())) {
-                    return "§c§lMissile Impacted."; // No valid target
-                }
-
-                // Airburst Mechanic: If within 3 blocks, explode immediately
-                double distance = caller.getLocation().distance(target.getLocation());
-                if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                    airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
-                    return "§c§lAirburst Detonation!";
-                }
-
-                // Calculate the interception velocity
-                Vector interceptVelocity = calculateInterceptionVelocity(caller, target, speed);
-                caller.setVelocity(interceptVelocity);
-
-                // Get target's name (Player name or Entity type)
-                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
-
-                // Format return message
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "§c§lMissile Impacted"; // Error case
+                return "§eTarget explosion triggered.";
             }
+
+            if (identifier.startsWith("track_")) {
+                String[] parts = identifier.substring("track_".length()).split(",");
+                if (parts.length != 5) {
+                    return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + identifier;
+                }
+
+                try {
+                    UUID callerUUID = UUID.fromString(parts[0]);
+                    UUID targetUUID = UUID.fromString(parts[1]);
+                    double speed = Double.parseDouble(parts[2]);
+                    UUID launcherUUID = UUID.fromString(parts[3]);
+
+
+                    Entity caller = Bukkit.getEntity(callerUUID);
+                    Entity target = Bukkit.getEntity(targetUUID);
+
+
+                    if (caller == null || target == null) {
+                        return "§c§lMissile Impacted"; // No valid target
+                    }
+
+                    // Check if both entities are in the same world
+                    if (!caller.getWorld().equals(target.getWorld())) {
+                        return "§c§lMissile Impacted."; // No valid target
+                    }
+
+                    // Airburst Mechanic: If within 3 blocks, explode immediately
+                    double distance = caller.getLocation().distance(target.getLocation());
+                    if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
+                        airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                        return "§c§lAirburst Detonation!";
+                    }
+
+                    // Calculate the interception velocity
+                    Vector interceptVelocity = calculateInterceptionVelocity(caller, target, speed);
+                    caller.setVelocity(interceptVelocity);
+
+                    // Get target's name (Player name or Entity type)
+                    String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+
+                    // Format return message
+                    return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return "§c§lMissile Impacted"; // Error case
+                }
+            }
+
+
+        } catch (Exception e) {
+            return "§cError";
         }
 
+            return null;
 
-        return null;
+        }
 
-    }
 
     private void saveNBTToFile(File file, String nbtData) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
