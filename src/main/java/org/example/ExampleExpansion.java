@@ -1071,6 +1071,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+        
+        
+        
 
 
 
@@ -1214,6 +1217,178 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§c[ERROR] " + e.getClass().getSimpleName() + ": " + e.getMessage();
             }
         }
+
+
+
+
+        if (identifier.startsWith("trackLimitedRotation_")) {
+            String[] parts = identifier.substring("trackLimitedRotation_".length()).split(",");
+            if (parts.length != 5) {
+                return "Invalid format. Use: %Archistructure_trackLimitedRotation_uuid,targetuuid,speed,damage,maxDegrees%";
+            }
+
+            try {
+                UUID callerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                double speed = Double.parseDouble(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[3]);
+                double maxAngleDeg = Double.parseDouble(parts[4]);
+
+                Entity caller = Bukkit.getEntity(callerUUID);
+                Entity target = Bukkit.getEntity(targetUUID);
+
+                if (caller == null || target == null || !caller.getWorld().equals(target.getWorld())) {
+                    return "§c§lMissile Impacted";
+                }
+
+                Location locCaller = caller.getLocation();
+                Location locTarget = target.getLocation();
+
+                double distance = locCaller.distance(locTarget);
+
+                // Airburst
+                if (distance <= 5.0 && caller instanceof Firework) {
+                    airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                    return "§c§lAirburst Detonation!";
+                }
+
+                // Intercept calculation
+                Vector R = locTarget.toVector().subtract(locCaller.toVector());
+                Vector V = target.getVelocity();
+                double Sm = speed;
+
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+
+                Vector desiredVelocity;
+                if (a == 0 || b * b - 4 * a * c < 0) {
+                    // fallback to direct
+                    desiredVelocity = R.normalize().multiply(Sm);
+                } else {
+                    double t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+                    Vector interceptPoint = locTarget.toVector().add(V.clone().multiply(t));
+                    desiredVelocity = interceptPoint.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                }
+
+                // Limit turning angle
+                Vector currentVelocity = caller.getVelocity();
+                if (currentVelocity.lengthSquared() == 0) {
+                    // Avoid NaNs on spawn tick — just set directly
+                    caller.setVelocity(desiredVelocity);
+                } else {
+                    Vector currentDir = currentVelocity.clone().normalize();
+                    Vector desiredDir = desiredVelocity.clone().normalize();
+
+                    double angleRad = currentDir.angle(desiredDir);
+                    double maxRad = Math.toRadians(maxAngleDeg);
+
+                    Vector finalDirection;
+                    if (angleRad <= maxRad) {
+                        finalDirection = desiredDir;
+                    } else {
+                        // Rotate toward desired direction by maxRad
+                        finalDirection = rotateToward(currentDir, desiredDir, maxRad);
+                    }
+
+                    Vector finalVelocity = finalDirection.multiply(Sm);
+                    caller.setVelocity(finalVelocity);
+                }
+
+                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                return String.format("§b§l[%s]  §7§l| §d§l%.1f", targetName, distance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
+        }
+
+        if (identifier.startsWith("trackv2_")) {
+            String[] parts = identifier.substring("trackv2_".length()).split(",");
+            if (parts.length != 5) {
+                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + " and you used " + identifier;
+            }
+
+            try {
+                UUID callerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                double speed = Double.parseDouble(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[3]);
+
+                Entity caller = Bukkit.getEntity(callerUUID);
+                Entity target = Bukkit.getEntity(targetUUID);
+
+                if (caller == null || target == null) {
+                    return "§c§lMissile Impacted"; // No valid target
+                }
+
+                if (!caller.getWorld().equals(target.getWorld())) {
+                    return "§c§lMissile Impacted."; // Different worlds
+                }
+
+                Location locCaller = caller.getLocation();
+                Location locTarget = target.getLocation();
+
+                double distance = locCaller.distance(locTarget);
+
+                // Airburst: If close, explode
+                if (distance <= 5.0 && caller instanceof Firework) {
+                    airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                    return "§c§lAirburst Detonation!";
+                }
+
+                // --- Begin Optimal Intercept Calculation ---
+                Vector R = locTarget.toVector().subtract(locCaller.toVector());   // Relative position
+                Vector V = target.getVelocity();                                  // Target velocity
+                double Sm = speed;
+
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+
+                double discriminant = b * b - 4 * a * c;
+                Vector velocity;
+
+                if (discriminant < 0 || a == 0) {
+                    // No valid intercept path, fallback to direct pursuit
+                    velocity = R.normalize().multiply(Sm);
+                } else {
+                    double sqrtDisc = Math.sqrt(discriminant);
+                    double t1 = (-b - sqrtDisc) / (2 * a);
+                    double t2 = (-b + sqrtDisc) / (2 * a);
+
+                    double t;
+                    if (t1 > 0 && t2 > 0) {
+                        t = Math.min(t1, t2);
+                    } else if (t1 > 0) {
+                        t = t1;
+                    } else if (t2 > 0) {
+                        t = t2;
+                    } else {
+                        // Both times are in the past — fallback
+                        velocity = R.normalize().multiply(Sm);
+                        caller.setVelocity(velocity);
+                        String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                        return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+                    }
+
+                    Vector interceptPoint = locTarget.toVector().add(V.clone().multiply(t));
+                    velocity = interceptPoint.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                }
+
+                caller.setVelocity(velocity);
+
+                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
+        }
+        
+        
 
 
         if (identifier.startsWith("fakeGlowing_")) {
@@ -6865,5 +7040,27 @@ p.sendMessage("debug1");
         double ρ = Math.sqrt(Math.random()) * r;
         return u.clone().multiply(Math.cos(θ)*ρ)
                 .add(v.clone().multiply(Math.sin(θ)*ρ));
+    }
+
+
+    private Vector rotateToward(Vector from, Vector to, double maxRad) {
+        from = from.clone().normalize();
+        to = to.clone().normalize();
+
+        // Axis of rotation
+        Vector axis = from.clone().crossProduct(to).normalize();
+        if (axis.lengthSquared() == 0) {
+            return to; // Vectors are parallel
+        }
+
+        // Rodrigues' rotation formula
+        double cos = Math.cos(maxRad);
+        double sin = Math.sin(maxRad);
+
+        Vector term1 = from.clone().multiply(cos);
+        Vector term2 = axis.clone().crossProduct(from).multiply(sin);
+        Vector term3 = axis.clone().multiply(axis.dot(from)).multiply(1 - cos);
+
+        return term1.add(term2).add(term3).normalize();
     }
 }
