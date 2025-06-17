@@ -12,6 +12,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.data.*;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Damageable;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.plugin.Plugin;
@@ -64,6 +65,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -1184,7 +1186,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -1234,9 +1235,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        // INSERT HERE 
+        // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
 
+        if (identifier.startsWith("checkIsRealBoat_")) {
+            try {
+                String uuidStr = identifier.substring("checkIsRealBoat_".length());
+                UUID uuid = UUID.fromString(uuidStr);
+                Entity entity = Bukkit.getEntity(uuid);
+
+                if (entity instanceof Boat boat) {
+                    if (!boat.getPassengers().isEmpty() && boat.getPassengers().get(0) instanceof Player) {
+                        return "yes";
+                    }
+                }
+
+                return "no";
+            } catch (Exception e) {
+                return "no";
+            }
+        }
+        
         if (identifier.startsWith("countPlayersInRegion_")) {
 
             if (!checkCompatibility(p, "WorldGuard")) return "§cInstall worldguard";
