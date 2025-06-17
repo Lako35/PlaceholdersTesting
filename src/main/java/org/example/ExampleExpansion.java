@@ -3106,7 +3106,7 @@ p.sendMessage("debug1");
 
 
         if (identifier.startsWith("tyv_001_")) {
-            if (checkCompatibility(p, "griefprevention")) {
+            if (!checkCompatibility(p, "griefprevention")) {
                 return "§cInstall Grief Prevention";
             }
             String[] parts = identifier.substring("tyv_001_".length()).split(",");
