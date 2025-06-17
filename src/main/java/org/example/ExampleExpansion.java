@@ -1955,7 +1955,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("tyv_001_")) {
-            if (f1(f2, "griefprevention")) {
+            if (!f1(f2, "griefprevention")) {
                 return "§cInstall Grief Prevention";
             }
             String[] parts = f1.substring("tyv_001_".length()).split(",");
@@ -4807,7 +4807,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("countPlayersInRegion_")) {
 
-            if (f1(f2, "worldguard")) return "§cInstall worldguard...";
+            if (!f1(f2, "worldguard")) return "§cInstall worldguard...";
             try {
                 String[] parts = f1.substring("countPlayersInRegion_".length()).split(",");
                 if (parts.length != 2) return "§cError";
