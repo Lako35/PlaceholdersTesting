@@ -4807,7 +4807,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("countPlayersInRegion_")) {
 
-            if (!f1(f2, "worldguard")) return "§cInstall worldguard...";
+            if (f1(f2, "worldguard")) return "§cInstall worldguard...";
             try {
                 String[] parts = f1.substring("countPlayersInRegion_".length()).split(",");
                 if (parts.length != 2) return "§cError";
