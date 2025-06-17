@@ -1238,6 +1238,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (identifier.startsWith("countPlayersInRegion_")) {
+
+            if (checkCompatibility(p, "worldguard")) return "§cInstall worldguard...";
+
             try {
                 String[] parts = identifier.substring("countPlayersInRegion_".length()).split(",");
                 if (parts.length != 2) return "§cError";
