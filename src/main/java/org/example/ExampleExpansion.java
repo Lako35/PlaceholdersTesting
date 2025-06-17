@@ -3,6 +3,7 @@ package org.example;
 
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.*;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -1234,9 +1235,40 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
-        
-        
-        
+
+
+        if (identifier.startsWith("countPlayersInRegion_")) {
+            try {
+                String[] parts = identifier.substring("countPlayersInRegion_".length()).split(",");
+                if (parts.length != 2) return "§cError";
+
+                String regionName = parts[0];
+                String worldName  = parts[1];
+
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) return "-1";
+
+                RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
+                if (manager == null || !manager.hasRegion(regionName)) return "-1";
+
+                ProtectedRegion region = manager.getRegion(regionName);
+                if (region == null) return "-1";
+
+                int count = 0;
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (!player.getWorld().getName().equals(worldName)) continue;
+
+                    Location loc = player.getLocation();
+                    if (region.contains(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) {
+                        count++;
+                    }
+                }
+
+                return String.valueOf(count);
+            } catch (Exception e) {
+                return "§cError";
+            }
+        }
 
 
 
