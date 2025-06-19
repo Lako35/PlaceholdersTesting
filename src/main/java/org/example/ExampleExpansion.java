@@ -364,11 +364,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
             ProtocolLib_Installed = true;
             
-            // Toggle Test Mode here
-            // Test
-            // Trial
+            // Toggle Test Mode here 
+            // Test 
+            // Trial 
             SCore_Installed = true;
-            g5 = 1000000;
+            g5 = 1000;
         } else {
             
         }
