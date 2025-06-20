@@ -14,9 +14,11 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.EulerAngle;
@@ -1184,6 +1186,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+    private boolean hasMatchingTag(Entity entity, Set<String> tags) {
+        for (String tag : tags) {
+            if (entity.getScoreboardTags().contains(tag)) return true;
+        }
+        return false;
+    }
+
+    private boolean isValidTargetType(Entity e, String mode) {
+        if (mode.equalsIgnoreCase("Players") && e instanceof Player) return true;
+        if (mode.equalsIgnoreCase("Hostiles") && e instanceof Monster) return true;
+        if (mode.equalsIgnoreCase("Both") && (e instanceof Player || e instanceof Monster)) return true;
+        return false;
+    }
+
+    private boolean canSee(Location from, Location to) {
+        return from.getWorld().rayTraceBlocks(from, to.toVector().subtract(from.toVector()).normalize(), from.distance(to), FluidCollisionMode.NEVER, true) == null;
+    }
+
+
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -1234,7 +1258,179 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        if (identifier.startsWith("turret_")) {
 
+
+             final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
+                    EntityType.BLAZE,
+                    EntityType.BREEZE,
+                    EntityType.CREEPER,
+                    EntityType.ELDER_GUARDIAN,
+                    EntityType.ENDERMITE,
+                    EntityType.EVOKER,
+                    EntityType.GHAST,
+                    EntityType.GUARDIAN,
+                    EntityType.ENDERMAN,
+                    EntityType.HOGLIN,
+                    EntityType.HUSK,
+                    EntityType.ILLUSIONER,
+                    EntityType.MAGMA_CUBE,
+                    EntityType.PHANTOM,
+                    EntityType.PIGLIN_BRUTE,
+                    EntityType.PILLAGER,
+                    EntityType.RAVAGER,
+                    EntityType.SHULKER,
+                    EntityType.SILVERFISH,
+                    EntityType.SKELETON,
+                    EntityType.SLIME,
+                    EntityType.SPIDER,
+                    EntityType.STRAY,
+                    EntityType.VEX,
+                    EntityType.VINDICATOR,
+                    EntityType.WARDEN,
+                    EntityType.WITCH,
+                    EntityType.WITHER,
+                    EntityType.WITHER_SKELETON,
+                    EntityType.ZOGLIN,
+                    EntityType.ZOMBIE,
+                    EntityType.ZOMBIE_VILLAGER
+            );
+
+            String[] parts = identifier.substring("turret_".length()).split(",");
+            if (parts.length < 17) return "§cInvalid format";
+
+            try {
+                String worldName = parts[0];
+                int x = Integer.parseInt(parts[1]);
+                int y = Integer.parseInt(parts[2]);
+                int z = Integer.parseInt(parts[3]);
+                double radius = Double.parseDouble(parts[4]);
+                String projectile = parts[5];
+                double speed = Double.parseDouble(parts[6]);
+                String targetType = parts[7]; // Hostiles / Players / Both
+                String ownerUUID = parts[8];
+                int lockTime = Integer.parseInt(parts[9]);
+                int lifespan = Integer.parseInt(parts[10]);
+                int interval = Integer.parseInt(parts[11]);
+                double damage = Double.parseDouble(parts[12]);
+                Particle particle = Particle.valueOf(parts[13]);
+                double spacing = Double.parseDouble(parts[14]);
+                String sound = parts[15];
+                float soundDistance = Float.parseFloat(parts[16]);
+                float pitch = Float.parseFloat(parts[17]);
+                float volume = Float.parseFloat(parts[18]);
+                List<String> projectileTags = Arrays.asList(parts).subList(19, parts.length);
+
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) return "§cInvalid world";
+
+                Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+                ArmorStand turret = null;
+                for (Entity e : world.getNearbyEntities(base, 1, 1, 1)) {
+                    if (e instanceof ArmorStand && e.getScoreboardTags().contains("ArchiTurret")) {
+                        turret = (ArmorStand) e;
+                        break;
+                    }
+                }
+                if (turret == null) return "§cNo turret found";
+
+                Set<String> turretTags = turret.getScoreboardTags();
+                Entity target = null;
+                double closest = Double.MAX_VALUE;
+                for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
+                    if (!(e instanceof LivingEntity) || e.isDead() || !e.getWorld().equals(world)) continue;
+                    if (e.getLocation().distance(base) > radius) continue;
+                    if (!isValidTargetType(e, targetType)) continue;
+                    if (hasMatchingTag(e, turretTags)) continue;
+
+                    if (!canSee(base, e.getLocation()) && !targetType.equalsIgnoreCase("Players")) continue;
+
+                    double dist = e.getLocation().distanceSquared(base);
+                    if (dist < closest) {
+                        closest = dist;
+                        target = e;
+                    }
+                }
+
+                if (target == null) return "§cNo targets found";
+
+                // Predictive tracking
+                Vector R = target.getLocation().toVector().subtract(base.toVector());
+                Vector V = target.getVelocity();
+                double Sm = speed;
+                double a = V.dot(V) - Sm * Sm;
+                double b = 2 * R.dot(V);
+                double c = R.dot(R);
+                double disc = b * b - 4 * a * c;
+                Vector velocity;
+
+                if (disc < 0 || a == 0) {
+                    velocity = R.normalize().multiply(Sm);
+                } else {
+                    double sqrt = Math.sqrt(disc);
+                    double t1 = (-b - sqrt) / (2 * a);
+                    double t2 = (-b + sqrt) / (2 * a);
+                    double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+                    if (t <= 0) {
+                        velocity = R.normalize().multiply(Sm);
+                    } else {
+                        Vector intercept = target.getLocation().toVector().add(V.clone().multiply(t));
+                        velocity = intercept.subtract(base.toVector()).normalize().multiply(Sm);
+                    }
+                }
+
+                // Fire projectile
+                Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
+                proj.setVelocity(velocity);
+                proj.setCustomNameVisible(false);
+                proj.setSilent(true);
+                proj.setInvulnerable(false);
+                proj.setTicksLived(1);
+
+                if (ownerUUID != null && !ownerUUID.isEmpty()) {
+                    UUID uuid = UUID.fromString(ownerUUID);
+                    ProjectileSource shooter = Bukkit.getPlayer(uuid);
+                    if (proj instanceof Projectile && shooter != null) {
+                        ((Projectile) proj).setShooter(shooter);
+                    }
+                }
+
+                proj.setMetadata("ArchistructureTurret", new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
+                for (String tag : projectileTags) {
+                    proj.addScoreboardTag(tag);
+                }
+
+                // Particle beam
+                Vector direction = target.getLocation().toVector().subtract(base.toVector()).normalize();
+                double length = base.distance(target.getLocation());
+                for (double d = 0; d <= length; d += spacing) {
+                    Location point = base.clone().add(direction.clone().multiply(d));
+                    world.spawnParticle(particle, point, 0);
+                }
+
+                // Face turret toward target
+                Location lookAt = target.getLocation();
+                turret.teleport(turret.getLocation().setDirection(lookAt.toVector().subtract(turret.getLocation().toVector())));
+
+                // Sound
+                for (Player t : Bukkit.getOnlinePlayers()) {
+                    if (!t.getWorld().equals(world)) continue;
+                    if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
+                        t.playSound(base, sound, SoundCategory.AMBIENT, volume, pitch);
+                    }
+                }
+
+                return target.getUniqueId().toString();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cNo targets found";
+            }
+        }
+        
+        
+        
+        
 
         if (identifier.startsWith("checkIsRealBoat_")) {
             try {
