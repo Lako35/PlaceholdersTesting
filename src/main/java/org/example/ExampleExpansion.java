@@ -4860,7 +4860,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (f1.startsWith("growCropParticle_")) {
             try {
                 String[] parts = f1.substring("growCropParticle_".length()).split(",");
-                if (parts.length != 5) {
+                if (parts.length != 6) {
                     return "§c[DEBUG] Invalid parameter count: " + parts.length;
                 }
 
@@ -4868,6 +4868,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String particleInput = parts[1];
                 double dx = Double.parseDouble(parts[2]); // spacing between particles
                 int maxCount = Integer.parseInt(parts[3]);
+                boolean grow = Boolean.parseBoolean(parts[4]); // spacing between particles
+
 
                 String[] locParts = parts[4].split(":");
                 if (locParts.length != 4) {
@@ -4977,6 +4979,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             world.spawnParticle(particle, current, 0);
                         }
                         current.add(step);
+                    }
+
+
+                    if (grow) {
+                        BlockData data = b.getBlockData();
+                        if (data instanceof Ageable ageable) {
+                            int newAge = ageable.getAge() + 1;
+                            if (newAge <= ageable.getMaximumAge()) {
+                                ageable.setAge(newAge);
+                                b.setBlockData(ageable, true);
+                            }
+                        }
                     }
                 }
 
