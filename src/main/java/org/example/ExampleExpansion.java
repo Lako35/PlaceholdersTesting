@@ -4868,7 +4868,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String particleInput = parts[1];
                 double dx = Double.parseDouble(parts[2]); // spacing between particles
                 int maxCount = Integer.parseInt(parts[3]);
-                boolean grow = Boolean.parseBoolean(parts[4]); // spacing between particles
+                boolean grow = Boolean.parseBoolean(parts[5]); // spacing between particles
 
 
                 String[] locParts = parts[4].split(":");
