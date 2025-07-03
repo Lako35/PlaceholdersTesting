@@ -1,6 +1,8 @@
 package org.example;
 
 
+
+
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.*;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -9,6 +11,7 @@ import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Damageable;
@@ -1196,16 +1199,135 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return false;
     }
 
-    private boolean isValidTargetType(Entity e, String mode) {
-        if (mode.equalsIgnoreCase("Players") && e instanceof Player) return true;
-        if (mode.equalsIgnoreCase("Hostiles") && e instanceof Monster) return true;
-        if (mode.equalsIgnoreCase("Both") && (e instanceof Player || e instanceof Monster)) return true;
+    private boolean isValidTargetType(Entity e, String mode, Set<EntityType> HOSTILE_TYPES) {
+        if (mode.equalsIgnoreCase("Players")) {
+            return e instanceof Player;
+        }
+        if (mode.equalsIgnoreCase("Hostiles")) {
+            return HOSTILE_TYPES.contains(e.getType());
+        }
+        if (mode.equalsIgnoreCase("Both")) {
+            return e instanceof Player || HOSTILE_TYPES.contains(e.getType());
+        }
         return false;
     }
 
     private boolean canSee(Location from, Location to) {
         return from.getWorld().rayTraceBlocks(from, to.toVector().subtract(from.toVector()).normalize(), from.distance(to), FluidCollisionMode.NEVER, true) == null;
     }
+
+
+    private void openEnderSee(Player viewer, UUID targetUUID) {
+        OfflinePlayer target = Bukkit.getOfflinePlayer(targetUUID);
+        if (!target.isOnline()) {
+            viewer.sendMessage("§cTarget player is not online.");
+            return;
+        }
+        Player onlineTarget = target.getPlayer();
+        Inventory targetEnder = onlineTarget.getEnderChest();
+
+        Inventory viewInv = Bukkit.createInventory(null, targetEnder.getSize(), "§8[View EnderChest]");
+        for (int i = 0; i < targetEnder.getSize(); i++) {
+            ItemStack item = targetEnder.getItem(i);
+            if (item != null && item.getType() != Material.AIR) {
+                viewInv.setItem(i, modifyItemForView(item));
+            } else {
+                viewInv.setItem(i, getDefaultGlassPane());
+            }
+        }
+        viewer.openInventory(viewInv);
+    }
+
+
+    private void openInvSee(Player viewer, UUID targetUUID) {
+        OfflinePlayer target = Bukkit.getOfflinePlayer(targetUUID);
+        if (!target.isOnline()) {
+            viewer.sendMessage("§cTarget player is not online.");
+            return;
+        }
+        Player onlineTarget = target.getPlayer();
+        Inventory viewInv = Bukkit.createInventory(null, 54, "§8[View Inventory]");
+
+        // Top 3 rows: main inventory (slots 9-35)
+        for (int i = 9; i < 36; i++) {
+            ItemStack item = onlineTarget.getInventory().getItem(i);
+            if (item != null && item.getType() != Material.AIR) {
+                viewInv.setItem(i - 9, modifyItemForView(item));
+            } else {
+                viewInv.setItem(i - 9, getDefaultGlassPane());
+            }
+        }
+
+        // 4th row: hotbar (slots 0-8)
+        for (int i = 0; i < 9; i++) {
+            ItemStack item = onlineTarget.getInventory().getItem(i);
+            if (item != null && item.getType() != Material.AIR) {
+                viewInv.setItem(27 + i, modifyItemForView(item));
+            } else {
+                viewInv.setItem(27 + i, getDefaultGlassPane());
+            }
+        }
+
+        // Armor slots
+        ItemStack[] armor = onlineTarget.getInventory().getArmorContents();
+        for (int i = 0; i < 4; i++) {
+            ItemStack item = armor[i];
+            if (item != null && item.getType() != Material.AIR) {
+                viewInv.setItem(36 + i, modifyItemForView(item));
+            } else {
+                viewInv.setItem(36 + i, getDefaultGlassPane());
+            }
+        }
+
+        // Offhand
+        ItemStack offhand = onlineTarget.getInventory().getItemInOffHand();
+        if (offhand != null && offhand.getType() != Material.AIR) {
+            viewInv.setItem(40, modifyItemForView(offhand));
+        } else {
+            viewInv.setItem(40, getDefaultGlassPane());
+        }
+
+        // Last row: crafting grid dummy slots
+        for (int i = 45; i <= 53; i++) {
+            viewInv.setItem(i, getDefaultGlassPane());
+        }
+
+        for (int i = 41; i <= 44; i++) {
+            viewInv.setItem(i, getDefaultGlassPane());
+        }
+
+        viewer.openInventory(viewInv);
+    }
+
+
+
+    private void openChestSee(Player viewer, String worldName, int x, int y, int z) {
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) {
+            viewer.sendMessage("§cWorld not found.");
+            return;
+        }
+        Block block = world.getBlockAt(x, y, z);
+        if (!(block.getState() instanceof Container)) {
+            viewer.sendMessage("§cThat block is not a container.");
+            return;
+        }
+        Container container = (Container) block.getState();
+        Inventory sourceInv = container.getInventory();
+
+        Inventory viewInv = Bukkit.createInventory(null, sourceInv.getSize(), "§8[View Chest]");
+        for (int i = 0; i < sourceInv.getSize(); i++) {
+            ItemStack item = sourceInv.getItem(i);
+            if (item != null && item.getType() != Material.AIR) {
+                viewInv.setItem(i, modifyItemForView(item));
+            } else {
+                viewInv.setItem(i, getDefaultGlassPane());
+            }
+        }
+        viewer.openInventory(viewInv);
+    }
+
+
 
 
     /**
@@ -1258,46 +1380,76 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        if (identifier.startsWith("giveEffect_")) {
+            String[] parts = identifier.substring("giveEffect_".length()).split(",");
+            if (parts.length != 5) {
+                return "§cInvalid format";
+            }
+
+            try {
+                String playerId = parts[0];
+                String effectName = parts[1];
+                int amplifier = Integer.parseInt(parts[2]);
+                int duration = Integer.parseInt(parts[3]);
+                boolean hideParticles = Boolean.parseBoolean(parts[4]);
+
+                Player target = null;
+
+                // Try UUID first
+                try {
+                    UUID uuid = UUID.fromString(playerId);
+                    target = Bukkit.getPlayer(uuid);
+                } catch (IllegalArgumentException ignored) {
+                    // Fallback to name
+                    target = Bukkit.getPlayerExact(playerId);
+                }
+
+                if (target == null) {
+                    return "§cFailed";
+                }
+
+                PotionEffectType type = PotionEffectType.getByName(effectName.toUpperCase());
+                if (type == null) {
+                    return "§cFailed";
+                }
+
+                PotionEffect effect = new PotionEffect(
+                        type,
+                        duration,
+                        amplifier,
+                        false,
+                        !hideParticles
+                );
+
+                target.addPotionEffect(effect, true);
+
+                return "§aSuccess";
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cFailed";
+            }
+        }
+        
+        
+        
         if (identifier.startsWith("turret_")) {
 
-
-             final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
-                    EntityType.BLAZE,
-                    EntityType.BREEZE,
-                    EntityType.CREEPER,
-                    EntityType.ELDER_GUARDIAN,
-                    EntityType.ENDERMITE,
-                    EntityType.EVOKER,
-                    EntityType.GHAST,
-                    EntityType.GUARDIAN,
-                    EntityType.ENDERMAN,
-                    EntityType.HOGLIN,
-                    EntityType.HUSK,
-                    EntityType.ILLUSIONER,
-                    EntityType.MAGMA_CUBE,
-                    EntityType.PHANTOM,
-                    EntityType.PIGLIN_BRUTE,
-                    EntityType.PILLAGER,
-                    EntityType.RAVAGER,
-                    EntityType.SHULKER,
-                    EntityType.SILVERFISH,
-                    EntityType.SKELETON,
-                    EntityType.SLIME,
-                    EntityType.SPIDER,
-                    EntityType.STRAY,
-                    EntityType.VEX,
-                    EntityType.VINDICATOR,
-                    EntityType.WARDEN,
-                    EntityType.WITCH,
-                    EntityType.WITHER,
-                    EntityType.WITHER_SKELETON,
-                    EntityType.ZOGLIN,
-                    EntityType.ZOMBIE,
-                    EntityType.ZOMBIE_VILLAGER
+            final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
+                    EntityType.BLAZE, EntityType.BREEZE, EntityType.CREEPER,
+                    EntityType.ELDER_GUARDIAN, EntityType.ENDERMITE, EntityType.EVOKER,
+                    EntityType.GHAST, EntityType.GUARDIAN, EntityType.ENDERMAN,
+                    EntityType.HOGLIN, EntityType.HUSK, EntityType.ILLUSIONER,
+                    EntityType.MAGMA_CUBE, EntityType.PHANTOM, EntityType.PIGLIN_BRUTE,
+                    EntityType.PILLAGER, EntityType.RAVAGER, EntityType.SHULKER,
+                    EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME,
+                    EntityType.SPIDER, EntityType.STRAY, EntityType.VEX,
+                    EntityType.VINDICATOR, EntityType.WARDEN, EntityType.WITCH,
+                    EntityType.WITHER, EntityType.WITHER_SKELETON, EntityType.ZOGLIN,
+                    EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER
             );
 
             String[] parts = identifier.substring("turret_".length()).split(",");
-            if (parts.length < 17) return "§cInvalid format";
+            if (parts.length < 19) return "§cInvalid format";
 
             try {
                 String worldName = parts[0];
@@ -1325,59 +1477,47 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (world == null) return "§cInvalid world";
 
                 Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
-                ArmorStand turret = null;
-                for (Entity e : world.getNearbyEntities(base, 1, 1, 1)) {
-                    if (e instanceof ArmorStand && e.getScoreboardTags().contains("ArchiTurret")) {
-                        turret = (ArmorStand) e;
-                        break;
-                    }
-                }
+
+                // Find turret ArmorStand
+                ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
+                        .filter(e -> e instanceof ArmorStand)
+                        .map(e -> (ArmorStand)e)
+                        .filter(e -> e.getScoreboardTags().contains("ArchiTurret"))
+                        .findFirst()
+                        .orElse(null);
+
                 if (turret == null) return "§cNo turret found";
 
                 Set<String> turretTags = turret.getScoreboardTags();
+
                 Entity target = null;
-                double closest = Double.MAX_VALUE;
+                double closestSq = radius * radius;
+
                 for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
-                    if (!(e instanceof LivingEntity) || e.isDead() || !e.getWorld().equals(world)) continue;
-                    if (e.getLocation().distance(base) > radius) continue;
-                    if (!isValidTargetType(e, targetType)) continue;
+                    if (!(e instanceof LivingEntity) || e.isDead()) continue;
+                    if (!e.getWorld().equals(world)) continue;
+
+                    // Use distanceSquared once
+                    double distSq = e.getLocation().distanceSquared(base);
+                    if (distSq > closestSq) continue;
+
+                    if (!isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
                     if (hasMatchingTag(e, turretTags)) continue;
 
+                    // Optional: line-of-sight
                     if (!canSee(base, e.getLocation()) && !targetType.equalsIgnoreCase("Players")) continue;
 
-                    double dist = e.getLocation().distanceSquared(base);
-                    if (dist < closest) {
-                        closest = dist;
-                        target = e;
-                    }
+                    closestSq = distSq;
+                    target = e;
                 }
 
                 if (target == null) return "§cNo targets found";
 
-                // Predictive tracking
-                Vector R = target.getLocation().toVector().subtract(base.toVector());
-                Vector V = target.getVelocity();
-                double Sm = speed;
-                double a = V.dot(V) - Sm * Sm;
-                double b = 2 * R.dot(V);
-                double c = R.dot(R);
-                double disc = b * b - 4 * a * c;
-                Vector velocity;
 
-                if (disc < 0 || a == 0) {
-                    velocity = R.normalize().multiply(Sm);
-                } else {
-                    double sqrt = Math.sqrt(disc);
-                    double t1 = (-b - sqrt) / (2 * a);
-                    double t2 = (-b + sqrt) / (2 * a);
-                    double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
-                    if (t <= 0) {
-                        velocity = R.normalize().multiply(Sm);
-                    } else {
-                        Vector intercept = target.getLocation().toVector().add(V.clone().multiply(t));
-                        velocity = intercept.subtract(base.toVector()).normalize().multiply(Sm);
-                    }
-                }
+                Location targetLoc = target.getLocation().clone().add(0, 1.2, 0);
+
+                // Compute simple direction (no prediction)
+                Vector velocity = targetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
 
                 // Fire projectile
                 Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
@@ -1386,6 +1526,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 proj.setSilent(true);
                 proj.setInvulnerable(false);
                 proj.setTicksLived(1);
+                proj.setGravity(false);
+
+                if (proj instanceof Arrow) {
+                    ((Arrow) proj).setDamage(damage);
+                }
 
                 if (ownerUUID != null && !ownerUUID.isEmpty()) {
                     UUID uuid = UUID.fromString(ownerUUID);
@@ -1427,6 +1572,66 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§cNo targets found";
             }
         }
+
+
+
+        if (identifier.startsWith("esee_")) {
+            String[] parts = identifier.substring(5).split("_");
+            if (parts.length != 2) {
+                return "§cInvalid format. Use e.g. esee_viewerUUID_targetUUID";
+            }
+            try {
+                UUID viewerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                Player viewer = Bukkit.getPlayer(viewerUUID);
+                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                openEnderSee(viewer, targetUUID);
+                return "§aEnderChest opened.";
+            } catch (IllegalArgumentException ex) {
+                return "§cInvalid UUID.";
+            }
+        }
+
+        if (identifier.startsWith("isee_")) {
+            String[] parts = identifier.substring(5).split("_");
+            if (parts.length != 2) {
+                return "§cInvalid format. Use isee_viewerUUID_targetUUID";
+            }
+            try {
+                UUID viewerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                Player viewer = Bukkit.getPlayer(viewerUUID);
+                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                openInvSee(viewer, targetUUID);
+                return "§aInventory opened.";
+            } catch (IllegalArgumentException ex) {
+                return "§cInvalid UUID.";
+            }
+        }
+
+        if (identifier.startsWith("csee_")) {
+            String[] parts = identifier.substring(5).split("_");
+            if (parts.length != 2) {
+                return "§cInvalid format. Use csee_viewerUUID_world:x:y:z";
+            }
+            try {
+                UUID viewerUUID = UUID.fromString(parts[0]);
+                String[] coords = parts[1].split(":");
+                if (coords.length != 4) return "§cInvalid coordinates format.";
+                String world = coords[0];
+                int x = Integer.parseInt(coords[1]);
+                int y = Integer.parseInt(coords[2]);
+                int z = Integer.parseInt(coords[3]);
+                Player viewer = Bukkit.getPlayer(viewerUUID);
+                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                openChestSee(viewer, world, x, y, z);
+                return "§aChest opened.";
+            } catch (IllegalArgumentException ex) {
+                return "§cInvalid input.";
+            }
+        }
+        
+        
         
         
         
