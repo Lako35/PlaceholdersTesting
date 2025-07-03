@@ -1380,6 +1380,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+    
+    
+    
+    
         if (identifier.startsWith("giveEffect_")) {
             String[] parts = identifier.substring("giveEffect_".length()).split(",");
             if (parts.length != 5) {
@@ -1429,9 +1433,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§cFailed";
             }
         }
-        
-        
-        
+
         if (identifier.startsWith("turret_")) {
 
             final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
@@ -1478,10 +1480,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
 
-                // Find turret ArmorStand
                 ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
                         .filter(e -> e instanceof ArmorStand)
-                        .map(e -> (ArmorStand)e)
+                        .map(e -> (ArmorStand) e)
                         .filter(e -> e.getScoreboardTags().contains("ArchiTurret"))
                         .findFirst()
                         .orElse(null);
@@ -1497,14 +1498,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     if (!(e instanceof LivingEntity) || e.isDead()) continue;
                     if (!e.getWorld().equals(world)) continue;
 
-                    // Use distanceSquared once
                     double distSq = e.getLocation().distanceSquared(base);
                     if (distSq > closestSq) continue;
 
                     if (!isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
                     if (hasMatchingTag(e, turretTags)) continue;
 
-                    // Optional: line-of-sight
                     if (!canSee(base, e.getLocation()) && !targetType.equalsIgnoreCase("Players")) continue;
 
                     closestSq = distSq;
@@ -1513,65 +1512,96 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 if (target == null) return "§cNo targets found";
 
+                final LivingEntity lockedTarget = (LivingEntity) target;
 
-                Location targetLoc = target.getLocation().clone().add(0, 1.2, 0);
+                int shots = Math.max(1, lockTime / interval);
 
-                // Compute simple direction (no prediction)
-                Vector velocity = targetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                new BukkitRunnable() {
+                    int fired = 0;
 
-                // Fire projectile
-                Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
-                proj.setVelocity(velocity);
-                proj.setCustomNameVisible(false);
-                proj.setSilent(true);
-                proj.setInvulnerable(false);
-                proj.setTicksLived(1);
-                proj.setGravity(false);
+                    @Override
+                    public void run() {
+                        if (fired >= shots) {
+                            cancel();
+                            return;
+                        }
+                        if (lockedTarget.isDead() || !lockedTarget.getWorld().equals(world)) {
+                            cancel();
+                            return;
+                        }
 
-                if (proj instanceof Arrow) {
-                    ((Arrow) proj).setDamage(damage);
-                }
+                        Location currentTargetLoc = lockedTarget.getLocation().clone().add(0, 1.2, 0);
 
-                if (ownerUUID != null && !ownerUUID.isEmpty()) {
-                    UUID uuid = UUID.fromString(ownerUUID);
-                    ProjectileSource shooter = Bukkit.getPlayer(uuid);
-                    if (proj instanceof Projectile && shooter != null) {
-                        ((Projectile) proj).setShooter(shooter);
+                        Vector velocity = currentTargetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+
+                        Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
+                        proj.setVelocity(velocity);
+                        proj.setCustomNameVisible(false);
+                        proj.setSilent(true);
+                        proj.setInvulnerable(false);
+                        proj.setTicksLived(1);
+                        proj.setGravity(false);
+
+
+                        Bukkit.getScheduler().runTaskLater(
+                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                () -> {
+                                    if (proj != null && proj.isValid() && !proj.isDead()) {
+                                        proj.remove();
+                                    }
+                                },
+                                lifespan
+                        );
+
+                        if (proj instanceof Arrow) {
+                            ((Arrow) proj).setDamage(damage);
+                        }
+
+                        if (ownerUUID != null && !ownerUUID.isEmpty()) {
+                            UUID uuid = UUID.fromString(ownerUUID);
+                            ProjectileSource shooter = Bukkit.getPlayer(uuid);
+                            if (proj instanceof Projectile && shooter != null) {
+                                ((Projectile) proj).setShooter(shooter);
+                            }
+                        }
+
+                        proj.setMetadata("ArchistructureTurret", new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
+                        for (String tag : projectileTags) {
+                            proj.addScoreboardTag(tag);
+                        }
+
+                        // Particle beam
+                        Location midsection = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
+                        Vector direction = midsection.toVector().subtract(base.toVector()).normalize();
+                        double length = base.distance(midsection);
+                        for (double d = 0; d <= length; d += spacing) {
+                            Location point = base.clone().add(direction.clone().multiply(d));
+                            world.spawnParticle(particle, point, 0);
+                        }
+
+                        // Face turret toward target
+                        turret.teleport(turret.getLocation().setDirection(lockedTarget.getLocation().toVector().subtract(turret.getLocation().toVector())));
+
+                        // Sound
+                        for (Player t : Bukkit.getOnlinePlayers()) {
+                            if (!t.getWorld().equals(world)) continue;
+                            if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
+                                t.playSound(base, sound, SoundCategory.AMBIENT, volume, pitch);
+                            }
+                        }
+
+                        fired++;
                     }
-                }
+                }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, interval);
 
-                proj.setMetadata("ArchistructureTurret", new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
-                for (String tag : projectileTags) {
-                    proj.addScoreboardTag(tag);
-                }
-
-                // Particle beam
-                Vector direction = target.getLocation().toVector().subtract(base.toVector()).normalize();
-                double length = base.distance(target.getLocation());
-                for (double d = 0; d <= length; d += spacing) {
-                    Location point = base.clone().add(direction.clone().multiply(d));
-                    world.spawnParticle(particle, point, 0);
-                }
-
-                // Face turret toward target
-                Location lookAt = target.getLocation();
-                turret.teleport(turret.getLocation().setDirection(lookAt.toVector().subtract(turret.getLocation().toVector())));
-
-                // Sound
-                for (Player t : Bukkit.getOnlinePlayers()) {
-                    if (!t.getWorld().equals(world)) continue;
-                    if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
-                        t.playSound(base, sound, SoundCategory.AMBIENT, volume, pitch);
-                    }
-                }
-
-                return target.getUniqueId().toString();
+                return lockedTarget.getUniqueId().toString();
 
             } catch (Exception e) {
                 e.printStackTrace();
                 return "§cNo targets found";
             }
         }
+
 
 
 
