@@ -1185,9 +1185,85 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
         }
-        
-        
-        
+
+
+
+// DO NOT MOVE
+
+        if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
+            World world = f2.getWorld();
+            Location eye = f2.getEyeLocation();
+            Vector direction = eye.getDirection().normalize();
+            Location furthestValid = null;
+
+            // Trace forward up to 10 blocks, skipping non-solid blocks
+            for (double i = 0.0; i <= 10.0; i += 0.1) {
+                Location check = eye.clone().add(direction.clone().multiply(i));
+                Block block = check.getBlock();
+
+                if (!fOne(block.getType())) break;
+
+                furthestValid = check.clone();
+            }
+
+            if(SCore_Installed && g5 < 0) {
+                f2.sendMessage(g28);
+                return null;
+            }
+            g5--;
+
+            // If we hit solid immediately, fall back to eye location
+            if (furthestValid == null) {
+                Location eyeLoc = f2.getEyeLocation();
+                return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
+            }
+
+            // Step backward from furthestValid toward player
+            for (double i = 0.0; i <= 10.0; i += 1.0) {
+                Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
+
+                // Reject if behind or below the eye location
+                Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
+                if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
+
+                // Construct a player-sized hitbox centered at the testLoc
+                double cx = testLoc.getX();
+                double cy = testLoc.getY();
+                double cz = testLoc.getZ();
+
+                BoundingBox hitbox = new BoundingBox(
+                        cx - 0.3, cy, cz - 0.3,
+                        cx + 0.3, cy + 1.8, cz + 0.3
+                );
+
+                boolean collides = false;
+                for (Block b : f1(hitbox, world)) {
+                    if (b.getType().isSolid()) {
+                        collides = true;
+                        break;
+                    }
+                }
+
+                if (!collides) {
+                    return String.format("%.6f %.6f %.6f", cx, cy, cz);
+                }
+            }
+
+            // Fallback to eye location
+            Location fallback = f2.getEyeLocation();
+            return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+        } else {
+
+            if(SCore_Installed && g5 < 0) {
+                f2.sendMessage(g28);
+                return null;
+            }
+            g5--;
+        }
+
+        // DO NOT MOVE ^
+
+
         // INSERT HERE 
 
 
@@ -1769,82 +1845,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-
-// DO NOT MOVE
-
-        if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
-            World world = f2.getWorld();
-            Location eye = f2.getEyeLocation();
-            Vector direction = eye.getDirection().normalize();
-            Location furthestValid = null;
-
-            // Trace forward up to 10 blocks, skipping non-solid blocks
-            for (double i = 0.0; i <= 10.0; i += 0.1) {
-                Location check = eye.clone().add(direction.clone().multiply(i));
-                Block block = check.getBlock();
-
-                if (!fOne(block.getType())) break;
-
-                furthestValid = check.clone();
-            }
-
-            if(SCore_Installed && g5 < 0) {
-                f2.sendMessage(g28);
-                return null;
-            }
-            g5--;
-
-            // If we hit solid immediately, fall back to eye location
-            if (furthestValid == null) {
-                Location eyeLoc = f2.getEyeLocation();
-                return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
-            }
-
-            // Step backward from furthestValid toward player
-            for (double i = 0.0; i <= 10.0; i += 1.0) {
-                Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
-
-                // Reject if behind or below the eye location
-                Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
-                if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
-
-                // Construct a player-sized hitbox centered at the testLoc
-                double cx = testLoc.getX();
-                double cy = testLoc.getY();
-                double cz = testLoc.getZ();
-
-                BoundingBox hitbox = new BoundingBox(
-                        cx - 0.3, cy, cz - 0.3,
-                        cx + 0.3, cy + 1.8, cz + 0.3
-                );
-
-                boolean collides = false;
-                for (Block b : f1(hitbox, world)) {
-                    if (b.getType().isSolid()) {
-                        collides = true;
-                        break;
-                    }
-                }
-
-                if (!collides) {
-                    return String.format("%.6f %.6f %.6f", cx, cy, cz);
-                }
-            }
-
-            // Fallback to eye location
-            Location fallback = f2.getEyeLocation();
-            return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
-        } else {
-
-            if(SCore_Installed && g5 < 0) {
-                f2.sendMessage(g28);
-                return null;
-            }
-            g5--;
-        }
-        
-        // DO NOT MOVE ^
-        
 
 
 
