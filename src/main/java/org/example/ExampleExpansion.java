@@ -1405,7 +1405,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
+        if (identifier.startsWith("switcher_")) {
+            String[] parts = identifier.substring("switcher_".length()).split(",");
+            if (parts.length < 2) {
+                return "§cInvalid format";
+            }
 
+            String current = parts[0];
+            List<String> options = Arrays.asList(parts).subList(1, parts.length);
+
+            int index = options.indexOf(current);
+            if (index == -1) {
+                // Not found, return first option
+                return options.get(0);
+            }
+
+            // Compute next index (wrap around)
+            int nextIndex = (index + 1) % options.size();
+            return options.get(nextIndex);
+        }
 
 
         if (identifier.startsWith("trackingCompassv2_")) {
