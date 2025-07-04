@@ -98,6 +98,16 @@ import static com.ssomar.score.SCore.plugin;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
+    private static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
+
+
+    private final Map<UUID, Location> lastPositions = new ConcurrentHashMap<>();
+
+    private final Map<Location, UUID> turretLocks = new ConcurrentHashMap<>();
+
+    private final Map<Location, BukkitRunnable> activeLodestones = new ConcurrentHashMap<>();
+
+
     private final Set<Material> enumSet = EnumSet.of(
     Material.ACTIVATOR_RAIL,
     Material.AIR,
@@ -1327,7 +1337,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
         viewer.openInventory(viewInv);
     }
 
-
+    private ItemStack getCompassInSlot(Player p, int slot) {
+        if (slot == -1) {
+            return p.getInventory().getItemInMainHand();
+        }
+        if (slot == 40) {
+            return p.getInventory().getItemInOffHand();
+        }
+        if (slot >= 0 && slot <= 8) {
+            return p.getInventory().getItem(slot);
+        }
+        if (slot >= 36 && slot <= 39) {
+            return p.getInventory().getArmorContents()[39 - slot];
+        }
+        return null;
+    }
 
 
     /**
@@ -1380,8 +1404,80 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
-    
-    
+
+
+
+
+        if (identifier.startsWith("trackingCompassv2_")) {
+            String[] parts = identifier.substring("trackingCompassv2_".length()).split(",");
+            if (parts.length != 3) return "§cInvalid format";
+
+            try {
+                UUID targetUUID = UUID.fromString(parts[0]);
+                int time = Integer.parseInt(parts[1]);
+                int slot = Integer.parseInt(parts[2]);
+
+                Player target = Bukkit.getPlayer(targetUUID);
+                if (target == null || !target.isOnline()) {
+                    return "§cFailed - Player offline";
+                }
+
+                Player compassHolder = (p.isOnline()) ? p.getPlayer() : null;
+                if (compassHolder == null) {
+                    return "§cFailed - No requester";
+                }
+
+                ItemStack compassItem = getCompassInSlot(compassHolder, slot);
+                if (compassItem == null || compassItem.getType() != Material.COMPASS) {
+                    return "§cFailed - Not holding compass";
+                }
+
+                if (!compassHolder.getWorld().equals(target.getWorld())) {
+                    CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
+                    meta.setLodestone(null);
+                    meta.setLodestoneTracked(false);
+                    meta.setDisplayName("§cInvalid - Different World");
+                    compassItem.setItemMeta(meta);
+                    return "§cFailed - Different world";
+                }
+
+                Location lodestoneLoc = new Location(
+                        target.getWorld(),
+                        target.getLocation().getBlockX(),
+                        target.getWorld().getMinHeight(),
+                        target.getLocation().getBlockZ()
+                );
+
+                if (activeLodestones.containsKey(lodestoneLoc)) {
+                    activeLodestones.get(lodestoneLoc).cancel();
+                }
+
+                // Place the lodestone block
+                lodestoneLoc.getBlock().setType(Material.LODESTONE);
+
+                // Schedule revert
+                BukkitRunnable task = new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        lodestoneLoc.getBlock().setType(Material.BEDROCK);
+                        activeLodestones.remove(lodestoneLoc);
+                    }
+                };
+                task.runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), time);
+                activeLodestones.put(lodestoneLoc, task);
+
+                // Update compass meta
+                CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
+                meta.setLodestone(lodestoneLoc);
+                meta.setLodestoneTracked(true);
+                compassItem.setItemMeta(meta);
+
+                return "§aSuccess";
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cFailed - Error";
+            }
+        }
     
     
         if (identifier.startsWith("giveEffect_")) {
@@ -1469,11 +1565,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double damage = Double.parseDouble(parts[12]);
                 Particle particle = Particle.valueOf(parts[13]);
                 double spacing = Double.parseDouble(parts[14]);
-                String sound = parts[15];
-                float soundDistance = Float.parseFloat(parts[16]);
-                float pitch = Float.parseFloat(parts[17]);
-                float volume = Float.parseFloat(parts[18]);
-                List<String> projectileTags = Arrays.asList(parts).subList(19, parts.length);
+                String predictiveStr = parts[15];
+                boolean predictive = Boolean.parseBoolean(predictiveStr);
+
+                String sound = parts[16];
+                float soundDistance = Float.parseFloat(parts[17]);
+                float pitch = Float.parseFloat(parts[18]);
+                float volume = Float.parseFloat(parts[19]);
+                List<String> projectileTags = Arrays.asList(parts).subList(20, parts.length);
 
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) return "§cInvalid world";
@@ -1492,25 +1591,45 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Set<String> turretTags = turret.getScoreboardTags();
 
                 Entity target = null;
-                double closestSq = radius * radius;
 
-                for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
-                    if (!(e instanceof LivingEntity) || e.isDead()) continue;
-                    if (!e.getWorld().equals(world)) continue;
-
-                    double distSq = e.getLocation().distanceSquared(base);
-                    if (distSq > closestSq) continue;
-
-                    if (!isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
-                    if (hasMatchingTag(e, turretTags)) continue;
-
-                    if (!canSee(base, e.getLocation()) && !targetType.equalsIgnoreCase("Players")) continue;
-
-                    closestSq = distSq;
-                    target = e;
+// Check if there is an active lock
+                UUID lockedId = turretLocks.get(base);
+                if (lockedId != null) {
+                    Entity existing = Bukkit.getEntity(lockedId);
+                    if (existing != null && existing.isValid() && !existing.isDead() && existing.getWorld().equals(world)) {
+                        target = existing;
+                    } else {
+                        // Remove invalid lock
+                        turretLocks.remove(base);
+                    }
                 }
 
-                if (target == null) return "§cNo targets found";
+                if (target == null) {
+                    // Find nearest eligible target
+                    double closestSq = radius * radius;
+
+                    for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
+                        if (!(e instanceof LivingEntity) || e.isDead()) continue;
+                        if (!e.getWorld().equals(world)) continue;
+
+                        double distSq = e.getLocation().distanceSquared(base);
+                        if (distSq > closestSq) continue;
+
+                        if (!isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
+                        if (hasMatchingTag(e, turretTags)) continue;
+
+                        Location midsection = e.getLocation().clone().add(0, e.getHeight() / 2, 0);
+                        if (!canSee(base, midsection) && !targetType.equalsIgnoreCase("Players")) continue;
+                        
+                        closestSq = distSq;
+                        target = e;
+                    }
+
+                    if (target == null) return "§cNo targets found";
+
+                    // Store new lock
+                    turretLocks.put(base, target.getUniqueId());
+                }
 
                 final LivingEntity lockedTarget = (LivingEntity) target;
 
@@ -1522,18 +1641,77 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     @Override
                     public void run() {
                         if (fired >= shots) {
-                            cancel();
-                            return;
-                        }
+                        turretLocks.remove(base);
+                        cancel();
+                        return;
+                    }
                         if (lockedTarget.isDead() || !lockedTarget.getWorld().equals(world)) {
+                            turretLocks.remove(base);
                             cancel();
                             return;
                         }
 
-                        Location currentTargetLoc = lockedTarget.getLocation().clone().add(0, 1.2, 0);
 
-                        Vector velocity = currentTargetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                        Vector velocity;
 
+                        if (predictive) {
+                            // Predictive (trackv3) algorithm
+                            Location targetLoc = lockedTarget.getLocation();
+                            targetLoc.setY(targetLoc.getY() + lockedTarget.getHeight() / 2);
+                            Vector R = targetLoc.toVector().subtract(base.toVector());
+                            Vector V = lockedTarget.getVelocity();
+                            UUID targetUUID = lockedTarget.getUniqueId();
+
+                            boolean yDrag = Math.abs(V.getY() + 0.0784) < 0.0001;
+                            boolean xZero = Math.abs(V.getX()) < 0.0001;
+                            boolean zZero = Math.abs(V.getZ()) < 0.0001;
+
+                            if (yDrag && xZero && zZero) {
+                                // Manual ticking fallback
+                                Location last = lastPositions.get(targetUUID);
+                                if (last != null) {
+                                    Vector delta = targetLoc.toVector().subtract(last.toVector());
+                                    V = delta;
+                                } else {
+                                    V = new Vector(0,0,0);
+                                }
+                                lastPositions.put(targetUUID, targetLoc.clone());
+                            } else {
+                                // Normal velocity tracking: clean up manual tracking memory
+                                lastPositions.remove(targetUUID);
+                                if (yDrag && xZero) {
+                                    // Only zero Y if purely falling
+                                    V.setY(0);
+                                }
+                            }
+
+                            double Sm = speed;
+                            double a = V.dot(V) - Sm * Sm;
+                            double b = 2 * R.dot(V);
+                            double c = R.dot(R);
+                            double disc = b * b - 4 * a * c;
+
+                            if (disc < 0 || a == 0) {
+                                // No valid intercept path: fallback to direct tracking
+                                velocity = R.normalize().multiply(Sm);
+                            } else {
+                                double sqrt = Math.sqrt(disc);
+                                double t1 = (-b - sqrt) / (2 * a);
+                                double t2 = (-b + sqrt) / (2 * a);
+                                double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+                                if (t <= 0) {
+                                    velocity = R.normalize().multiply(Sm);
+                                } else {
+                                    Vector intercept = targetLoc.toVector().add(V.clone().multiply(t));
+                                    velocity = intercept.subtract(base.toVector()).normalize().multiply(Sm);
+                                }
+                            }
+                        } else {
+                            // Simple direct tracking
+                            Location currentTargetLoc = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
+                            velocity = currentTargetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                        }
+                        
                         Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
                         proj.setVelocity(velocity);
                         proj.setCustomNameVisible(false);
@@ -1594,7 +1772,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
                 }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, interval);
 
-                return lockedTarget.getUniqueId().toString();
+                return lockedTarget.getUniqueId().toString() + "|" + lockedTarget.getVelocity().toString();
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -2063,8 +2241,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 Location locCaller = caller.getLocation();
                 Location locTarget = target.getLocation();
+                locTarget.setY(locTarget.getY() + target.getHeight() / 2);
                 Vector R = locTarget.toVector().subtract(locCaller.toVector());
                 Vector V = target.getVelocity();
+                // Check for "gravity drag" Y velocity
+                if (Math.abs(V.getY() + 0.0784) < 0.0001) {
+                    V.setY(0);
+                }
+                
                 double Sm = speed;
 
                 double a = V.dot(V) - Sm * Sm;
@@ -4477,6 +4661,188 @@ p.sendMessage("debug1");
             }
 
             return String.valueOf(exactMatches.size());
+        }
+
+
+        if (identifier.startsWith("trackv2.-1_")) {
+            String[] parts = identifier.substring("trackv2.-1_".length()).split(",");
+            if (parts.length != 6) {
+                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage,trackInterval,trackDuration%. You used" + identifier;
+            }
+
+            try {
+                UUID callerUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+                double speed = Double.parseDouble(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[3]);
+                int trackInterval = Integer.parseInt(parts[4]);
+                int trackDuration = Integer.parseInt(parts[5]);
+
+                Entity caller = Bukkit.getEntity(callerUUID);
+                Entity target = Bukkit.getEntity(targetUUID);
+
+                if (caller == null || target == null) {
+                    return "§c§lMissile Impacted"; // No valid entities
+                }
+                if (!caller.getWorld().equals(target.getWorld())) {
+                    return "§c§lMissile Impacted."; // Different worlds
+                }
+
+                Location locCaller = caller.getLocation();
+                Location locTarget = target.getLocation();
+
+                double distance = locCaller.distance(locTarget);
+
+                final Projectile trackedProjectile;
+                if (caller instanceof Projectile) {
+                    trackedProjectile = (Projectile) caller;
+                } else {
+                    return "§c§lMissile is not a projectile.";
+                }
+
+                // Create async tracking task
+                new BukkitRunnable() {
+                    int elapsed = 0;
+
+                    @Override
+                    public void run() {
+                        // Cancel conditions
+                        if (elapsed >= trackDuration) {
+                            manualTrackingPositions.remove(target.getUniqueId());
+                            cancel();
+                            return;
+                        }
+                        if (trackedProjectile.isDead() || !trackedProjectile.isValid()) {
+                            manualTrackingPositions.remove(target.getUniqueId());
+                            cancel();
+                            return;
+                        }
+                        if (target.isDead() || !target.isValid()) {
+                            manualTrackingPositions.remove(target.getUniqueId());
+                            cancel();
+                            return;
+                        }
+                        if (!target.getWorld().equals(trackedProjectile.getWorld())) {
+                            manualTrackingPositions.remove(target.getUniqueId());
+                            cancel();
+                            return;
+                        }
+
+                        Location locCaller = trackedProjectile.getLocation();
+                        // Target midsection
+                        Location locTarget = target.getLocation().clone().add(0, target.getHeight() / 4
+                                , 0);
+
+                        Vector R;
+                        Vector V = target.getVelocity();
+
+                        
+                        if(Math.abs(V.getY() + 0.0784) < 0.0001) V.setY(0);
+                        // Check for gravity drag Y velocity (~ -0.0784) and no X/Z movement
+                        if (Math.abs(V.getY() + 0.0784) < 0.0001 && Math.abs(V.getX()) < 0.0001 && Math.abs(V.getZ()) < 0.0001) {
+                            // Use manual tracking fallback
+                            Vector lastPos = manualTrackingPositions.get(target.getUniqueId());
+                            if (lastPos != null) {
+                                R = lastPos.subtract(locCaller.toVector());
+                            } else {
+                                manualTrackingPositions.put(target.getUniqueId(), locTarget.toVector());
+                                R = locTarget.toVector().subtract(locCaller.toVector());
+                            }
+                        } else {
+                            // Clear manual tracking since target is moving
+                            manualTrackingPositions.remove(target.getUniqueId());
+                            R = locTarget.toVector().subtract(locCaller.toVector());
+                        }
+
+                        double Sm = speed;
+                        double a = V.dot(V) - Sm * Sm;
+                        double b = 2 * R.dot(V);
+                        double c = R.dot(R);
+
+                        double discriminant = b * b - 4 * a * c;
+                        Vector velocity;
+
+                        if (discriminant < 0 || a == 0) {
+                            velocity = R.normalize().multiply(Sm);
+                        } else {
+                            double sqrtDisc = Math.sqrt(discriminant);
+                            double t1 = (-b - sqrtDisc) / (2 * a);
+                            double t2 = (-b + sqrtDisc) / (2 * a);
+                            double t;
+                            if (t1 > 0 && t2 > 0) {
+                                t = Math.min(t1, t2);
+                            } else if (t1 > 0) {
+                                t = t1;
+                            } else if (t2 > 0) {
+                                t = t2;
+                            } else {
+                                velocity = R.normalize().multiply(Sm);
+                                trackedProjectile.setVelocity(velocity);
+                                elapsed += trackInterval;
+                                return;
+                            }
+
+                            Vector intercept = locTarget.toVector().add(V.clone().multiply(t));
+                            velocity = intercept.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                        }
+
+                        // Terrain Avoidance: Raytrace 5 ticks ahead
+                        Location rayStart = locCaller.clone();
+                        Vector rayDir = velocity.clone().normalize();
+                        double rayLength = velocity.length() * 5;
+
+                        RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
+                                rayStart,
+                                rayDir,
+                                rayLength,
+                                FluidCollisionMode.NEVER,
+                                true
+                        );
+
+                        Set<Material> passThrough = getPassThroughMaterials(); // Make sure you have this helper
+                        boolean needsAvoidance = result != null && result.getHitBlock() != null &&
+                                !passThrough.contains(result.getHitBlock().getType());
+
+                        if (needsAvoidance) {
+                            Vector bestVelocity = velocity;
+                            double bestScore = -1;
+                            for (int pitch = 0; pitch <= 90; pitch += 5) {
+                                Vector pitched = pitchVectorUpwards(velocity.clone(), Math.toRadians(pitch)).normalize().multiply(Sm);
+                                Vector pitchedDir = pitched.clone().normalize();
+                                RayTraceResult testResult = rayStart.getWorld().rayTraceBlocks(
+                                        rayStart,
+                                        pitchedDir,
+                                        pitched.length() * 5,
+                                        FluidCollisionMode.NEVER,
+                                        true
+                                );
+                                boolean clear = testResult == null || testResult.getHitBlock() == null ||
+                                        passThrough.contains(testResult.getHitBlock().getType());
+                                if (clear) {
+                                    double angleCost = pitch;
+                                    double score = 100 - angleCost;
+                                    if (score > bestScore) {
+                                        bestScore = score;
+                                        bestVelocity = pitched;
+                                    }
+                                }
+                            }
+                            velocity = bestVelocity;
+                        }
+
+                        trackedProjectile.setVelocity(velocity);
+                        elapsed += trackInterval;
+                    }
+
+                }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, trackInterval);
+
+                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
+                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§lMissile Impacted";
+            }
         }
 
         if (identifier.startsWith("repeatingParticleText_")) {
