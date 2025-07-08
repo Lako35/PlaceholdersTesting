@@ -1,7 +1,6 @@
 package org.example;
 
 
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -24,11 +23,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.ssomar.score.utils.emums.VariableType;
 import com.ssomar.score.variables.Variable;
 import com.ssomar.score.variables.VariableForEnum;
@@ -57,7 +51,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarStyle;
@@ -93,29 +86,29 @@ import java.util.stream.Stream;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
-    private final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
+    protected final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
 
 
-    private static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
 
-    private final File g1;
-    private final YamlConfiguration g2;
+    protected final File g1;
+    protected final YamlConfiguration g2;
 
-    private final Map<Location, BukkitTask> g3 = new HashMap<>();
-    private final Map<Location, Integer> g4 = new HashMap<>();
+    protected final Map<Location, BukkitTask> g3 = new HashMap<>();
+    protected final Map<Location, Integer> g4 = new HashMap<>();
 
-    private boolean WorldEdit_Installed = false;
-    private boolean WorldGuard_Installed = false;
-    private boolean LuckPerms_Installed = false;
-    private boolean ProtocolLib_Installed = false;
-    private boolean GriefPrevention_Installed = false;
+    protected boolean WorldEdit_Installed = false;
+    protected boolean WorldGuard_Installed = false;
+    protected boolean LuckPerms_Installed = false;
+    protected boolean ProtocolLib_Installed = false;
+    protected boolean GriefPrevention_Installed = false;
 
-    private boolean SCore_Installed = false;
-    private int g5;
+    protected boolean SCore_Installed = false;
+    protected int g5;
 
 
 
-    private final Set<Material> enumSet = EnumSet.of(
+    protected final Set<Material> enumSet = EnumSet.of(
             Material.ACTIVATOR_RAIL,
             Material.AIR,
             Material.BAMBOO,
@@ -280,36 +273,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static final boolean g6 = false;
+    protected static final boolean g6 = false;
 
 
-    private final Map<UUID, BukkitTask> g7 = new HashMap<>();
+    protected final Map<UUID, BukkitTask> g7 = new HashMap<>();
 
-    private static final Map<String, ffs> g8 = new HashMap<>();
-    private static final long g9 = 1000 * 60 * 60; // 1 hour
-    private static final File g10 = new File("plugins/Archistructures/particles");
-
-
-    private final Map<Location, BukkitTask> g11 = new HashMap<>();
-
-    private final File g12;
-    private final File g13;
-    private final File g14;
-    private final File g15;
-    private final File g16;
-    private final YamlConfiguration g17;
-    private final YamlConfiguration g18;
-    private final Map<Location, BlockData> g19 = new HashMap<>();
-    private final YamlConfiguration g20;
+    protected static final Map<String, ffs> g8 = new HashMap<>();
+    protected static final long g9 = 1000 * 60 * 60; // 1 hour
+    protected static final File g10 = new File("plugins/Archistructures/particles");
 
 
+    protected final Map<Location, BukkitTask> g11 = new HashMap<>();
 
-    private final File g21;
-    private final Map<UUID, Integer> g22;
-    private final LuckPerms g23;
+    protected final File g12;
+    protected final File g13;
+    protected final File g14;
+    protected final File g15;
+    protected final File g16;
+    protected final YamlConfiguration g17;
+    protected final YamlConfiguration g18;
+    protected final Map<Location, BlockData> g19 = new HashMap<>();
+    protected final YamlConfiguration g20;
 
-    private final Map<UUID, Set<Location>> g24 = new HashMap<>();
-    private final Set<Material> g25 = Set.of(
+
+
+    protected final File g21;
+    protected final Map<UUID, Integer> g22;
+    protected final LuckPerms g23;
+
+    protected final Map<UUID, Set<Location>> g24 = new HashMap<>();
+    protected final Set<Material> g25 = Set.of(
             Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE,
             Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE,
             Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE,
@@ -319,8 +312,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE,
             Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE,
             Material.ANCIENT_DEBRIS);
-    private final Map<Location, BukkitTask> g26 = new HashMap<>();
-    private final char[] g27 = new char[] {
+    protected final Map<Location, BukkitTask> g26 = new HashMap<>();
+    protected final char[] g27 = new char[] {
             0x00A7, 0x0063, 0x00A7, 0x006C, 0x0059, 0x006F, 0x0075, 0x0020,
             0x0068, 0x0061, 0x0076, 0x0065, 0x0020, 0x0065, 0x0078, 0x0063,
             0x0065, 0x0065, 0x0064, 0x0065, 0x0064, 0x0020, 0x0074, 0x0068,
@@ -344,7 +337,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     };
 
 
-    private String g28;
+    protected String g28;
 
 
     public ExampleExpansion() {
@@ -504,7 +497,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return null;
     }
 
-    private void f1(UUID x) {
+    protected void f1(UUID x) {
         if (!g22.containsKey(x)) {
             g22.put(x, 1); // First-time entry
         } else {
@@ -514,7 +507,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f1() {
+    protected void f1() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(g21))) {
             for (Map.Entry<UUID, Integer> entry : g22.entrySet()) {
                 writer.write(entry.getKey() + ":" + entry.getValue());
@@ -526,7 +519,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private String f1(Player f1) {
+    protected String f1(Player f1) {
         // Ensure player is holding a written book
         ItemStack item = f1.getInventory().getItemInMainHand();
         if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
@@ -609,7 +602,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
      */
-    private void f1(User f1, List<String> f2) {
+    protected void f1(User f1, List<String> f2) {
         Set<String> totalPerms = new HashSet<>();
         String basePath = "plugins/ExecutableItems/items/";
 
@@ -632,7 +625,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Recursively finds .yml files, extracts names (excluding .yml), and adds them to totalPerms.
      */
-    private void f1(File f1, Set<String> f2) {
+    protected void f1(File f1, Set<String> f2) {
         File[] files = f1.listFiles();
         if (files == null) return;
 
@@ -649,7 +642,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Get the next available coordinates in a chunk-efficient manner
      */
-    private int[] f1(World f1) {
+    protected int[] f1(World f1) {
         int chunkX = 5;  // Fixed X-coordinate (do not change)
         int chunkZ = g18.getInt("last_chunk_z", 0);
         int xIndex = 0;
@@ -692,7 +685,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the database configuration
      */
-    private void f2() {
+    protected void f2() {
         try {
             g18.save(g14);
         } catch (IOException e) {
@@ -704,7 +697,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the database configuration for double chests
      */
-    private void f3() {
+    protected void f3() {
         try {
             g17.save(g15);
         } catch (IOException e) {
@@ -715,7 +708,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the contents of the backpack chest
      */
-    private void f1(String f1, ItemStack[] f2) {
+    protected void f1(String f1, ItemStack[] f2) {
         File file = new File(g13, f1 + ".yml");
         YamlConfiguration config = new YamlConfiguration();
         for (int i = 0; i < f2.length; i++) {
@@ -731,7 +724,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Load the contents of the backpack chest
      */
-    private ItemStack[] f1(String f1) {
+    protected ItemStack[] f1(String f1) {
         File file = new File(g13, f1 + ".yml");
         if (!file.exists()) return null;
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -746,7 +739,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Get the next available coordinates in a chunk-efficient manner for double chests
      */
-    private int[] f2(World f1) {
+    protected int[] f2(World f1) {
         int chunkX = 6;  // Fixed X-coordinate (do not change)
         int chunkZ = g18.getInt("last_chunk_z", 0);
         int xIndex = 0;
@@ -793,7 +786,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Save the contents of the double chest
      */
-    private void f2(String f1, ItemStack[] f2) {
+    protected void f2(String f1, ItemStack[] f2) {
         File file = new File(g13, f1 + ".yml");
         YamlConfiguration config = new YamlConfiguration();
         for (int i = 0; i < f2.length; i++) {
@@ -811,7 +804,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Load the contents of the double chest
      */
-    private ItemStack[] f(String f) {
+    protected ItemStack[] f(String f) {
         File file = new File(g13, f + ".yml");
         if (!file.exists()) return null;
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
@@ -825,7 +818,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Convert all blocks within the radius to falling entities while preserving block states and orientations
      */
-    private void f1(World f1, Location f, int f2) {
+    protected void f1(World f1, Location f, int f2) {
         int cx = f.getBlockX();
         int cy = f.getBlockY();
         int cz = f.getBlockZ();
@@ -870,7 +863,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Attract entities towards the black hole center
      */
-    private void f2(World f1, Location f2, int f3) {
+    protected void f2(World f1, Location f2, int f3) {
 
 
         for (Entity entity : f1.getNearbyEntities(f2, f3, f3, f3)) {
@@ -912,7 +905,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * <p>
      * Debug messages are sent to the player.
      */
-    private ItemStack f1(ItemStack f1) {
+    protected ItemStack f1(ItemStack f1) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
         config.set("slot0", f1);
@@ -971,7 +964,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack f0() {
+    protected ItemStack f0() {
         YamlConfiguration config = new YamlConfiguration();
 
 
@@ -1002,7 +995,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private String f1(String f1, int f2, List<UUID> f3) {
+    protected String f1(String f1, int f2, List<UUID> f3) {
         // Step 1: Get the last UUID from the list
         UUID lastUUID = f3.getLast();
         Entity lastEntity = Bukkit.getEntity(lastUUID);
@@ -1063,7 +1056,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Displays a particle cube at the specified location.
      */
-    private void f1(World f1, double f2, double f, double f0, String xd, double a, boolean b, int c, Player d) {
+    protected void f1(World f1, double f2, double f, double f0, String xd, double a, boolean b, int c, Player d) {
         double halfWidth = a / 2.0;
         Particle particle = Particle.valueOf(xd.toUpperCase());
 
@@ -1101,7 +1094,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         f1(d, particle, corners[0], corners[1], corners[2], corners[3], c, b); // Bottom Face
     }
 
-    private void f1(Player a, Particle aa, Location aaa, Location aaaa, Location f1, Location t0, int ff, boolean test) {
+    protected void f1(Player a, Particle aa, Location aaa, Location aaaa, Location f1, Location t0, int ff, boolean test) {
         for (int i = 1; i < ff; i++) {
             double t = (double) i / ff;
 
@@ -1116,14 +1109,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private Location f1(Location f1, Location f0, double f2) {
+    protected Location f1(Location f1, Location f0, double f2) {
         double x = f1.getX() + (f0.getX() - f1.getX()) * f2;
         double y = f1.getY() + (f0.getY() - f1.getY()) * f2;
         double z = f1.getZ() + (f0.getZ() - f1.getZ()) * f2;
         return new Location(f1.getWorld(), x, y, z);
     }
 
-    private void f1(Player a, Particle b, Location c, Location d, int f1, boolean test) {
+    protected void f1(Player a, Particle b, Location c, Location d, int f1, boolean test) {
         World world = c.getWorld();
         if (world == null) return;
 
@@ -1438,7 +1431,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         elapsed += trackInterval;
                     }
 
-                    private Set<Material> getPassThroughMaterials() {
+                    protected Set<Material> getPassThroughMaterials() {
                         return EnumSet.of(
                                 Material.ACTIVATOR_RAIL,
                                 Material.AIR,
@@ -3399,82 +3392,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("nearestPlayerNotTeam2_")) {
-            if (!f1(f2, "WorldGuard")) return null;
-
-            String params = f1.substring("nearestPlayerNotTeam2_".length());
-            String[] parts = params.split(",");
-
-            if (parts.length != 6) {
-                return "?";
-            }
-
-            String teamName = parts[0];
-            int radius;
-            String worldName = parts[2];
-            double x, y, z;
-
-            try {
-                radius = Integer.parseInt(parts[1]);
-                x = Double.parseDouble(parts[3]);
-                y = Double.parseDouble(parts[4]);
-                z = Double.parseDouble(parts[5]);
-            } catch (NumberFormatException e) {
-                return "?";
-            }
-
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "?";
-            }
-
-            Location origin = new Location(world, x, y, z);
-
-            // Get the specified team from the scoreboard
-            Team team = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard().getTeam(teamName);
-            if (team == null) {
-                return "?";
-            }
-
-            Player nearestPlayer = null;
-            double nearestDistance = Double.MAX_VALUE;
-
-            for (Player target : world.getPlayers()) {
-                // Skip players on the specified team
-                if (team.hasEntry(target.getName())) {
-                    continue;
-                }
-
-                // Check if player is inside a region that includes "criminalbase" in its ID
-                Location loc = target.getLocation();
-                com.sk89q.worldedit.util.Location wgLoc = BukkitAdapter.adapt(loc);
-                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-                RegionManager regions = container.get(BukkitAdapter.adapt(world));
-
-                if (regions == null) {
-                    continue;
-                }
-
-                ApplicableRegionSet set = regions.getApplicableRegions(wgLoc.toVector().toBlockPoint());
-                boolean inCriminalBase = set.getRegions().stream()
-                        .anyMatch(r -> r.getId().toLowerCase().contains("criminalbase"));
-
-                if (!inCriminalBase) {
-                    continue;
-                }
-
-                // Calculate distance
-                double distance = origin.distance(loc);
-                if (distance <= radius && distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestPlayer = target;
-                }
-            }
-
-            if (nearestPlayer != null) {
-                return nearestPlayer.getUniqueId().toString();
-            }
-
-            return "?";
+            return WG.wg(this, f2, f1);
         }
 
 
@@ -5407,37 +5325,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("countPlayersInRegion_")) {
 
-            if (!f1(f2, "worldguard")) return "§cInstall worldguard...";
-            try {
-                String[] parts = f1.substring("countPlayersInRegion_".length()).split(",");
-                if (parts.length != 2) return "§cError";
-
-                String regionName = parts[0];
-                String worldName  = parts[1];
-
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) return "-1";
-
-                RegionManager manager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
-                if (manager == null || !manager.hasRegion(regionName)) return "-1";
-
-                ProtectedRegion region = manager.getRegion(regionName);
-                if (region == null) return "-1";
-
-                int count = 0;
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!player.getWorld().getName().equals(worldName)) continue;
-
-                    Location loc = player.getLocation();
-                    if (region.contains(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())) {
-                        count++;
-                    }
-                }
-
-                return String.valueOf(count);
-            } catch (Exception e) {
-                return "§cError";
-            }
+            return WG.wg2(this, f2, f1);
         }
 
 
@@ -5602,7 +5490,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     }
 
-    private void f1(File f1, String f2) {
+    protected void f1(File f1, String f2) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
             writer.write(f2);
         } catch (IOException e) {
@@ -5610,7 +5498,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private String f1(File f1) {
+    protected String f1(File f1) {
         try (BufferedReader reader = new BufferedReader(new FileReader(f1))) {
             StringBuilder nbtData = new StringBuilder();
             String line;
@@ -5625,7 +5513,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f2(Player f1) {
+    protected void f2(Player f1) {
         ItemStack itemInHand = f1.getInventory().getItemInMainHand();
 
         if (itemInHand.getType() == Material.AIR) {
@@ -5639,7 +5527,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         droppedItem.setPickupDelay(20);
     }
 
-    private void f1(Player f1, Location f2) {
+    protected void f1(Player f1, Location f2) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
         packet.getBlockPositionModifier().write(0, new BlockPosition(
                 f2.getBlockX(),
@@ -5656,7 +5544,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private Vector f1(Entity f1, Entity f2, double f0) {
+    protected Vector f1(Entity f1, Entity f2, double f0) {
         Location ff = f1.getLocation();
         Location f01 = f2.getLocation().add(0, f2.getHeight() / 2, 0);
 
@@ -5716,7 +5604,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Determines if the missile is stuck in front of the target's movement direction (within 2-3 degrees).
      */
-    private boolean x(Location y, Location z, Vector f1) {
+    protected boolean x(Location y, Location z, Vector f1) {
         if (f1.lengthSquared() == 0) return false; // Target is stationary
 
         Vector f2 = y.toVector().subtract(z.toVector()).normalize();
@@ -5727,7 +5615,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return g31 < 3.0; // Within 3 degrees = missile stuck in front
     }
 
-    private void f1(Firework f1, Entity f, UUID f2, String f0) {
+    protected void f1(Firework f1, Entity f, UUID f2, String f0) {
         if (f1 == null || f1.isDead() || !f1.isValid()) return;
 
         f1.teleport(f.getLocation());
@@ -5756,7 +5644,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
 
-    private void f1(UUID f1, Location g30, float f) {
+    protected void f1(UUID f1, Location g30, float f) {
         Player f0 = Bukkit.getPlayer(f1);
         if (f0 == null) return; // Launcher is offline or invalid
 
@@ -5780,7 +5668,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private float f(Firework firework) {
+    protected float f(Firework firework) {
         FireworkMeta meta = firework.getFireworkMeta();
 
         // Count the number of firework stars
@@ -5795,7 +5683,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return 0.5F * fireworkStars; // Closer to vanilla damage
     }
 
-    private void f1(World f1, Location f) {
+    protected void f1(World f1, Location f) {
         Firework firework = f1.spawn(f, Firework.class);
         FireworkMeta meta = firework.getFireworkMeta();
 
@@ -5824,7 +5712,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void g23() {
+    protected void g23() {
         if (!g21.exists()) return;
 
         try (BufferedReader f1 = new BufferedReader(new FileReader(g21))) {
@@ -5843,7 +5731,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f3(Player f1) {
+    protected void f3(Player f1) {
         try {
             List<Map.Entry<UUID, Integer>> sortedList = new ArrayList<>(g22.entrySet());
 
@@ -5879,7 +5767,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f1(Player f2, int f1, int f) {
+    protected void f1(Player f2, int f1, int f) {
         World world = f2.getWorld();
         Location playerLoc = f2.getLocation();
         UUID playerUUID = f2.getUniqueId();
@@ -5926,14 +5814,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean f1(Block f1) {
+    protected boolean f1(Block f1) {
         return f1.getType() != Material.AIR
                 && f1.getType() != Material.WATER
                 && f1.getType() != Material.LAVA
                 && !g25.contains(f1.getType());
     }
 
-    private List<Vector> f1(boolean[][] f1, int f, double f0, double test) {
+    protected List<Vector> f1(boolean[][] f1, int f, double f0, double test) {
         List<Vector> vectors = new ArrayList<>();
 
         int height = f1.length;
@@ -5964,7 +5852,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static boolean[][] f11(String f1) {
+    protected static boolean[][] f11(String f1) {
         Font font = new Font("Dialog", Font.PLAIN, 16);
         BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
@@ -5990,7 +5878,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return matrix;
     }
 
-    private static List<Location> f1(Location f1, List<Vector> f11) {
+    protected static List<Location> f1(Location f1, List<Vector> f11) {
         List<Location> result = new ArrayList<>();
         for (Vector v : f11) {
             result.add(f1.clone().add(v));
@@ -5998,7 +5886,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return result;
     }
 
-    private void f1(Location f1, List<Location> f, Particle particle, String g30) {
+    protected void f1(Location f1, List<Location> f, Particle particle, String g30) {
         boolean isForce = g30.equalsIgnoreCase("force");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -6012,7 +5900,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private static void f1(File f1, List<Vector> f) throws IOException {
+    protected static void f1(File f1, List<Vector> f) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
             for (Vector v : f) {
                 writer.write(v.getX() + "," + v.getY() + "," + v.getZ());
@@ -6021,7 +5909,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private static List<Vector> f(File f1) throws IOException {
+    protected static List<Vector> f(File f1) throws IOException {
         List<Vector> vectors = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(f1))) {
             String line;
@@ -6036,7 +5924,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return vectors;
     }
 
-    private String f12(String f) {
+    protected String f12(String f) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(f.getBytes(StandardCharsets.UTF_8));
@@ -6049,13 +5937,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
 
-    private static String ffa(String text) {
+    protected static String ffa(String text) {
         return Base64.getUrlEncoder().encodeToString(text.getBytes());
     }
 
-    private record ffs(List<Location> locations, long timestamp) {}
+    protected record ffs(List<Location> locations, long timestamp) {}
 
-    private void f1fs(String fullKey) {
+    protected void f1fs(String fullKey) {
         // Cancel and reschedule the cache removal in 1 minute
         Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
                 () -> g8.remove(fullKey), 20L * 60); // 60 seconds
@@ -6063,7 +5951,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     @SuppressWarnings("deprecation")
-    private BufferedImage f9(String playerIdOrUuid) throws IOException {
+    protected BufferedImage f9(String playerIdOrUuid) throws IOException {
         String uuid = playerIdOrUuid;
 
         // Step 1: Convert username to UUID if needed
@@ -6095,11 +5983,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static final int ffff = 64;
-    private static final int aaaa = 64;
+    protected static final int ffff = 64;
+    protected static final int aaaa = 64;
 
     record f123(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
-    private f123 f1(BufferedImage skin) {
+    protected f123 f1(BufferedImage skin) {
         java.awt.Color[][] base = new java.awt.Color[aaaa][ffff];
         java.awt.Color[][] overlay = new java.awt.Color[aaaa][ffff];
 
@@ -6121,7 +6009,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private java.awt.Color f1(int argb) {
+    protected java.awt.Color f1(int argb) {
         int alpha = (argb >> 24) & 0xFF;
         int red   = (argb >> 16) & 0xFF;
         int green = (argb >> 8) & 0xFF;
@@ -6131,7 +6019,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void f1(World f1, Location f, Material f0, int ff) {
+    protected void f1(World f1, Location f, Material f0, int ff) {
         for (int dx = 0; dx < ff; dx++) {
             for (int dy = 0; dy < ff; dy++) {
                 for (int dz = 0; dz < ff; dz++) {
@@ -6143,10 +6031,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
-    private record g40(Material material, java.awt.Color color) {}
+    protected record g40(Material material, java.awt.Color color) {}
 
 
-    private static final List<g40> g41 = List.of(
+    protected static final List<g40> g41 = List.of(
             // === CONCRETES ===
             new g40(Material.WHITE_CONCRETE, new java.awt.Color(207, 213, 214)),
             new g40(Material.LIGHT_GRAY_CONCRETE, new java.awt.Color(125, 125, 115)),
@@ -6249,7 +6137,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private Material f1(java.awt.Color f1) {
+    protected Material f1(java.awt.Color f1) {
         return g41.stream()
                 .min(Comparator.comparingDouble(p -> f1(f1, p.color())))
                 .map(g40::material)
@@ -6257,13 +6145,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private double f1(java.awt.Color f1, java.awt.Color g30) {
+    protected double f1(java.awt.Color f1, java.awt.Color g30) {
         int dr = f1.getRed() - g30.getRed();
         int dg = f1.getGreen() - g30.getGreen();
         int db = f1.getBlue() - g30.getBlue();
         return Math.sqrt(dr * dr + dg * dg + db * db);
     }
-    private Vector f1(Vector f1, double g29) {
+    protected Vector f1(Vector f1, double g29) {
         double rad = Math.toRadians(g29);
         double cos = Math.cos(rad);
         double sin = Math.sin(rad);
@@ -6272,7 +6160,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return new Vector(x, f1.getY(), z);
     }
 
-    private void f1(Player f1, World f2, BufferedImage a, Location b, int c, String ffa, String ffs) {
+    protected void f1(Player f1, World f2, BufferedImage a, Location b, int c, String ffa, String ffs) {
         double rotation = switch (ffa) {
             case "N" -> 180;
             case "E" -> -90;
@@ -6298,7 +6186,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Left Leg (20,52), 4x12x4
         f1(a, f2, b.clone().add(4, 0, 0), c, 4, rotation, new Point(20, 52));
     }
-    private void f1(BufferedImage f1, World f12, Location continued, int returned, double test) {
+    protected void f1(BufferedImage f1, World f12, Location continued, int returned, double test) {
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
                 for (int z = 0; z < 8; z++) {
@@ -6323,7 +6211,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private void f1(BufferedImage f1, World test, Location mcydatabase, int archi, int f, double Is, Point q) {
+    protected void f1(BufferedImage f1, World test, Location mcydatabase, int archi, int f, double Is, Point q) {
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < f; x++) {
                 for (int z = 0; z < 4; z++) {
@@ -6344,7 +6232,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean f1(Player f1, String... f) {
+    protected boolean f1(Player f1, String... f) {
         List<String> ff = new ArrayList<>();
 
         for (String name : f) {
@@ -6378,11 +6266,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean f(Material f) {
+    protected boolean f(Material f) {
         return f.isBlock() && f.isSolid(); // optionally refine further
     }
 
-    private ItemStack f1(Inventory f1) {
+    protected ItemStack f1(Inventory f1) {
         for (ItemStack item : f1.getContents()) {
             if (item == null) continue;
             Material mat = item.getType();
@@ -6394,7 +6282,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void f1(Player f1, int test) {
+    protected void f1(Player f1, int test) {
         Location center = f1.getLocation();
         World world = center.getWorld();
         if (world == null) return;
@@ -6439,14 +6327,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack f2(Player f1, int g30) {
+    protected ItemStack f2(Player f1, int g30) {
         if (g30 >= 0 && g30 <= 8) return f1.getInventory().getItem(g30);
         if (g30 >= 9 && g30 <= 35) return f1.getInventory().getItem(g30);
         if (g30 == 40) return f1.getInventory().getItemInOffHand();
         return null;
     }
 
-    private int[] f1(World f1, int f2) {
+    protected int[] f1(World f1, int f2) {
         int chunkZ = g20.getInt("last_chunk_z", 9);
         int y = g20.getInt("last_y", f1.getMinHeight());
 
@@ -6477,7 +6365,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  • ...etc...
      * Falls back to GLASS if something’s unexpected.
      */
-    private Material f1(Material f1) {
+    protected Material f1(Material f1) {
         if (f1 == Material.SHULKER_BOX) {
             return Material.GLASS;
         }
@@ -6497,7 +6385,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  • ...etc...
      * Falls back to SHULKER_BOX if something’s unexpected.
      */
-    private Material f2(Material f1) {
+    protected Material f2(Material f1) {
         if (f1 == Material.GLASS) {
             return Material.SHULKER_BOX;
         }
@@ -6514,7 +6402,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack f1(ItemStack f1, Material fg3) {
+    protected ItemStack f1(ItemStack f1, Material fg3) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
         config.set("slot0", f1);
@@ -6575,7 +6463,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private ItemStack f3(ItemStack recorded, Material test) {
+    protected ItemStack f3(ItemStack recorded, Material test) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
         config.set("slot0", recorded);
@@ -6634,7 +6522,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f9() {
+    protected void f9() {
         try { g2.save(g1); }
         catch(IOException e){ e.printStackTrace(); }
     }
@@ -6644,7 +6532,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Returns true if the player currently has their “Shulker Box” placeholder chest open.
      */
-    private boolean f123(Player f1) {
+    protected boolean f123(Player f1) {
         // 1) Get the open-inventory view
         InventoryView view = f1.getOpenInventory();
         Inventory topInv = view.getTopInventory();
@@ -6676,7 +6564,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private void f1(String f1, String f, int g30) {
+    protected void f1(String f1, String f, int g30) {
         List<Map.Entry<String, Integer>> list = global1.computeIfAbsent(f1, k -> new ArrayList<>());
         list.removeIf(e -> e.getKey().equals(f));
         Map.Entry<String, Integer> newEntry = Map.entry(f, g30);
@@ -6690,18 +6578,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
         list.add(index, newEntry);
     }
 
-    private int f1(String f1, String fone) {
+    protected int f1(String f1, String fone) {
         List<Map.Entry<String, Integer>> list = global1.get(f1);
         if (list == null) return 0;
         return list.stream().filter(e -> e.getKey().equals(fone)).map(Map.Entry::getValue).findFirst().orElse(0);
     }
 
 
-    private boolean fOne(Material fOne) {
+    protected boolean fOne(Material fOne) {
         return !fOne.isSolid() || fOne == Material.STRING || fOne == Material.COBWEB || fOne == Material.WATER || fOne == Material.LAVA || fOne == Material.TALL_GRASS;
     }
 
-    private List<Block> f1(BoundingBox TEST_VARAIBLE, World f1) {
+    protected List<Block> f1(BoundingBox TEST_VARAIBLE, World f1) {
         List<Block> blocks = new ArrayList<>();
         int minX = (int) Math.floor(TEST_VARAIBLE.getMinX());
         int maxX = (int) Math.ceil(TEST_VARAIBLE.getMaxX());
@@ -6722,7 +6610,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private Vector f1racer(Vector from, Vector to, double maxRad) {
+    protected Vector f1racer(Vector from, Vector to, double maxRad) {
         from = from.clone().normalize();
         to = to.clone().normalize();
 
@@ -6745,7 +6633,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void f1(Player entity, String worldName, int distance, int radius, int pitch) {
+    protected void f1(Player entity, String worldName, int distance, int radius, int pitch) {
         World testWorld = Bukkit.getWorld(worldName);
         if (testWorld == null) {
             entity.sendMessage("§cWorld not found.");
@@ -6773,7 +6661,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private Vector pitchVectorUpwards(Vector vec, double radians) {
+    protected Vector pitchVectorUpwards(Vector vec, double radians) {
         double xzLen = Math.sqrt(vec.getX() * vec.getX() + vec.getZ() * vec.getZ());
         double currentPitch = Math.atan2(vec.getY(), xzLen);
         double newPitch = Math.min(Math.PI / 2, currentPitch + radians);
@@ -6789,7 +6677,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private boolean f1(Entity temp, String name, Set<EntityType> number) {
+    protected boolean f1(Entity temp, String name, Set<EntityType> number) {
         if (name.equalsIgnoreCase("Players")) {
             return temp instanceof Player;
         }
@@ -6804,7 +6692,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private boolean f1(Entity player, Set<String> name) {
+    protected boolean f1(Entity player, Set<String> name) {
         for (String attributes : name) {
             if (player.getScoreboardTags().contains(attributes)) return true;
         }
@@ -6812,12 +6700,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean f1(Location laser, Location predicted) {
+    protected boolean f1(Location laser, Location predicted) {
         return laser.getWorld().rayTraceBlocks(laser, predicted.toVector().subtract(laser.toVector()).normalize(), laser.distance(predicted), FluidCollisionMode.NEVER, true) == null;
     }
 
 
-    private void f1(Player entityTarget, UUID tntUUID) {
+    protected void f1(Player entityTarget, UUID tntUUID) {
         OfflinePlayer fakePlayer = Bukkit.getOfflinePlayer(tntUUID);
         if (!fakePlayer.isOnline()) {
             entityTarget.sendMessage("§cTarget player is not online.");
@@ -6841,7 +6729,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private void f2(Player discord, UUID rename) {
+    protected void f2(Player discord, UUID rename) {
         OfflinePlayer fakeTarget = Bukkit.getOfflinePlayer(rename);
         if (!fakeTarget.isOnline()) {
             discord.sendMessage("§cTarget player is not online.");
