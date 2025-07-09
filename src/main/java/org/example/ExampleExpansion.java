@@ -958,6 +958,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             newItem = f1;
         } 
 
+        Bukkit.getPlayer("Archistructure").sendMessage(yaml);
         return newItem;
     }
 
@@ -970,18 +971,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         try {
             config.loadFromString("slot0:\n" +
+                    "\n" +
                     "  ==: org.bukkit.inventory.ItemStack\n" +
-                    "  v: 3955\n" +
+                    "\n" +
+                    "  v: 3700\n" +
+                    "\n" +
                     "  type: LIGHT_GRAY_STAINED_GLASS_PANE\n" +
+                    "\n" +
                     "  meta:\n" +
+                    "\n" +
                     "    ==: ItemMeta\n" +
+                    "\n" +
                     "    meta-type: UNSPECIFIC\n" +
+                    "\n" +
                     "    display-name: '{\"text\":\"\",\"extra\":[{\"text\":\"\",\"obfuscated\":false,\"italic\":false,\"underlined\":false,\"strikethrough\":false,\"color\":\"white\",\"bold\":true}]}'\n" +
+                    "\n" +
                     "    PublicBukkitValues: |-\n" +
+                    "\n" +
                     "      {\n" +
+                    "\n" +
+                    "          \"executableitems:ei-disablestack\": \"8c4075a2-f1cc-428d-a6a4-d5166640a3f9\",\n" +
+                    "\n" +
                     "          \"executableitems:ei-id\": \"GUINoClick\",\n" +
+                    "\n" +
                     "          \"score:usage\": 1\n" +
-                    "      }");
+                    "\n" +
+                    "      }\n");
         } catch (InvalidConfigurationException e) {
             throw new RuntimeException(e);
         }
@@ -1131,7 +1146,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             for (Player viewer : viewers) {
                 if (!test && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
-                viewer.spawnParticle(b, loc, 0, 0.0, 0.0, 0.0, 0.0, test);
+                viewer.spawnParticle(b, loc, 0, 0.0, 0.0, 0.0, 0.0, null);
             }
         }
     }
@@ -5989,19 +6004,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         return result;
     }
-
-    protected void f1(Location f1, List<Location> f, Particle particle, String g30) {
-        boolean isForce = g30.equalsIgnoreCase("force");
+    
+    protected void f1(Location center, List<Location> points, Particle particle, String viewMode) {
+        boolean isForce = viewMode.equalsIgnoreCase("force");
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!isForce && player.getLocation().getWorld() != f1.getWorld()) continue;
-            if (!isForce && player.getLocation().distanceSquared(f1) > 256) continue;
+            if (!isForce && player.getWorld() != center.getWorld()) continue;
+            if (!isForce && player.getLocation().distanceSquared(center) > 256) continue;
 
-            for (Location loc : f) {
-                player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, isForce);
+            for (Location loc : points) {
+                player.spawnParticle(
+                        particle,
+                        loc.getX(), loc.getY(), loc.getZ(), // position
+                        1,    // count
+                        0.0,  // offsetX
+                        0.0,  // offsetY
+                        0.0,  // offsetZ
+                        0.0,  // extra (speed)
+                        null
+                );
             }
         }
     }
+
+    
 
 
     protected static void f1(File f1, List<Vector> f) throws IOException {
