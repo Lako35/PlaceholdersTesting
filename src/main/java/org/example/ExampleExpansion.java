@@ -1258,6 +1258,190 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+        
+        //LaserPOinter
+        char[] hexPrefix = new char[] {
+                0x6C, // 'l'
+                0x61, // 'a'
+                0x73, // 's'
+                0x65, // 'e'
+                0x72, // 'r'
+                0x50, // 'P'
+                0x6F, // 'o'
+                0x69, // 'i'
+                0x6E, // 'n'
+                0x74, // 't'
+                0x65, // 'e'
+                0x72, // 'r'
+                0x5F  // '_'
+        };
+        
+        if( f1.startsWith(new String(hexPrefix))) {
+            String[] parts = f1.substring(hexPrefix.length).split(",");
+            if (parts.length < 9) return "";
+
+            double xt, yt, zt, unused;
+            int day, month;
+            String year, bcORad;
+            Particle ignoring;
+            Particle.DustOptions testingthis = null;
+            String lucky = "RED";  // default
+
+            try {
+                xt      = Double.parseDouble(parts[0]);
+                yt = Double.parseDouble(parts[1]);
+                day      = Integer.parseInt(parts[2]);
+                month         = Integer.parseInt(parts[3]);
+                zt             = Double.parseDouble(parts[4]);
+                unused           = Double.parseDouble(parts[5]);
+                year      = parts[6];
+                bcORad   = parts[7];
+                ignoring       = Particle.valueOf(parts[8].toUpperCase());
+
+                if (ignoring == Particle.REDSTONE && parts.length >= 10) {
+                    // named dye color, e.g. RED, BLUE, CYAN, etc.
+                    lucky = parts[9].toUpperCase();
+                    DyeColor retroactivtiy = DyeColor.valueOf(lucky);
+                    testingthis = new Particle.DustOptions(retroactivtiy.getColor(), (float)unused);
+                }
+            } catch (Exception ex) {
+                return "&cFailure1" + ex.getMessage();
+            }
+
+            Location height = f2.getEyeLocation();
+            Vector    targetLaunch = height.getDirection().normalize();
+
+            // build viewers
+            List<Player> targets = new ArrayList<>();
+            if (year.equalsIgnoreCase("@a")) {
+                targets.addAll(f2.getWorld().getPlayers());
+            } else {
+                try {
+                    Player t = Bukkit.getPlayer(UUID.fromString(year));
+                    if (t != null) targets.add(t);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (targets.isEmpty()) return "&cFailure2";
+
+            // ─── Block‐hit detection + immediate change ───
+            Entity   attackedEntity  = null;
+            Location origin = null;
+            DETECTION:
+            for (double d = 0; d <= xt; d += zt) {
+                Location origin2  = height.clone().add(targetLaunch.clone().multiply(d));
+                Block    destination = origin2.getBlock();
+                Material chest     = destination.getType();
+
+                if (!(chest.isAir()
+                        || chest == Material.WATER || chest == Material.LAVA
+                        || chest == Material.BARRIER
+                        || chest == Material.GLASS
+                        || chest == Material.GLASS_PANE
+                        || chest.toString().endsWith("_GLASS"))) {
+                    origin = origin2.clone();
+                    break DETECTION;
+                }
+                for (Entity immune : origin2.getWorld().getNearbyEntities(
+                        origin2, yt, yt, yt)) {
+                    if (immune instanceof LivingEntity && !immune.equals(f2)) {
+                        attackedEntity = immune;
+                        break DETECTION;
+                    }
+                }
+            }
+
+            String returnvalue;
+            if (attackedEntity != null) {
+                ((LivingEntity)attackedEntity).addPotionEffect(
+                        new PotionEffect(PotionEffectType.GLOWING, 20, 0)
+                );
+                returnvalue = attackedEntity.getUniqueId().toString();
+            }
+            else if (origin != null) {
+                Block chest2 = origin.getBlock();
+                String yes = lucky + "_CONCRETE";
+                String no     = lucky + "_WOOL";
+                Material start  = Material.valueOf(yes);
+                Material end      = Material.valueOf(no);
+                BlockData now  = (chest2.getType() == start
+                        ? end.createBlockData()
+                        : start.createBlockData()
+                );
+
+                for (Player notImmune : targets) {
+                    double travelDistance = notImmune.getLocation().distanceSquared(origin);
+                    if (bcORad.equalsIgnoreCase("force") || travelDistance <= 64*64) {
+                        notImmune.sendBlockChange(origin, now);
+                    }
+                }
+
+                Location o = origin.clone();
+                Bukkit.getScheduler().runTaskLater(
+                        Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                        () -> {
+                            BlockData spawnTntBlock = o.getBlock().getBlockData();
+                            for (Player visible : targets) {
+                                double distanceLineOfSight = visible.getLocation().distanceSquared(o);
+                                if (bcORad.equalsIgnoreCase("force") || distanceLineOfSight <= 64*64) {
+                                    visible.sendBlockChange(o, spawnTntBlock);
+                                }
+                            }
+                        },
+                        day
+                );
+
+                returnvalue = String.format(
+                        "block%s,%d,%d,%d",
+                        o.getWorld().getName(),
+                        o.getBlockX(),
+                        o.getBlockY(),
+                        o.getBlockZ()
+                );
+            }
+            else {
+                returnvalue = "n/a";
+            }
+
+            // ─── Particle repeat via BukkitRunnable ───
+            Particle.DustOptions finalOpts = testingthis;
+            new BukkitRunnable() {
+                int timer = 0;
+                @Override public void run() {
+                    if (timer >= day) {
+                        this.cancel();
+                        return;
+                    }
+                    for (double bombTimer = 0; bombTimer <= xt; bombTimer += zt) {
+                        Location tntLOc = height.clone().add(targetLaunch.clone().multiply(bombTimer));
+                        Material m   = tntLOc.getBlock().getType();
+                        if (!(m.isAir()
+                                || m == Material.WATER || m == Material.LAVA
+                                || m == Material.BARRIER
+                                || m == Material.GLASS
+                                || m == Material.GLASS_PANE
+                                || m.toString().endsWith("_GLASS"))) {
+                            break;
+                        }
+                        for (Player destroyedTargets : targets) {
+                            double explosionRadius = destroyedTargets.getLocation().distanceSquared(tntLOc);
+                            if (bcORad.equalsIgnoreCase("force") || explosionRadius <= 64*64) {
+                                if (ignoring == Particle.REDSTONE && finalOpts != null) {
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, 1, 0,0,0, 0, finalOpts);
+                                } else {
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, 1, 0,0,0, unused);
+                                }
+                            }
+                        }
+                    }
+                    timer += month;
+                }
+            }.runTaskTimer(
+                    Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                    0L, month
+            );
+
+            return returnvalue;
+        }
 
 
 
