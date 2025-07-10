@@ -1,6 +1,7 @@
 package org.example;
 import com.comphenix.protocol.ProtocolManager;
 import org.bukkit.block.data.*;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.plugin.PluginManager;
@@ -137,6 +138,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
 
+        if (identifier.equalsIgnoreCase("test1")) {
+            BlockData data = Bukkit.createBlockData(Material.LODESTONE);
+            p.sendBlockChange(p.getLocation().getBlock().getLocation(), data);
+            return "§aSent lodestone block at your feet.";
+        }
+
+        if (identifier.startsWith("cosmicEnchant_"))  return cosmicEnchant(p, identifier);
         if (identifier.startsWith("spawnFakeEntity_")) return fakeEntitySpawn(identifier);
         if (identifier.startsWith("switcher_")) return switcher(identifier);
         if (identifier.startsWith("trackingCompassv2_")) return trackingCompass(p, identifier);
@@ -237,6 +245,86 @@ public class ExampleExpansion extends PlaceholderExpansion {
             case "rayTraceBlockCoords" -> {return Objects.requireNonNull(Objects.requireNonNull("" + p.rayTraceBlocks(30).getHitPosition().getBlockX() + " " + p.rayTraceBlocks(30).getHitPosition().getBlockY() + " " + p.rayTraceBlocks(30).getHitPosition().getBlockZ()  ));}
         }
         return null;
+    }
+
+    private static @NotNull String cosmicEnchant(Player p, @NotNull String identifier) {
+        String[] parts = identifier.substring("cosmicEnchant_".length()).split(",");
+        if (parts.length != 3) return "§cInvalid placeholder format.";
+
+        try {
+            int slot = Integer.parseInt(parts[0]);
+            boolean override = Boolean.parseBoolean(parts[1]);
+            boolean debug = Boolean.parseBoolean(parts[2]);
+
+            Player player = Bukkit.getPlayer(p.getUniqueId());
+            if (player == null) return "§cInvalid player.";
+
+            ItemStack slotItem;
+            // Handle special slots (main hand = -1, offhand = 40, armor slots 39-36)
+            if (slot == -1) {
+                slotItem = player.getInventory().getItemInMainHand();
+            } else if (slot == 40) {
+                slotItem = player.getInventory().getItemInOffHand();
+            } else {
+                slotItem = player.getInventory().getItem(slot);
+            }
+
+            if (slotItem == null || slotItem.getType() == Material.AIR) {
+                return debug ? "§e[DEBUG] No item in specified slot." : "";
+            }
+
+            ItemStack cursorItem = player.getItemOnCursor();
+            if (cursorItem == null || cursorItem.getType() != Material.ENCHANTED_BOOK) {
+                return debug ? "§e[DEBUG] Cursor is not an enchanted book." : "";
+            }
+
+            if (!(cursorItem.getItemMeta() instanceof EnchantmentStorageMeta)) {
+                return debug ? "§e[DEBUG] Cursor item has no enchantments." : "";
+            }
+
+            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) cursorItem.getItemMeta();
+            if (meta.getStoredEnchants().isEmpty()) {
+                return debug ? "§e[DEBUG] Enchanted book has no stored enchantments." : "";
+            }
+
+            Map<Enchantment, Integer> storedEnchants = meta.getStoredEnchants();
+
+            // Step 3: If not overridden, check if any enchant is incompatible
+            if (!override) {
+                for (Enchantment newEnchant : storedEnchants.keySet()) {
+                    if (!newEnchant.canEnchantItem(slotItem)) {
+                        return debug ? "§e[DEBUG] " + newEnchant.getKey().getKey() + " not applicable." : "";
+                    }
+                    for (Enchantment existing : slotItem.getEnchantments().keySet()) {
+                        if (newEnchant.conflictsWith(existing)) {
+                            return debug ? "§e[DEBUG] Conflict: " + newEnchant.getKey().getKey() + " vs " + existing.getKey().getKey() : "";
+                        }
+                    }
+                }
+            }
+
+            // Step 4: Apply all compatible stored enchants
+            ItemMeta slotMeta = slotItem.getItemMeta();
+            for (Map.Entry<Enchantment, Integer> entry : storedEnchants.entrySet()) {
+                slotMeta.addEnchant(entry.getKey(), entry.getValue(), true); // allow unsafe if needed
+            }
+            slotItem.setItemMeta(slotMeta);
+
+            // Update inventory
+            if (slot == -1) {
+                player.getInventory().setItemInMainHand(slotItem);
+            } else if (slot == 40) {
+                player.getInventory().setItemInOffHand(slotItem);
+            } else {
+                player.getInventory().setItem(slot, slotItem);
+            }
+
+            return "§a[✓] Enchants Applied";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "§c[ERROR]";
+        }
     }
 
     private boolean trialCodeCheck(Player p) {
