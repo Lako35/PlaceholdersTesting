@@ -310,11 +310,12 @@ public class ExampleExpansion2 {
                         boolean xZero = Math.abs(V.getX()) < 0.0001;
                         boolean zZero = Math.abs(V.getZ()) < 0.0001;
 
-                        if (yDrag && xZero && zZero) {
+                        if ( xZero && zZero) {
                             Location last = lastPositions.get(targetUUID);
                             if (last != null) {
                                 Vector delta = targetLoc.toVector().subtract(last.toVector());
-                                V = delta;
+                                V = delta.multiply(0.5 );  // Tunable factor: 0.7–0.9 usually best
+                                
                             } else {
                                 V = new Vector(0,0,0);
                             }

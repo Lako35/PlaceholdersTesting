@@ -1,5 +1,6 @@
 package org.example;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import org.bukkit.block.data.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
@@ -28,6 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private final Map<UUID, Double> originalMinecartSpeeds = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitTask> minecartResetTasks = new ConcurrentHashMap<>();
     protected static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
     protected final Map<UUID, Location> lastPositions = new ConcurrentHashMap<>();
     protected final Map<Location, UUID> turretLocks = new ConcurrentHashMap<>();
@@ -138,6 +141,153 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
 
+        if (identifier.startsWith("raminecartBoost_")) {
+            String[] args = identifier.substring("raminecartBoost_".length()).split(",");
+            if (args.length != 3) return "§cInvalid format";
+
+            try {
+                String[] locParts = args[0].split(":");
+                if (locParts.length != 4) return "§cInvalid location";
+
+                World world = Bukkit.getWorld(locParts[0]);
+                if (world == null) return "§cInvalid world";
+
+                double x = Double.parseDouble(locParts[1]);
+                double y = Double.parseDouble(locParts[2]);
+                double z = Double.parseDouble(locParts[3]);
+                double newSpeed = Double.parseDouble(args[1]);
+                long duration = Long.parseLong(args[2]);
+
+                Location center = new Location(world, x, y, z);
+
+                // Find nearest minecart within 2 blocks
+                Minecart closest = world.getNearbyEntities(center, 2, 2, 2).stream()
+                        .filter(e -> e instanceof Minecart)
+                        .map(e -> (Minecart) e)
+                        .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(center)))
+                        .orElse(null);
+
+                if (closest == null) return "§cNo minecart found nearby";
+
+                UUID id = closest.getUniqueId();
+
+                // Save original speed if not already stored
+                originalMinecartSpeeds.putIfAbsent(id, closest.getMaxSpeed());
+
+                // Apply new speed
+                closest.setMaxSpeed(newSpeed);
+
+                // Clear any existing reset task
+                if (minecartResetTasks.containsKey(id)) {
+                    minecartResetTasks.get(id).cancel();
+                    minecartResetTasks.remove(id);
+                }
+
+                // Schedule reset if duration is not -1
+                if (duration != -1) {
+                    BukkitTask resetTask = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                        Double original = originalMinecartSpeeds.remove(id);
+                        if (original != null && closest.isValid()) {
+                            closest.setMaxSpeed(original);
+                        }
+                        minecartResetTasks.remove(id);
+                    }, duration);
+
+                    minecartResetTasks.put(id, resetTask);
+                }
+
+                return "§aBoost applied to " + id;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cError processing boost";
+            }
+        }
+
+        
+        
+/*
+
+        if (identifier.startsWith("minecartSpeed_")) {
+            try {
+                String[] parts = identifier.substring("minecartSpeed_".length()).split(",");
+                if (parts.length != 2) return "§cInvalid format";
+
+                double newSpeed = Double.parseDouble(parts[0]);
+                UUID uuid = UUID.fromString(parts[1]);
+                Entity e = Bukkit.getEntity(uuid);
+
+                if (e == null || !e.isInsideVehicle()) {
+                    return "§cInvalid target or not in vehicle";
+                }
+
+                Vehicle vehicle = (Vehicle) e.getVehicle();
+                if (!(vehicle instanceof Minecart)) {
+                    return "§cEntity is not in a minecart";
+                }
+
+                Minecart minecart = (Minecart) vehicle;
+                double originalSpeed = minecart.getMaxSpeed();
+
+                minecart.setMaxSpeed(newSpeed);
+
+                return originalSpeed + " | " + newSpeed;
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return "§cError: " + ex.getClass().getSimpleName();
+            }
+        }
+*/
+
+        if (identifier.startsWith("fakeGlow_")) {
+            if (p == null) return null;
+
+            String[] parts = identifier.substring("fakeGlow_".length()).split(",");
+            if (parts.length != 2) return "§cInvalid args";
+
+            try {
+                UUID srcUUID = UUID.fromString(parts[0]);
+                UUID targetUUID = UUID.fromString(parts[1]);
+
+                Player observer = Bukkit.getPlayer(srcUUID);     // viewer
+                Entity glowingTarget = Bukkit.getEntity(targetUUID);  // glowing entity
+
+                if (observer == null || glowingTarget == null) return "§cEntity not found";
+
+                // Create entity metadata packet
+                PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_METADATA);
+                packet.getIntegers().write(0, glowingTarget.getEntityId());
+
+                WrappedDataWatcher watcher = new WrappedDataWatcher();
+                WrappedDataWatcher.Serializer byteSerializer = WrappedDataWatcher.Registry.get(Byte.class);
+
+                // Metadata index 0 is entity flags. Bitmask: 0x40 = glowing
+                byte flags = 0x40;
+
+                // Set bitmask flag
+                watcher.setObject(0, byteSerializer, flags);
+
+                // Set data
+                packet.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
+
+                // Send packet only to the viewer
+                ProtocolLibrary.getProtocolManager().sendServerPacket(observer, packet);
+                return "§aGlow applied.";
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return "§cError: " + ex.getMessage();
+            }
+        }
+
+       
+        if(identifier.equals("test2")) {
+            if (p == null) return null;
+            Location loc = p.getLocation().getBlock().getLocation().subtract(0,1,0); // Snap to block
+            loc.getBlock().setType(Material.POWERED_RAIL);
+            return "success";
+        }
+        
+        
         if (identifier.equalsIgnoreCase("test1")) {
             BlockData data = Bukkit.createBlockData(Material.LODESTONE);
             p.sendBlockChange(p.getLocation().getBlock().getLocation(), data);
