@@ -108,6 +108,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private final Map<UUID, Double> EI_INSTALLED = new ConcurrentHashMap<>();
+    private final Map<UUID, BukkitTask> EB_INSTALLED = new ConcurrentHashMap<>();
+
+
     protected final Set<Material> enumSet = EnumSet.of(
             Material.ACTIVATOR_RAIL,
             Material.AIR,
@@ -1252,6 +1256,71 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // INSERT HERE 
 
+        
+        //RAminecartBooster
+
+
+        if (f1.startsWith("raminecartBoost_")) {
+            String[] args = f1.substring("raminecartBoost_".length()).split(",");
+            if (args.length != 3) return "§cInvalid format";
+
+            try {
+                String[] ebChecker = args[0].split(":");
+                if (ebChecker.length != 4) return "§cInvalid location";
+
+                World toDeleteWorld = Bukkit.getWorld(ebChecker[0]);
+                if (toDeleteWorld == null) return "§cInvalid world";
+
+                double distanceX = Double.parseDouble(ebChecker[1]);
+                double distanceY = Double.parseDouble(ebChecker[2]);
+                double distanceZ = Double.parseDouble(ebChecker[3]);
+                double missileTurningRadius = Double.parseDouble(args[1]);
+                long flightTime = Long.parseLong(args[2]);
+
+                Location targetCenter = new Location(toDeleteWorld, distanceX, distanceY, distanceZ);
+
+                // Find nearest minecart within 2 blocks
+                Minecart finaltester = toDeleteWorld.getNearbyEntities(targetCenter, 2, 2, 2).stream()
+                        .filter(e -> e instanceof Minecart)
+                        .map(e -> (Minecart) e)
+                        .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(targetCenter)))
+                        .orElse(null);
+
+                if (finaltester == null) return "§cNo minecart found nearby";
+
+                UUID targetEntityUUID = finaltester.getUniqueId();
+
+                // Save original speed if not already stored
+                EI_INSTALLED.putIfAbsent(targetEntityUUID, finaltester.getMaxSpeed());
+
+                // Apply new speed
+                finaltester.setMaxSpeed(missileTurningRadius);
+
+                // Clear any existing reset task
+                if (EB_INSTALLED.containsKey(targetEntityUUID)) {
+                    EB_INSTALLED.get(targetEntityUUID).cancel();
+                    EB_INSTALLED.remove(targetEntityUUID);
+                }
+
+                // Schedule reset if duration is not -1
+                if (flightTime != -1) {
+                    BukkitTask killer = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                        Double newMissile = EI_INSTALLED.remove(targetEntityUUID);
+                        if (newMissile != null && finaltester.isValid()) {
+                            finaltester.setMaxSpeed(newMissile);
+                        }
+                        EB_INSTALLED.remove(targetEntityUUID);
+                    }, flightTime);
+
+                    EB_INSTALLED.put(targetEntityUUID, killer);
+                }
+
+                return "§aBoost applied to " + targetEntityUUID;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cError processing boost";
+            }
+        }
         
         
         //LaserPOinter
