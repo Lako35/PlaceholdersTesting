@@ -356,6 +356,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Toggle Test Mode here 
             // Test 
             // Trial 
+            // SCore_Installed = TRUE = TEST MODE TRUE
             SCore_Installed = true;
             g5 = 1000;
         } else {
@@ -5507,164 +5508,133 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("growCropParticle_")) {
-            try {
-                String[] parts = f1.substring("growCropParticle_".length()).split(",");
-                if (parts.length != 6) {
-                    return "§c[DEBUG] Invalid parameter count: " + parts.length;
-                }
-
-                int radius = Integer.parseInt(parts[0]);
-                String particleInput = parts[1];
-                double dx = Double.parseDouble(parts[2]); // spacing between particles
-                int maxCount = Integer.parseInt(parts[3]);
-                boolean grow = Boolean.parseBoolean(parts[5]); // spacing between particles
-
-
-                String[] locParts = parts[4].split(":");
-                if (locParts.length != 4) {
-                    return "§c[DEBUG] Invalid world:x:y:z format.";
-                }
-
-                World world = Bukkit.getWorld(locParts[0]);
-                if (world == null) {
-                    return "§c[DEBUG] Invalid world: " + locParts[0];
-                }
-
-                double x = Double.parseDouble(locParts[1]);
-                double y = Double.parseDouble(locParts[2]);
-                double z = Double.parseDouble(locParts[3]);
-                Location origin = new Location(world, x, y, z);
-                Location originCenter = origin.clone().add(0.5, 0.5, 0.5);
-
-                List<Block> growableBlocks = new ArrayList<>();
-                int checked = 0;
-                int ageableTotal = 0;
-                int ageableFull = 0;
-                int ageableNotFull = 0;
-
-                for (int dx_ = -radius; dx_ <= radius; dx_++) {
-                    for (int dy_ = -radius; dy_ <= radius; dy_++) {
-                        for (int dz_ = -radius; dz_ <= radius; dz_++) {
-                            Location check = origin.clone().add(dx_, dy_, dz_);
-                            Block block = check.getBlock();
-                            checked++;
-
-                            BlockData data = block.getBlockData();
-                            if (data instanceof Ageable) {
-                                ageableTotal++;
-                                Ageable ageable = (Ageable) data;
-                                if (ageable.getAge() < ageable.getMaximumAge()) {
-                                    ageableNotFull++;
-                                    growableBlocks.add(block);
-                                } else {
-                                    ageableFull++;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (growableBlocks.isEmpty()) {
-                    return String.join("\n",
-                            "§c[DEBUG] No crops found.",
-                            "§6Radius: " + radius,
-                            "§6Origin: " + origin.getWorld().getName() + " " +
-                                    origin.getBlockX() + " " + origin.getBlockY() + " " + origin.getBlockZ(),
-                            "§6Total blocks scanned: " + checked,
-                            "§dAgeable block stats:",
-                            "§7Total Ageable blocks: " + ageableTotal,
-                            "§7Non-full-age: " + ageableNotFull,
-                            "§7Full-age: " + ageableFull
-                    );
-                }
-
-                if (maxCount != -1 && maxCount < growableBlocks.size()) {
-                    Collections.shuffle(growableBlocks);
-                    growableBlocks = growableBlocks.subList(0, maxCount);
-                }
-
-                Particle particle;
-                Particle.DustOptions dustOptions = null;
-                String particleSummary = "";
-
-                if (particleInput.toUpperCase().startsWith("DUST:")) {
-                    try {
-                        String hexScale = particleInput.substring(5);
-                        String hex = hexScale.substring(0, 6);
-                        float scale = Float.parseFloat(hexScale.substring(6));
-                        java.awt.Color c = java.awt.Color.decode("#" + hex);
-                        dustOptions = new Particle.DustOptions(
-                                Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
-                        particle = Particle.DUST;
-                        particleSummary = "§bUsing DUST particle (#" + hex + ", scale " + scale + ")";
-                    } catch (Exception e) {
-                        return "§c[DEBUG] Invalid DUST particle format: " + e.getMessage();
-                    }
-                } else {
-                    try {
-                        particle = Particle.valueOf(particleInput.toUpperCase());
-                        particleSummary = "§bUsing particle: " + particle;
-                    } catch (IllegalArgumentException ex) {
-                        return "§c[DEBUG] Invalid particle type: " + particleInput;
-                    }
-                }
-
-                for (Block b : growableBlocks) {
-                    Location target = b.getLocation().add(0.5, 0.5, 0.5);
-                    Vector toTarget = target.toVector().subtract(originCenter.toVector());
-                    double distance = toTarget.length();
-
-                    if (dx <= 0.0) dx = 0.1;
-                    int steps = (int) Math.floor(distance / dx);
-                    if (steps <= 0) steps = 1;
-
-                    Vector step = toTarget.normalize().multiply(dx);
-                    Location current = originCenter.clone();
-
-                    for (int i = 0; i <= steps; i++) {
-                        if (particle == Particle.DUST && dustOptions != null) {
-                            world.spawnParticle(particle, current, 0, dustOptions);
-                        } else {
-                            world.spawnParticle(particle, current, 0);
-                        }
-                        current.add(step);
-                    }
-
-
-                    if (grow) {
-                        BlockData data = b.getBlockData();
-                        if (data instanceof Ageable ageable) {
-                            int newAge = ageable.getAge() + 1;
-                            if (newAge <= ageable.getMaximumAge()) {
-                                ageable.setAge(newAge);
-                                b.setBlockData(ageable, true);
-                            }
-                        }
-                    }
-                }
-
-                return String.join("\n",
-                        "§a[DEBUG] Rendered particle lines: " + growableBlocks.size(),
-                        "§6Origin: " + origin.getWorld().getName() + " " +
-                                origin.getBlockX() + " " + origin.getBlockY() + " " + origin.getBlockZ(),
-                        "§6Total blocks scanned: " + checked,
-                        "§dAgeable block stats:",
-                        "§7Total Ageable blocks: " + ageableTotal,
-                        "§7Non-full-age: " + ageableNotFull,
-                        "§7Full-age: " + ageableFull,
-                        particleSummary
-                );
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "§c[ERROR] " + e.getClass().getSimpleName() + ": " + e.getMessage();
-            }
-        }
+        if (f1.startsWith("growCropParticle_")) return xD(f1);
 
 
         return null;
 
+    }
+
+    protected static @NotNull String xD(String f1) {
+        try {
+            String[] tester = f1.substring("growCropParticle_".length()).split(",");
+            if (tester.length != 5) {
+                return "§c[DEBUG] Invalid parameter count: " + tester.length;
+            }
+
+            int mutiply = Integer.parseInt(tester[0]);
+            String runner = tester[1];
+            double height = Double.parseDouble(tester[2]); // spacing between particles
+            int temp = Integer.parseInt(tester[3]);
+
+            String[] one = tester[4].split(":");
+            if (one.length != 4) {
+                return "Invalid";
+            }
+
+            World tempWorld = Bukkit.getWorld(one[0]);
+            if (tempWorld == null) {
+                return "Invalid2";
+            }
+
+            double velocityX = Double.parseDouble(one[1]);
+            double velocityY = Double.parseDouble(one[2]);
+            double velocityZ = Double.parseDouble(one[3]);
+            Location targetUUID = new Location(tempWorld, velocityX, velocityY, velocityZ);
+            Location destUUID = targetUUID.clone().add(0.5, 0.5, 0.5);
+
+            List<Block> temporaryVisibleBlocks = new ArrayList<>();
+            int checked = 0;
+            int minDist = 0;
+            int maxdist = 0;
+            int averageDist = 0;
+
+            for (int dm = -mutiply; dm <= mutiply; dm++) {
+                for (int dn = -mutiply; dn <= mutiply; dn++) {
+                    for (int dt = -mutiply; dt <= mutiply; dt++) {
+                        Location hit = targetUUID.clone().add(dm, dn, dt);
+                        Block invisibleBlock = hit.getBlock();
+                        checked++;
+
+                        BlockData tempData = invisibleBlock.getBlockData();
+                        if (tempData instanceof org.bukkit.block.data.Ageable) {
+                            minDist++;
+                            org.bukkit.block.data.Ageable canBeDestroyed = (Ageable) tempData;
+                            if (canBeDestroyed.getAge() < canBeDestroyed.getMaximumAge()) {
+                                averageDist++;
+                                temporaryVisibleBlocks.add(invisibleBlock);
+                            } else {
+                                maxdist++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (temporaryVisibleBlocks.isEmpty()) {
+                return "done";
+            }
+
+            if (temp != -1 && temp < temporaryVisibleBlocks.size()) {
+                Collections.shuffle(temporaryVisibleBlocks);
+                temporaryVisibleBlocks = temporaryVisibleBlocks.subList(0, temp);
+            }
+
+            Particle missileTrail;
+            Particle.DustOptions dustOptions = null;
+            String particleSummary = "";
+
+            if (runner.toUpperCase().startsWith("DUST:")) {
+                try {
+                    String hexScale = runner.substring(5);
+                    String hex = hexScale.substring(0, 6);
+                    float scale = Float.parseFloat(hexScale.substring(6));
+                    java.awt.Color c = java.awt.Color.decode("#" + hex);
+                    dustOptions = new Particle.DustOptions(
+                            Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
+                    missileTrail = Particle.DUST;
+                    particleSummary = "§bUsing DUST particle (#" + hex + ", scale " + scale + ")";
+                } catch (Exception e) {
+                    return "§c[DEBUG] Invalid DUST particle format: " + e.getMessage();
+                }
+            } else {
+                try {
+                    missileTrail = Particle.valueOf(runner.toUpperCase());
+                    particleSummary = "§bUsing particle: " + missileTrail;
+                } catch (IllegalArgumentException ex) {
+                    return "§c[DEBUG] Invalid particle type: " + runner;
+                }
+            }
+
+            for (Block b : temporaryVisibleBlocks) {
+                Location source = b.getLocation().add(0.5, 0.5, 0.5);
+                Vector source2dest = source.toVector().subtract(destUUID.toVector());
+                double distanceSQUARED = source2dest.length();
+
+                if (height <= 0.0) height = 0.1;
+                int particlesCount = (int) Math.floor(distanceSQUARED / height);
+                if (particlesCount <= 0) particlesCount = 1;
+
+                Vector facing = source2dest.normalize().multiply(height);
+                Location destination = destUUID.clone();
+
+                for (int ptfxCount = 0; ptfxCount <= particlesCount; ptfxCount++) {
+                    if (missileTrail == Particle.DUST && dustOptions != null) {
+                        tempWorld.spawnParticle(missileTrail, destination, 0, dustOptions);
+                    } else {
+                        tempWorld.spawnParticle(missileTrail, destination, 0);
+                    }
+                    destination.add(facing);
+                }
+            }
+
+            return ""
+            ;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "§c[ERROR] " + e.getClass().getSimpleName() + ": " + e.getMessage();
+        }
     }
 
     protected void f1(File f1, String f2) {
