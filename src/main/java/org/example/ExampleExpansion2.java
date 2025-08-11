@@ -3813,6 +3813,22 @@ public class ExampleExpansion2 {
                 growableBlocks = growableBlocks.subList(0, maxCount);
             }
 
+            int grownNow = 0;
+            for (Block b : growableBlocks) {
+                BlockData bd = b.getBlockData();
+                if (!(bd instanceof org.bukkit.block.data.Ageable)) continue; // safety
+                org.bukkit.block.data.Ageable a = (org.bukkit.block.data.Ageable) bd;
+                int before = a.getAge();
+                int maxAge = a.getMaximumAge();
+                if (before < maxAge) {
+                    a.setAge(Math.min(before + 1, maxAge));
+                    // If this might ever run async, wrap this call:
+                    // Bukkit.getScheduler().runTask(PLUGIN, () -> b.setBlockData(a, true));
+                    b.setBlockData(a, true); // apply physics to update state properly
+                    grownNow++;
+                }
+            }
+
             Particle particle;
             Particle.DustOptions dustOptions = null;
             String particleSummary = "";
