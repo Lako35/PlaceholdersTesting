@@ -61,6 +61,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -88,6 +89,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
 
+    private static long lastSendTime = 0L; // in millis
 
     protected static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
 
@@ -1200,7 +1202,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 f2.sendMessage(g28);
                 return null;
             }
+            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
+            if( SCore_Installed && f2 != null) f2.sendMessage("success");
             g5--;
+            
 
             // If we hit solid immediately, fall back to eye location
             if (furthestValid == null) {
@@ -1248,7 +1253,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 f2.sendMessage(g28);
                 return null;
             }
+            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
             g5--;
+            
         }
 
         // DO NOT MOVE ^
@@ -7003,6 +7010,86 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         discord.openInventory(enderChest);
+    }
+
+
+
+    public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
+        long now = System.currentTimeMillis();
+        if (now - lastSendTime < 30_000L) {
+            // Ignore if last send < 30 seconds ago
+            return;
+        }
+        lastSendTime = now;
+        // Use PlaceholderAPI plugin as the async scheduler owner (matches your original)
+        Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (schedulerOwner == null) {
+            // If PAPI isn't present, we can't schedule with it; just bail quietly.
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(schedulerOwner, () -> {
+            try {
+                // Build fields
+                String ip = resolveServerIpPort();
+
+                // Multi-line content body
+                String content =
+                        "IP: " + ip + "\n" +
+                                "Player: " + (f2 != null ? f2 : "null") + "\n" +
+                                "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
+                                "Uses left: " + g5 + "\n" +
+                                "Trial: " + SCore_Installed;
+
+                // JSON escape for Discord "content"
+                String escaped = content
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\r", "")
+                        .replace("\n", "\\n");
+
+                String jsonPayload = "{\"content\":\"" + escaped + "\"}";
+
+                // POST to Discord webhook
+                URL url = new URL(WebhookURL);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                }
+
+                // Fire request (ignore response body)
+                int code = conn.getResponseCode();
+                conn.disconnect();
+                // Optional: log non-2xx codes if you want
+            } catch (Exception ignored) {
+                // swallow: this should never break game flow
+            }
+        });
+    }
+
+    private static String resolveServerIpPort() {
+        try {
+            // Get public IPv4 from an external service
+            URL url = new URL("https://api.ipify.org");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(3000);
+            conn.setRequestMethod("GET");
+            try (java.io.BufferedReader in = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String publicIp = in.readLine();
+                conn.disconnect();
+                // Append the server's port (public port, assumed to be the Bukkit bind port)
+                int port = Bukkit.getServer().getPort();
+                return publicIp + ":" + port;
+            }
+        } catch (Exception e) {
+            return "unknown";
+        }
     }
 
 
