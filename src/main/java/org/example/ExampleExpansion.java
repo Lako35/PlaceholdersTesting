@@ -1,10 +1,21 @@
 package org.example;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.google.common.collect.ImmutableList;
+import com.sk89q.worldedit.util.formatting.text.Component;
+import me.clip.placeholderapi.libs.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.dialog.Dialog;
 import org.bukkit.block.data.*;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.EulerAngle;
 import com.comphenix.protocol.PacketType;
@@ -21,14 +32,21 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private final AtomicBoolean demoCmdRegistered = new AtomicBoolean(false);
+
+
     private final Map<UUID, Double> originalMinecartSpeeds = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> minecartResetTasks = new ConcurrentHashMap<>();
     protected static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
@@ -139,8 +157,80 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         if (identifier.startsWith("parseNested_")) identifier = ExampleExpansion2.parseNested(p, identifier);
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        if (identifier.equals("demoScreen")) {
+            Runnable task = () -> {
+                if (demoCmdRegistered.compareAndSet(false, true)) {
+                    Plugin owner = papiPlugin();
+                    if (owner == null) {
+                        if (p != null) p.sendMessage("§cPlaceholderAPI not found as a plugin.");
+                        return;
+                    }
+                    p.sendMessage("debug1");
+
+                    registerRuntimeCommandSimple(owner, "stupid");
+
+                    // Inspect mappings
+                    try {
+                        CommandMap map = getCommandMap();
+                        Field f = map.getClass().getDeclaredField("knownCommands");
+                        f.setAccessible(true);
+                        @SuppressWarnings("unchecked")
+                        Map<String, Command> known = (Map<String, Command>) f.get(map);
+
+                        String prefix = owner.getName().toLowerCase(java.util.Locale.ROOT);
+                        String nsKey = prefix + ":stupid";
+                        boolean plain = known.containsKey("stupid");
+                        boolean namespaced = known.containsKey(nsKey);
+
+                        if (p != null) {
+                            p.sendMessage("§7registered: plain=" + plain + " ns=" + namespaced);
+                            p.sendMessage("§7Try: " + (plain ? "/stupid" : "") + (namespaced ? ("  /" + nsKey) : ""));
+                        }
+                    } catch (Exception ignored) {}
+
+                    // Push command tree to clients
+                    resyncCommands();
+
+                    // Paper-only: updateCommands() (call via reflection so it's safe on Spigot)
+                    if (p != null) {
+                        try { p.getClass().getMethod("updateCommands").invoke(p); } catch (Throwable ignored) {}
+                    }
+
+                    // Optional: improve chat typing suggestions (chat box, not slash UI)
+                    if (p != null) p.addCustomChatCompletions(java.util.List.of("stupid"));
+                } else {
+                    if (p != null) p.sendMessage("debug2");
+                }
+            };
+
+            if (Bukkit.isPrimaryThread()) task.run();
+            else Bukkit.getScheduler().runTask(papiPlugin(), task);
+
+            return "test";
+        }
 
 
+        if (identifier.equals("demoScreen2")) {     // unregister /stupid
+            Runnable task = () -> {
+                try {
+                    CommandMap map = getCommandMap();
+                    unregisterIfPresent(map, "stupid");
+                    resyncCommands();               // refresh client command tree
+                    demoCmdRegistered.set(false);
+                    if (p != null) p.sendMessage("§a/stupid command unregistered.");
+                } catch (Exception e) {
+                    if (p != null) p.sendMessage("§cFailed to unregister: " + e.getMessage());
+                }
+            };
+
+            if (Bukkit.isPrimaryThread()) task.run();
+            else Bukkit.getScheduler().runTask(papiPlugin(), task);
+            p.updateCommands();
+
+            return "";
+        }
+
+        
         if (identifier.startsWith("raminecartBoost_")) {
             String[] args = identifier.substring("raminecartBoost_".length()).split(",");
             if (args.length != 3) return "§cInvalid format";
@@ -670,6 +760,131 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         return true;
+    }
+
+
+
+    private static void registerRuntimeCommandSimple(Plugin owner, String name) {
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        try {
+            CommandMap commandMap = getCommandMap();
+
+            // Wipe any previous entries for safety
+            unregisterIfPresent(commandMap, lower);
+
+            // Build a plain Command (no PluginCommand)
+            Command cmd = new Command(lower) {
+                @Override
+                public boolean execute(CommandSender sender, String label, String[] args) {
+                    if (sender instanceof Player pl) pl.sendMessage("You ran /" + label + " 🎉");
+                    else sender.sendMessage("Players only.");
+                    return true;
+                }
+
+                @Override
+                public java.util.List<String> tabComplete(CommandSender sender, String alias, String[] args) {
+                    return java.util.Arrays.asList("one", "two", "three");
+                }
+            };
+            cmd.setDescription("Runtime command (expansion)");
+
+            String fallbackPrefix = owner.getName().toLowerCase(java.util.Locale.ROOT);
+
+            // Try normal registration first
+            boolean ok = commandMap.register(fallbackPrefix, cmd);
+
+            // Inspect knownCommands
+            Field f = commandMap.getClass().getDeclaredField("knownCommands");
+            f.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Command> known = (Map<String, Command>) f.get(commandMap);
+
+            String nsKey = fallbackPrefix + ":" + lower;
+            boolean hasPlain = known.get(lower) == cmd;
+            boolean hasNs    = known.get(nsKey) == cmd;
+
+            // If neither mapping exists (or only namespaced and you want plain too), force-insert
+            if (!hasPlain) {
+                // Only add plain if there is no collision
+                if (!known.containsKey(lower)) {
+                    known.put(lower, cmd);
+                    hasPlain = true;
+                }
+            }
+            if (!hasNs) {
+                known.put(nsKey, cmd);
+                hasNs = true;
+            }
+
+            owner.getLogger().info("[expansion] /" + lower + " registered ok=" + ok
+                    + " plain=" + hasPlain + " ns=" + hasNs);
+
+        } catch (Exception e) {
+            owner.getLogger().warning("registerRuntimeCommandSimple failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    
+    
+    private static CommandMap getCommandMap() throws Exception {
+        Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+        f.setAccessible(true);
+        return (CommandMap) f.get(Bukkit.getServer());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void unregisterIfPresent(CommandMap commandMap, String name) throws Exception {
+        Field f = commandMap.getClass().getDeclaredField("knownCommands");
+        f.setAccessible(true);
+        Map<String, Command> known = (Map<String, Command>) f.get(commandMap);
+
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+
+        // Try to locate the primary command instance (by plain or namespaced key)
+        Command target = known.get(lower);
+        if (target == null) {
+            for (Map.Entry<String, Command> e : known.entrySet()) {
+                if (e.getKey().endsWith(":" + lower)) {
+                    target = e.getValue();
+                    break;
+                }
+            }
+        }
+
+        final Command finalTarget = target;
+
+        known.entrySet().removeIf(e -> {
+            String key = e.getKey();
+            Command cmd = e.getValue();
+
+            boolean sameInstance = (finalTarget != null && cmd == finalTarget);
+            boolean keyMatches = key.equalsIgnoreCase(lower) || key.endsWith(":" + lower);
+
+            boolean aliasMatch = false;
+            for (String alias : cmd.getAliases()) {
+                String a = alias.toLowerCase(java.util.Locale.ROOT);
+                if (key.equalsIgnoreCase(a) || key.endsWith(":" + a)) {
+                    aliasMatch = true;
+                    break;
+                }
+            }
+
+            return sameInstance || keyMatches || aliasMatch;
+        });
+    }
+
+
+    private static void resyncCommands() {
+        try {
+            Bukkit.getServer().getClass().getMethod("syncCommands").invoke(Bukkit.getServer());
+        } catch (Throwable ignored) {}
+        for (Player pl : Bukkit.getOnlinePlayers()) {
+            try { pl.getClass().getMethod("updateCommands").invoke(pl); } catch (Throwable ignored) {}
+        }
+    }
+    private static Plugin papiPlugin() {
+        return Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     }
 
 

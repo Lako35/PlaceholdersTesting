@@ -38,7 +38,6 @@
         
         -->
 
-
         <dependency>
             <groupId>com.github.GriefPrevention</groupId>
             <artifactId>GriefPrevention</artifactId>

@@ -4952,7 +4952,7 @@ public class ExampleExpansion2 {
 
     protected static @NotNull String getString1(ExampleExpansion exampleExpansion, String identifier) {
         String[] parts = identifier.substring("trackLimitedRotation_".length()).split(",");
-        if (parts.length != 5) {
+        if (parts.length != 6) {
             return "Invalid format. Use: %Archistructure_trackLimitedRotation_uuid,targetuuid,speed,damage,maxDegrees%";
         }
 
@@ -4977,7 +4977,7 @@ public class ExampleExpansion2 {
 
             // Airburst
             if (distance <= 5.0 && caller instanceof Firework) {
-                airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                airburstExplode((Firework) caller, target, launcherUUID, parts[5]);
                 return "§c§lAirburst Detonation!";
             }
 
