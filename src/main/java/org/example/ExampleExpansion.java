@@ -2,6 +2,8 @@ package org.example;
 
 
 import org.bukkit.block.data.*;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.plugin.PluginManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -960,22 +962,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         try {
+
             if (identifier.startsWith("trackImpact_")) {
                 String[] parts = identifier.substring("trackImpact_".length()).split(",");
                 if (parts.length != 7) return "§cInvalid format";
 
-                UUID launcherUUID = UUID.fromString(parts[0]);
-                World world = Bukkit.getWorld(parts[1]);
-                int x = Integer.parseInt(parts[2]);
-                int y = Integer.parseInt(parts[3]);
-                int z = Integer.parseInt(parts[4]);
-                float damage = Float.parseFloat(parts[5]);
-                UUID targetUUID = UUID.fromString(parts[6]);
+                UUID launcherUUID = UUID.fromString(parts[0]);               // {player_uuid}
+                World world = Bukkit.getWorld(parts[1]);                     // %projectile_world%
+                int x = Integer.parseInt(parts[2]);                          // %projectile_x_int%
+                int y = Integer.parseInt(parts[3]);                          // %projectile_y_int%
+                int z = Integer.parseInt(parts[4]);                          // %projectile_z_int%
+                float damage = Float.parseFloat(parts[5]);                   // e.g., 250
+                UUID targetUUID = UUID.fromString(parts[6]);                 // %var_theTarget%
 
+                if (world == null) return "§cInvalid world";
 
                 Location location = new Location(world, x, y, z);
                 spawnCustomFireworkExplosion(world, location);
-                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity((targetUUID)));
+
+                // Damage ONLY the specified target (if in radius); no one else.
+                triggerPlayerHitEvent(launcherUUID, location, damage, targetUUID);
 
                 return "§6Impact triggered.";
             }
@@ -984,41 +990,44 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String[] parts = identifier.substring("trackImpact2_".length()).split(",");
                 if (parts.length != 4) return "§cInvalid format";
 
-                UUID launcherUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                UUID trackedUUID = UUID.fromString(parts[3]);
-                float damage = Float.parseFloat(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[0]);               // {player_uuid}
+                UUID targetUUID   = UUID.fromString(parts[1]);               // %target_uuid%  (== %var_theTarget%)
+                float damage      = Float.parseFloat(parts[2]);              // e.g., 3800
+                UUID ignoredUUID  = UUID.fromString(parts[3]);               // %var_theTarget% (older flow) — not used for damage
 
                 Entity target = Bukkit.getEntity(targetUUID);
                 if (target == null) return "§cTarget not found";
 
                 Location location = target.getLocation();
+                if (location.getWorld() == null) return "§cInvalid world";
+
                 spawnCustomFireworkExplosion(location.getWorld(), location);
-                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(targetUUID));
-                triggerPlayerHitEvent(launcherUUID, location, damage, Bukkit.getEntity(trackedUUID));
+
+                // Damage ONLY the designated target
+                triggerPlayerHitEvent(launcherUUID, location, damage, ignoredUUID);
 
                 return "§eTarget explosion triggered.";
             }
 
             if (identifier.startsWith("track_")) {
                 String[] parts = identifier.substring("track_".length()).split(",");
+                // Expected: %projectile_uuid%,%var_target%,%for2%,%var_owna%,3800%
                 if (parts.length != 5) {
-                    return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + identifier;
+                    return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + identifier;
                 }
 
                 try {
-                    UUID callerUUID = UUID.fromString(parts[0]);
-                    UUID targetUUID = UUID.fromString(parts[1]);
-                    double speed = Double.parseDouble(parts[2]);
-                    UUID launcherUUID = UUID.fromString(parts[3]);
-
+                    UUID callerUUID   = UUID.fromString(parts[0]);   // projectile uuid
+                    UUID targetUUID   = UUID.fromString(parts[1]);   // %var_target%
+                    double speed      = Double.parseDouble(parts[2]);
+                    UUID launcherUUID = UUID.fromString(parts[3]);   // %var_owna%
+                    float damage      = Float.parseFloat(parts[4]);  // e.g., 3800
 
                     Entity caller = Bukkit.getEntity(callerUUID);
                     Entity target = Bukkit.getEntity(targetUUID);
 
-
                     if (caller == null || target == null) {
-                        return "§c§lMissile Impacted"; // No valid target
+                        return "§c§lMissile Impacted"; // No valid target or projectile
                     }
 
                     // Check if both entities are in the same world
@@ -1026,10 +1035,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         return "§c§lMissile Impacted."; // No valid target
                     }
 
-                    // Airburst Mechanic: If within 3 blocks, explode immediately
+                    // Airburst Mechanic: If within 5 blocks and caller is a Firework, detonate
                     double distance = caller.getLocation().distance(target.getLocation());
-                    if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                        airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+                    if (distance <= 5.0 && caller instanceof Firework) {
+                        // Airburst now also damages ONLY the provided target
+                        airburstExplode((Firework) caller, targetUUID, launcherUUID, damage);
                         return "§c§lAirburst Detonation!";
                     }
 
@@ -1166,28 +1176,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return angle < 3.0; // Within 3 degrees = missile stuck in front
     }
 
-    private void airburstExplode(Firework firework, Entity target, UUID launcherUUID, String damage) {
+    /**
+     * Teleports firework to target and explodes visually; damages ONLY the target UUID.
+     */
+    private void airburstExplode(Firework firework, UUID targetUUID, UUID launcherUUID, float damage) {
         if (firework == null || firework.isDead() || !firework.isValid()) return;
 
-        firework.teleport(target.getLocation());
-        World world = firework.getWorld();
-        Location explosionLocation = firework.getLocation();
+        Entity target = Bukkit.getEntity(targetUUID);
+        if (target == null) return;
 
-        // Retrieve explosion power based on firework stars
-        float damage2 = Float.parseFloat(damage);
+        firework.teleport(target.getLocation());
+
+        World world = firework.getWorld();
+        if (world == null) return;
+
+        Location explosionLocation = firework.getLocation();
 
         new BukkitRunnable() {
             @Override
             public void run() {
                 if (!firework.isValid() || firework.isDead()) return;
 
-                // Create the visual firework explosion
+                // Visual explosion
                 spawnCustomFireworkExplosion(world, explosionLocation);
 
-                // Apply explosion damage
-
-                // Trigger a player hit event (simulate firework explosion hitting a player)
-                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage2, target);
+                // Damage ONLY the intended target
+                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage, targetUUID);
 
                 // Remove the original firework
                 firework.remove();
@@ -1195,23 +1209,54 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
 
-    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower, Entity target) {
-        Player launcher = Bukkit.getPlayer(launcherUUID);
-        if (launcher == null) return; // Launcher is offline or invalid
 
-        double explosionRadius = 5.0; // Firework explosion hit radius
 
-        if( target == null ) return;
-        for (Entity entity : Objects.requireNonNull(explosionLocation.getWorld()).getNearbyEntities(explosionLocation, explosionRadius, explosionRadius, explosionRadius)) {
-            if (entity instanceof LivingEntity hitPlayer && target instanceof LivingEntity targetPlayer && hitPlayer.getName().equals(targetPlayer.getName())) {
+    /**
+     * Damages ONLY the entity with UUID == onlyTargetUUID (if within radius).
+     * - If Player has NO armor: apply large VOID damage (bypass totems / instant-kill).
+     * - Else (Player with armor or any non-player): apply regular damage with provided amount.
+     */
+    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower, UUID onlyTargetUUID) {
+        if (explosionLocation == null || explosionLocation.getWorld() == null || onlyTargetUUID == null) return;
 
-                // Apply direct damage as if caused by the launcher
-                hitPlayer.damage(explosionPower, launcher);
+        final Entity e = Bukkit.getEntity(onlyTargetUUID);
+        if (!(e instanceof LivingEntity hit)) return;
 
-                // Optional: Add custom effects
-                hitPlayer.setVelocity(hitPlayer.getVelocity().add(new Vector(0, 0.5, 0))); // Small knockback
+        // Only affect the intended target if within radius
+        final double explosionRadius = 5.0;
+        if (!hit.getWorld().equals(explosionLocation.getWorld())) return;
+        if (hit.getLocation().distanceSquared(explosionLocation) > explosionRadius * explosionRadius) return;
+
+        // Launcher (optional) as the damager for REGULAR damage
+        final Player launcher = Bukkit.getPlayer(launcherUUID);
+
+        if (hit instanceof Player p) {
+            if (!hasAnyArmorEquipped(p)) {
+                // NO ARMOR → big VOID damage to bypass totems / instant-kill
+                DamageSource src = (launcher != null)
+                        ? DamageSource.builder(DamageType.OUT_OF_WORLD).withCausingEntity(launcher).build()
+                        : DamageSource.builder(DamageType.OUT_OF_WORLD).build();
+
+                hit.damage(1000.0, src); // overkill; ensures death; VOID bypasses totems
+            } else {
+                // Armor present → regular damage (respects armor/totems/attribs)
+                if (launcher != null) {
+                    hit.damage(explosionPower, launcher);
+                } else {
+                    hit.damage(explosionPower);
+                }
+            }
+        } else {
+            // Non-player → regular damage (unchanged expectation)
+            if (launcher != null) {
+                hit.damage(explosionPower, launcher);
+            } else {
+                hit.damage(explosionPower);
             }
         }
+
+        // Optional: tiny knock-up ONLY for the target (keep your prior flavor)
+        hit.setVelocity(hit.getVelocity().add(new Vector(0, 0.5, 0)));
     }
 
 
@@ -1867,6 +1912,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+    private boolean hasAnyArmorEquipped(Player p) {
+        final ItemStack[] armor = p.getInventory().getArmorContents();
+        if (armor == null || armor.length == 0) return false;
+        for (ItemStack it : armor) {
+            if (it != null && it.getType() != Material.AIR) return true;
+        }
+        return false;
+    }
 
 
 
