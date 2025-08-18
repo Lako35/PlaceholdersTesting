@@ -85,6 +85,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
 
     protected final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
 
@@ -1260,6 +1261,108 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+
+
+        if (f1.startsWith("vacuum_")) {
+            final String[] parts = f1.substring("vacuum_".length()).split(",");
+            if (parts.length != 10) {
+                return "§cInvalid format. Use: %Archistructure_vacuum_RANGE,FOV,IGNORESHULKERSTRUEFALSE,MAXENTITIES,INTERVAL,DURATION,THROUGHWALLS,PARTICLE,SEPARATION,PARTICLEINTERVAL%";
+            }
+
+            // --- Parse arguments (RANGE + FOV; no RADIUS) ---
+            final double RANGE;
+            final double FOV_DEGREES;
+            final boolean IGNORE_SHULKER_ITEMS;
+            final int MAXENTITIES;
+            final int INTERVAL_TICKS;
+            final int DURATION_TICKS;
+            final boolean THROUGH_WALLS;
+            final String PARTICLE_INPUT;
+            final double SEPARATION;
+            final int PARTICLE_INTERVAL_TICKS;
+
+            try {
+                RANGE = Double.parseDouble(parts[0]);
+                FOV_DEGREES = Double.parseDouble(parts[1]);
+                IGNORE_SHULKER_ITEMS = Boolean.parseBoolean(parts[2]);
+                MAXENTITIES = Integer.parseInt(parts[3]);
+                INTERVAL_TICKS = Integer.parseInt(parts[4]);
+                DURATION_TICKS = Integer.parseInt(parts[5]);
+                THROUGH_WALLS = Boolean.parseBoolean(parts[6]);
+                PARTICLE_INPUT = parts[7];
+                SEPARATION = Double.parseDouble(parts[8]);
+                PARTICLE_INTERVAL_TICKS = Integer.parseInt(parts[9]);
+            } catch (Exception e) {
+                return "§cInvalid parameter types.";
+            }
+
+            // --- Validate off-hand shulker ---
+            ItemStack off = f2.getInventory().getItemInOffHand();
+            if (off == null || off.getType() == Material.AIR || !off.getType().name().endsWith("SHULKER_BOX")) {
+                return "§7(No shulker in offhand; vacuum idle)";
+            }
+            BlockStateMeta baseMeta = (off.getItemMeta() instanceof BlockStateMeta bsm) ? bsm : null;
+            if (baseMeta == null || !(baseMeta.getBlockState() instanceof ShulkerBox baseBox)) {
+                return "§7(Offhand item is not a shulker blockstate)";
+            }
+
+            final World world = f2.getWorld();
+
+            // --- Resolve particle (supports DUST:#RRGGBB<scale>) ---
+            final Particle particle;
+            final Particle.DustOptions dustOpt;
+            {
+                Particle tmpParticle;
+                Particle.DustOptions tmpDust = null;
+                final String u = PARTICLE_INPUT.toUpperCase(Locale.ROOT);
+                if (u.startsWith("DUST:")) {
+                    try {
+                        String hexScale = PARTICLE_INPUT.substring(5);
+                        String hex = hexScale.substring(0, 6);
+                        float scale = Float.parseFloat(hexScale.substring(6));
+                        java.awt.Color c = java.awt.Color.decode("#" + hex);
+                        tmpParticle = Particle.DUST;
+                        tmpDust = new Particle.DustOptions(
+                                Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
+                    } catch (Exception e) {
+                        return "§cInvalid DUST format. Use DUST:#RRGGBB<scale>";
+                    }
+                } else {
+                    try {
+                        tmpParticle = Particle.valueOf(u);
+                    } catch (Exception e) {
+                        return "§cUnknown particle: " + PARTICLE_INPUT;
+                    }
+                }
+                particle = tmpParticle;
+                dustOpt = tmpDust;
+            }
+
+            // --- Early capacity check (optional, not authoritative because box may change during task) ---
+            if (isShulkerFull(baseBox.getInventory())) {
+                return "§7(Offhand shulker is full)";
+            }
+
+            // ===== Enforce single job per player; reset timer if already active =====
+            VacuumJob existing = ACTIVE_VACUUMS.get(f2.getUniqueId());
+            if (existing != null && !existing.isCancelled()) {
+                existing.resetTimer();
+                return "§aVacuum timer reset.";
+            }
+
+            VacuumJob job = new VacuumJob(
+                    getPlaceholderAPI(), f2,
+                    RANGE, FOV_DEGREES, IGNORE_SHULKER_ITEMS,
+                    MAXENTITIES, INTERVAL_TICKS, DURATION_TICKS,
+                    THROUGH_WALLS, particle, dustOpt, SEPARATION, PARTICLE_INTERVAL_TICKS
+            );
+            job.runTaskTimer(getPlaceholderAPI(), 0L, Math.max(1L, INTERVAL_TICKS));
+            ACTIVE_VACUUMS.put(f2.getUniqueId(), job);
+
+            return "§aVacuum started.";
+        }
+
         
         if( f1.startsWith("cosmicEnchant_")) {
             return cosmicEnchant(f2, f1);
@@ -7177,4 +7280,272 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+
+    /** True if there is neither an empty slot nor room in any stack. */
+    private static boolean isShulkerFull(Inventory inv) {
+        if (inv.firstEmpty() != -1) return false;
+        for (ItemStack s : inv.getStorageContents()) {
+            if (s == null || s.getType() == Material.AIR) return false;
+            if (s.getAmount() < s.getMaxStackSize()) return false;
+        }
+        return true;
+    }
+
+    /** Computes how many units of `stack` can fit into `inv` (merge-first, then empties), without mutating. */
+    private static int computeInsertCapacity(Inventory inv, ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR) return 0;
+        int want = stack.getAmount();
+        int maxStack = stack.getMaxStackSize();
+        int can = 0;
+
+        // Room in similar stacks
+        for (ItemStack ex : inv.getStorageContents()) {
+            if (ex == null) continue;
+            if (!ex.isSimilar(stack)) continue;
+            int room = ex.getMaxStackSize() - ex.getAmount();
+            if (room <= 0) continue;
+            int add = Math.min(room, want - can);
+            can += add;
+            if (can >= want) return can;
+        }
+        // Room in empties
+        for (ItemStack ex : inv.getStorageContents()) {
+            if (ex != null && ex.getType() != Material.AIR) continue;
+            int add = Math.min(maxStack, want - can);
+            can += add;
+            if (can >= want) return can;
+        }
+        return can;
+    }
+
+    /**
+     * Inserts exactly `amount` of items like `template` into `inv` (merge-first, then empties).
+     * Returns how many were actually inserted (<= amount). Mutates the inventory.
+     */
+    private static int insertAmountIntoShulker(Inventory inv, ItemStack template, int amount) {
+        if (template == null || template.getType() == Material.AIR || amount <= 0) return 0;
+        int remaining = amount;
+
+        // Merge into similar stacks
+        for (int i = 0; i < inv.getSize() && remaining > 0; i++) {
+            ItemStack ex = inv.getItem(i);
+            if (ex == null) continue;
+            if (!ex.isSimilar(template)) continue;
+
+            int room = ex.getMaxStackSize() - ex.getAmount();
+            if (room <= 0) continue;
+
+            int add = Math.min(room, remaining);
+            ex.setAmount(ex.getAmount() + add);
+            remaining -= add;
+        }
+
+        // Fill empty slots
+        for (int i = 0; i < inv.getSize() && remaining > 0; i++) {
+            ItemStack ex = inv.getItem(i);
+            if (ex != null && ex.getType() != Material.AIR) continue;
+
+            int max = template.getMaxStackSize();
+            int add = Math.min(max, remaining);
+            ItemStack place = template.clone();
+            place.setAmount(add);
+            inv.setItem(i, place);
+            remaining -= add;
+        }
+
+        return amount - remaining;
+    }
+
+    private static void spawnTrail(Plugin plugin, World world, Location start,
+                                   Particle particle, Particle.DustOptions dustOpt,
+                                   double sep, int intervalTicks, Player p) {
+        if (sep <= 0) sep = 0.2;
+        if (intervalTicks < 1) intervalTicks = 1;
+
+        // Stop once we're this close to the player (in blocks).
+        final double stopThreshold = intervalTicks + 0.1; // as requested
+
+        double finalSep = sep;
+        new BukkitRunnable() {
+            int steps = 0;
+            Location cur = start.clone();
+
+            @Override public void run() {
+                if (!p.isOnline() || p.isDead() || p.getWorld() != world) { cancel(); return; }
+
+                // Always target the player's *current* midsection
+                Location midNow = p.getLocation().clone().add(0, 1.0, 0);
+                Vector toTarget = midNow.toVector().subtract(cur.toVector());
+                double dist = toTarget.length();
+
+                // Stop if close enough or if we've run long enough
+                if (dist <= stopThreshold || steps >= 100) { cancel(); return; }
+
+                Vector step = toTarget.normalize().multiply(finalSep);
+                if (step.length() > dist) step = toTarget; // avoid overshoot
+
+                if (particle == Particle.DUST && dustOpt != null) {
+                    world.spawnParticle(particle, cur, 0, dustOpt);
+                } else {
+                    world.spawnParticle(particle, cur, 0);
+                }
+
+                cur.add(step);
+                steps++;
+            }
+        }.runTaskTimer(plugin, 0L, intervalTicks);
+    }
+
+
+    private static final class VacuumJob extends BukkitRunnable {
+        final UUID uuid;
+        final Plugin plugin;
+        final Player p;
+        final World world;
+
+        // Fixed params for this job instance
+        final double RANGE;
+        final double FOV_DEGREES;
+        final boolean IGNORE_SHULKER_ITEMS;
+        final int MAXENTITIES;
+        final int INTERVAL_TICKS;
+        final int DURATION_TICKS;
+        final boolean THROUGH_WALLS;
+        final Particle particle;
+        final Particle.DustOptions dustOpt;
+        final double SEPARATION;
+        final int PARTICLE_INTERVAL_TICKS;
+
+        // Timer
+        private int elapsed = 0;
+
+        VacuumJob(Plugin plugin,
+                  Player p,
+                  double RANGE, double FOV_DEGREES, boolean IGNORE_SHULKER_ITEMS,
+                  int MAXENTITIES, int INTERVAL_TICKS, int DURATION_TICKS,
+                  boolean THROUGH_WALLS, Particle particle,
+                  Particle.DustOptions dustOpt, double SEPARATION, int PARTICLE_INTERVAL_TICKS) {
+            this.plugin = plugin;
+            this.p = p;
+            this.uuid = p.getUniqueId();
+            this.world = p.getWorld();
+            this.RANGE = RANGE;
+            this.FOV_DEGREES = FOV_DEGREES;
+            this.IGNORE_SHULKER_ITEMS = IGNORE_SHULKER_ITEMS;
+            this.MAXENTITIES = MAXENTITIES;
+            this.INTERVAL_TICKS = Math.max(1, INTERVAL_TICKS);
+            this.DURATION_TICKS = Math.max(1, DURATION_TICKS);
+            this.THROUGH_WALLS = THROUGH_WALLS;
+            this.particle = particle;
+            this.dustOpt = dustOpt;
+            this.SEPARATION = SEPARATION;
+            this.PARTICLE_INTERVAL_TICKS = Math.max(1, PARTICLE_INTERVAL_TICKS);
+        }
+
+        void resetTimer() { this.elapsed = 0; }
+
+        @Override public void cancel() {
+            super.cancel();
+            ACTIVE_VACUUMS.remove(uuid, this);
+        }
+
+        @Override public void run() {
+            if (!p.isOnline() || p.isDead() || p.getWorld() != world) { cancel(); return; }
+
+            // Validate offhand shulker each sweep
+            ItemStack offTick = p.getInventory().getItemInOffHand();
+            if (offTick == null || offTick.getType() == Material.AIR || !offTick.getType().name().endsWith("SHULKER_BOX")) {
+                cancel(); return;
+            }
+            BlockStateMeta metaTick = (offTick.getItemMeta() instanceof BlockStateMeta bsm) ? bsm : null;
+            if (metaTick == null || !(metaTick.getBlockState() instanceof ShulkerBox boxTick)) {
+                cancel(); return;
+            }
+            ShulkerBox box = boxTick;
+            Inventory boxInv = box.getInventory();
+            if (isShulkerFull(boxInv)) { cancel(); return; }
+
+            final Location eye = p.getEyeLocation();
+            final Location mid = p.getLocation().clone().add(0, 1.0, 0);
+            final Vector lookDir = eye.getDirection().normalize();
+            final double losMax = Math.max(0.1, RANGE);
+
+            List<Item> candidates = new ArrayList<>();
+            for (Entity e : world.getNearbyEntities(p.getLocation(), RANGE, RANGE, RANGE)) {
+                if (!(e instanceof Item it)) continue;
+                if (!it.isValid() || it.isDead()) continue;
+
+                ItemStack stack = it.getItemStack();
+                if (stack == null || stack.getType() == Material.AIR) continue;
+                if (IGNORE_SHULKER_ITEMS && stack.getType().name().endsWith("SHULKER_BOX")) continue;
+
+                double dist = eye.distance(it.getLocation());
+                if (dist > RANGE) continue;
+
+                if (FOV_DEGREES > 0.0) {
+                    Vector toItem = it.getLocation().toVector().add(new Vector(0, 0.05, 0))
+                            .subtract(eye.toVector()).normalize();
+                    double angle = Math.toDegrees(lookDir.angle(toItem));
+                    if (angle > FOV_DEGREES / 2.0) continue;
+                }
+
+                if (!THROUGH_WALLS) {
+                    Vector dir = it.getLocation().toVector().add(new Vector(0, 0.05, 0))
+                            .subtract(eye.toVector()).normalize();
+                    RayTraceResult r = world.rayTraceBlocks(eye, dir, dist, FluidCollisionMode.NEVER, true);
+                    if (r != null) continue; // blocked
+                }
+
+                if (computeInsertCapacity(boxInv, stack) > 0) {
+                    candidates.add(it);
+                }
+            }
+
+            if (!candidates.isEmpty()) {
+                int processedEntities = 0;
+                int limit = (MAXENTITIES < 0) ? candidates.size() : Math.min(MAXENTITIES, candidates.size());
+
+                for (Item it : candidates) {
+                    if (processedEntities >= limit) break;
+                    if (!it.isValid() || it.isDead()) continue;
+                    if (isShulkerFull(boxInv)) break;
+
+                    ItemStack stack = it.getItemStack();
+                    if (stack == null || stack.getType() == Material.AIR) continue;
+
+                    int capacity = computeInsertCapacity(boxInv, stack);
+                    if (capacity <= 0) continue;
+
+                    int toMove = Math.min(capacity, stack.getAmount());
+                    int moved = insertAmountIntoShulker(boxInv, stack, toMove);
+                    if (moved <= 0) continue;
+
+                    // Persist shulker back to offhand item
+                    box.update();
+                    metaTick.setBlockState(box);
+                    offTick.setItemMeta(metaTick);
+                    p.getInventory().setItemInOffHand(offTick);
+
+                    // Shrink or remove ground entity
+                    final Location start = it.getLocation().clone().add(0, 0.05, 0);
+                    int remaining = stack.getAmount() - moved;
+                    if (remaining <= 0) it.remove();
+                    else {
+                        ItemStack newStack = stack.clone();
+                        newStack.setAmount(remaining);
+                        it.setItemStack(newStack);
+                    }
+
+                    processedEntities++;
+                    spawnTrail(plugin, world, start, particle, dustOpt, SEPARATION, PARTICLE_INTERVAL_TICKS, p);
+                }
+            }
+
+            elapsed += INTERVAL_TICKS;
+            if (elapsed >= DURATION_TICKS) { cancel(); }
+        }
+    }
 }
