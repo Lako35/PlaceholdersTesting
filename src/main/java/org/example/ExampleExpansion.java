@@ -4,7 +4,6 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.sk89q.worldedit.util.formatting.text.Component;
 import me.clip.placeholderapi.libs.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.dialog.Dialog;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.*;
 import org.bukkit.command.CommandExecutor;
