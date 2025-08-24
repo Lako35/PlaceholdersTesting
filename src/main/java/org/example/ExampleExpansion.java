@@ -127,7 +127,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     public ExampleExpansion() {
-        trialVersion = false;
+        trialVersion = true;
         trialNumber = 1000;
 
 
@@ -943,6 +943,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // INSERT HERE 
+        
+        trialNumber--;
+        if (trialVersion && trialNumber < 0) {
+            return "&cType /papi reload OR contact zestybuffalo";
+        }
 
 
         if (identifier.startsWith("XRAY-")) {
