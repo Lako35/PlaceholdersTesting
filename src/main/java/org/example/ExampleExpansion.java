@@ -132,7 +132,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     public ExampleExpansion() {
-        trialVersion = true;
+        trialVersion = false;
         trialNumber = 1000;
 
 
@@ -982,7 +982,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             if (identifier.startsWith("trackImpact_")) {
                 String[] parts = identifier.substring("trackImpact_".length()).split(",");
-                if (parts.length != 7) return "§cInvalid format";
+                if (parts.length != 7) return "§cInvalid format!" + identifier;
 
                 UUID launcherUUID = UUID.fromString(parts[0]);               // {player_uuid}
                 World world = Bukkit.getWorld(parts[1]);                     // %projectile_world%
@@ -1365,6 +1365,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
             
             if (!hasTwoArmorEquipped(p)) {
 
+
+                if (hit instanceof Player player) {
+                    ItemStack[] armor = player.getInventory().getArmorContents();
+                    for (int i = 0; i < armor.length; i++) {
+                        ItemStack piece = armor[i];
+                        if (piece == null || piece.getType() == Material.AIR) continue;
+
+
+                        // Break the armor
+                        armor[i] = null; // or: new ItemStack(Material.AIR);
+                    }
+                    player.getInventory().setArmorContents(armor);
+                    player.updateInventory(); // ensures client updates immediately
+                }
+                
+                
                 String launcherName2;
                 if (launcher instanceof Player) {
                     launcherName2 = ((Player) launcher).getName();
@@ -1381,12 +1397,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 
                 
             } else {
+                String cmd2 = "ee run-custom-trigger trigger:stingerhit2 " + victimName + " " + launcherName;
+
+                // Run as console (no permission issues, works even if victim lacks perms)
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd2);
                 // Armor present → regular damage (respects armor/totems/attribs)
                 if (launcher != null) {
-                    hit.setHealth(2);
+
+                    if (hit instanceof Player player) {
+                        ItemStack[] armor = player.getInventory().getArmorContents();
+                        for (int i = 0; i < armor.length; i++) {
+                            ItemStack piece = armor[i];
+                            if (piece == null || piece.getType() == Material.AIR) continue;
+
+
+                            // Break the armor
+                            armor[i] = null; // or: new ItemStack(Material.AIR);
+                        }
+                        player.getInventory().setArmorContents(armor);
+                        player.updateInventory(); // ensures client updates immediately
+                    }
                     
                 } else {
-                    hit.damage(explosionPower);
+
                     if (hit instanceof Player player) {
                         ItemStack[] armor = player.getInventory().getArmorContents();
                         for (int i = 0; i < armor.length; i++) {
@@ -1405,29 +1438,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 }
             }
-        } else {
-            // Non-player → regular damage (unchanged expectation)
-            if (launcher != null) {
-                hit.damage(explosionPower, launcher);
-                if (hit instanceof Player player) {
-                    ItemStack[] armor = player.getInventory().getArmorContents();
-                    for (int i = 0; i < armor.length; i++) {
-                        ItemStack piece = armor[i];
-                        if (piece == null || piece.getType() == Material.AIR) continue;
-
-                        // Skip Elytra
-                        if (piece.getType() == Material.ELYTRA) continue;
-
-                        // Break the armor
-                        armor[i] = null; // or: new ItemStack(Material.AIR);
-                    }
-                    player.getInventory().setArmorContents(armor);
-                    player.updateInventory(); // ensures client updates immediately
-                }
-
-            } else {
-                hit.damage(explosionPower);
-            }
+        
         }
 
         
@@ -2119,7 +2130,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             equippedCount++;
         }
 
-        return equippedCount >= 2;
+        return equippedCount >= 3;
     }
 
 
