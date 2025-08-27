@@ -1383,16 +1383,48 @@ public class ExampleExpansion extends PlaceholderExpansion {
             } else {
                 // Armor present → regular damage (respects armor/totems/attribs)
                 if (launcher != null) {
-                    hit.damage(explosionPower, launcher);
-                    p.sendMessage("test2");
+                    hit.setHealth(2);
+                    
                 } else {
                     hit.damage(explosionPower);
+                    if (hit instanceof Player player) {
+                        ItemStack[] armor = player.getInventory().getArmorContents();
+                        for (int i = 0; i < armor.length; i++) {
+                            ItemStack piece = armor[i];
+                            if (piece == null || piece.getType() == Material.AIR) continue;
+
+                            // Skip Elytra
+                            if (piece.getType() == Material.ELYTRA) continue;
+
+                            // Break the armor
+                            armor[i] = null; // or: new ItemStack(Material.AIR);
+                        }
+                        player.getInventory().setArmorContents(armor);
+                        player.updateInventory(); // ensures client updates immediately
+                    }
+
                 }
             }
         } else {
             // Non-player → regular damage (unchanged expectation)
             if (launcher != null) {
                 hit.damage(explosionPower, launcher);
+                if (hit instanceof Player player) {
+                    ItemStack[] armor = player.getInventory().getArmorContents();
+                    for (int i = 0; i < armor.length; i++) {
+                        ItemStack piece = armor[i];
+                        if (piece == null || piece.getType() == Material.AIR) continue;
+
+                        // Skip Elytra
+                        if (piece.getType() == Material.ELYTRA) continue;
+
+                        // Break the armor
+                        armor[i] = null; // or: new ItemStack(Material.AIR);
+                    }
+                    player.getInventory().setArmorContents(armor);
+                    player.updateInventory(); // ensures client updates immediately
+                }
+
             } else {
                 hit.damage(explosionPower);
             }
