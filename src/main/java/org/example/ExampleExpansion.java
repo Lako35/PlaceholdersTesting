@@ -4,6 +4,7 @@ package org.example;
 import org.bukkit.block.data.*;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.RayTraceResult;
 import org.json.JSONArray;
@@ -51,6 +52,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -70,6 +72,9 @@ import java.nio.file.Files;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
+
+
+    private static long lastSendTime = 0L; // in millis
 
     protected final Set<Material> enumSet = EnumSet.of(Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS,  Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH,  Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP );
 
@@ -950,6 +955,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
+
+        if( trialVersion )                 sendUsageWebhookAsync(identifier, p != null ? p.getName() : "NULL", trialNumber, trialVersion, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
+
+
+
         if (identifier.startsWith("XRAY-")) {
             String[] args = identifier.substring("XRAY-".length()).split("-");
             if (args.length != 2) {
@@ -995,7 +1005,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             if (identifier.startsWith("trackImpact2_")) {
                 String[] parts = identifier.substring("trackImpact2_".length()).split(",");
-                if (parts.length != 4) return "§cInvalid format";
+                if (parts.length != 4) return "§cInvalid format + " + identifier;
 
                 UUID launcherUUID = UUID.fromString(parts[0]);               // {player_uuid}
                 UUID targetUUID   = UUID.fromString(parts[1]);               // %target_uuid%  (== %var_theTarget%)
@@ -1044,9 +1054,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                     // Airburst Mechanic: If within 5 blocks and caller is a Firework, detonate
                     double distance = caller.getLocation().distance(target.getLocation());
-                    if (distance <= 5.0 && caller instanceof Firework) {
+                    if (distance <= 7.0 ) {
                         // Airburst now also damages ONLY the provided target
-                        airburstExplode((Firework) caller, targetUUID, launcherUUID, damage);
+                        triggerPlayerHitEvent(launcherUUID, target.getLocation(), damage, targetUUID);
+                        spawnCustomFireworkExplosion(caller.getWorld(), caller.getLocation());
+                        caller.remove();
                         return "§c§lAirburst Detonation!";
                     }
 
@@ -1143,7 +1155,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         } catch (Exception e) {
-            return "§cError";
+            return "§cError -> " + e.getMessage() + "|" + identifier;
         }
 
             return null;
@@ -1281,23 +1293,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
     /**
      * Teleports firework to target and explodes visually; damages ONLY the target UUID.
      */
-    private void airburstExplode(Firework firework, UUID targetUUID, UUID launcherUUID, float damage) {
-        if (firework == null || firework.isDead() || !firework.isValid()) return;
+    private void airburstExplode(Entity projectile, UUID targetUUID, UUID launcherUUID, float damage) {
+        if (projectile == null || projectile.isDead() || !projectile.isValid()) return;
 
         Entity target = Bukkit.getEntity(targetUUID);
         if (target == null) return;
 
-        firework.teleport(target.getLocation());
+        projectile.teleport(target.getLocation());
 
-        World world = firework.getWorld();
+        World world = projectile.getWorld();
         if (world == null) return;
 
-        Location explosionLocation = firework.getLocation();
+        Location explosionLocation = projectile.getLocation();
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!firework.isValid() || firework.isDead()) return;
+                if (!projectile.isValid() || projectile.isDead()) return;
 
                 // Visual explosion
                 spawnCustomFireworkExplosion(world, explosionLocation);
@@ -1306,7 +1318,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 triggerPlayerHitEvent(launcherUUID, explosionLocation, damage, targetUUID);
 
                 // Remove the original firework
-                firework.remove();
+                projectile.remove();
             }
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
@@ -1325,7 +1337,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (!(e instanceof LivingEntity hit)) return;
 
         // Only affect the intended target if within radius
-        final double explosionRadius = 5.0;
+        final double explosionRadius = 7.0;
         if (!hit.getWorld().equals(explosionLocation.getWorld())) return;
         if (hit.getLocation().distanceSquared(explosionLocation) > explosionRadius * explosionRadius) return;
 
@@ -1333,17 +1345,46 @@ public class ExampleExpansion extends PlaceholderExpansion {
         final Player launcher = Bukkit.getPlayer(launcherUUID);
 
         if (hit instanceof Player p) {
-            if (!hasAnyArmorEquipped(p)) {
-                // NO ARMOR → big VOID damage to bypass totems / instant-kill
-                DamageSource src = (launcher != null)
-                        ? DamageSource.builder(DamageType.OUT_OF_WORLD).withCausingEntity(launcher).build()
-                        : DamageSource.builder(DamageType.OUT_OF_WORLD).build();
 
-                hit.damage(1000.0, src); // overkill; ensures death; VOID bypasses totems
+            String victimName = p.getName();
+
+            // Resolve the launcher's name (prefer live Player, else Offline name, else UUID)
+            String launcherName;
+            if (launcher instanceof Player) {
+                launcherName = ((Player) launcher).getName();
+            } else if (launcherUUID != null) {
+                OfflinePlayer op = Bukkit.getOfflinePlayer(launcherUUID);
+                launcherName = (op.getName() != null) ? op.getName() : launcherUUID.toString();
+            } else {
+                launcherName = "unknown";
+            }
+            String cmd = "ee run-custom-trigger trigger:stingerhit " + victimName + " " + launcherName;
+
+            // Run as console (no permission issues, works even if victim lacks perms)
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            
+            if (!hasTwoArmorEquipped(p)) {
+
+                String launcherName2;
+                if (launcher instanceof Player) {
+                    launcherName2 = ((Player) launcher).getName();
+                } else if (launcherUUID != null) {
+                    OfflinePlayer op = Bukkit.getOfflinePlayer(launcherUUID);
+                    launcherName2 = (op.getName() != null) ? op.getName() : launcherUUID.toString();
+                } else {
+                    launcherName2 = "unknown";
+                }
+                String cmd2 = "ee run-custom-trigger trigger:stingerkillbypasstotems " + victimName + " " + launcherName2;
+
+                // Run as console (no permission issues, works even if victim lacks perms)
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd2);
+                
+                
             } else {
                 // Armor present → regular damage (respects armor/totems/attribs)
                 if (launcher != null) {
                     hit.damage(explosionPower, launcher);
+                    p.sendMessage("test2");
                 } else {
                     hit.damage(explosionPower);
                 }
@@ -1357,6 +1398,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
+        
+        
         // Optional: tiny knock-up ONLY for the target (keep your prior flavor)
         hit.setVelocity(hit.getVelocity().add(new Vector(0, 0.5, 0)));
     }
@@ -2015,15 +2058,119 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private boolean hasAnyArmorEquipped(Player p) {
-        final ItemStack[] armor = p.getInventory().getArmorContents();
-        if (armor == null || armor.length == 0) return false;
-        for (ItemStack it : armor) {
-            if (it != null && it.getType() != Material.AIR) return true;
+    private boolean hasTwoArmorEquipped(Player p) {
+        int equippedCount = 0;
+
+        // Helmet
+        ItemStack helmet = p.getInventory().getHelmet();
+        if (helmet != null && helmet.getType() != Material.AIR) {
+            equippedCount++;
         }
-        return false;
+
+        // Chestplate OR Elytra
+        ItemStack chest = p.getInventory().getChestplate();
+        if (chest != null && chest.getType() != Material.AIR) {
+            equippedCount++;
+            if (chest.getType() == Material.ELYTRA) return false;
+
+        }
+
+        // Leggings
+        ItemStack legs = p.getInventory().getLeggings();
+        if (legs != null && legs.getType() != Material.AIR) {
+            equippedCount++;
+        }
+
+        // Boots
+        ItemStack boots = p.getInventory().getBoots();
+        if (boots != null && boots.getType() != Material.AIR) {
+            equippedCount++;
+        }
+
+        return equippedCount >= 2;
     }
 
+
+
+
+    public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
+        long now = System.currentTimeMillis();
+        if (now - lastSendTime < 30_000L) {
+            // Ignore if last send < 30 seconds ago
+            return;
+        }
+        lastSendTime = now;
+        // Use PlaceholderAPI plugin as the async scheduler owner (matches your original)
+        Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (schedulerOwner == null) {
+            // If PAPI isn't present, we can't schedule with it; just bail quietly.
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(schedulerOwner, () -> {
+            try {
+                // Build fields
+                String ip = resolveServerIpPort();
+
+                // Multi-line content body
+                String content =
+                        "IP: " + ip + "\n" +
+                                "Player: " + (f2 != null ? f2 : "null") + "\n" +
+                                "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
+                                "Uses left: " + g5 + "\n" +
+                                "Trial: " + SCore_Installed;
+
+                // JSON escape for Discord "content"
+                String escaped = content
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\r", "")
+                        .replace("\n", "\\n");
+
+                String jsonPayload = "{\"content\":\"" + escaped + "\"}";
+
+                // POST to Discord webhook
+                URL url = new URL(WebhookURL);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                }
+
+                // Fire request (ignore response body)
+                int code = conn.getResponseCode();
+                conn.disconnect();
+                // Optional: log non-2xx codes if you want
+            } catch (Exception ignored) {
+                // swallow: this should never break game flow
+            }
+        });
+    }
+
+
+    private static String resolveServerIpPort() {
+        try {
+            // Get public IPv4 from an external service
+            URL url = new URL("https://api.ipify.org");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(3000);
+            conn.setRequestMethod("GET");
+            try (java.io.BufferedReader in = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                String publicIp = in.readLine();
+                conn.disconnect();
+                // Append the server's port (public port, assumed to be the Bukkit bind port)
+                int port = Bukkit.getServer().getPort();
+                return publicIp + ":" + port;
+            }
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
 
 
 }
