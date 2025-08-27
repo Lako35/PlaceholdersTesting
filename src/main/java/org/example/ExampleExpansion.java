@@ -4,6 +4,7 @@ import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.google.common.collect.ImmutableList;
 import com.sk89q.worldedit.util.formatting.text.Component;
 import me.clip.placeholderapi.libs.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.*;
 import org.bukkit.command.CommandExecutor;
@@ -33,6 +34,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -153,33 +156,46 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private static @Nullable Inventory getShulkerSnapshotInventory(org.bukkit.block.ShulkerBox shulker) {
+        try {
+            // Works on Spigot for item snapshots
+            return shulker.getInventory();
+        } catch (NoSuchMethodError | UnsupportedOperationException e) {
+            // Some APIs (or older mappings) expose getSnapshotInventory()
+            try {
+                return (Inventory) org.bukkit.block.ShulkerBox.class
+                        .getMethod("getSnapshotInventory")
+                        .invoke(shulker);
+            } catch (Throwable ignored) {
+                return null;
+            }
+        }
+    }
 
-
-    private static @org.jetbrains.annotations.Nullable org.bukkit.inventory.ItemStack
-    getStackBySlot(org.bukkit.entity.Player p, int slot) {
-        if (slot == 40) return p.getInventory().getItemInOffHand();        // offhand
-        if (slot >= 0 && slot < p.getInventory().getSize())
-            return p.getInventory().getItem(slot);
+    private static @Nullable ItemStack getStackBySlot(Player p, int slot) {
+        if (slot == 40) return p.getInventory().getItemInOffHand();
+        if (slot >= 0 && slot < p.getInventory().getSize()) return p.getInventory().getItem(slot);
         return null;
     }
 
-    /** Try PDC first, then fall back to serialized map: meta -> PublicBukkitValues -> "executableitems:ei-id". */
+
+    /** Try PDC with EI namespace first, then fallback to serialized meta->PublicBukkitValues. */
     private static @org.jetbrains.annotations.Nullable String
     getEIidFromKeysOrSerialized(org.bukkit.inventory.ItemStack is) {
         if (is == null || !is.hasItemMeta()) return null;
         org.bukkit.inventory.meta.ItemMeta meta = is.getItemMeta();
 
-        // 1) PersistentDataContainer (if EI mirrored it)
+        // 1) PersistentDataContainer: executableitems:ei-id
         try {
             org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
-            org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey("executableitems", "ei-id");
-            String val = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            org.bukkit.NamespacedKey eiKey = new org.bukkit.NamespacedKey("executableitems", "ei-id");
+            String val = pdc.get(eiKey, org.bukkit.persistence.PersistentDataType.STRING);
             if (val != null) return val;
         } catch (Throwable ignored) {}
 
-        // 2) Serialized map: meta -> PublicBukkitValues -> "executableitems:ei-id"
+        // 2) Fallback: Serialized -> meta -> PublicBukkitValues -> "executableitems:ei-id"
         try {
-            java.util.Map<String, Object> ser = is.serialize(); // deep structure
+            java.util.Map<String, Object> ser = is.serialize();
             Object metaObj = ser.get("meta");
             if (metaObj instanceof java.util.Map) {
                 @SuppressWarnings("unchecked")
@@ -190,7 +206,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     @SuppressWarnings("unchecked")
                     java.util.Map<String, Object> pbv = (java.util.Map<String, Object>) pbvObj;
 
-                    // Exact key format seen in serialized items: "executableitems:ei-id"
                     Object raw = pbv.get("executableitems:ei-id");
                     if (raw != null) return raw.toString();
                 }
@@ -199,6 +214,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         return null;
     }
+
 
 
     @SuppressWarnings({"ConstantValue"})
@@ -251,18 +267,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             int total = 0;
 
-            // Count inside shulkers in those slots
+// ---- Count inside shulkers located in the selected slots ----
             if (target.equals("SHULKERS") || target.equals("BOTH")) {
                 for (int slot : slots) {
-                    org.bukkit.inventory.ItemStack container = getStackBySlot(p, slot);
-                    if (container == null || container.getType() == org.bukkit.Material.AIR) continue;
+                    ItemStack container = getStackBySlot(p, slot);
+                    if (container == null || container.getType() == Material.AIR) continue;
 
-                    org.bukkit.inventory.meta.ItemMeta meta = container.getItemMeta();
-                    if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) continue;
-                    if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox shulker)) continue;
+                    // Quick material guard helps avoid false positives on some metas
+                    if (!container.getType().name().endsWith("SHULKER_BOX")) continue;
 
-                    for (org.bukkit.inventory.ItemStack is : shulker.getInventory().getContents()) {
-                        if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
+                    ItemMeta meta = container.getItemMeta();
+                    if (!(meta instanceof BlockStateMeta bsm)) continue;
+                    if (!bsm.hasBlockState()) continue;
+
+                    BlockState state = bsm.getBlockState();
+                    if (!(state instanceof org.bukkit.block.ShulkerBox shulker)) continue;
+
+                    // Get the snapshot inventory safely across API variants
+                    Inventory shulkerInv = getShulkerSnapshotInventory(shulker);
+                    if (shulkerInv == null) continue;
+
+                    for (ItemStack is : shulkerInv.getContents()) {
+                        if (is == null || is.getType() == Material.AIR) continue;
                         String val = getEIidFromKeysOrSerialized(is);
                         if (val != null && val.equals(eiid)) {
                             total += is.getAmount();
@@ -270,6 +296,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
                 }
             }
+
 
             // Count items directly in the specified player slots
             if (target.equals("INVENTORY") || target.equals("BOTH")) {
