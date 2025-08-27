@@ -15,6 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.EulerAngle;
@@ -149,8 +150,57 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @Override
     @SuppressWarnings({"Overridden", "UnstableApiUsage", "deprecation"})
     public String getPlugin() {return null;}
-    
-    
+
+
+
+
+
+    private static @org.jetbrains.annotations.Nullable org.bukkit.inventory.ItemStack
+    getStackBySlot(org.bukkit.entity.Player p, int slot) {
+        if (slot == 40) return p.getInventory().getItemInOffHand();        // offhand
+        if (slot >= 0 && slot < p.getInventory().getSize())
+            return p.getInventory().getItem(slot);
+        return null;
+    }
+
+    /** Try PDC first, then fall back to serialized map: meta -> PublicBukkitValues -> "executableitems:ei-id". */
+    private static @org.jetbrains.annotations.Nullable String
+    getEIidFromKeysOrSerialized(org.bukkit.inventory.ItemStack is) {
+        if (is == null || !is.hasItemMeta()) return null;
+        org.bukkit.inventory.meta.ItemMeta meta = is.getItemMeta();
+
+        // 1) PersistentDataContainer (if EI mirrored it)
+        try {
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey("executableitems", "ei-id");
+            String val = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            if (val != null) return val;
+        } catch (Throwable ignored) {}
+
+        // 2) Serialized map: meta -> PublicBukkitValues -> "executableitems:ei-id"
+        try {
+            java.util.Map<String, Object> ser = is.serialize(); // deep structure
+            Object metaObj = ser.get("meta");
+            if (metaObj instanceof java.util.Map) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> metaMap = (java.util.Map<String, Object>) metaObj;
+
+                Object pbvObj = metaMap.get("PublicBukkitValues");
+                if (pbvObj instanceof java.util.Map) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> pbv = (java.util.Map<String, Object>) pbvObj;
+
+                    // Exact key format seen in serialized items: "executableitems:ei-id"
+                    Object raw = pbv.get("executableitems:ei-id");
+                    if (raw != null) return raw.toString();
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        return null;
+    }
+
+
     @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
@@ -159,6 +209,85 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         if (identifier.startsWith("parseNested_")) identifier = ExampleExpansion2.parseNested(p, identifier);
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+
+
+        if (identifier.startsWith("countEIinShulker_")) {
+            final String[] parts = identifier.substring("countEIinShulker_".length()).split(",");
+            if (parts.length != 3) {
+                return "§cUsage: %Archistructure_countEIinShulker_targets,SLOTS,EIID%";
+            }
+
+            final String target = parts[0].trim().toUpperCase(java.util.Locale.ROOT); // SHULKERS | INVENTORY | BOTH
+            final String slotsSpec = parts[1].trim();                                  // "-1", "40", "3:5:8", "-1:3", or "ALL"
+            final String eiid = parts[2];                                              // case-sensitive
+
+            if (!target.equals("SHULKERS") && !target.equals("INVENTORY") && !target.equals("BOTH")) {
+                return "0";
+            }
+
+            // Build deduped slot set
+            java.util.Set<Integer> slots = new java.util.HashSet<>();
+            final int invSize = p.getInventory().getSize();         // typically includes 0..40 (40=offhand)
+            final int mainSlot = p.getInventory().getHeldItemSlot(); // 0..8 (hotbar)
+
+            if (slotsSpec.equalsIgnoreCase("ALL")) {
+                for (int i = 0; i < invSize; i++) slots.add(i);
+                slots.add(40); // explicit offhand
+            } else {
+                for (String tok : slotsSpec.split(":")) {
+                    tok = tok.trim();
+                    if (tok.isEmpty()) continue;
+                    try {
+                        int slot = Integer.parseInt(tok);
+                        slots.add(slot);
+                    } catch (NumberFormatException ignored) {}
+                }
+                // Map -1 → mainhand slot
+                if (slots.contains(-1)) {
+                    slots.remove(-1);
+                    slots.add(mainSlot);
+                }
+            }
+
+            int total = 0;
+
+            // Count inside shulkers in those slots
+            if (target.equals("SHULKERS") || target.equals("BOTH")) {
+                for (int slot : slots) {
+                    org.bukkit.inventory.ItemStack container = getStackBySlot(p, slot);
+                    if (container == null || container.getType() == org.bukkit.Material.AIR) continue;
+
+                    org.bukkit.inventory.meta.ItemMeta meta = container.getItemMeta();
+                    if (!(meta instanceof org.bukkit.inventory.meta.BlockStateMeta bsm)) continue;
+                    if (!(bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox shulker)) continue;
+
+                    for (org.bukkit.inventory.ItemStack is : shulker.getInventory().getContents()) {
+                        if (is == null || is.getType() == org.bukkit.Material.AIR) continue;
+                        String val = getEIidFromKeysOrSerialized(is);
+                        if (val != null && val.equals(eiid)) {
+                            total += is.getAmount();
+                        }
+                    }
+                }
+            }
+
+            // Count items directly in the specified player slots
+            if (target.equals("INVENTORY") || target.equals("BOTH")) {
+                for (int slot : slots) {
+                    org.bukkit.inventory.ItemStack stack = getStackBySlot(p, slot);
+                    if (stack == null || stack.getType() == org.bukkit.Material.AIR) continue;
+
+                    String val = getEIidFromKeysOrSerialized(stack);
+                    if (val != null && val.equals(eiid)) {
+                        total += stack.getAmount();
+                    }
+                }
+            }
+
+            return String.valueOf(total);
+        }
+
+        
 
         if (identifier.startsWith("vacuum_")) {
             final String[] parts = identifier.substring("vacuum_".length()).split(",");
