@@ -1,6 +1,5 @@
 package org.example;
 
-import org.example.BlockColor;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
@@ -73,6 +72,7 @@ import java.util.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -4866,6 +4866,226 @@ public class ExampleExpansion2 {
         }
     }
 
+
+    protected static @NotNull String trackv4(ExampleExpansion exampleExpansion, String identifier) {
+        // %Archistructure_trackv3_uuid,targetuuid,speed,launcheruuid,damage%
+        String[] parts = identifier.substring("trackv4_".length()).split(",");
+        if (parts.length != 5) {
+            return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + identifier;
+        }
+
+        try {
+            final UUID callerUUID   = UUID.fromString(parts[0]);
+            final UUID targetUUID   = UUID.fromString(parts[1]);
+            final double Sm         = Double.parseDouble(parts[2]); // missile speed (blocks/tick)
+            final UUID launcherUUID = UUID.fromString(parts[3]);
+            final String damageArg  = parts[4]; // passed to airburstExplode (kept as you had it)
+
+            final Entity caller = Bukkit.getEntity(callerUUID);
+            final Entity target = Bukkit.getEntity(targetUUID);
+            if (caller == null || target == null) {
+                return "§c§lMissile Impacted";
+            }
+            if (!caller.getWorld().equals(target.getWorld())) {
+                return "§c§lMissile Impacted";
+            }
+
+            // Airburst check (use cached entities)
+            final double distanceCheck = caller.getLocation().distance(target.getLocation());
+            if (distanceCheck <= 5.0 && caller instanceof Firework) {
+                airburstExplode((Firework) caller, target, launcherUUID, damageArg);
+                return "§c§lAirburst Detonation!";
+            }
+
+            // Intercept guidance (lead pursuit with fallback to pure pursuit)
+            final Location locCaller = caller.getLocation();
+            final Location locTarget = target.getLocation().add(0, target.getHeight() * 0.5, 0); // aim mid-body
+            final Vector R = locTarget.toVector().subtract(locCaller.toVector());
+            final Vector V = target.getVelocity().clone();
+
+            // Optional drag hack from your original (keep to avoid regression)
+            if (Math.abs(V.getY() + 0.0784) < 0.0001) {
+                V.setY(0);
+            }
+
+            final double a = V.dot(V) - Sm * Sm;
+            final double b = 2.0 * R.dot(V);
+            final double c = R.dot(R);
+            final double eps = 1e-9;
+            final double disc = b * b - 4.0 * a * c;
+
+            Vector desiredVelocity;
+            if (Math.abs(a) < eps || disc < eps) {
+                desiredVelocity = safeNorm(R).multiply(Sm);
+            } else {
+                final double root = Math.sqrt(Math.max(0.0, disc));
+                double t = Double.POSITIVE_INFINITY;
+                final double t1 = (-b - root) / (2.0 * a);
+                final double t2 = (-b + root) / (2.0 * a);
+                if (t1 > eps) t = Math.min(t, t1);
+                if (t2 > eps) t = Math.min(t, t2);
+
+                if (!Double.isFinite(t)) {
+                    desiredVelocity = safeNorm(R).multiply(Sm);
+                } else {
+                    final Vector interceptPoint = locTarget.toVector().add(V.multiply(t));
+                    desiredVelocity = safeNorm(interceptPoint.subtract(locCaller.toVector())).multiply(Sm);
+                }
+            }
+
+            // ===== CAS v2: circumferential fan search (UP, LEFT, RIGHT, DOWN, then diagonals), ring-by-ring =====
+            final Location rayStart = locCaller.clone().add(0, 0.25, 0); // slight lift to reduce ground false positives
+            final Vector forward = safeNorm(desiredVelocity);
+            final Basis basis = buildTangentBasis2(forward);
+            final Set<Material> passThrough = getPassThroughMaterials(exampleExpansion.enumSet);
+
+            final double incDeg  = 5.0; // your step
+            final double maxDeg  = 89.0; // never compute 90°
+            final double rayLen  = clamp(desiredVelocity.length() * 5.0, 6.0, 24.0);
+
+            // Logger (optional). You can print this somewhere if desired.
+            final StringBuilder casLog = new StringBuilder(128);
+
+            // Track "best blocked" (furthest progress) to use if nothing is clear
+            final double[] bestBlockedDist = {-1.0};
+            final Vector[] bestBlockedDir = {null};
+
+            // Helper to test ray in a direction; returns +freeDist if clear, -(freeDist) if blocked
+            java.util.function.BiFunction<Vector, String, Double> testDir = (dir, label) -> {
+                final RayTraceResult rtr = rayStart.getWorld().rayTraceBlocks(
+                        rayStart, dir, rayLen, FluidCollisionMode.NEVER, true
+                );
+                double freeDist;
+                boolean blocked;
+                if (rtr == null || rtr.getHitBlock() == null || passThrough.contains(rtr.getHitBlock().getType())) {
+                    freeDist = rayLen;
+                    blocked = false;
+                } else {
+                    blocked = true;
+                    freeDist = rtr.getHitPosition().toLocation(rayStart.getWorld()).distance(rayStart);
+                    if (freeDist > bestBlockedDist[0]) {
+                        bestBlockedDist[0] = freeDist;
+                        bestBlockedDir[0] = dir;
+                    }
+                }
+                // Append a compact log line
+                casLog.append('[').append(label).append("] free=").append(String.format("%.2f", freeDist))
+                        .append(blocked ? " (blocked), " : " (clear), ");
+                return blocked ? -freeDist : freeDist;
+            };
+
+            // (A) Try original direction first (0°)
+            double res0 = testDir.apply(forward, "0°/ORIG");
+            if (res0 <= 0) {
+                // (B) Fan out by increasing tilt angle; at each ring, try UP, LEFT, RIGHT, DOWN, then diagonals
+                Vector chosen = null;
+                outer:
+                for (double deg = incDeg; deg < maxDeg; deg += incDeg) {
+                    final double rad = Math.toRadians(deg);
+
+                    // Primary compass directions around the forward axis
+                    final Vector up  = tiltToward2(forward, basis.upTan,    rad);
+                    final Vector lf  = tiltToward2(forward, basis.leftTan,  rad);
+                    final Vector rt  = tiltToward2(forward, basis.rightTan, rad);
+                    final Vector dn  = tiltToward2(forward, basis.downTan,  rad);
+
+                    // Diagonals
+                    final Vector ul = tiltToward2(forward, basis.upLeftTan,    rad);
+                    final Vector ur = tiltToward2(forward, basis.upRightTan,   rad);
+                    final Vector dl = tiltToward2(forward, basis.downLeftTan,  rad);
+                    final Vector dr = tiltToward2(forward, basis.downRightTan, rad);
+
+                    final Vector[] order = new Vector[] { up, lf, rt, dn, ul, ur, dl, dr };
+                    final String[]  lbls  = new String[] {
+                            (int)deg + "°/UP", (int)deg + "°/LEFT", (int)deg + "°/RIGHT", (int)deg + "°/DOWN",
+                            (int)deg + "°/UP-LEFT", (int)deg + "°/UP-RIGHT", (int)deg + "°/DOWN-LEFT", (int)deg + "°/DOWN-RIGHT"
+                    };
+
+                    for (int i = 0; i < order.length; i++) {
+                        if (testDir.apply(order[i], lbls[i]) > 0) {
+                            chosen = order[i];
+                            break outer;
+                        }
+                    }
+                }
+
+                if (chosen != null) {
+                    desiredVelocity = safeNorm(chosen).multiply(Sm);
+                } else if (bestBlockedDir[0] != null) {
+                    // (C) No clear path; use direction with max free distance
+                    desiredVelocity = safeNorm(bestBlockedDir[0]).multiply(Sm);
+                } // else: keep original forward as last resort
+            }
+            // ===== end CAS v2 =====
+
+            caller.setVelocity(desiredVelocity);
+
+            final double distance = locCaller.distance(locTarget);
+            final String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
+            return String.format("\u00a76\u00a7l%s  \u00a77\u00a7l| \u00a7d\u00a7l%.1f", targetName, distance);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "§c§lMissile Impacted";
+        }
+    }
+
+
+    /* ===================== Helpers (kept local; no regressions) ===================== */
+
+    // Robust normalize: never NaN
+    private static Vector safeNorm(Vector v) {
+        double len = v.length();
+        if (len < 1e-9) return new Vector(0, 0, 0);
+        return v.multiply(1.0 / len);
+    }
+
+    // Clamp double
+    private static double clamp(double v, double lo, double hi) {
+        return Math.max(lo, Math.min(hi, v));
+    }
+
+    // Build tangent basis around "forward": up/down/left/right (+ diagonals) on plane ⟂ forward
+    private static final class Basis {
+        final Vector upTan, downTan, rightTan, leftTan;
+        final Vector upLeftTan, upRightTan, downLeftTan, downRightTan;
+
+        Basis(Vector upTan, Vector rightTan) {
+            this.upTan = upTan;
+            this.downTan = upTan.clone().multiply(-1);
+            this.rightTan = rightTan;
+            this.leftTan  = rightTan.clone().multiply(-1);
+
+            this.upLeftTan    = safeNorm(upTan.clone().add(leftTan));
+            this.upRightTan   = safeNorm(upTan.clone().add(rightTan));
+            this.downLeftTan  = safeNorm(downTan.clone().add(leftTan));
+            this.downRightTan = safeNorm(downTan.clone().add(rightTan));
+        }
+    }
+
+    private static Basis buildTangentBasis2(Vector forward) {
+        final Vector f = safeNorm(forward.clone());
+        Vector worldUp = new Vector(0, 1, 0);
+        if (Math.abs(f.dot(worldUp)) > 0.999) worldUp = new Vector(1, 0, 0); // avoid colinearity
+
+        // upTan = worldUp projected onto plane perpendicular to f
+        Vector upTan = worldUp.clone().subtract(f.clone().multiply(worldUp.dot(f)));
+        upTan = safeNorm(upTan);
+
+        // rightTan = f × upTan
+        Vector rightTan = f.clone().crossProduct(upTan);
+        rightTan = safeNorm(rightTan);
+
+        return new Basis(upTan, rightTan);
+    }
+
+    // Tilt 'forward' toward unit 'toward' by angle 'rad': normalize(forward*cos + toward*sin)
+    private static Vector tiltToward2(Vector forward, Vector toward, double rad) {
+        final double c = Math.cos(rad), s = Math.sin(rad);
+        return safeNorm(forward.clone().multiply(c).add(toward.clone().multiply(s)));
+    }
+
+
     protected static @NotNull String getString2(ExampleExpansion exampleExpansion, String identifier) {
         String[] parts = identifier.substring("trackv2_".length()).split(",");
         if (parts.length != 5) {
@@ -6863,6 +7083,71 @@ public class ExampleExpansion2 {
         }
     }
 
+    // Compact vec for logs
+    private static String vectorBrief(Vector v) {
+        return String.format("(%.2f,%.2f,%.2f)", v.getX(), v.getY(), v.getZ());
+    }
+
+    // A small orthonormal basis anchored on 'forward'.
+// We build tangent directions on the plane perpendicular to 'forward':
+//  upTan   = worldUp projected to tangent plane
+//  downTan = -upTan
+//  rightTan/leftTan = cross products to complete the frame
+//  plus diagonals (normalized sums)
+    private static final class Basis {
+        final Vector upTan, downTan, rightTan, leftTan;
+        final Vector upLeftTan, upRightTan, downLeftTan, downRightTan;
+
+        Basis(Vector upTan, Vector rightTan) {
+            this.upTan = upTan;
+            this.downTan = upTan.clone().multiply(-1);
+            this.rightTan = rightTan;
+            this.leftTan  = rightTan.clone().multiply(-1);
+
+            this.upLeftTan    = normalize(upTan.clone().add(leftTan));
+            this.upRightTan   = normalize(upTan.clone().add(rightTan));
+            this.downLeftTan  = normalize(downTan.clone().add(leftTan));
+            this.downRightTan = normalize(downTan.clone().add(rightTan));
+        }
+    }
+
+    private static Basis buildTangentBasis(Vector forward) {
+        Vector f = forward.clone().normalize();
+
+        // World up
+        Vector worldUp = new Vector(0, 1, 0);
+
+        // If nearly colinear with worldUp, pick a different helper axis
+        if (Math.abs(f.dot(worldUp)) > 0.999) {
+            worldUp = new Vector(1, 0, 0);
+        }
+
+        // Project worldUp onto the plane perpendicular to f: upTan = normalize(worldUp - (worldUp·f) f)
+        Vector upTan = worldUp.clone().subtract(f.clone().multiply(worldUp.dot(f)));
+        upTan = normalize(upTan);
+
+        // rightTan = normalize(f × upTan)
+        Vector rightTan = f.clone().crossProduct(upTan);
+        rightTan = normalize(rightTan);
+
+        return new Basis(upTan, rightTan);
+    }
+
+    // Tilt 'forward' by angle 'rad' toward unit tangent direction 'toward' (all unit).
+// Uses: dir' = normalize(forward*cosθ + toward*sinθ)
+    private static Vector tiltToward(Vector forward, Vector toward, double rad) {
+        double c = Math.cos(rad), s = Math.sin(rad);
+        return normalize(forward.clone().multiply(c).add(toward.clone().multiply(s)));
+    }
+
+    private static Vector normalize(Vector v) {
+        double len = v.length();
+        if (len < 1e-9) return new Vector(0, 0, 0);
+        return v.multiply(1.0 / len);
+    }
+
+    
+    
     protected static void buildCubeFromSkin(ExampleExpansion exampleExpansion, BufferedImage skin, World world, Location origin, int scale, int width, double rotation, Point start) {
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < width; x++) {
