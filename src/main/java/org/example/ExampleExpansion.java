@@ -1135,6 +1135,97 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+    protected static @NotNull String elevatorDown(String identifier) {
+        String[] parts = identifier.substring("elevatorDown_".length()).split(",");
+        if (parts.length != 5) return "§cError";
+        World world = Bukkit.getWorld(parts[0]);
+        if (world == null) return "§cError";
+        int bx, by, bz;
+        Material mat;
+        try {
+            bx  = Integer.parseInt(parts[1]);
+            by  = Integer.parseInt(parts[2]);
+            bz  = Integer.parseInt(parts[3]);
+            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+        } catch (Exception ex) {
+            return "§cError";
+        }
+
+        for (int y = by - 1; y >= world.getMinHeight(); y--) {
+            if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                return String.valueOf(y);
+            }
+        }
+        return "§cNo block found";
+    }
+
+    protected static @NotNull String elevatorUp(String identifier) {
+        String[] parts = identifier.substring("elevatorUp_".length()).split(",");
+        if (parts.length != 5) return "§cError";
+        World world = Bukkit.getWorld(parts[0]);
+        if (world == null) return "§cError";
+        int bx, by, bz;
+        Material mat;
+        try {
+            bx  = Integer.parseInt(parts[1]);
+            by  = Integer.parseInt(parts[2]);
+            bz  = Integer.parseInt(parts[3]);
+            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+        } catch (Exception ex) {
+            return "§cError";
+        }
+
+        for (int y = by + 1; y <= world.getMaxHeight(); y++) {
+            if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                return String.valueOf(y);
+            }
+        }
+        return "§cNo block found";
+    }
+
+    protected static @NotNull String checkElevators(String identifier) {
+        String[] parts = identifier.substring("checkElevators_".length()).split(",");
+        if (parts.length != 5) return "§cError";
+        World world = Bukkit.getWorld(parts[0]);
+        if (world == null) return "§cError";
+        int bx, by, bz;
+        Material mat;
+        try {
+            bx  = Integer.parseInt(parts[1]);
+            by  = Integer.parseInt(parts[2]);
+            bz  = Integer.parseInt(parts[3]);
+            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+        } catch (Exception ex) {
+            return "§cError";
+        }
+
+        boolean foundUp   = false;
+        boolean foundDown = false;
+
+        // search upwards
+        for (int y = by + 1; y <= world.getMaxHeight(); y++) {
+            if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                foundUp = true;
+                break;
+            }
+        }
+        // search downwards
+        for (int y = by - 1; y >= world.getMinHeight(); y--) {
+            if (world.getBlockAt(bx, y, bz).getType() == mat) {
+                foundDown = true;
+                break;
+            }
+        }
+
+        if (foundUp && foundDown) return "both";
+        if (foundUp) return "up";
+        if (foundDown) return "down";
+        return "none";
+    }
+
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -1261,6 +1352,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+        if (f1.startsWith("elevatorUp_")) return elevatorUp(f1);
+        if (f1.startsWith("elevatorDown_")) return elevatorDown(f1);
+        if (f1.startsWith("checkElevators_")) return checkElevators(f1);
 
 
 
