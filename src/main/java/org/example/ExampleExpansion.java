@@ -63,6 +63,8 @@ import java.util.List;
 
 
 import java.nio.file.Files;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -71,13 +73,15 @@ import java.nio.file.Files;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
-
+    private final ConcurrentHashMap<UUID, String> lastStatusByProjectile = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, BukkitTask> activeTrackers = new ConcurrentHashMap<>();
+Plugin plugin;
 
 
     private static long lastSendTime = 0L; // in millis
 
     protected final Set<Material> enumSet = EnumSet.of(Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS,  Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH,  Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP );
-
+    private enum SpeedMode { ADD, MUL }
 
     private boolean WorldEdit_Installed = false;
     private boolean WorldGuard_Installed = false;
@@ -134,7 +138,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public ExampleExpansion() {
         trialVersion = false;
         trialNumber = 1000;
-
+plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
         PluginManager pm = Bukkit.getPluginManager();
@@ -1027,131 +1031,274 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             if (identifier.startsWith("track_")) {
-                String[] parts = identifier.substring("track_".length()).split(",");
-                // Expected: %projectile_uuid%,%var_target%,%for2%,%var_owna%,3800%
-                if (parts.length != 5) {
-                    return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + identifier;
+
+
+                final String[] parts = identifier.substring("track_".length()).split(",");
+                if (parts.length != 7) {
+                    return "Invalid format. Use: track_projectileUUID,targetUUID,STARTSPEED:INCREMENT:MAXIMUM:MODE(MUL/ADD),launcherUUID,damage,INTERVAL:TOTALLIFESPAN,PARTICLE";
+                }
+
+                final UUID callerUUID;
+                final UUID targetUUID;
+                // --- SPEED SPEC (replaces old single 'speed') ---
+                final double startSpeed;
+                final double speedInc;
+                final double speedMax;
+                final SpeedMode speedMode;
+                // ------------------------------------------------
+                final UUID launcherUUID;
+                final float damage;
+                final long intervalTicks;
+                final long totalTicks;
+                final Particle trailParticle;
+
+                try {
+                    trailParticle = Particle.valueOf(parts[6].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    return "Bad PARTICLE name (use a valid org.bukkit.Particle enum, e.g. FLAME, CRIT, SMOKE)";
                 }
 
                 try {
-                    UUID callerUUID   = UUID.fromString(parts[0]);   // projectile uuid
-                    UUID targetUUID   = UUID.fromString(parts[1]);   // %var_target%
-                    double speed      = Double.parseDouble(parts[2]);
-                    UUID launcherUUID = UUID.fromString(parts[3]);   // %var_owna%
-                    float damage      = Float.parseFloat(parts[4]);  // e.g., 3800
+                    callerUUID   = UUID.fromString(parts[0]);      // projectile uuid
+                    targetUUID   = UUID.fromString(parts[1]);      // %var_target%
 
-                    Entity caller = Bukkit.getEntity(callerUUID);
-                    Entity target = Bukkit.getEntity(targetUUID);
-
-                    if (caller == null || target == null) {
-                        return "§c§lMissile Impacted"; // No valid target or projectile
+                    // Parse STARTSPEED:INCREMENT:MAXIMUM:MODE
+                    String[] sp = parts[2].split(":");
+                    if (sp.length != 4) {
+                        return "Bad SPEED spec (use STARTSPEED:INCREMENT:MAXIMUM:MODE, e.g. 1.2:0.1:3.0:ADD)";
+                    }
+                    startSpeed = Double.parseDouble(sp[0]);
+                    speedInc   = Double.parseDouble(sp[1]);
+                    speedMax   = Double.parseDouble(sp[2]);
+                    try {
+                        speedMode = SpeedMode.valueOf(sp[3].toUpperCase(Locale.ROOT));
+                    } catch (IllegalArgumentException ex) {
+                        return "Bad speed MODE (use ADD or MUL)";
                     }
 
-                    // Check if both entities are in the same world
-                    if (!caller.getWorld().equals(target.getWorld())) {
-                        return "§c§lMissile Impacted."; // No valid target
+                    launcherUUID = UUID.fromString(parts[3]);      // %var_owna%
+                    damage       = Float.parseFloat(parts[4]);     // e.g., 3800
+
+                    final String[] tt = parts[5].split(":");
+                    if (tt.length != 2) {
+                        return "Bad INTERVAL:TOTALLIFESPAN (e.g., 2:200)";
                     }
+                    intervalTicks = Long.parseLong(tt[0]);
+                    totalTicks    = Long.parseLong(tt[1]);
 
-                    // Airburst Mechanic: If within 5 blocks and caller is a Firework, detonate
-                    double distance = caller.getLocation().distance(target.getLocation());
-                    if (distance <= 7.0 ) {
-                        // Airburst now also damages ONLY the provided target
-                        triggerPlayerHitEvent(launcherUUID, target.getLocation(), damage, targetUUID);
-                        spawnCustomFireworkExplosion(caller.getWorld(), caller.getLocation());
-                        caller.remove();
-                        return "§c§lAirburst Detonation!";
+                    if (intervalTicks <= 0 || totalTicks <= 0) {
+                        return "Intervals must be > 0";
                     }
-
-                    Location locCaller = caller.getLocation();
-                    Location locTarget = target.getLocation();
-                    locTarget.setY(locTarget.getY() + target.getHeight() / 2);
-                    Vector R = locTarget.toVector().subtract(locCaller.toVector());
-                    Vector V = target.getVelocity();
-                    // Check for "gravity drag" Y velocity
-                    if (Math.abs(V.getY() + 0.0784) < 0.0001) {
-                        V.setY(0);
-                    }
-
-                    double Sm = speed;
-
-                    double a = V.dot(V) - Sm * Sm;
-                    double b = 2 * R.dot(V);
-                    double c = R.dot(R);
-                    double discriminant = b * b - 4 * a * c;
-
-                    Vector desiredVelocity;
-                    if (discriminant < 0 || a == 0) {
-                        desiredVelocity = R.normalize().multiply(Sm);
-                    } else {
-                        double sqrtDisc = Math.sqrt(discriminant);
-                        double t1 = (-b - sqrtDisc) / (2 * a);
-                        double t2 = (-b + sqrtDisc) / (2 * a);
-                        double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
-
-                        if (t <= 0) {
-                            desiredVelocity = R.normalize().multiply(Sm);
-                        } else {
-                            Vector interceptPoint = locTarget.toVector().add(V.clone().multiply(t));
-                            desiredVelocity = interceptPoint.subtract(locCaller.toVector()).normalize().multiply(Sm);
-                        }
-                    }
-
-                    // Terrain Avoidance: Raytrace 5 ticks ahead
-                    Location rayStart = locCaller.clone();
-                    Vector rayDir = desiredVelocity.clone().normalize();
-                    double rayLength = desiredVelocity.length() * 5;
-
-                    RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
-                            rayStart,
-                            rayDir,
-                            rayLength,
-                            FluidCollisionMode.NEVER,
-                            true
-                    );
-
-                    Set<Material> passThrough = getPassThroughMaterials(enumSet);
-                    boolean needsAvoidance = result != null && result.getHitBlock() != null &&
-                            !passThrough.contains(result.getHitBlock().getType());
-
-                    if (needsAvoidance) {
-                        Vector bestVelocity = desiredVelocity;
-                        double bestScore = -1;
-                        for (int pitch = 0; pitch <= 90; pitch += 5) {
-                            Vector pitched = pitchVectorUpwards(desiredVelocity.clone(), Math.toRadians(pitch)).normalize().multiply(Sm);
-                            Vector pitchedDir = pitched.clone().normalize();
-                            RayTraceResult testResult = rayStart.getWorld().rayTraceBlocks(
-                                    rayStart,
-                                    pitchedDir,
-                                    pitched.length() * 5,
-                                    FluidCollisionMode.NEVER,
-                                    true
-                            );
-                            boolean clear = testResult == null || testResult.getHitBlock() == null ||
-                                    passThrough.contains(testResult.getHitBlock().getType());
-                            if (clear) {
-                                double angleCost = pitch;
-                                double score = 100 - angleCost;
-                                if (score > bestScore) {
-                                    bestScore = score;
-                                    bestVelocity = pitched;
-                                }
-                            }
-                        }
-                        desiredVelocity = bestVelocity;
-                    }
-
-                    caller.setVelocity(desiredVelocity);
-
-                    // Get target's name (Player name or Entity type)
-                    String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
-
-                    // Format return message
-                    return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    return "§c§lMissile Impacted"; // Error case
+                    return "§c§lMissile Impacted";
                 }
+
+                // If there is already a tracker for this projectile, just say it’s running.
+                if (activeTrackers.containsKey(callerUUID)) {
+                    return lastStatusByProjectile.getOrDefault(callerUUID, "§eTracking already running");
+                }
+
+                // Seed initial status
+                lastStatusByProjectile.put(callerUUID, "§eTracking initialized");
+
+                // Control flags/counters for this run
+                final AtomicBoolean done = new AtomicBoolean(false);
+                final long[] elapsed = new long[] { 0L };
+                final long[] iter    = new long[] { 0L }; // <— counts iterations for speed updates
+
+                // Start an async repeating task; each tick we bounce to main thread for Bukkit-safe ops.
+                BukkitTask task = new BukkitRunnable() {
+                    @Override public void run() {
+                        if (done.get()) {
+                            cancel();
+                            activeTrackers.remove(callerUUID);
+                            return;
+                        }
+
+                        // Stop if lifespan exceeded
+                        if (elapsed[0] >= totalTicks) {
+                            setStatus(callerUUID, "§c§lMissile Timed Out");
+                            done.set(true);
+                            cancel();
+                            activeTrackers.remove(callerUUID);
+                            return;
+                        }
+
+                        // Bounce to main thread for entity/world operations
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            try {
+                                Entity caller = Bukkit.getEntity(callerUUID);
+                                Entity target = Bukkit.getEntity(targetUUID);
+
+                                if (caller == null || target == null) {
+                                    setStatus(callerUUID, "§c§lMissile Impacted");
+                                    done.set(true);
+                                    return;
+                                }
+
+                                // Launcher must be an online player
+                                Player launcher = Bukkit.getPlayer(launcherUUID);
+                                if (launcher == null || !launcher.isOnline()) {
+                                    setStatus(callerUUID, "§c§lLauncher Offline");
+                                    done.set(true);
+                                    return;
+                                }
+
+                                // If target is a player, ensure online
+                                if (target instanceof Player) {
+                                    Player tp = (Player) target;
+                                    if (!tp.isOnline()) {
+                                        setStatus(callerUUID, "§c§lTarget Offline");
+                                        done.set(true);
+                                        return;
+                                    }
+                                }
+
+                                // Same-world requirement
+                                if (!caller.getWorld().equals(target.getWorld())) {
+                                    setStatus(callerUUID, "§c§lMissile Impacted.");
+                                    done.set(true);
+                                    return;
+                                }
+
+                                // Distance & possible airburst detonation
+                                double distance = caller.getLocation().distance(target.getLocation());
+                                if (distance <= 7.0) {
+                                    triggerPlayerHitEvent(launcherUUID, target.getLocation(), damage, targetUUID);
+                                    spawnCustomFireworkExplosion(caller.getWorld(), caller.getLocation());
+                                    caller.remove();
+                                    setStatus(callerUUID, "§c§lAirburst Detonation!");
+                                    done.set(true);
+                                    return;
+                                }
+
+                                // Intercept solution
+                                Location locCaller = caller.getLocation();
+                                Location locTarget = target.getLocation().clone();
+                                locTarget.setY(locTarget.getY() + target.getHeight() / 2.0);
+
+                                Vector R = locTarget.toVector().subtract(locCaller.toVector());
+                                Vector V = target.getVelocity().clone();
+
+                                // Gravity/Y drag correction for near-stationary entities
+                                if (Math.abs(V.getY() + 0.0784) < 0.0001) {
+                                    V.setY(0);
+                                }
+
+                                // --- Dynamic speed based on iteration counter ---
+                                double Sm;
+                                long k = iter[0];
+                                switch (speedMode) {
+                                    case ADD:
+                                        // Sm = min(MAX, START + INC * iteration)
+                                        Sm = Math.min(speedMax, startSpeed + (speedInc * k));
+                                        break;
+                                    case MUL:
+                                        // Sm = min(MAX, START * INC^iteration)
+                                        Sm = Math.min(speedMax, startSpeed * Math.pow(speedInc, k));
+                                        break;
+                                    default:
+                                        Sm = startSpeed;
+                                }
+                                // -----------------------------------------------
+
+                                double a = V.dot(V) - Sm * Sm;
+                                double b = 2 * R.dot(V);
+                                double c = R.dot(R);
+                                double discriminant = b * b - 4 * a * c;
+
+                                Vector desiredVelocity;
+                                if (discriminant < 0 || a == 0) {
+                                    desiredVelocity = R.normalize().multiply(Sm);
+                                } else {
+                                    double sqrtDisc = Math.sqrt(discriminant);
+                                    double t1 = (-b - sqrtDisc) / (2 * a);
+                                    double t2 = (-b + sqrtDisc) / (2 * a);
+                                    double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+
+                                    if (t <= 0) {
+                                        desiredVelocity = R.normalize().multiply(Sm);
+                                    } else {
+                                        Vector interceptPoint = locTarget.toVector().add(V.clone().multiply(t));
+                                        desiredVelocity = interceptPoint.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                                    }
+                                }
+
+                                // Terrain Avoidance: raytrace ~5 ticks ahead
+                                Location rayStart = locCaller.clone();
+                                Vector rayDir = desiredVelocity.clone().normalize();
+                                double rayLength = desiredVelocity.length() * 5.0;
+
+                                RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
+                                        rayStart, rayDir, rayLength, FluidCollisionMode.NEVER, true
+                                );
+
+                                Set<Material> passThrough = getPassThroughMaterials(enumSet);
+                                boolean needsAvoidance = result != null && result.getHitBlock() != null &&
+                                        !passThrough.contains(result.getHitBlock().getType());
+
+                                if (needsAvoidance) {
+                                    Vector bestVelocity = desiredVelocity;
+                                    double bestScore = -1;
+                                    for (int pitch = 0; pitch <= 90; pitch += 5) {
+                                        Vector pitched = pitchVectorUpwards(desiredVelocity.clone(), Math.toRadians(pitch))
+                                                .normalize().multiply(Sm);
+                                        Vector pitchedDir = pitched.clone().normalize();
+
+                                        RayTraceResult test = rayStart.getWorld().rayTraceBlocks(
+                                                rayStart, pitchedDir, pitched.length() * 5.0,
+                                                FluidCollisionMode.NEVER, true
+                                        );
+                                        boolean clear = test == null || test.getHitBlock() == null ||
+                                                passThrough.contains(Objects.requireNonNull(test.getHitBlock()).getType());
+
+                                        if (clear) {
+                                            double angleCost = pitch;    // prefer lower pitch
+                                            double score = 100 - angleCost;
+                                            if (score > bestScore) {
+                                                bestScore = score;
+                                                bestVelocity = pitched;
+                                            }
+                                        }
+                                    }
+                                    desiredVelocity = bestVelocity;
+                                }
+
+                                // Apply motion
+                                caller.setVelocity(desiredVelocity);
+
+                                Location center = caller.getLocation().add(0, caller.getHeight() * 0.5, 0);
+                                for (Player viewer : caller.getWorld().getPlayers()) {
+                                    viewer.spawnParticle(trailParticle, center, 1, 0, 0, 0, 0, null, true);
+                                }
+
+                                // Status line
+                                String targetName = (target instanceof Player)
+                                        ? ((Player) target).getName()
+                                        : target.getType().name();
+                                setStatus(callerUUID, String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance));
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                setStatus(callerUUID, "§c§lMissile Impacted");
+                                done.set(true);
+                            }
+                        });
+
+                        // advance elapsed after scheduling this iteration
+                        elapsed[0] += intervalTicks;
+                        iter[0]++; // <— advance iteration count for speed progression
+                    }
+                }.runTaskTimerAsynchronously(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, intervalTicks);
+
+                // Remember this task so duplicate starts are avoided and for cancellation if needed elsewhere
+                activeTrackers.put(callerUUID, task);
+
+                return "§eTracking initialized";
+
             }
+                
+                
+            
 
 
         } catch (Exception e) {
@@ -1164,6 +1311,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected static Set<Material> getPassThroughMaterials(Set<Material> enumSet) {
         return enumSet;
+    }
+
+
+    /** Optional: let your placeholder return latest status by projectile UUID */
+    public String getLastStatusForProjectile(UUID projectileId) {
+        return lastStatusByProjectile.getOrDefault(projectileId, "");
+    }
+
+    /** If you ever need to stop tracking externally. */
+    public void cancelTracking(UUID projectileId) {
+        BukkitTask task = activeTrackers.remove(projectileId);
+        if (task != null) task.cancel();
+        lastStatusByProjectile.remove(projectileId);
+    }
+
+    // ================= Helpers / hooks =================
+
+    private void setStatus(UUID projectileId, String status) {
+        lastStatusByProjectile.put(projectileId, status);
     }
 
 
