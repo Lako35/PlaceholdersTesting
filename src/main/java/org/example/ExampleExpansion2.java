@@ -5045,23 +5045,7 @@ public class ExampleExpansion2 {
         return Math.max(lo, Math.min(hi, v));
     }
 
-    // Build tangent basis around "forward": up/down/left/right (+ diagonals) on plane ⟂ forward
-    private static final class Basis {
-        final Vector upTan, downTan, rightTan, leftTan;
-        final Vector upLeftTan, upRightTan, downLeftTan, downRightTan;
-
-        Basis(Vector upTan, Vector rightTan) {
-            this.upTan = upTan;
-            this.downTan = upTan.clone().multiply(-1);
-            this.rightTan = rightTan;
-            this.leftTan  = rightTan.clone().multiply(-1);
-
-            this.upLeftTan    = safeNorm(upTan.clone().add(leftTan));
-            this.upRightTan   = safeNorm(upTan.clone().add(rightTan));
-            this.downLeftTan  = safeNorm(downTan.clone().add(leftTan));
-            this.downRightTan = safeNorm(downTan.clone().add(rightTan));
-        }
-    }
+  
 
     private static Basis buildTangentBasis2(Vector forward) {
         final Vector f = safeNorm(forward.clone());
