@@ -1857,6 +1857,8 @@ public class ExampleExpansion2 {
         if (ExampleExpansion.viewChestDebugLogging) {
             p.sendMessage("FakeChest");
         }
+        
+        p.openInventory(fakeInventory);
 
         return "done";
     }
