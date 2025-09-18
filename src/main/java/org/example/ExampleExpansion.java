@@ -364,7 +364,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Trial 
             // SCore_Installed = TRUE = TEST MODE TRUE
             SCore_Installed = true;
-            g5 = 1000;
+            g5 = 20000;
         } else {
             
         }
