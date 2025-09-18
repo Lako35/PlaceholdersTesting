@@ -16,9 +16,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.EulerAngle;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -49,6 +51,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+
+    // One task per turret UUID
+    private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
+
+    // A deadline (in ms, epoch) for each active turret; further detections extend this
+    private static final Map<UUID, Long> ACTIVE_TURRET_DEADLINE_MS = new ConcurrentHashMap<>();
     private final AtomicBoolean demoCmdRegistered = new AtomicBoolean(false);
 
     private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
@@ -646,13 +654,254 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return "§aSent lodestone block at your feet.";
         }
 
+        if (identifier.startsWith("turret_")) {
+
+            final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
+                    EntityType.BLAZE, EntityType.BREEZE, EntityType.CREEPER,
+                    EntityType.ELDER_GUARDIAN, EntityType.ENDERMITE, EntityType.EVOKER,
+                    EntityType.GHAST, EntityType.GUARDIAN, EntityType.ENDERMAN,
+                    EntityType.HOGLIN, EntityType.HUSK, EntityType.ILLUSIONER,
+                    EntityType.MAGMA_CUBE, EntityType.PHANTOM, EntityType.PIGLIN_BRUTE,
+                    EntityType.PILLAGER, EntityType.RAVAGER, EntityType.SHULKER,
+                    EntityType.SILVERFISH, EntityType.SKELETON, EntityType.SLIME,
+                    EntityType.SPIDER, EntityType.STRAY, EntityType.VEX,
+                    EntityType.VINDICATOR, EntityType.WARDEN, EntityType.WITCH,
+                    EntityType.WITHER, EntityType.WITHER_SKELETON, EntityType.ZOGLIN,
+                    EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER
+            );
+
+            String[] parts = identifier.substring("turret_".length()).split(",");
+            // You access up to parts[19]; require at least 20
+            if (parts.length < 20) return "§cInvalid format";
+
+            try {
+                String worldName = parts[0];
+                int x = Integer.parseInt(parts[1]);
+                int y = Integer.parseInt(parts[2]);
+                int z = Integer.parseInt(parts[3]);
+                double radius = Double.parseDouble(parts[4]);
+                String projectile = parts[5];
+                double speed = Double.parseDouble(parts[6]);
+                String targetType = parts[7];
+                String ownerUUID = parts[8];
+                int lockTime = Integer.parseInt(parts[9]);     // in ticks
+                int lifespan = Integer.parseInt(parts[10]);    // in ticks
+                int interval = Integer.parseInt(parts[11]);    // in ticks
+                double damage = Double.parseDouble(parts[12]);
+                Particle particle = Particle.valueOf(parts[13]);
+                double spacing = Double.parseDouble(parts[14]);
+                boolean predictive = Boolean.parseBoolean(parts[15]);
+                String sound = parts[16];
+                float soundDistance = Float.parseFloat(parts[17]);
+                float pitch = Float.parseFloat(parts[18]);
+                float volume = Float.parseFloat(parts[19]);
+                List<String> projectileTags = Arrays.asList(parts).subList(20, parts.length);
+
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) return "§cInvalid world";
+
+                Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+
+                ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
+                        .filter(e -> e instanceof ArmorStand)
+                        .map(e -> (ArmorStand) e)
+                        .filter(e -> e.getScoreboardTags().contains("ArchiTurret"))
+                        .findFirst()
+                        .orElse(null);
+
+                if (turret == null) return "§cNo turret found";
+
+                // --- Prevent multischeduling & support timer refresh while active ---
+                UUID turretId = turret.getUniqueId();
+                BukkitTask existing = ACTIVE_TURRET_TASKS.get(turretId);
+                long extendMs = Math.max(50L, lockTime * 50L); // ticks -> ms, min 1 tick
+                if (existing != null && !existing.isCancelled()) {
+                    // Refresh the deadline and bail out; the running task keeps firing
+                    ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
+                    return "§7Timer refreshed";
+                }
+                // ---------------------------------------------------------------
+
+                Set<String> turretTags = turret.getScoreboardTags();
+
+                Entity target = null;
+
+                // Existing lock
+                UUID lockedId = turretLocks.get(base);
+                if (lockedId != null) {
+                    Entity existingLocked = Bukkit.getEntity(lockedId);
+                    if (existingLocked != null && existingLocked.isValid() && !existingLocked.isDead() && existingLocked.getWorld().equals(world)) {
+                        target = existingLocked;
+                    } else {
+                        turretLocks.remove(base);
+                    }
+                }
+
+                if (target == null) {
+                    double closestSq = radius * radius;
+                    for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
+                        if (!(e instanceof LivingEntity) || e.isDead()) continue;
+                        if (!e.getWorld().equals(world)) continue;
+                        double distSq = e.getLocation().distanceSquared(base);
+                        if (distSq > closestSq) continue;
+                        if (!ExampleExpansionUtils.isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
+                        if (ExampleExpansionUtils.hasMatchingTag(e, turretTags)) continue;
+
+                        Location midsection = e.getLocation().clone().add(0, e.getHeight() / 2, 0);
+                        if (!ExampleExpansionUtils.canSee(base, midsection) && !targetType.equalsIgnoreCase("Players")) continue;
+
+                        closestSq = distSq;
+                        target = e;
+                    }
+                    if (target == null) return "§cNo targets found";
+                    turretLocks.put(base, target.getUniqueId());
+                }
+
+                final LivingEntity lockedTarget = (LivingEntity) target;
+
+                // Initialize the deadline and schedule one task
+                ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
+
+                BukkitRunnable runner = new BukkitRunnable() {
+                    // Keep your lastPositions map as you had
+                    private void cleanupAndCancel() {
+                        turretLocks.remove(base);
+                        ACTIVE_TURRET_TASKS.remove(turretId);
+                        ACTIVE_TURRET_DEADLINE_MS.remove(turretId);
+                        cancel();
+                    }
+
+                    @Override
+                    public void run() {
+                        // Auto-end on deadline
+                        Long deadline = ACTIVE_TURRET_DEADLINE_MS.get(turretId);
+                        if (deadline == null || System.currentTimeMillis() >= deadline) {
+                            cleanupAndCancel();
+                            return;
+                        }
+
+                        if (lockedTarget.isDead() || !lockedTarget.getWorld().equals(world)) {
+                            cleanupAndCancel();
+                            return;
+                        }
+
+                        Vector velocity;
+
+                        if (predictive) {
+                            Location targetLoc = lockedTarget.getLocation();
+                            targetLoc.setY(targetLoc.getY() + lockedTarget.getHeight() / 2);
+                            Vector R = targetLoc.toVector().subtract(base.toVector());
+                            Vector V = lockedTarget.getVelocity();
+                            UUID targetUUID = lockedTarget.getUniqueId();
+
+                            boolean yDrag = Math.abs(V.getY() + 0.0784) < 0.0001;
+                            boolean xZero = Math.abs(V.getX()) < 0.0001;
+                            boolean zZero = Math.abs(V.getZ()) < 0.0001;
+
+                            if (xZero && zZero) {
+                                Location last = lastPositions.get(targetUUID);
+                                if (last != null) {
+                                    Vector delta = targetLoc.toVector().subtract(last.toVector());
+                                    V = delta.multiply(0.5);  // Tunable factor
+                                } else {
+                                    V = new Vector(0, 0, 0);
+                                }
+                                lastPositions.put(targetUUID, targetLoc.clone());
+                            } else {
+                                lastPositions.remove(targetUUID);
+                                if (yDrag && xZero) V.setY(0);
+                            }
+
+                            double Sm = speed;
+                            double a = V.dot(V) - Sm * Sm;
+                            double b = 2 * R.dot(V);
+                            double c = R.dot(R);
+                            double disc = b * b - 4 * a * c;
+
+                            if (disc < 0 || a == 0) {
+                                velocity = R.normalize().multiply(Sm);
+                            } else {
+                                double sqrt = Math.sqrt(disc);
+                                double t1 = (-b - sqrt) / (2 * a);
+                                double t2 = (-b + sqrt) / (2 * a);
+                                double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+                                if (t <= 0) {
+                                    velocity = R.normalize().multiply(Sm);
+                                } else {
+                                    Vector intercept = targetLoc.toVector().add(V.clone().multiply(t));
+                                    velocity = intercept.subtract(base.toVector()).normalize().multiply(Sm);
+                                }
+                            }
+                        } else {
+                            Location currentTargetLoc = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
+                            velocity = currentTargetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                        }
+
+                        Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
+                        proj.setVelocity(velocity);
+                        proj.setCustomNameVisible(false);
+                        proj.setSilent(true);
+                        proj.setGravity(false);
+
+                        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                            if (proj.isValid() && !proj.isDead()) proj.remove();
+                        }, lifespan);
+
+                        if (proj instanceof Arrow) ((Arrow) proj).setDamage(damage);
+
+                        if (ownerUUID != null && !ownerUUID.isEmpty()) {
+                            try {
+                                UUID uuid = UUID.fromString(ownerUUID);
+                                ProjectileSource shooter = Bukkit.getPlayer(uuid);
+                                if (proj instanceof Projectile && shooter != null) {
+                                    ((Projectile) proj).setShooter(shooter);
+                                }
+                            } catch (IllegalArgumentException ignored) { /* bad UUID string */ }
+                        }
+
+                        proj.setMetadata("ArchistructureTurret",
+                                new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
+                        for (String tag : projectileTags) proj.addScoreboardTag(tag);
+
+                        // Beam
+                        Location midsection = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
+                        Vector direction = midsection.toVector().subtract(base.toVector()).normalize();
+                        double length = base.distance(midsection);
+                        for (double d = 0; d <= length; d += spacing) {
+                            Location point = base.clone().add(direction.clone().multiply(d));
+                            world.spawnParticle(particle, point, 0);
+                        }
+
+                        turret.teleport(turret.getLocation().setDirection(
+                                lockedTarget.getLocation().toVector().subtract(turret.getLocation().toVector())));
+
+                        for (Player t : Bukkit.getOnlinePlayers()) {
+                            if (!t.getWorld().equals(world)) continue;
+                            if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
+                                t.playSound(base, sound, SoundCategory.AMBIENT, volume, pitch);
+                            }
+                        }
+                    }
+                };
+
+                // Ensure a sane period
+                int period = Math.max(1, interval);
+                BukkitTask task = runner.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, period);
+                ACTIVE_TURRET_TASKS.put(turretId, task);
+
+                return lockedTarget.getUniqueId().toString() + "|" + lockedTarget.getVelocity();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§cNo targets found";
+            }
+        }
+
         if (identifier.startsWith("cosmicEnchant_"))  return cosmicEnchant(p, identifier);
         if (identifier.startsWith("spawnFakeEntity_")) return fakeEntitySpawn(identifier);
         if (identifier.startsWith("switcher_")) return switcher(identifier);
         if (identifier.startsWith("trackingCompassv2_")) return trackingCompass(p, identifier);
         
         // DONE BELOW, ABOVE NOT CHECKED
-        if (identifier.startsWith("turret_"))  return ExampleExpansion2.handleTurret(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), identifier, turretLocks, lastPositions);
         if (identifier.startsWith("esee_")) return ExampleExpansion2.getString37(this, identifier);
         if (identifier.startsWith("isee_")) return ExampleExpansion2.getString36(this, identifier);
         if (identifier.startsWith("csee_")) return ExampleExpansion2.getString(this, identifier);
