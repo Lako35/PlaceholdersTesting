@@ -75,6 +75,7 @@ import java.util.List;
 
 import java.nio.file.Files;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -88,10 +89,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
     // One task per turret UUID
     private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
+    // One repeating task per turret UUID
 
-    // A deadline (in ms, epoch) for each active turret; further detections extend this
+    // Deadline (ms since epoch) for each active turret; extend/reset this to refresh timer
     private static final Map<UUID, Long> ACTIVE_TURRET_DEADLINE_MS = new ConcurrentHashMap<>();
+
+    // Current target reference per turret so we can retarget while the task runs
+    private static final Map<UUID, AtomicReference<LivingEntity>> ACTIVE_TURRET_TARGET = new ConcurrentHashMap<>();
+    // A deadline (in ms, epoch) for each active turret; further detections extend this
     protected final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
+    private static final double EPS = 1.0e-6;
 
     private static long lastSendTime = 0L; // in millis
 
@@ -1168,6 +1175,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return "§cNo block found";
     }
 
+
+    private static boolean hasLineOfSight(World world, Location from, Location to) {
+        Vector dir = to.toVector().subtract(from.toVector());
+        double len = dir.length();
+        if (len < 1.0e-6) return true;
+        RayTraceResult rr = world.rayTraceBlocks(from, dir.normalize(), len, FluidCollisionMode.NEVER, false);
+        return rr == null; // null => no blocking hit => clear line
+    }
+
     protected static @NotNull String elevatorUp(String identifier) {
         String[] parts = identifier.substring("elevatorUp_".length()).split(",");
         if (parts.length != 5) return "§cError";
@@ -2098,13 +2114,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double speed = Double.parseDouble(parts[6]);
                 String targetType = parts[7];
                 String ownerUUID = parts[8];
-                int lockTime = Integer.parseInt(parts[9]);     // in ticks
-                int lifespan = Integer.parseInt(parts[10]);    // in ticks
-                int interval = Integer.parseInt(parts[11]);    // in ticks
+                int lockTime = Integer.parseInt(parts[9]);     // ticks
+                int lifespan = Integer.parseInt(parts[10]);    // ticks
+                int interval = Integer.parseInt(parts[11]);    // ticks
                 double damage = Double.parseDouble(parts[12]);
-                Particle particle = Particle.valueOf(parts[13]);
+                Particle particle = Particle.valueOf(parts[13].toUpperCase(Locale.ROOT));
                 double spacing = Double.parseDouble(parts[14]);
-                boolean predictive = Boolean.parseBoolean(parts[15]);
+                boolean predictive = "1".equals(parts[15].trim()) || Boolean.parseBoolean(parts[15]);
                 String sound = parts[16];
                 float soundDistance = Float.parseFloat(parts[17]);
                 float pitch = Float.parseFloat(parts[18]);
@@ -2114,99 +2130,114 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) return "§cInvalid world";
 
-                Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+                final Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+                final double radiusSq = radius * radius;
 
                 ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
-                        .filter(e -> e instanceof ArmorStand)
-                        .map(e -> (ArmorStand) e)
+                        .filter(ArmorStand.class::isInstance)
+                        .map(ArmorStand.class::cast)
                         .filter(e -> e.getScoreboardTags().contains("ArchiTurret"))
                         .findFirst()
                         .orElse(null);
-
                 if (turret == null) return "§cNo turret found";
 
-                // --- Prevent multischeduling & support timer refresh while active ---
+                // --- multischeduling guard ---
                 UUID turretId = turret.getUniqueId();
-                BukkitTask existing = ACTIVE_TURRET_TASKS.get(turretId);
-                long extendMs = Math.max(50L, lockTime * 50L); // ticks -> ms, min 1 tick
-                if (existing != null && !existing.isCancelled()) {
-                    // Refresh the deadline and bail out; the running task keeps firing
-                    ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
-                    return "§7Timer refreshed";
-                }
-                // ---------------------------------------------------------------
+                BukkitTask running = ACTIVE_TURRET_TASKS.get(turretId);
+                long extendMs = Math.max(50L, lockTime * 50L); // ticks -> ms (20t = 1s)
+                // --------------------------------
 
                 Set<String> turretTags = turret.getScoreboardTags();
 
-                Entity target = null;
-
-                // Existing lock
-                UUID lockedId = turretLocks.get(base);
-                if (lockedId != null) {
-                    Entity existingLocked = Bukkit.getEntity(lockedId);
-                    if (existingLocked != null && existingLocked.isValid() && !existingLocked.isDead() && existingLocked.getWorld().equals(world)) {
-                        target = existingLocked;
-                    } else {
-                        turretLocks.remove(base);
-                    }
-                }
-
-                if (target == null) {
-                    double closestSq = radius * radius;
+                // Helper: find closest valid target WITH VLOS (used only on acquisition/refresh checks)
+                java.util.function.Supplier<LivingEntity> findClosestWithVLOS = () -> {
+                    LivingEntity best = null;
+                    double bestSq = radiusSq;
                     for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
-                        if (!(e instanceof LivingEntity) || e.isDead()) continue;
+                        if (!(e instanceof LivingEntity le) || e.isDead()) continue;
                         if (!e.getWorld().equals(world)) continue;
-                        double distSq = e.getLocation().distanceSquared(base);
-                        if (distSq > closestSq) continue;
                         if (!ExampleExpansionUtils.isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
                         if (ExampleExpansionUtils.hasMatchingTag(e, turretTags)) continue;
 
-                        Location midsection = e.getLocation().clone().add(0, e.getHeight() / 2, 0);
-                        if (!ExampleExpansionUtils.canSee(base, midsection) && !targetType.equalsIgnoreCase("Players")) continue;
+                        Location mid = le.getLocation().clone().add(0, le.getHeight() / 2.0, 0);
+                        double dSq = mid.distanceSquared(base);
+                        if (dSq > bestSq) continue;
 
-                        closestSq = distSq;
-                        target = e;
+                        // VLOS check at acquisition/refresh only
+                        if (!ExampleExpansionUtils.canSee(base, mid)) continue;
+
+                        best = le;
+                        bestSq = dSq;
                     }
-                    if (target == null) return "§cNo targets found";
-                    turretLocks.put(base, target.getUniqueId());
+                    return best;
+                };
+
+                // ---- Decision flow per your spec ----
+                if (running != null && !running.isCancelled()) {
+                    // Turret is already active: check for a NEW closest valid target IN VLOS
+                    LivingEntity nearestVisible = findClosestWithVLOS.get();
+
+                    if (nearestVisible != null) {
+                        // Has lock & valid target in VLOS -> reset timer and retarget to the closest valid target
+                        ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
+                        ACTIVE_TURRET_TARGET.computeIfAbsent(turretId, k -> new AtomicReference<>())
+                                .set(nearestVisible);
+                        turretLocks.put(base, nearestVisible.getUniqueId());
+                        return nearestVisible.getUniqueId().toString() + "|" + nearestVisible.getVelocity();
+                    } else {
+                        // Has lock & NO new valid targets in VLOS -> keep firing current lock; DO NOT reset timer
+                        return "§7Continuing current lock";
+                    }
                 }
 
-                final LivingEntity lockedTarget = (LivingEntity) target;
+                // Not active: try to acquire the closest valid target IN VLOS
+                LivingEntity acquired = findClosestWithVLOS.get();
+                if (acquired == null) {
+                    return "§cNo targets found";
+                }
 
-                // Initialize the deadline and schedule one task
+                // Lock it and start one repeating task
+                turretLocks.put(base, acquired.getUniqueId());
                 ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
+                AtomicReference<LivingEntity> currentRef = new AtomicReference<>(acquired);
+                ACTIVE_TURRET_TARGET.put(turretId, currentRef);
 
                 BukkitRunnable runner = new BukkitRunnable() {
-                    // Keep your lastPositions map as you had
                     private void cleanupAndCancel() {
                         turretLocks.remove(base);
                         ACTIVE_TURRET_TASKS.remove(turretId);
                         ACTIVE_TURRET_DEADLINE_MS.remove(turretId);
+                        ACTIVE_TURRET_TARGET.remove(turretId);
                         cancel();
                     }
 
                     @Override
                     public void run() {
-                        // Auto-end on deadline
+                        // End when the deadline expires
                         Long deadline = ACTIVE_TURRET_DEADLINE_MS.get(turretId);
                         if (deadline == null || System.currentTimeMillis() >= deadline) {
                             cleanupAndCancel();
                             return;
                         }
 
-                        if (lockedTarget.isDead() || !lockedTarget.getWorld().equals(world)) {
+                        LivingEntity cur = currentRef.get();
+                        if (cur == null || cur.isDead() || !cur.getWorld().equals(world)) {
+                            // Current target no longer valid -> end (no mid-fight reacquisition)
                             cleanupAndCancel();
                             return;
                         }
 
-                        Vector velocity;
+                        // NO VLOS checks during firing; can shoot through blocks
+                        Location curMid = cur.getLocation().clone().add(0, cur.getHeight() / 2.0, 0);
 
+                        // Compute velocity
+                        Vector velocity;
                         if (predictive) {
-                            Location targetLoc = lockedTarget.getLocation();
-                            targetLoc.setY(targetLoc.getY() + lockedTarget.getHeight() / 2);
+                            Location targetLoc = cur.getLocation();
+                            targetLoc.setY(targetLoc.getY() + cur.getHeight() / 2.0);
                             Vector R = targetLoc.toVector().subtract(base.toVector());
-                            Vector V = lockedTarget.getVelocity();
-                            UUID targetUUID = lockedTarget.getUniqueId();
+                            Vector V = cur.getVelocity();
+                            UUID targetUUID = cur.getUniqueId();
 
                             boolean yDrag = Math.abs(V.getY() + 0.0784) < 0.0001;
                             boolean xZero = Math.abs(V.getX()) < 0.0001;
@@ -2216,7 +2247,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 Location last = lastPositions.get(targetUUID);
                                 if (last != null) {
                                     Vector delta = targetLoc.toVector().subtract(last.toVector());
-                                    V = delta.multiply(0.5);  // Tunable factor
+                                    V = delta.multiply(0.3); // tunable
                                 } else {
                                     V = new Vector(0, 0, 0);
                                 }
@@ -2247,48 +2278,51 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 }
                             }
                         } else {
-                            Location currentTargetLoc = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
-                            velocity = currentTargetLoc.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                            velocity = curMid.toVector().subtract(base.toVector()).normalize().multiply(speed);
                         }
 
-                        Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase()));
+                        Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase(Locale.ROOT)));
                         proj.setVelocity(velocity);
                         proj.setCustomNameVisible(false);
                         proj.setSilent(true);
                         proj.setGravity(false);
 
-                        Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
-                            if (proj.isValid() && !proj.isDead()) proj.remove();
-                        }, lifespan);
+                        // Use your plugin instance if you have it; keeping PlaceholderAPI per your original
+                        Bukkit.getScheduler().runTaskLater(
+                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                () -> { if (proj.isValid() && !proj.isDead()) proj.remove(); },
+                                lifespan
+                        );
 
-                        if (proj instanceof Arrow) ((Arrow) proj).setDamage(damage);
+                        if (proj instanceof Arrow arrow) arrow.setDamage(damage);
 
                         if (ownerUUID != null && !ownerUUID.isEmpty()) {
                             try {
                                 UUID uuid = UUID.fromString(ownerUUID);
                                 ProjectileSource shooter = Bukkit.getPlayer(uuid);
-                                if (proj instanceof Projectile && shooter != null) {
-                                    ((Projectile) proj).setShooter(shooter);
+                                if (proj instanceof Projectile p && shooter != null) {
+                                    p.setShooter(shooter);
                                 }
-                            } catch (IllegalArgumentException ignored) { /* bad UUID string */ }
+                            } catch (IllegalArgumentException ignored) { /* bad UUID */ }
                         }
 
                         proj.setMetadata("ArchistructureTurret",
                                 new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
                         for (String tag : projectileTags) proj.addScoreboardTag(tag);
 
-                        // Beam
-                        Location midsection = lockedTarget.getLocation().clone().add(0, lockedTarget.getHeight() / 2, 0);
-                        Vector direction = midsection.toVector().subtract(base.toVector()).normalize();
-                        double length = base.distance(midsection);
-                        for (double d = 0; d <= length; d += spacing) {
-                            Location point = base.clone().add(direction.clone().multiply(d));
-                            world.spawnParticle(particle, point, 0);
+                        // Beam (no VLOS; purely visual)
+                        Vector dir = curMid.toVector().subtract(base.toVector()).normalize();
+                        double len = base.distance(curMid);
+                        for (double d = 0; d <= len; d += spacing) {
+                            Location point = base.clone().add(dir.clone().multiply(d));
+                            world.spawnParticle(particle, point, 1);
                         }
 
-                        turret.teleport(turret.getLocation().setDirection(
-                                lockedTarget.getLocation().toVector().subtract(turret.getLocation().toVector())));
-
+                        turret.teleport(
+                                turret.getLocation().setDirection(
+                                        cur.getLocation().toVector().subtract(turret.getLocation().toVector())
+                                )
+                        );
                         for (Player t : Bukkit.getOnlinePlayers()) {
                             if (!t.getWorld().equals(world)) continue;
                             if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
@@ -2298,17 +2332,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
                 };
 
-                // Ensure a sane period
                 int period = Math.max(1, interval);
                 BukkitTask task = runner.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, period);
                 ACTIVE_TURRET_TASKS.put(turretId, task);
 
-                return lockedTarget.getUniqueId().toString() + "|" + lockedTarget.getVelocity();
+                return acquired.getUniqueId().toString() + "|" + acquired.getVelocity();
+
             } catch (Exception e) {
                 e.printStackTrace();
                 return "§cNo targets found";
             }
         }
+
+
 
 
 
@@ -4111,6 +4147,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (g6) {
                 f2.sendMessage("FakeChest");
             }
+            
+            f2.openInventory(fakeInventory);
             
             return "done";
         }
