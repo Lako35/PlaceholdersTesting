@@ -7,13 +7,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
+import java.util.UUID;
 
 public class ExampleExpansionUtils {
 
     /**
      * Checks whether the entity matches the targetType filter.
      */
-    public static boolean isValidTargetType(Entity e, String targetType, Set<?> HOSTILE_TYPES) {
+    public static boolean isValidTargetType(Entity e, String targetType, Set<?> HOSTILE_TYPES, String ownerUUID) {
+        if (e.getUniqueId().equals(UUID.fromString(ownerUUID))) return false;
         if (targetType.equalsIgnoreCase("Players")) {
             return e instanceof Player;
         }
@@ -21,7 +23,7 @@ public class ExampleExpansionUtils {
             return HOSTILE_TYPES.contains(e.getType());
         }
         // Both
-        return e instanceof LivingEntity;
+        return e instanceof Player || HOSTILE_TYPES.contains(e.getType()) ;
     }
 
     /**

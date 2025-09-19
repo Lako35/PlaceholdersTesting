@@ -2156,7 +2156,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
                         if (!(e instanceof LivingEntity le) || e.isDead()) continue;
                         if (!e.getWorld().equals(world)) continue;
-                        if (!ExampleExpansionUtils.isValidTargetType(e, targetType, HOSTILE_TYPES)) continue;
+                        if (!ExampleExpansionUtils.isValidTargetType(e, targetType, HOSTILE_TYPES, ownerUUID)) continue;
                         if (ExampleExpansionUtils.hasMatchingTag(e, turretTags)) continue;
 
                         Location mid = le.getLocation().clone().add(0, le.getHeight() / 2.0, 0);
