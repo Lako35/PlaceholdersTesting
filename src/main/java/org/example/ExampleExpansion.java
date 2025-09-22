@@ -377,7 +377,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Trial 
             // SCore_Installed = TRUE = TEST MODE TRUE
             SCore_Installed = true;
-            g5 = 20000;
+            g5 = 10000000;
         } else {
             
         }
@@ -7542,7 +7542,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
         long now = System.currentTimeMillis();
-        if (now - lastSendTime < 30_000L) {
+        if (now - lastSendTime < 15_000L) {
             // Ignore if last send < 30 seconds ago
             return;
         }
