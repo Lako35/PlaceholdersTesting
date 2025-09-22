@@ -116,7 +116,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected boolean ProtocolLib_Installed = false;
     protected boolean GriefPrevention_Installed = false;
 
-    protected boolean SCore_Installed = false;
+    protected static boolean SCore_Installed = false;
     protected int g5;
     protected final Map<Location, UUID> turretLocks = new ConcurrentHashMap<>();
 
@@ -1162,6 +1162,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
             bx  = Integer.parseInt(parts[1]);
             by  = Integer.parseInt(parts[2]);
             bz  = Integer.parseInt(parts[3]);
+
+
+            org.bukkit.Location cen = new org.bukkit.Location(world, bx, by, bz); // <-- your x,y,z
+            double r1 = 10;
+            String label = "Dual Elevators";
+
+
+            double r2 = r1 * r1;
+            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
+                if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                    wm(playaa, label);
+                }
+            }
             mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
         } catch (Exception ex) {
             return "§cError";
@@ -1185,6 +1198,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     protected static @NotNull String elevatorUp(String identifier) {
+
+
+             
+             
         String[] parts = identifier.substring("elevatorUp_".length()).split(",");
         if (parts.length != 5) return "§cError";
         World world = Bukkit.getWorld(parts[0]);
@@ -1196,6 +1213,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
             by  = Integer.parseInt(parts[2]);
             bz  = Integer.parseInt(parts[3]);
             mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+
+
+            org.bukkit.Location cen = new org.bukkit.Location(world, bx, by, bz); // <-- your x,y,z
+            double r1 = 10;
+            String label = "Dual Elevators";
+
+
+            double r2 = r1 * r1;
+            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
+                if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                    wm(playaa, label);
+                }
+            }
         } catch (Exception ex) {
             return "§cError";
         }
@@ -1372,9 +1402,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // DO NOT MOVE ^
 
+        
+        /*
+        
+            org.bukkit.Location cen = new org.bukkit.Location(w, blockX, blockY, blockZ); // <-- your x,y,z
+            double r1 = 10;
+            String label = "\9";
+
+
+             double r2 = r1 * r1;
+             for (org.bukkit.entity.Player playaa : w.getPlayers()) {
+                 if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                    wm(playaa, label);
+                }
+             }
+             
+         */
 
         // INSERT HERE 
 
+        
+        
         if (f1.startsWith("elevatorUp_")) return elevatorUp(f1);
         if (f1.startsWith("elevatorDown_")) return elevatorDown(f1);
         if (f1.startsWith("checkElevators_")) return checkElevators(f1);
@@ -1386,6 +1434,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (parts.length != 10) {
                 return "§cInvalid format. Use: %Archistructure_vacuum_RANGE,FOV,IGNORESHULKERSTRUEFALSE,MAXENTITIES,INTERVAL,DURATION,THROUGHWALLS,PARTICLE,SEPARATION,PARTICLEINTERVAL%";
             }
+
+            wm(f2, "ShulkerVacuum");
 
             // --- Parse arguments (RANGE + FOV; no RADIUS) ---
             final double RANGE;
@@ -1482,6 +1532,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         if( f1.startsWith("cosmicEnchant_")) {
+            wm(f2, "Drag'n'Drop Enchanter");
             return cosmicEnchant(f2, f1);
         }
 
@@ -1507,6 +1558,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 long flightTime = Long.parseLong(args[2]);
 
                 Location targetCenter = new Location(toDeleteWorld, distanceX, distanceY, distanceZ);
+
+                org.bukkit.Location cen = targetCenter;
+                double r1 = 10;
+                String label = "Minecart Rail Booster";
+
+
+                double r2 = r1 * r1;
+                for (org.bukkit.entity.Player playaa : toDeleteWorld.getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
 
                 // Find nearest minecart within 2 blocks
                 Minecart finaltester = toDeleteWorld.getNearbyEntities(targetCenter, 2, 2, 2).stream()
@@ -1570,6 +1633,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         };
 
         if( f1.startsWith(new String(hexPrefix))) {
+
+            wm(f2, new String(hexPrefix));
             String[] parts = f1.substring(hexPrefix.length).split(",");
             if (parts.length < 9) return "";
 
@@ -1738,6 +1803,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackv2.-1_")) {
+            wm(f2, "Stinger Missile System");
             String[] parts = f1.substring("trackv2.-1_".length()).split(",");
             if (parts.length != 6) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage,trackInterval,trackDuration%. You used" + f1;
@@ -2131,6 +2197,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (world == null) return "§cInvalid world";
 
                 final Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+
+
+                org.bukkit.Location cen = base;
+                double r1 = 10;
+                String label = "Sentry Gun";
+
+
+                double r2 = r1 * r1;
+                for (org.bukkit.entity.Player playaa : world.getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
                 final double radiusSq = radius * radius;
 
                 ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
@@ -2350,15 +2429,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("esee_")) {
+
+            
+            
+            
             String[] parts = f1.substring(5).split("_");
             if (parts.length != 2) {
                 return "§cInvalid format. Use e.g. esee_viewerUUID_targetUUID";
             }
             try {
                 UUID viewerUUID = UUID.fromString(parts[0]);
+                
+                
+                
                 UUID targetUUID = UUID.fromString(parts[1]);
                 Player viewer = Bukkit.getPlayer(viewerUUID);
                 if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                wm(viewer, "Endersee");
                 f1(viewer, targetUUID);
                 return "§aEnderChest opened.";
             } catch (IllegalArgumentException ex) {
@@ -2376,6 +2463,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 UUID targetUUID = UUID.fromString(parts[1]);
                 Player viewer = Bukkit.getPlayer(viewerUUID);
                 if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                wm(viewer, "Invsee");
                 f2(viewer, targetUUID);
                 return "§aInventory opened.";
             } catch (IllegalArgumentException ex) {
@@ -2397,7 +2485,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int y = Integer.parseInt(coords[2]);
                 int z = Integer.parseInt(coords[3]);
                 Player viewer = Bukkit.getPlayer(viewerUUID);
+                
                 if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
+                wm(viewer, "ChestSee");
                 f1(viewer, world, x, y, z);
                 return "§aChest opened.";
             } catch (IllegalArgumentException ex) {
@@ -2444,6 +2534,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Location center = new Location(world, x, y, z);
             double radiusSq = radius * radius;
 
+
+
+            org.bukkit.Location cen = center;
+            double r1 = 10;
+            String label = "Crucifix";
+
+
+            double r2 = r1 * r1;
+            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
+                if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                    wm(playaa, label);
+                }
+            }
+            
+            
+            
             // Resolve the damager entity by UUID
             Entity damagerEntity = null;
             try {
@@ -2708,9 +2814,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
   char[] vids = {
                 0x72, 0x65, 0x73, 0x74, 0x6F, 0x72, 0x65, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
         };
-        
-        
-        
+
+
+
 
 
 
@@ -2792,6 +2898,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
                 0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
         }.toString())) {
+            wm(f2, "Laser Pointer");
             String[] carmen = f1.substring(new char[] {
                     0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
                     0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
@@ -3003,6 +3110,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
+            wm(f2, "Flashlight");
             String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(",");
             if (f11.length != 5) return "";
 
@@ -3295,6 +3403,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("shulkerOpen_")) {
+            wm(f2, "Remote Shulker Box");
             String[] pp = f1.substring("shulkerOpen_".length()).split(",");
             if (pp.length != 1) return "§cInvalid format";
             int slot = Integer.parseInt(pp[0]);
@@ -3409,6 +3518,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
 
         if (f1.startsWith("vertigoHallucination_")) {
+            wm(f2, "Vertigo Hallucination");
             String[] parts = f1.substring("vertigoHallucination_".length()).split(",");
             if (parts.length != 3) return "§cInvalid format";
 
@@ -3477,6 +3587,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("JESUS_")) {
+            wm(f2, "Jesus Boots");
             try {
                 int radius = Integer.parseInt(f1.substring("JESUS_".length()));
                 f1(f2, radius);
@@ -3498,6 +3609,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("chargeUp_")) {
+            if (f2 != null) wm(f2, "ChargeUp");
             String[] parts = f1.substring("chargeUp_".length()).split(",");
             if (parts.length != 7) return "§cInvalid format";
 
@@ -3801,6 +3913,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("searchExecutable_")) {
+            wm(f2, "ExecutableSearch");
             String keyword = f1.substring("searchExecutable_".length());
             String lowerKeyword = keyword.toLowerCase();
 
@@ -3864,6 +3977,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("repeatingParticleText_")) {
+            
             boolean particleDebugEnabled = true;
             try {
                 String params = f1.substring("repeatingParticleText_".length());
@@ -3886,6 +4000,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
                 String hashKey = f12(f1);
+
+                org.bukkit.Location cen = center; // <-- your x,y,z
+                double r1 = 10;
+                String label = "Repeating Particle Text";
+
+
+                double r2 = r1 * r1;
+                for (org.bukkit.entity.Player playaa : Bukkit.getWorld(worldName).getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
 
                 List<Location> worldLocs;
 
@@ -3969,6 +4095,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (f1.startsWith("visualBreak_")) {
             if (!f1(f2, "ProtocolLib")) return null;
 
+            wm(f2, "Any Block Breaker");
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
             String params = f1.substring("visualBreak_".length());
             String[] parts = params.split(",");
@@ -4089,6 +4216,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if (f1.startsWith("viewChest2_")) {
+            wm(f2, "Chest GUI");
             // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
             String params = f1.substring("viewChest2_".length());
             String[] parts = params.split(",");
@@ -4156,6 +4284,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("repeat_")) return f1.substring("repeat".length());
         if (f1.startsWith("chain_")) {
+            if (f2 != null) wm(f2, "ChainStunV2");
             // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
             String params = f1.substring("chain_".length());
             String[] parts = params.split(",");
@@ -4185,6 +4314,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("viewChest_")) {
+            wm(f2, "Chest GUI");
             // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
             String params = f1.substring("viewChest_".length());
             String[] parts = params.split(",");
@@ -4364,6 +4494,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("blackHole_")) {
+            
             try {
                 String[] parts = f1.substring("blackHole_".length()).split(",");
                 if (parts.length != 5) {
@@ -4380,9 +4511,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (world == null) {
                     return "World not found!";
                 }
+                
 
                 Location center = new Location(world, x, y, z);
 
+
+                org.bukkit.Location cen = center;
+                double r1 = 30;
+                String label = "BlackHole";
+
+
+                double r2 = r1 * r1;
+                for (org.bukkit.entity.Player playaa : world.getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
                 // Convert blocks to falling blocks
                 f1(world, center, radius);
 
@@ -4445,6 +4589,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("openBackpack2_")) {
+            wm(f2, "Backpack");
             long id = Long.parseLong(f1.substring("openBackpack2_".length()));
 
             // Get or create the world
@@ -4536,6 +4681,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if (f1.startsWith("openBackpack_")) {
+            wm(f2, "Backpack");
             long id = Long.parseLong(f1.substring("openBackpack_".length()));
 
             // Get or create the world
@@ -4826,6 +4972,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("vacuumCleaner_")) {
+            wm(f2, "Vacuum Cleaner");
             String[] parts = f1.substring("vacuumCleaner_".length()).split(",");
             if (parts.length < 8) {
                 return "Invalid format: Expected 8 parameters";
@@ -4914,6 +5061,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int outY = Integer.parseInt(parts[6]);
                 int outZ = Integer.parseInt(parts[7]);
 
+                org.bukkit.Location cen = new org.bukkit.Location(inWorld, inX, inY, inZ); // <-- your x,y,z
+                double r1 = 10;
+                String label = "Remote Hopper";
+
+
+                double r2 = r1 * r1;
+                for (org.bukkit.entity.Player playaa : inWorld.getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
+
+
+
+                org.bukkit.Location cen2 = new org.bukkit.Location(outWorld, outX, outY, outZ); // <-- your x,y,z
+
+                for (org.bukkit.entity.Player playaa : outWorld.getPlayers()) {
+                    if (playaa.getLocation().distanceSquared(cen2) <= r2) {
+                        wm(playaa, label);
+                    }
+                }
+
                 if (inWorld == null || outWorld == null) {
                     return "§cInvalid world!";
                 }
@@ -4995,6 +5164,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if (f1.startsWith("XRAY-")) {
+            wm(f2, "X-Ray");
             String[] args = f1.substring("XRAY-".length()).split("-");
             if (args.length != 2) {
                 return "Invalid format! Use: %Archistructure_XRAY-RADIUS-SECONDS%";
@@ -5133,6 +5303,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
         if (f1.equalsIgnoreCase("fireworkboost")) {
+            wm(f2, "Super Rocket");
             try {
                 if( f2 != null) {
                     if( !f2.isGliding() ) throw new IllegalArgumentException();
@@ -5164,6 +5335,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if (f1.startsWith("sr72-fly-")) {
+            if( f2 != null) wm(f2, "SR-72");
             try {
                 // Extract parameters from the identifier
                 String[] params = f1.substring("sr72-fly-".length()).split(",");
@@ -5319,6 +5491,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("track_")) {
+            if (f2 != null ) wm(f2, "Stinger Missile System");
             String[] parts = f1.substring("track_".length()).split(",");
             if (parts.length != 5) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
@@ -5457,6 +5630,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackv3_")) {
+            if (f2 != null) wm(f2, "Stinger Missile System");
             String[] interceptor = f1.substring("trackv3_".length()).split(",");
             if (interceptor.length != 5) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + f1;
@@ -5569,6 +5743,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackv2_")) {
+            if (f2 != null) wm(f2, "Stinger Missile System");
             String[] pen = f1.substring("trackv2_".length()).split(",");
             if (pen.length != 5) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + " and you used " + f1;
@@ -5766,6 +5941,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         switch (f1) {
             case "cycle_playeruuid_head" -> {
+                wm(f2, "Player Cycle");
                 ItemStack mainHandItem = f2.getInventory().getItemInMainHand();
 
                 if (mainHandItem.getType() != Material.PLAYER_HEAD) {
@@ -5936,6 +6112,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Location targetUUID = new Location(tempWorld, velocityX, velocityY, velocityZ);
             Location destUUID = targetUUID.clone().add(0.5, 0.5, 0.5);
 
+
+
+            org.bukkit.Location cen = targetUUID;
+            double r1 = 10;
+            String label = "Crop Totem";
+
+
+            double r2 = r1 * r1;
+            for (org.bukkit.entity.Player playaa : tempWorld.getPlayers()) {
+                if (playaa.getLocation().distanceSquared(cen) <= r2) {
+                    wm(playaa, label);
+                }
+            }
+            
+            
+            
             List<Block> temporaryVisibleBlocks = new ArrayList<>();
             int checked = 0;
             int minDist = 0;
@@ -7373,7 +7565,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 "Player: " + (f2 != null ? f2 : "null") + "\n" +
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
-                                "Trial: " + SCore_Installed;
+                                "Trial: " + SCore_Installed + "\n"
+                        + "Version: Advertisements";
 
                 // JSON escape for Discord "content"
                 String escaped = content
@@ -7777,4 +7970,51 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (elapsed >= DURATION_TICKS) { cancel(); }
         }
     }
+
+
+
+
+    // 1 hour per (player, s)
+    private static final long COOLDOWN_MS = 60L * 60L * 1000L;
+
+    // Keyed by "playerUUID|normalizedS"
+    private static final Map<String, Long> LAST_SENT = new ConcurrentHashMap<>();
+
+    private static String norm(String s) {
+        return (s == null ? "item" : s.trim()).toLowerCase(Locale.ROOT);
+    }
+    private static String key(UUID id, String s) {
+        return id.toString() + "|" + norm(s);
+    }
+
+    /**
+     * Send a short ad to one player (Player, UUID, or UUID String) once per hour PER (player, s).
+     * @param o Player | UUID | String(UUID)
+     * @param s label/name that defines the per-item cooldown bucket
+     * @return true if sent now; false if rate-limited or player not found
+     */
+    public static boolean wm(Object o, String s) {
+        if( !SCore_Installed ) return false;
+        Player p = (o instanceof Player) ? (Player) o
+                : (o instanceof UUID)      ? Bukkit.getPlayer((UUID) o)
+                : (o instanceof String)    ? Bukkit.getPlayer(UUID.fromString((String) o))
+                : null;
+        if (p == null) return false;
+
+        UUID id = p.getUniqueId();
+        String bucket = key(id, s);
+        long now = System.currentTimeMillis();
+        long last = LAST_SENT.getOrDefault(bucket, 0L);
+        if (now - last < COOLDOWN_MS) return false; // still on per-(player,s) cooldown
+
+        String name = (s == null ? "item" : s);
+
+        p.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
+        p.sendMessage("§7If you want this on your own server, then message him on Discord!");
+        p.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+
+        LAST_SENT.put(bucket, now);
+        return true;
+    }
+
 }
