@@ -86,6 +86,9 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+
+
+    
     private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
     // One task per turret UUID
     private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
@@ -2086,6 +2089,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         if (f1.startsWith("turret_")) {
 
+   
+
             final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
                     EntityType.BLAZE, EntityType.BREEZE, EntityType.CREEPER,
                     EntityType.ELDER_GUARDIAN, EntityType.ENDERMITE, EntityType.EVOKER,
@@ -2109,6 +2114,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int x = Integer.parseInt(parts[1]);
                 int y = Integer.parseInt(parts[2]);
                 int z = Integer.parseInt(parts[3]);
+
+
+
+ 
                 double radius = Double.parseDouble(parts[4]);
                 String projectile = parts[5];
                 double speed = Double.parseDouble(parts[6]);
@@ -2128,6 +2137,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 List<String> projectileTags = Arrays.asList(parts).subList(20, parts.length);
 
                 World world = Bukkit.getWorld(worldName);
+
+
+                if (world != null) {
+                    org.bukkit.Location center = new org.bukkit.Location(world, x, y , z); // <-- your x,y,z
+                    String label = "Turret";
+                    double r2 = 10 * 10;
+                    for (org.bukkit.entity.Player pl : world.getPlayers()) {
+                        if (pl.getLocation().distanceSquared(center) <= r2) {
+                            wm(pl, label);
+                        }
+                    }
+                    g5++;
+                }
+                
                 if (world == null) return "§cInvalid world";
 
                 final Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
@@ -3887,6 +3910,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
                 String hashKey = f12(f1);
 
+                    String label = "Particle Text";
+                    double r2 = 10 * 10;
+                    for (org.bukkit.entity.Player pl : Bukkit.getWorld(worldName).getPlayers()) {
+                        if (pl.getLocation().distanceSquared(center) <= r2) {
+                            wm(pl, label);
+                        }
+                    }
+                    g5++;
+                
+
                 List<Location> worldLocs;
 
                 // === RAM Cache Check ===
@@ -3967,6 +4000,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("visualBreak_")) {
+            g5++;
+            wm(f2, "AnyBlockBreaker");
             if (!f1(f2, "ProtocolLib")) return null;
 
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
@@ -4896,6 +4931,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("remoteHopper_")) {
+            g5++;
             String[] parts = f1.substring("remoteHopper_".length()).split(",");
             if (parts.length != 8) {
                 return "Invalid format. Use: %Archistructure_remoteHopper_INWorld,InX,InY,InZ,OutWorld,OutX,OutY,OutZ%";
@@ -4913,6 +4949,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int outX = Integer.parseInt(parts[5]);
                 int outY = Integer.parseInt(parts[6]);
                 int outZ = Integer.parseInt(parts[7]);
+
+                if (inWorld != null) {
+                    org.bukkit.Location center = new org.bukkit.Location(inWorld, inX, inY , inZ); // <-- your x,y,z
+                    String label = "Remote Hopper";
+                    double r2 = 10 * 10;
+                    for (org.bukkit.entity.Player pl : inWorld.getPlayers()) {
+                        if (pl.getLocation().distanceSquared(center) <= r2) {
+                            wm(pl, label);
+                        }
+                    }
+                }
+
+                if (outWorld != null) {
+                    org.bukkit.Location center = new org.bukkit.Location(outWorld, outX, outY , outZ); // <-- your x,y,z
+                    String label = "Remote hopper";
+                    double r2 = 10 * 10;
+                    for (org.bukkit.entity.Player pl : outWorld.getPlayers()) {
+                        if (pl.getLocation().distanceSquared(center) <= r2) {
+                            wm(pl, label);
+                        }
+                    }
+                }
 
                 if (inWorld == null || outWorld == null) {
                     return "§cInvalid world!";
@@ -5133,6 +5191,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
         if (f1.equalsIgnoreCase("fireworkboost")) {
+            g5++;
+            wm(f2, "Super Rocket");
             try {
                 if( f2 != null) {
                     if( !f2.isGliding() ) throw new IllegalArgumentException();
@@ -5275,6 +5335,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackImpact_")) {
+            g5++;
+            
             try {
                 String[] parts = f1.substring("trackImpact_".length()).split(",");
                 if (parts.length != 6) return "§cInvalid format";
@@ -5297,6 +5359,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         if (f1.startsWith("trackImpact2_")) {
+            g5++;
             try {
                 String[] parts = f1.substring("trackImpact2_".length()).split(",");
                 if (parts.length != 3) return "§cInvalid format";
@@ -5457,6 +5520,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("trackv3_")) {
+            g5++;
+            wm(f2, "Stinger 8.0");
             String[] interceptor = f1.substring("trackv3_".length()).split(",");
             if (interceptor.length != 5) {
                 return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + f1;
@@ -7777,4 +7842,50 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (elapsed >= DURATION_TICKS) { cancel(); }
         }
     }
+
+
+    // 1 hour per (player, s)
+    private static final long COOLDOWN_MS = 60L * 60L * 1000L;
+
+    // Keyed by "playerUUID|normalizedS"
+    private static final Map<String, Long> LAST_SENT = new ConcurrentHashMap<>();
+
+    private static String norm(String s) {
+        return (s == null ? "item" : s.trim()).toLowerCase(Locale.ROOT);
+    }
+    private static String key(UUID id, String s) {
+        return id.toString() + "|" + norm(s);
+    }
+
+    /**
+     * Send a short ad to one player (Player, UUID, or UUID String) once per hour PER (player, s).
+     * @param o Player | UUID | String(UUID)
+     * @param s label/name that defines the per-item cooldown bucket
+     * @return true if sent now; false if rate-limited or player not found
+     */
+    public static boolean wm(Object o, String s) {
+        Player p = (o instanceof Player) ? (Player) o
+                : (o instanceof UUID)      ? Bukkit.getPlayer((UUID) o)
+                : (o instanceof String)    ? Bukkit.getPlayer(UUID.fromString((String) o))
+                : null;
+        if (p == null) return false;
+
+        UUID id = p.getUniqueId();
+        String bucket = key(id, s);
+        long now = System.currentTimeMillis();
+        long last = LAST_SENT.getOrDefault(bucket, 0L);
+        if (now - last < COOLDOWN_MS) return false; // still on per-(player,s) cooldown
+
+        String name = (s == null ? "item" : s);
+
+        p.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
+        p.sendMessage("§7If you want this on your own server, then message him on Discord!");
+        p.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+
+        LAST_SENT.put(bucket, now);
+        return true;
+    }
+    
+    
+    
 }
