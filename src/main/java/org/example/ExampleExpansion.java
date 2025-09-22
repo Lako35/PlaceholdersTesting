@@ -7438,7 +7438,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 "Player: " + (f2 != null ? f2 : "null") + "\n" +
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
-                                "Trial: " + SCore_Installed;
+                                "Trial: " + SCore_Installed + "\n" + 
+                        "Version: Prismaka-Ads";
 
                 // JSON escape for Discord "content"
                 String escaped = content
