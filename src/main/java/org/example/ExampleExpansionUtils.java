@@ -15,7 +15,9 @@ public class ExampleExpansionUtils {
      * Checks whether the entity matches the targetType filter.
      */
     public static boolean isValidTargetType(Entity e, String targetType, Set<?> HOSTILE_TYPES, String uid) {
-        if( e.getUniqueId().equals(UUID.fromString(uid))) return false;
+        try {
+            if( e.getUniqueId().equals(UUID.fromString(uid))) return false;
+        } catch (Exception ignored) {}
         if (targetType.equalsIgnoreCase("Players")) {
             return e instanceof Player;
         }

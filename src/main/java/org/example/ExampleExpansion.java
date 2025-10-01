@@ -703,6 +703,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (world == null) return "§cInvalid world";
 
                 final Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
+
+
+                org.bukkit.Location cen = base;
+                double r1 = 10;
+                String label = "Sentry Gun";
+
+
+                double r2 = r1 * r1;
+ 
                 final double radiusSq = radius * radius;
 
                 ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
