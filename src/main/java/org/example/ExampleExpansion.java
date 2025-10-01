@@ -2884,7 +2884,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("echo_")) return f1.substring("echo".length());
+        if (f1.startsWith("echo_")) {
+            wm(f2, f1.substring("echo_".length()));
+            return f1.substring("echo_".length());
+        }
 
 
 
