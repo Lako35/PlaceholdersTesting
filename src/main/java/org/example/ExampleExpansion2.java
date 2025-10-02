@@ -3253,27 +3253,56 @@ public class ExampleExpansion2 {
     protected static @Nullable String getString8(String identifier) {
         // Strip off "webhook_" prefix
         String rest = identifier.substring("webhook_".length());
-        int commaIdx = rest.indexOf(',');
-        if (commaIdx < 0) {
-            // No comma → invalid format; just return empty
+        int firstComma = rest.indexOf(',');
+        if (firstComma < 0) {
+            // No comma → invalid format; just return a benign string
             return "Webhook Attempting send!";
         }
 
-        String webhookUrl = rest.substring(0, commaIdx);
-        String message = rest.substring(commaIdx + 1);
+        String webhookUrl;
+        String message;
+        boolean enablePing; // ✅ default: NO pings
+
+        // Check for second comma to detect new format <URL>,<PING>,<CONTENT>
+        int secondComma = rest.indexOf(',', firstComma + 1);
+        if (secondComma < 0) {
+            enablePing = false;
+            // LEGACY: <URL>,<CONTENT>
+            webhookUrl = rest.substring(0, firstComma).trim();
+            message    = rest.substring(firstComma + 1);
+            // enablePing remains false by default
+        } else {
+            // NEW: <URL>,<PING>,<CONTENT>
+            webhookUrl = rest.substring(0, firstComma).trim();
+            String pingRaw = rest.substring(firstComma + 1, secondComma).trim();
+            message    = rest.substring(secondComma + 1);
+
+            // truthy values enable mentions; everything else disables
+            enablePing = pingRaw.equalsIgnoreCase("1")
+                    || pingRaw.equalsIgnoreCase("true")
+                    || pingRaw.equalsIgnoreCase("yes")
+                    || pingRaw.equalsIgnoreCase("on");
+        }
 
         // Schedule an asynchronous task to send the HTTP POST so we don't block the server thread
         Plugin papiPlugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (papiPlugin != null) {
             Bukkit.getScheduler().runTaskAsynchronously(papiPlugin, () -> {
                 try {
-                    // Build JSON payload: {"content":"<escaped message>"}
+                    // Build JSON payload with Discord-escaped content
                     String escaped = message
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")
                             .replace("\n", "\\n")
                             .replace("\r", "");
-                    String jsonPayload = "{\"content\":\"" + escaped + "\"}";
+
+                    // allowed_mentions: disable or enable parsing of mentions
+                    String allowedMentions = enablePing
+                            ? "{\"parse\":[\"users\",\"roles\",\"everyone\"]}"
+                            : "{\"parse\":[]}";
+
+                    String jsonPayload = "{\"content\":\"" + escaped + "\","
+                            + "\"allowed_mentions\":" + allowedMentions + "}";
 
                     // Open connection to the Discord webhook URL
                     URL url = new URL(webhookUrl);
@@ -3290,7 +3319,7 @@ public class ExampleExpansion2 {
                     // Trigger the request and ignore the response
                     int responseCode = conn.getResponseCode();
                     conn.disconnect();
-                    // (Optionally, you could log non-2xx responses—for brevity, we just fire and forget.)
+                    // Optionally: log non-2xx if needed
                 } catch (Exception ex) {
                     // Silently ignore any exception; placeholder still returns ""
                 }
@@ -3298,6 +3327,7 @@ public class ExampleExpansion2 {
         }
         return null;
     }
+
 
     protected static @NotNull String getString2(Player p) {
         File file = new File("plugins/Archistructures/hotbars", p.getUniqueId().toString() + ".yml");
