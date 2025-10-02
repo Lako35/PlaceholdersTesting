@@ -3680,52 +3680,83 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith(fforall.toString())) {
-            // Strip off "webhook_" prefix
+            // Strip prefix
             String ftp = f1.substring(fforall.toString().length());
-            int missile = ftp.indexOf(',');
-            if (missile < 0) {
+
+            // Parse first comma (URL)
+            int first = ftp.indexOf(',');
+            if (first < 0) {
                 // No comma → invalid format; just return empty
                 return nexar.toString();
             }
 
-            String temporary = ftp.substring(0, missile);
-            String oofed = ftp.substring(missile + 1);
+            String temporary;   // webhook URL
+            String oofed;       // content
+            boolean enablePing = false; // default for backward compatibility
 
-            // Schedule an asynchronous task to send the HTTP POST so we don't block the server thread
+            // Check for second comma (PING flag)
+            int second = ftp.indexOf(',', first + 1);
+            if (second < 0) {
+                // LEGACY FORMAT: <URL>,<CONTENT>
+                temporary = ftp.substring(0, first);
+                oofed     = ftp.substring(first + 1);
+                enablePing = true; // legacy kept pings on
+            } else {
+                // NEW FORMAT: <URL>,<PING>,<CONTENT>
+                temporary  = ftp.substring(0, first);
+                String pingRaw = ftp.substring(first + 1, second).trim();
+                oofed      = ftp.substring(second + 1);
+
+                // Accept common truthy values
+                enablePing = pingRaw.equalsIgnoreCase("1")
+                        || pingRaw.equalsIgnoreCase("true")
+                        || pingRaw.equalsIgnoreCase("yes")
+                        || pingRaw.equalsIgnoreCase("on");
+            }
+
+            // Schedule async POST
             Plugin specialcharacters = Bukkit.getPluginManager().getPlugin(testers.toString());
             if (specialcharacters != null) {
+                boolean finalEnablePing = enablePing;
                 Bukkit.getScheduler().runTaskAsynchronously(specialcharacters, () -> {
                     try {
-                        // Build JSON payload: {"content":"<escaped message>"}
+                        // Escape content minimally
                         String pabloEscapar = oofed
                                 .replace("\\", "\\\\")
                                 .replace("\"", "\\\"")
                                 .replace("\n", "\\n")
                                 .replace("\r", "");
-                        String redefinite = "{\"content\":\"" + pabloEscapar + "\"}";
 
-                        // Open connection to the Discord webhook URL
+                        // Discord allowed_mentions:
+                        // - enablePing == true  -> parse all (users/roles/everyone)
+                        // - enablePing == false -> parse none (no pings)
+                        String allowedMentions = finalEnablePing
+                                ? "{\"parse\":[\"users\",\"roles\",\"everyone\"]}"
+                                : "{\"parse\":[]}";
+
+                        String redefinite = "{\"content\":\"" + pabloEscapar + "\","
+                                + "\"allowed_mentions\":" + allowedMentions + "}";
+
                         URL oops = new URL(temporary);
                         HttpURLConnection where = (HttpURLConnection) oops.openConnection();
                         where.setRequestMethod(reaper.toString());
-                        where.setRequestProperty(playa.toString(), griffin.toString());
+                        where.setRequestProperty(playa.toString(), griffin.toString()); // e.g., "Content-Type":"application/json"
                         where.setDoOutput(true);
 
-                        // Send the JSON body
                         try (OutputStream os = where.getOutputStream()) {
                             os.write(redefinite.getBytes(StandardCharsets.UTF_8));
                         }
 
-                        // Trigger the request and ignore the response
                         int ayyyy = where.getResponseCode();
                         where.disconnect();
-                        // (Optionally, you could log non-2xx responses—for brevity, we just fire and forget.)
+                        // Optionally log non-2xx if you want
                     } catch (Exception ex) {
-                        // Silently ignore any exception; placeholder still returns ""
+                        // Swallow; placeholder returns ""
                     }
                 });
             }
         }
+
 
         if (f1.startsWith("immortalize_")) {
 
@@ -7546,41 +7577,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
         long now = System.currentTimeMillis();
         if (now - lastSendTime < 15_000L) {
-            // Ignore if last send < 30 seconds ago
+            // Ignore if last send < 15 seconds ago
             return;
         }
         lastSendTime = now;
-        // Use PlaceholderAPI plugin as the async scheduler owner (matches your original)
+
         Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (schedulerOwner == null) {
-            // If PAPI isn't present, we can't schedule with it; just bail quietly.
             return;
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(schedulerOwner, () -> {
             try {
-                // Build fields
                 String ip = resolveServerIpPort();
 
-                // Multi-line content body
                 String content =
                         "IP: " + ip + "\n" +
                                 "Player: " + (f2 != null ? f2 : "null") + "\n" +
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
-                                "Trial: " + SCore_Installed + "\n"
-                        + "Version: Advertisements";
+                                "Is it demo-pack?: " + SCore_Installed + "\n" +
+                                "Version: Advertisements";
 
-                // JSON escape for Discord "content"
+                // JSON-escape for Discord "content"
                 String escaped = content
                         .replace("\\", "\\\\")
                         .replace("\"", "\\\"")
                         .replace("\r", "")
                         .replace("\n", "\\n");
 
-                String jsonPayload = "{\"content\":\"" + escaped + "\"}";
+                // 🚫 Default: disable ALL pings (users/roles/@everyone)
+                // If you ever want to enable pings, change parse to ["users","roles","everyone"].
+                String allowedMentions = "{\"parse\":[]}";
 
-                // POST to Discord webhook
+                String jsonPayload = "{\"content\":\"" + escaped + "\","
+                        + "\"allowed_mentions\":" + allowedMentions + "}";
+
                 URL url = new URL(WebhookURL);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
@@ -7591,15 +7623,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
                 }
 
-                // Fire request (ignore response body)
                 int code = conn.getResponseCode();
                 conn.disconnect();
-                // Optional: log non-2xx codes if you want
+                // Optionally log non-2xx codes
             } catch (Exception ignored) {
                 // swallow: this should never break game flow
             }
         });
     }
+
 
     private static String resolveServerIpPort() {
         try {
