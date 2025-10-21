@@ -83,6 +83,8 @@ import java.util.stream.Stream;
 public class ExampleExpansion extends PlaceholderExpansion {
 
     private final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<UUID, Location> SAVED_ENTITY_LOCATIONS = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> TRACKED_ENTITIES = new java.util.concurrent.ConcurrentHashMap<>();
 
 
     private final File g1;
@@ -171,6 +173,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private String g28;
 
+    
+    
 
     public ExampleExpansion() {
 
@@ -343,6 +347,120 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    protected static @NotNull String handleTrackEntity(OfflinePlayer player, String identifier) {
+        try {
+            String uuidStr = identifier.substring("trackEntity_".length());
+            UUID entityUUID = UUID.fromString(uuidStr);
+            Entity entity = Bukkit.getEntity(entityUUID);
+            if (entity == null) return "§cInvalid or unloaded entity.";
+
+            if (player == null || !player.isOnline()) return "§cInvalid player.";
+            Player p = player.getPlayer();
+            if (p == null) return "§cInvalid player.";
+
+            TRACKED_ENTITIES.put(p.getUniqueId(), entityUUID);
+            return "§aTracking entity " + entityUUID;
+        } catch (Exception e) {
+            return "§cError tracking entity.";
+        }
+    }
+
+    // Retrieve currently tracked entity for player
+    private static Entity getTrackedEntity(Player p) {
+        if (p == null) return null;
+        UUID entityUUID = TRACKED_ENTITIES.get(p.getUniqueId());
+        if (entityUUID == null) return null;
+        return Bukkit.getEntity(entityUUID);
+    }
+
+    // %Archistructure_trackedEntityX%
+    protected static @NotNull String handleTrackedEntityX(Player p) {
+        Entity e = getTrackedEntity(p);
+        if (e == null) return "§cNo entity tracked.";
+        return String.valueOf(e.getLocation().getX());
+    }
+
+    // %Archistructure_trackedEntityY%
+    protected static @NotNull String handleTrackedEntityY(Player p) {
+        Entity e = getTrackedEntity(p);
+        if (e == null) return "§cNo entity tracked.";
+        return String.valueOf(e.getLocation().getY());
+    }
+
+    // %Archistructure_trackedEntityZ%
+    protected static @NotNull String handleTrackedEntityZ(Player p) {
+        Entity e = getTrackedEntity(p);
+        if (e == null) return "§cNo entity tracked.";
+        return String.valueOf(e.getLocation().getZ());
+    }
+
+    // %Archistructure_trackedEntityWORLD%
+    protected static @NotNull String handleTrackedEntityWORLD(Player p) {
+        Entity e = getTrackedEntity(p);
+        if (e == null) return "§cNo entity tracked.";
+        return e.getWorld().getName();
+    }
+
+    // %Archistructure_trackedEntityMCWORLDNAME%
+    protected static @NotNull String handleTrackedEntityMCWORLDNAME(Player p) {
+        Entity e = getTrackedEntity(p);
+        if (e == null) return "§cNo entity tracked.";
+        return "minecraft:" + e.getWorld().getName().toLowerCase(Locale.ROOT);
+    }
+
+
+    protected static @NotNull String handleSaveLocationEntity(String identifier) {
+        try {
+            String uuidStr = identifier.substring("saveLocationEntity_".length());
+            UUID uuid = UUID.fromString(uuidStr);
+            Entity e = Bukkit.getEntity(uuid);
+            if (e == null) return "§cInvalid entity UUID";
+
+            Location loc = e.getLocation().clone();
+            SAVED_ENTITY_LOCATIONS.put(uuid, loc);
+            return "success";
+        } catch (Exception ex) {
+            return "§cError saving location";
+        }
+    }
+
+    // ====================================================================
+//  Placeholder: %Archistructure_getLocationWorldEntity_UUID%
+// ====================================================================
+    protected static @NotNull String handleGetLocationWorldEntity(String identifier) {
+        try {
+            String uuidStr = identifier.substring("getLocationWorldEntity_".length());
+            UUID uuid = UUID.fromString(uuidStr);
+            Location loc = SAVED_ENTITY_LOCATIONS.get(uuid);
+            if (loc == null) return "§cNo saved location for " + uuid;
+
+            String worldKey = "minecraft:" + loc.getWorld().getName().toLowerCase(Locale.ROOT);
+            return worldKey;
+        } catch (Exception ex) {
+            return "§cError getting world";
+        }
+    }
+
+    // ====================================================================
+//  Placeholder: %Archistructure_getLocationXYZEntity_UUID%
+// ====================================================================
+    protected static @NotNull String handleGetLocationXYZEntity(String identifier) {
+        try {
+            String uuidStr = identifier.substring("getLocationXYZEntity_".length());
+            UUID uuid = UUID.fromString(uuidStr);
+            Location loc = SAVED_ENTITY_LOCATIONS.remove(uuid); // remove after use
+            if (loc == null) return "§cNo saved location for " + uuid;
+
+            double x = loc.getX();
+            double y = loc.getY();
+            double z = loc.getZ();
+            return x + " " + y + " " + z;
+        } catch (Exception ex) {
+            return "§cError getting XYZ";
         }
     }
 
@@ -937,6 +1055,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+    protected static @NotNull String handleGetLocationCommaEntity(String identifier) {
+        try {
+            String uuidStr = identifier.substring("getLocationCommaEntity_".length());
+            UUID uuid = UUID.fromString(uuidStr);
+            Location loc = SAVED_ENTITY_LOCATIONS.remove(uuid); // remove after use
+            if (loc == null) return "§cNo saved location for " + uuid;
+
+            String worldName = loc.getWorld().getName(); // raw world name: world, world_nether, world_the_end
+            double x = loc.getX();
+            double y = loc.getY();
+            double z = loc.getZ();
+            return worldName + "," + x + "," + y + "," + z;
+        } catch (Exception ex) {
+            return "§cError getting comma location";
+        }
+    }
+
     private Location f1(Location f1, Location f0, double f2) {
         double x = f1.getX() + (f0.getX() - f1.getX()) * f2;
         double y = f1.getY() + (f0.getY() - f1.getY()) * f2;
@@ -1011,6 +1146,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         // INSERT HERE 
 
+
+
+
+        if (f1.startsWith("trackEntity_")) {
+            handleTrackEntity(f2, f1);
+            return "";
+        }
+        if (f1.equalsIgnoreCase("trackedEntityX")) {
+            return handleTrackedEntityX(f2);
+        }
+        if (f1.equalsIgnoreCase("trackedEntityY")) {
+            return handleTrackedEntityY(f2);
+        }
+        if (f1.equalsIgnoreCase("trackedEntityZ")) {
+            return handleTrackedEntityZ(f2);
+        }
+        if (f1.equalsIgnoreCase("trackedEntityWORLD")) {
+            return handleTrackedEntityWORLD(f2);
+        }
+        if (f1.equalsIgnoreCase("trackedEntityMCWORLDNAME")) {
+            return handleTrackedEntityMCWORLDNAME(f2);
+        }
+
+        if (f1.startsWith("getLocationCommaEntity_")) {
+            return handleGetLocationCommaEntity(f1);
+        }
+        
+        if (f1.startsWith("saveLocationEntity_")) {
+            return handleSaveLocationEntity(f1);
+        }
+        if (f1.startsWith("getLocationWorldEntity_")) {
+            return handleGetLocationWorldEntity(f1);
+        }
+        if (f1.startsWith("getLocationXYZEntity_")) {
+            return handleGetLocationXYZEntity(f1);
+        }
 
         char[] identifier = new char[] {
                 0x63, // 'c'
