@@ -951,7 +951,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (identifier.startsWith("webhook_")) { String x = ExampleExpansion2.getString8(identifier); if (x != null) return x; }
         if (identifier.startsWith("laserDamageHostiles_")) {  String x = ExampleExpansion2.getString9(identifier); if (x != null) return x; }
         if (identifier.startsWith("fakeExplode_")) return ExampleExpansion2.getString10(this, identifier);
-        if (identifier.startsWith("echo_")) return identifier.substring("echo".length());
+        if (identifier.startsWith("echo_")) return identifier.substring("echo_".length());
         if (identifier.startsWith("clearBundle")) return ExampleExpansion2.getString2(p, identifier);
         if (identifier.startsWith("checkBundle_")) return ExampleExpansion2.getString3(p, identifier);
         if (identifier.startsWith("dice_")) return ExampleExpansion2.getString4(this, p, identifier);
@@ -987,7 +987,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (identifier.startsWith("visualBreak_")) return ExampleExpansion2.getString20(this, p, identifier);
         if (identifier.startsWith("PTFXCUBE_")) return ExampleExpansion2.getString19(this, identifier);
         if (identifier.startsWith("viewChest2_")) return ExampleExpansion2.getString21(this, p, identifier);
-        if (identifier.startsWith("repeat_")) return identifier.substring("repeat".length());
+        if (identifier.startsWith("repeat_")) return identifier.substring("repeat_".length());
         if (identifier.startsWith("chain_")) return ExampleExpansion2.getString20(this, identifier);
         if (identifier.startsWith("viewChest_")) return ExampleExpansion2.getString22(this, p, identifier);
         if (identifier.startsWith("blackHole_")) return ExampleExpansion2.getString21(this, identifier);
