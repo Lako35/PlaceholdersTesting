@@ -2594,6 +2594,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
         if (f1.startsWith("trackEntity_")) {
+            wm(f2, "Fishing Rod Proof of Concept");
             handleTrackEntity(f2, f1);
             return "";
         }
@@ -8789,7 +8790,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
                                 "Is it demo-pack?: " + SCore_Installed + "\n" +
-                                "Version: Advertisementsv2 - NO KILL SWITCH";
+                                "Version: Advertisementsv2 - NO KILL SWITCH 10-22-2025";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
