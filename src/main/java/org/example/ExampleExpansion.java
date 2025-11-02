@@ -2517,7 +2517,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 f2.sendMessage(g28);
                 return null;
             }
-            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
+            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1434279057297506507/hYzGetkkgDbwfJvj1-TEJioRWVNT8wjY0_Hmyp_iT2WWybypfQ8n7ok9aJUfREjNWqdC");
             g5--;
             
 
@@ -2567,7 +2567,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 f2.sendMessage(g28);
                 return null;
             }
-            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
+            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1434279057297506507/hYzGetkkgDbwfJvj1-TEJioRWVNT8wjY0_Hmyp_iT2WWybypfQ8n7ok9aJUfREjNWqdC");
             g5--;
             
         }
@@ -2592,6 +2592,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
          */
 
         // INSERT HERE 
+        
+        
+        if( f1.startsWith("stripColors_")) return stripColors(f1.substring("stripColors_".length()));
+        
+        if (f1.startsWith("invChecker_")) {
+            final Entity x =  Bukkit.getEntity(UUID.fromString(f1.substring("invChecker_".length())));
+            if (! (x instanceof HumanEntity human)) return "failed - invalid entity"; 
+
+            
+
+            wm(x instanceof Player ? x : f2, "Inventory Checker");
+            try {
+
+                InventoryView view = ((HumanEntity) x).getOpenInventory();
+                Inventory topInv = view.getTopInventory();
+                String type = topInv.getType().toString();
+                return type == "" ? null : type.toLowerCase();
+                
+            } catch (Exception e) {
+                return "";
+            }
+            
+        }
+
+
 
         if (f1.startsWith("trackEntity_")) {
             wm(f2, "Fishing Rod Proof of Concept");
@@ -8766,6 +8791,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
+    public static String stripColors(String input) {
+        if (input == null) return null;
+
+        // (?i)           -> case-insensitive
+        // [§&]           -> either the section sign (§) or &
+        // [0-9A-FK-ORX]  -> any valid MC code character:
+        //                   0-9, a-f (colors),
+        //                   k-o (formats like obfuscated/bold/etc),
+        //                   r (reset),
+        //                   x (start of hex color "§x§1§2§3§4§5§6")
+        //
+        // This also correctly strips hex colors because:
+        //   "§x§1§2§3§4§5§6Hello"
+        // becomes:
+        //   (remove §x) -> "§1§2§3§4§5§6Hello"
+        //   (remove §1) -> "§2§3§4§5§6Hello"
+        //   ...until -> "Hello"
+        return input.replaceAll("(?i)[§&][0-9A-FK-ORX]", "");
+    }
+
+
 
     public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
         long now = System.currentTimeMillis();
@@ -8790,7 +8836,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
                                 "Is it demo-pack?: " + SCore_Installed + "\n" +
-                                "Version: Advertisementsv2 - NO KILL SWITCH 10-22-2025";
+                                "Version: Advertisementsv3 - NO KILL SWITCH 10-22-2025";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -9216,54 +9262,158 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     /**
-     * Send a short ad to one player (Player, UUID, or UUID String) once per hour PER (player, s).
-     * @param o Player | UUID | String(UUID)
-     * @param s label/name that defines the per-item cooldown bucket
-     * @return true if sent now; false if rate-limited or player not found
+     * Send a short ad to one player (Player, UUID, player name, or UUID String),
+     * OR, if nobody is valid/available, broadcast it to all online players.
+     *
+     * Behavior:
+     * - Tries `o`, then each of `others...` in order to find a valid/online player.
+     * - The FIRST successful send to a player will:
+     *      - respect per-(player,s) cooldown
+     *      - start that cooldown
+     *      - return true
+     * - If ALL provided targets fail (null/offline/rate-limited):
+     *      - Broadcast to ALL players as a fallback.
+     *      - Will STILL respect any existing cooldown for the "global bucket"
+     *        (so if it's still cooling down, it won't broadcast).
+     *      - WILL NOT start or update cooldown on broadcast.
+     *      - Returns false.
+     *
+     * @param o       First target (Player | UUID | String(UUID or name))
+     * @param s       Label/name that defines the per-item cooldown bucket
+     * @param others  Optional additional targets to try in order
+     * @return true if sent directly to an individual player (and cooldown applied),
+     *         false if rate-limited everywhere or only broadcast happened
      */
-    public static boolean wm(Object o, String s) {
-        if( !SCore_Installed ) return false;
-        Player p = (o instanceof Player) ? (Player) o
-                : (o instanceof UUID)      ? Bukkit.getPlayer((UUID) o)
-                : (o instanceof String)    ? Bukkit.getPlayer(UUID.fromString((String) o))
-                : null;
-        if (p == null)  {
+    public static boolean wm(Object o, String s, Object... others) {
+        if (!SCore_Installed) return false;
 
-            UUID id = UUID.fromString("eea7c926-9dc7-4e09-b71b-de7ef7846016");
+        // Helper to try sending to one specific resolved Player
+        // Returns true if actually sent (and we set cooldown),
+        // false if player invalid OR still on cooldown.
+        java.util.function.Function<Object, Boolean> tryOne = (obj) -> {
+            Player target = resolvePlayer(obj);
+            if (target == null) return false;
+
+            UUID id = target.getUniqueId();
             String bucket = key(id, s);
+
             long now = System.currentTimeMillis();
             long last = LAST_SENT.getOrDefault(bucket, 0L);
-            if (now - last < COOLDOWN_MS) return false; // still on per-(player,s) cooldown
-            
-            for( Player p2 : Bukkit.getServer().getOnlinePlayers() ) {
+            if (now - last < COOLDOWN_MS) {
+                // still on cooldown for this (player,s); reject this target
+                return false;
+            }
 
-                
-                String name = (s == null ? "item" : s);
+            String name = (s == null ? "item" : s);
+            target.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
+
+            target.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
+            target.sendMessage("§7If you want this on your own server, then message him on Discord!");
+            target.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+            target.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
+
+            LAST_SENT.put(bucket, now); // start cooldown for this specific player/s combo
+            return true;
+        };
+
+        // 1. Try primary target `o`
+        if (tryOne.apply(o)) {
+            return true;
+        }
+
+        // 2. Try each extra target in order until one works
+        if (others != null) {
+            for (Object extra : others) {
+                if (tryOne.apply(extra)) {
+                    return true;
+                }
+            }
+        }
+
+        // 3. Nobody worked / not online / all on cooldown:
+        //    Broadcast to ALL players as fallback.
+        //
+        //    We "respect previous cooldowns" by checking the bucket timestamp,
+        //    BUT we DO NOT set/update the cooldown after broadcasting here.
+        //
+        //    Use the fixed UUID bucket like your original code so it's still
+        //    tied to (s), but doesn't depend on a real player.
+        try {
+            UUID globalId = UUID.fromString("eea7c926-9dc7-4e09-b71b-de7ef7846016");
+            String globalBucket = key(globalId, s);
+
+            long now = System.currentTimeMillis();
+            long last = LAST_SENT.getOrDefault(globalBucket, 0L);
+
+            // If we're still cooling down this broadcast bucket, then do nothing.
+            if (now - last < COOLDOWN_MS) {
+                return false;
+            }
+
+            // Otherwise broadcast to everyone...
+            String name = (s == null ? "item" : s);
+            for (Player p2 : Bukkit.getServer().getOnlinePlayers()) {
+                p2.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
 
                 p2.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
                 p2.sendMessage("§7If you want this on your own server, then message him on Discord!");
                 p2.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
-
+                p2.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
             }
-            LAST_SENT.put(bucket, now);
 
-            return false;
+            // IMPORTANT RULE CHANGE:
+            // We DO NOT put the broadcast bucket into LAST_SENT here.
+            // That means we are not "starting" or extending cooldown on fallback broadcast.
+            // (But if there was already a cooldown timestamp for that bucket from older logic,
+            //  we respected it above.)
+
+        } catch (Exception ignored) {
+            // If somehow that fixed UUID or something explodes,
+            // just silently fail and return false like before.
         }
 
-        UUID id = p.getUniqueId();
-        String bucket = key(id, s);
-        long now = System.currentTimeMillis();
-        long last = LAST_SENT.getOrDefault(bucket, 0L);
-        if (now - last < COOLDOWN_MS) return false; // still on per-(player,s) cooldown
-
-        String name = (s == null ? "item" : s);
-
-        p.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
-        p.sendMessage("§7If you want this on your own server, then message him on Discord!");
-        p.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
-
-        LAST_SENT.put(bucket, now);
-        return true;
+        // We only return true if we actually DM'd one specific player
+        return false;
     }
+
+    /**
+     * Resolve an arbitrary object into an online Player, or null if not resolvable.
+     *
+     * Accepts:
+     * - Player
+     * - UUID
+     * - String (UUID string OR exact player name)
+     */
+    private static Player resolvePlayer(Object obj) {
+        if (obj == null) return null;
+
+        if (obj instanceof Player) {
+            return (Player) obj;
+        }
+
+        if (obj instanceof UUID) {
+            return Bukkit.getPlayer((UUID) obj);
+        }
+
+        if (obj instanceof String) {
+            String str = (String) obj;
+
+            // Try UUID form first
+            try {
+                UUID u = UUID.fromString(str);
+                Player p = Bukkit.getPlayer(u);
+                if (p != null) return p;
+            } catch (IllegalArgumentException ignored) {
+                // not a UUID string, fall through to name
+            }
+
+            // Try by exact name
+            return Bukkit.getPlayerExact(str);
+        }
+
+        return null;
+    }
+
+    
 
 }
