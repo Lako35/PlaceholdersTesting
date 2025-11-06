@@ -225,7 +225,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return null;
     }
 
+    public static String stripColors(String input) {
+        if (input == null) return null;
 
+        // (?i)           -> case-insensitive
+        // [§&]           -> either the section sign (§) or &
+        // [0-9A-FK-ORX]  -> any valid MC code character:
+        //                   0-9, a-f (colors),
+        //                   k-o (formats like obfuscated/bold/etc),
+        //                   r (reset),
+        //                   x (start of hex color "§x§1§2§3§4§5§6")
+        //
+        // This also correctly strips hex colors because:
+        //   "§x§1§2§3§4§5§6Hello"
+        // becomes:
+        //   (remove §x) -> "§1§2§3§4§5§6Hello"
+        //   (remove §1) -> "§2§3§4§5§6Hello"
+        //   ...until -> "Hello"
+        return input.replaceAll("(?i)[§&][0-9A-FK-ORX]", "");
+    }
 
     @SuppressWarnings({"ConstantValue"})
     @Override
@@ -237,6 +255,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
 
+        if( identifier.startsWith("stripColors_")) return stripColors(identifier.substring("stripColors_".length()));
+
+        
         if (identifier.startsWith("countEIinShulker_")) {
             final String[] parts = identifier.substring("countEIinShulker_".length()).split(",");
             if (parts.length != 3) {
