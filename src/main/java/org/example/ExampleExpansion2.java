@@ -445,8 +445,8 @@ public class ExampleExpansion2 {
 
             // Airburst Mechanic: If within 3 blocks, explode immediately
             double distance = caller.getLocation().distance(target.getLocation());
-            if (distance <= 5.0 && caller instanceof Firework && target instanceof Entity) {
-                airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+            if (distance <= 5.0) {
+                airburstExplode(caller, target, launcherUUID, parts[4]);
                 return "§c§lAirburst Detonation!";
             }
 
@@ -4580,8 +4580,8 @@ public class ExampleExpansion2 {
             Entity caller = Bukkit.getEntity(callerUUID);
             Entity target = Bukkit.getEntity(targetUUID);
             double distanceCheck = Bukkit.getEntity(callerUUID).getLocation().distance(Bukkit.getEntity(targetUUID).getLocation());
-            if (distanceCheck <= 5.0 && caller instanceof Firework) {
-                airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+            if (distanceCheck <= 5.0 ) {
+                airburstExplode(caller, target, launcherUUID, parts[4]);
                 return "§c§lAirburst Detonation!";
             }
 
@@ -4704,8 +4704,8 @@ public class ExampleExpansion2 {
 
             // Airburst check (use cached entities)
             final double distanceCheck = caller.getLocation().distance(target.getLocation());
-            if (distanceCheck <= 5.0 && caller instanceof Firework) {
-                airburstExplode((Firework) caller, target, launcherUUID, damageArg);
+            if (distanceCheck <= 5.0 ) {
+                airburstExplode(caller, target, launcherUUID, damageArg);
                 return "§c§lAirburst Detonation!";
             }
 
@@ -4911,8 +4911,8 @@ public class ExampleExpansion2 {
             double distance = locCaller.distance(locTarget);
 
             // Airburst: If close, explode
-            if (distance <= 5.0 && caller instanceof Firework) {
-                airburstExplode((Firework) caller, target, launcherUUID, parts[4]);
+            if (distance <= 5.0) {
+                airburstExplode( caller, target, launcherUUID, parts[4]);
                 return "§c§lAirburst Detonation!";
             }
 
@@ -4992,8 +4992,8 @@ public class ExampleExpansion2 {
             double distance = locCaller.distance(locTarget);
 
             // Airburst
-            if (distance <= 5.0 && caller instanceof Firework) {
-                airburstExplode((Firework) caller, target, launcherUUID, parts[5]);
+            if (distance <= 5.0 ) {
+                airburstExplode( caller, target, launcherUUID, parts[5]);
                 return "§c§lAirburst Detonation!";
             }
 
@@ -6474,20 +6474,19 @@ public class ExampleExpansion2 {
         return angle < 3.0; // Within 3 degrees = missile stuck in front
     }
 
-    protected static void airburstExplode(Firework firework, Entity target, UUID launcherUUID, String damage) {
-        if (firework == null || firework.isDead() || !firework.isValid()) return;
+    protected static void airburstExplode(Entity arrow, Entity target, UUID launcherUUID, String damage) {
+        if (arrow == null || arrow.isDead() || !arrow.isValid()) return;
 
-        firework.teleport(target.getLocation());
-        World world = firework.getWorld();
-        Location explosionLocation = firework.getLocation();
+        arrow.teleport(target.getLocation());
+        World world = arrow.getWorld();
+        Location explosionLocation = arrow.getLocation();
 
-        // Retrieve explosion power based on firework stars
         float damage2 = Float.parseFloat(damage);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!firework.isValid() || firework.isDead()) return;
+                if (!arrow.isValid() || arrow.isDead()) return;
 
                 // Create the visual firework explosion
                 spawnCustomFireworkExplosion(world, explosionLocation);
@@ -6498,7 +6497,7 @@ public class ExampleExpansion2 {
                 triggerPlayerHitEvent(launcherUUID, explosionLocation, damage2);
 
                 // Remove the original firework
-                firework.remove();
+                arrow.remove();
             }
         }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
     }
@@ -6526,20 +6525,6 @@ public class ExampleExpansion2 {
         }
     }
 
-    protected static float getFireworkExplosionPower(Firework firework) {
-        FireworkMeta meta = firework.getFireworkMeta();
-
-        // Count the number of firework stars
-        int fireworkStars = 0;
-        if (meta.hasEffects()) {
-            for (FireworkEffect ignored : meta.getEffects()) {
-                fireworkStars++;
-            }
-        }
-
-        // Vanilla firework damage scales with number of stars (0.5 per star)
-        return 0.5F * fireworkStars; // Closer to vanilla damage
-    }
 
     protected static void spawnCustomFireworkExplosion(World world, Location location) {
         Firework firework = world.spawn(location, Firework.class);
