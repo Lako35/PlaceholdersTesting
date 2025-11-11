@@ -359,113 +359,97 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    public static void ParticleCenterToCenter(UUID uuid, UUID uuid2) {
+    public static void ParticleCenterToCenter(UUID uuidA, UUID uuidB) {
         final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (plugin == null) return;
 
-        // quick existence check up front
-        final Entity e1 = Bukkit.getEntity(uuid);
-        final Entity e2 = Bukkit.getEntity(uuid2);
-        if (e1 == null || e2 == null || !e1.isValid() || !e2.isValid()) return;
+        // Quick upfront validation
+        Entity eA0 = Bukkit.getEntity(uuidA);
+        Entity eB0 = Bukkit.getEntity(uuidB);
+        if (eA0 == null || eB0 == null || !eA0.isValid() || !eB0.isValid()) return;
 
-        // 4 seconds → 80 ticks, 20 particles max per frame
-        final int MAX_PARTICLES = 20;
-        final int DURATION_TICKS = 80;
+        final int DURATION_TICKS = 80;     // 4 seconds
+        final int MAX_PARTICLES  = 20;     // cap per line
 
         new BukkitRunnable() {
-            int ticks = 0;
+            int tick = 0;
 
             @Override
             public void run() {
-                // stop on duration
-                if (ticks++ >= DURATION_TICKS) { cancel(); return; }
+                if (tick++ >= DURATION_TICKS) { cancel(); return; }
 
-                // live fetch each tick
-                final Entity a = Bukkit.getEntity(uuid);
-                final Entity b = Bukkit.getEntity(uuid2);
-                if (a == null || b == null) { cancel(); return; }
-                if (!a.isValid() || !b.isValid()) { cancel(); return; }
+                // Live fetch each tick
+                Entity a = Bukkit.getEntity(uuidA);
+                Entity b = Bukkit.getEntity(uuidB);
+                if (a == null || b == null || !a.isValid() || !b.isValid()) { cancel(); return; }
 
-                // players: if either is a player and offline, stop
+                // If either is a player and offline, stop
                 if (a instanceof Player pa && !pa.isOnline()) { cancel(); return; }
                 if (b instanceof Player pb && !pb.isOnline()) { cancel(); return; }
 
-                // world must match
                 if (!a.getWorld().equals(b.getWorld())) { cancel(); return; }
+                World w = a.getWorld();
 
-                final World w = a.getWorld();
-
-                // compute centers (mid-height). Some entities may not have accurate getHeight() on all versions; guard it.
-                double ha = 0.5;
-                double hb = 0.5;
+                // Centers (mid-height)
+                double ha = 0.5, hb = 0.5;
                 try { ha = a.getHeight() * 0.5; } catch (Throwable ignored) {}
                 try { hb = b.getHeight() * 0.5; } catch (Throwable ignored) {}
+                Location LA = a.getLocation().add(0, ha, 0);
+                Location LB = b.getLocation().add(0, hb, 0);
 
-                final Location la = a.getLocation().add(0, ha, 0);
-                final Location lb = b.getLocation().add(0, hb, 0);
+                Vector AB = LB.toVector().subtract(LA.toVector());
+                double len = AB.length();
+                if (len < 1e-6) return;
 
-                final Vector diff = lb.toVector().subtract(la.toVector());
-                final double len = diff.length();
-                if (len < 1.0e-6) return; // same spot; nothing to draw
+                // Choose particle count for this frame (cap at MAX_PARTICLES, min 2)
+                int n = Math.max(2, Math.min(MAX_PARTICLES, (int)Math.ceil(len * 3)));
+                Vector step = AB.multiply(1.0 / (n - 1));
 
-                // choose number of points (cap at MAX_PARTICLES, but at least 2)
-                final int n = Math.max(2, Math.min(MAX_PARTICLES, (int) Math.ceil(len * 3))); // mild densification
-                final Vector step = diff.multiply(1.0 / (n - 1));
+                // === Color this TICK: whole line uses one color ===
+                // ticks 0..78 : green -> yellow -> orange -> red
+                // tick 79     : gray tail (final frame)
+                org.bukkit.Color bukkitColor;
+                float scale = 0.6f; // small dust
+                if (tick >= DURATION_TICKS - 1) {
+                    bukkitColor = org.bukkit.Color.fromRGB(160,160,160); // final gray line
+                } else {
+                    double t = (double)tick / (double)(DURATION_TICKS - 1);
+                    java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
+                    bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
+                }
+                Particle.DustOptions dust = new Particle.DustOptions(bukkitColor, scale);
 
-                // last few points colored gray
-                final int grayTail = Math.max(1, n / 5); // ~last 20% gray
-
-                // draw particles
-                Location cur = la.clone();
+                // Render line (force = true)
+                Location cur = LA.clone();
                 for (int i = 0; i < n; i++) {
-                    final boolean isGray = (i >= n - grayTail);
-
-                    // pick color
-                    java.awt.Color awtColor;
-                    if (isGray) {
-                        awtColor = new java.awt.Color(160, 160, 160); // gray tail
-                    } else {
-                        // gradient through green → yellow → orange → red using 3 segments
-                        double t = (n == 1) ? 1.0 : (double) i / (double) (n - 1);
-                        awtColor = gradientGYOR(t);
-                    }
-
-                    // Particle.DUST with small scale
-                    Particle.DustOptions dust = new Particle.DustOptions(
-                            org.bukkit.Color.fromRGB(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue()),
-                            0.6F // small dust
-                    );
-
-                    // FORCE = true, count=1, no spread, no speed
                     w.spawnParticle(Particle.DUST, cur, 1, 0, 0, 0, 0.0, dust, true);
-
                     cur.add(step);
                 }
             }
 
-            // color interpolation: green → yellow → orange → red across t ∈ [0,1]
-            private java.awt.Color gradientGYOR(double t) {
+            // Time-based gradient: Green → Yellow → Orange → Red
+            private java.awt.Color gyorOverTime(double t) {
                 // clamp
-                if (t < 0) t = 0;
-                if (t > 1) t = 1;
+                if (t < 0) t = 0; if (t > 1) t = 1;
 
-                // stops: 0.0 green(0,255,0), 0.333 yellow(255,255,0),
-                //        0.666 orange(255,165,0), 1.0 red(255,0,0)
-                if (t <= 1.0 / 3.0) {
-                    return lerp(new java.awt.Color(0,255,0), new java.awt.Color(255,255,0), t / (1.0/3.0));
-                } else if (t <= 2.0 / 3.0) {
+                // stops: 0.0   (0,255,0)   green
+                //        0.33  (255,255,0) yellow
+                //        0.66  (255,165,0) orange
+                //        1.0   (255,0,0)   red
+                if (t <= 1.0/3.0) {
+                    return lerp(new java.awt.Color(0,255,0),   new java.awt.Color(255,255,0), t/(1.0/3.0));
+                } else if (t <= 2.0/3.0) {
                     double u = (t - 1.0/3.0) / (1.0/3.0);
                     return lerp(new java.awt.Color(255,255,0), new java.awt.Color(255,165,0), u);
                 } else {
                     double u = (t - 2.0/3.0) / (1.0/3.0);
-                    return lerp(new java.awt.Color(255,165,0), new java.awt.Color(255,0,0), u);
+                    return lerp(new java.awt.Color(255,165,0), new java.awt.Color(255,0,0),   u);
                 }
             }
-
             private java.awt.Color lerp(java.awt.Color a, java.awt.Color b, double t) {
-                int r = (int) Math.round(a.getRed()   + (b.getRed()   - a.getRed())   * t);
-                int g = (int) Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
-                int bl= (int) Math.round(a.getBlue()  + (b.getBlue()  - a.getBlue())  * t);
+                int r = (int)Math.round(a.getRed()   + (b.getRed()   - a.getRed())   * t);
+                int g = (int)Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
+                int bl= (int)Math.round(a.getBlue()  + (b.getBlue()  - a.getBlue())  * t);
                 return new java.awt.Color(
                         Math.max(0, Math.min(255, r)),
                         Math.max(0, Math.min(255, g)),
