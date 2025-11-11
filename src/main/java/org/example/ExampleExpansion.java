@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
@@ -48,6 +49,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.example.ExampleExpansion2.*;
 
 
 @SuppressWarnings("ALL")
@@ -166,6 +169,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+
+
     private static @Nullable Inventory getShulkerSnapshotInventory(org.bukkit.block.ShulkerBox shulker) {
         try {
             // Works on Spigot for item snapshots
@@ -245,6 +250,117 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return input.replaceAll("(?i)[§&][0-9A-FK-ORX]", "");
     }
 
+
+    // AOE SONIC_BOOM damage (copy of your area hit behavior with V4 rules)
+// - center: explosion/impact location
+// - radius: e.g. 5.0 (your proximity radius)
+// - caller: projectile or thing that caused it (used as damager for non-players)
+// - launcherUUID: player who fired it (used as damager for players)
+    // AOE SONIC_BOOM damage (V4 rules) with "always damage target if provided" semantics.
+// - caller: projectile or source entity (used as damager for NON-players)
+// - launcherUUID: player who fired it (used as damager for PLAYERS)
+// - center/radius: AOE center and radius
+// - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
+    private static void triggerPlayerHitEventV4_AOE(
+            @org.jetbrains.annotations.Nullable UUID launcherUUID,
+            @org.jetbrains.annotations.NotNull Location center,
+            double radius,
+            @org.jetbrains.annotations.Nullable Entity target) {
+
+        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
+
+        // Helper to resolve a launcher name for command args
+        final String launcherName = (launcher != null)
+                ? launcher.getName()
+                : (launcherUUID != null
+                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
+                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
+                : launcherUUID.toString())
+                : "unknown");
+
+        // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
+        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
+
+        // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
+        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
+            final org.bukkit.damage.DamageSource.Builder dsb =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
+            final org.bukkit.damage.DamageSource.Builder dsb2 =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.STARVE);
+
+            if (tgt instanceof Player) {
+                // Players: damager = launcher (player) if available
+                final Entity damager = launcher;
+                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+
+                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double amount = 0.60 * maxHp + 10.0;
+                tgt.damage(amount, dsb.build());
+
+                // Run console trigger for the player target
+                final String victimName = ((Player) tgt).getName();
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+            } else {
+                // Non-players: damager = launcher (still acceptable per your V4 semantics)
+                final Entity damager = launcher;
+                if (damager != null) dsb2.withDirectEntity(damager).withCausingEntity(damager);
+
+                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double amount = 0.5 * maxHp + 200.0;
+                tgt.damage(amount, dsb2.build());
+            }
+
+            damaged.add(tgt.getUniqueId());
+        }
+
+        // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
+        final World world = center.getWorld();
+        if (world == null) return;
+
+        final double r2 = radius * radius;
+
+        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (!(e instanceof LivingEntity le)) continue;
+            if (!le.isValid() || le.isDead()) continue;
+            if (damaged.contains(e.getUniqueId())) continue; // skip target if it was already hit
+            if (e.getLocation().distanceSquared(center) > r2) continue;
+
+            final org.bukkit.damage.DamageSource.Builder dsb =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
+
+
+            if (le instanceof Player) {
+                // Players: damager = launcher (player) if available
+                final Entity damager = launcher;
+                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+
+                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double amount = 0.60 * maxHp + 10.0;
+                le.damage(amount, dsb.build());
+
+                // Run console trigger for each player in radius
+
+                final String victimName = ((Player) le).getName();
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "minecraft:w ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+
+            } else {
+                // Non-players: damager = launcher (kept consistent with your V4 variant)
+                final Entity damager = launcher;
+                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+
+                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double amount = 0.33 * maxHp + 300;
+                le.damage(amount, dsb.build());
+            }
+        }
+    }
+
+
+
     @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
@@ -253,6 +369,238 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         if (identifier.startsWith("parseNested_")) identifier = ExampleExpansion2.parseNested(p, identifier);
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+
+if (identifier.equals("version")) {
+    return "0.0.0";
+}
+
+        if (identifier.startsWith("trackImpact3_")){
+            String[] parts = identifier.substring("trackImpact3_".length()).split(",");
+
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            World world = Bukkit.getWorld(parts[1]);
+            int x = Integer.parseInt(parts[2]);
+            int y = Integer.parseInt(parts[3]);
+            int z = Integer.parseInt(parts[4]);
+
+            Location location = new Location(world, x, y, z);
+            spawnCustomFireworkExplosion(world, location);
+            triggerPlayerHitEventV4_AOE( launcherUUID, location, 5, null);
+
+            return "§6Impact triggered.";
+        }
+
+        if (identifier.startsWith("trackImpact4_")){
+            String[] parts = identifier.substring("trackImpact4_".length()).split(",");
+
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            UUID targetUUID = UUID.fromString(parts[1]);
+
+            Entity target = Bukkit.getEntity(targetUUID);
+            if (target == null) return "§cTarget not found";
+
+            Location location = target.getLocation();
+            spawnCustomFireworkExplosion(target.getWorld(), location);
+            triggerPlayerHitEventV4_AOE(launcherUUID, location, 5, target);
+
+            return "§eTarget explosion triggered.";
+        }
+
+        if(identifier.startsWith("trackv4-a.1_")) {
+            final String prefix = "trackv4-a.1_";
+
+            final String[] parts = identifier.substring(prefix.length()).split(",");
+            if (parts.length != 3) {
+                return "§cUsage: %Archistructure_trackv4-a.1_CALLERUUID,TARGETUUID,LAUNCHERUUID%";
+            }
+
+            try {
+                final UUID callerUUID   = UUID.fromString(parts[0]);
+                final UUID targetUUID   = UUID.fromString(parts[1]);
+                final UUID launcherUUID = UUID.fromString(parts[2]);
+
+                final Entity caller = Bukkit.getEntity(callerUUID);
+                final Entity target = Bukkit.getEntity(targetUUID);
+                if (caller == null || target == null) return "§c§lMissile Impacted!";
+                if (!caller.getWorld().equals(target.getWorld())) return "§c§lMissile Impacted.";
+
+                // Distance string (for immediate return)
+                final double distNow = caller.getLocation().distance(target.getLocation());
+                final String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
+
+                // Plugin ref
+                final Plugin plugin = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"));
+
+                // Acceleration profile
+                final double[] SPEEDS = new double[] {
+                        1.0, 1.03, 1.06, 1.1, 1.13, 1.17, 1.21, 1.24, 1.28, 1.32, 1.37, 1.41, 1.45,
+                        1.5, 1.55, 1.59, 1.65, 1.7, 1.75, 1.81, 1.86, 1.92, 1.98, 2.05, 2.11, 2.18,
+                        2.25, 2.32, 2.39, 2.47, 2.54, 2.62, 2.71, 2.79, 2.88, 2.97, 3.07, 3.16, 3.26,
+                        3.37, 3.47, 3.58, 3.69, 3.81, 3.93, 4.06, 4.18, 4.32, 4.45, 4.59, 4.74, 4.89,
+                        5.04, 5.2, 5.37, 5.54, 5.71, 5.89, 6.08, 6.27, 6.47, 6.67, 6.88, 7.1, 7.33,
+                        7.56, 7.8, 8.04, 8.3, 8.56, 8.83, 9.11, 9.4, 9.69, 10.0, 10.0, 10.0, 10.0, 10.0,
+                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
+                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
+                        10.0, 10.0, 10.0
+                };
+
+                // ---------------------------
+                // Steering loop (SYNC every 2 ticks)
+                // ---------------------------
+                Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+                    int idx = 0;
+                    boolean cancelled = false;
+
+                    @Override public void run() {
+                        if (cancelled) return;
+
+                        Entity c = Bukkit.getEntity(callerUUID);
+                        Entity t = Bukkit.getEntity(targetUUID);
+                        if (c == null || t == null || !c.isValid() || c.isDead()
+                                || !t.isValid() || t.isDead()
+                                || !c.getWorld().equals(t.getWorld())) {
+                            cancelled = true;
+                            return;
+                        }
+
+                        final double Sm = (idx < SPEEDS.length) ? SPEEDS[idx] : SPEEDS[SPEEDS.length - 1];
+
+                        // --- lead pursuit (with fallback) ---
+                        final Location lc = c.getLocation();
+                        final Location lt = t.getLocation().add(0, t.getHeight() * 0.5, 0);
+                        final Vector R = lt.toVector().subtract(lc.toVector());
+                        final Vector V = t.getVelocity().clone();
+                        if (Math.abs(V.getY() + 0.0784) < 1.0e-4) V.setY(0);
+
+                        final double a = V.dot(V) - Sm * Sm;
+                        final double b = 2.0 * R.dot(V);
+                        final double cc = R.dot(R);
+                        final double eps = 1e-9;
+                        final double disc = b*b - 4.0*a*cc;
+
+                        Vector desiredV;
+                        if (Math.abs(a) < eps || disc < eps) {
+                            desiredV = safeNorm(R).multiply(Sm);
+                        } else {
+                            final double root = Math.sqrt(Math.max(0.0, disc));
+                            double tHit = Double.POSITIVE_INFINITY;
+                            final double t1 = (-b - root) / (2.0 * a);
+                            final double t2 = (-b + root) / (2.0 * a);
+                            if (t1 > eps) tHit = Math.min(tHit, t1);
+                            if (t2 > eps) tHit = Math.min(tHit, t2);
+                            if (!Double.isFinite(tHit)) {
+                                desiredV = safeNorm(R).multiply(Sm);
+                            } else {
+                                final Vector intercept = lt.toVector().add(V.multiply(tHit));
+                                desiredV = safeNorm(intercept.subtract(lc.toVector())).multiply(Sm);
+                            }
+                        }
+
+                        // ---------------------------
+                        // Terrain CAS (Collision Avoidance System) — raytrace ~5 ticks ahead
+                        // ---------------------------
+                        final Location rayStart = lc.clone();
+                        final Vector rayDir = desiredV.clone().normalize();
+                        final double rayLength = desiredV.length() * 5.0;
+
+                        RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
+                                rayStart,
+                                rayDir,
+                                rayLength,
+                                FluidCollisionMode.NEVER,
+                                true
+                        );
+
+                        // Minimal pass-through set; replace with your own getPassThroughMaterials(...) if desired
+                        final Set<Material> passThrough = getPassThroughMaterials(enumSet);
+
+                        final boolean needsAvoidance = result != null && result.getHitBlock() != null
+                                && !passThrough.contains(result.getHitBlock().getType());
+
+                        if (needsAvoidance) {
+                            Vector bestVelocity = desiredV;
+                            double bestScore = -1.0;
+
+                            for (int pitchDeg = 0; pitchDeg <= 90; pitchDeg += 5) {
+                                final double rad = Math.toRadians(pitchDeg);
+
+                                // Simple "pitch up" blend toward +Y; preserves speed magnitude
+                                Vector pitched = desiredV.clone().normalize().multiply(Math.cos(rad))
+                                        .add(new Vector(0, 1, 0).multiply(Math.sin(rad)))
+                                        .normalize()
+                                        .multiply(Sm);
+
+                                RayTraceResult test = rayStart.getWorld().rayTraceBlocks(
+                                        rayStart,
+                                        pitched.clone().normalize(),
+                                        pitched.length() * 5.0,
+                                        FluidCollisionMode.NEVER,
+                                        true
+                                );
+
+                                boolean clear = (test == null || test.getHitBlock() == null
+                                        || passThrough.contains(test.getHitBlock().getType()));
+
+                                if (clear) {
+                                    double score = 100.0 - pitchDeg; // prefer smaller pitch
+                                    if (score > bestScore) {
+                                        bestScore = score;
+                                        bestVelocity = pitched;
+                                    }
+                                }
+                            }
+
+                            desiredV = bestVelocity;
+                        }
+                        // ---------------------------
+
+                        // Apply velocity
+                        c.setVelocity(desiredV);
+
+                        // Proximity -> damage & remove
+                        final double d2 = lc.distanceSquared(lt);
+                        if (d2 <= 25.0) { // within 5 blocks
+                            triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
+                            spawnCustomFireworkExplosion(c.getWorld(), c.getLocation());
+                            if (c.isValid()) c.remove();
+                            cancelled = true;
+                        }
+
+                        idx++;
+                    }
+                }, 0L, 2L);
+
+                // ---------------------------
+                // Gust particle loop (SYNC every tick), spawn ON the projectile
+                // ---------------------------
+                final int[] gustTaskId = new int[1];
+                gustTaskId[0] = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+                    @Override public void run() {
+                        final Entity c = Bukkit.getEntity(callerUUID);
+                        if (c == null || !c.isValid() || c.isDead()) {
+                            Bukkit.getScheduler().cancelTask(gustTaskId[0]);
+                            return;
+                        }
+                        World w = c.getWorld();
+                        Location loc = c.getLocation().add(0, 0.1, 0);
+                        try {
+                            w.spawnParticle(Particle.GUST, loc, 2, 0.02, 0.02, 0.02, 0.0, null, true);
+                        } catch (IllegalArgumentException ignored) {
+                        }
+                    }
+                }, 0L, 1L).getTaskId();
+
+                // Immediate return text (same as v3)
+                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distNow);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "§c§l§oMissile Impacted " + e.getMessage() + "..." + identifier;
+            }
+        }
+
+
+
 
 
         if( identifier.startsWith("stripColors_")) return stripColors(identifier.substring("stripColors_".length()));

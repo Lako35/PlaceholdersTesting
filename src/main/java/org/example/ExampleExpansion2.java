@@ -4846,7 +4846,7 @@ public class ExampleExpansion2 {
     /* ===================== Helpers (kept local; no regressions) ===================== */
 
     // Robust normalize: never NaN
-    private static Vector safeNorm(Vector v) {
+    static Vector safeNorm(Vector v) {
         double len = v.length();
         if (len < 1e-9) return new Vector(0, 0, 0);
         return v.multiply(1.0 / len);
