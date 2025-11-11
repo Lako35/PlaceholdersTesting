@@ -906,21 +906,21 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
 
-    private void spawnCustomFireworkExplosion2(World world, Location location) {
+    protected static void spawnCustomFireworkExplosion2(World world, Location location) {
         Firework firework = world.spawn(location, Firework.class);
         FireworkMeta meta = firework.getFireworkMeta();
 
         // Large Ball Effect: Yellow, Orange, Gray with sparkles
         FireworkEffect largeBallEffect = FireworkEffect.builder()
                 .with(FireworkEffect.Type.BALL_LARGE)
-                .withColor(Color.YELLOW, Color.ORANGE, Color.GRAY)
+                .withColor(Color.fromRGB(211, 211, 211), Color.AQUA, Color.fromRGB(57,68,188))
                 .withFlicker()
                 .build();
 
         // Small Ball Effect: Red
         FireworkEffect smallBallEffect = FireworkEffect.builder()
                 .with(FireworkEffect.Type.BALL)
-                .withColor(Color.RED)
+                .withColor( Color.WHITE)
                 .build();
 
         // Add both effects
@@ -1049,8 +1049,122 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     }
 
 
+    /**
+     * Hybrid hit logic:
+     * - If target is a PLAYER: apply your original base player logic (commands/armor handling), regardless of world/radius.
+     * - AOE (center/radius): damage ONLY non-player LivingEntities using V4-style damage.
+     * - If target is a NON-PLAYER: damage it once using the "target" non-player V4 rule, regardless of world/radius.
+     * - Players in radius are NOT touched (0 or 1 players hit total).
+     * - Prevents double-hit of the explicit target.
+     */
+    private void triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(
+            @org.jetbrains.annotations.Nullable UUID launcherUUID,
+            @org.jetbrains.annotations.NotNull Location center,
+            double radius,
+            @org.jetbrains.annotations.Nullable Entity target) {
 
-        /**
+        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
+
+        // Resolve launcher name for commands (same style you use elsewhere)
+        final String launcherName = (launcher != null)
+                ? launcher.getName()
+                : (launcherUUID != null
+                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
+                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
+                : launcherUUID.toString())
+                : "unknown");
+
+        // Track single-hit guarantees
+        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
+
+        // 1) If target is provided and LIVING: always hit it once (any world/position)
+        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
+            if (tgt instanceof Player p) {
+                // ---- KEEP YOUR BASE PLAYER LOGIC (unchanged) ----
+                final String victimName = p.getName();
+
+                // stingerhit with launcher name
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ee run-custom-trigger trigger:stingerhit " + victimName + " " + launcherName);
+
+                if (!hasTwoArmorEquipped(p)) {
+                    // Break *all* armor pieces (exactly as your base did)
+                    ItemStack[] armor = p.getInventory().getArmorContents();
+                    for (int i = 0; i < armor.length; i++) {
+                        ItemStack piece = armor[i];
+                        if (piece == null || piece.getType() == Material.AIR) continue;
+                        armor[i] = null;
+                    }
+                    p.getInventory().setArmorContents(armor);
+                    p.updateInventory();
+
+                    // stingerkillbypasstotems
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                            "ee run-custom-trigger trigger:stingerkillbypasstotems " + victimName + " " + launcherName);
+
+                } else {
+                    // stingerhit2
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                            "ee run-custom-trigger trigger:stingerhit2 " + victimName + " " + launcherName);
+
+                    // Break all armor (as per your base 'else' branches)
+                    ItemStack[] armor = p.getInventory().getArmorContents();
+                    for (int i = 0; i < armor.length; i++) {
+                        ItemStack piece = armor[i];
+                        if (piece == null || piece.getType() == Material.AIR) continue;
+                        // Your base had a branch that skipped Elytra in one path; since you said "do not touch player damage",
+                        // we retain the same *break all* behavior that appears in your other branches.
+                        armor[i] = null;
+                    }
+                    p.getInventory().setArmorContents(armor);
+                    p.updateInventory();
+                }
+
+                // Tiny knock-up (matches your base "flavor")
+                p.setVelocity(p.getVelocity().add(new Vector(0, 0.5, 0)));
+
+            } else {
+                // ---- NON-PLAYER TARGET (V4 "target" rule you posted) ----
+                final org.bukkit.damage.DamageSource.Builder dsb =
+                        org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.STARVE);
+                if (launcher != null) dsb.withDirectEntity(launcher).withCausingEntity(launcher);
+
+                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double amount = 0.5 * maxHp + 30; // your target-nonplayer formula
+                tgt.damage(amount, dsb.build());
+            }
+
+            damaged.add(tgt.getUniqueId());
+        }
+
+        // 2) AOE damage for everyone else (NON-PLAYERS ONLY) in center world within radius
+        final World world = center.getWorld();
+        if (world == null) return;
+
+        final double r2 = radius * radius;
+
+        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (!(e instanceof LivingEntity le)) continue;
+            if (!le.isValid() || le.isDead()) continue;
+            if (damaged.contains(e.getUniqueId())) continue; // avoid re-hitting the explicit target
+            if (le instanceof Player) continue;              // do NOT touch players in the AOE
+            if (e.getLocation().distanceSquared(center) > r2) continue;
+
+            // ---- NON-PLAYER AOE RULE (your V4 AOE usual damage) ----
+            final org.bukkit.damage.DamageSource.Builder dsb =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
+            if (launcher != null) dsb.withDirectEntity(launcher).withCausingEntity(launcher);
+
+            final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            final double amount = 0.33 * maxHp + 20; // your "usual" AOE non-player rule
+            le.damage(amount, dsb.build());
+        }
+    }
+
+
+
+
+    /**
          * This is the method called when a placeholder with our identifier is found and needs a value
          * We specify the value identifier in this method
          */
@@ -1113,8 +1227,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
             int z = Integer.parseInt(parts[4]);
 
             Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion(world, location);
-            triggerPlayerHitEventV4_AOE( launcherUUID, location, 5, null);
+            spawnCustomFireworkExplosion2(world, location);
+            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic( launcherUUID, location, 5, null);
 
             return "§6Impact triggered.";
         }
@@ -1129,8 +1243,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
             if (target == null) return "§cTarget not found";
 
             Location location = target.getLocation();
-            spawnCustomFireworkExplosion(target.getWorld(), location);
-            triggerPlayerHitEventV4_AOE(launcherUUID, location, 5, target);
+            spawnCustomFireworkExplosion2(target.getWorld(), location);
+            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(launcherUUID, location, 5, target);
 
             return "§eTarget explosion triggered.";
         }
@@ -1289,8 +1403,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                         // Proximity -> damage & remove
                         final double d2 = lc.distanceSquared(lt);
                         if (d2 <= 25.0) { // within 5 blocks
-                            triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
-                            spawnCustomFireworkExplosion(c.getWorld(), c.getLocation());
+                            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
+                            spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
                             if (c.isValid()) c.remove();
                             cancelled = true;
                         }
