@@ -384,7 +384,7 @@ if (identifier.equals("version")) {
             int z = Integer.parseInt(parts[4]);
 
             Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion(world, location);
+            spawnCustomFireworkExplosion2(world, location);
             triggerPlayerHitEventV4_AOE( launcherUUID, location, 5, null);
 
             return "§6Impact triggered.";
@@ -400,7 +400,7 @@ if (identifier.equals("version")) {
             if (target == null) return "§cTarget not found";
 
             Location location = target.getLocation();
-            spawnCustomFireworkExplosion(target.getWorld(), location);
+            spawnCustomFireworkExplosion2(target.getWorld(), location);
             triggerPlayerHitEventV4_AOE(launcherUUID, location, 5, target);
 
             return "§eTarget explosion triggered.";
@@ -561,7 +561,7 @@ if (identifier.equals("version")) {
                         final double d2 = lc.distanceSquared(lt);
                         if (d2 <= 25.0) { // within 5 blocks
                             triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
-                            spawnCustomFireworkExplosion(c.getWorld(), c.getLocation());
+                            spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
                             if (c.isValid()) c.remove();
                             cancelled = true;
                         }

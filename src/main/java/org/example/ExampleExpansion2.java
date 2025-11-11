@@ -6554,6 +6554,35 @@ public class ExampleExpansion2 {
         Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
     }
 
+
+    protected static void spawnCustomFireworkExplosion2(World world, Location location) {
+        Firework firework = world.spawn(location, Firework.class);
+        FireworkMeta meta = firework.getFireworkMeta();
+
+        // Large Ball Effect: Yellow, Orange, Gray with sparkles
+        FireworkEffect largeBallEffect = FireworkEffect.builder()
+                .with(FireworkEffect.Type.BALL_LARGE)
+                .withColor(Color.fromRGB(211, 211, 211), Color.AQUA, Color.fromRGB(57,68,188))
+                .withFlicker()
+                .build();
+
+        // Small Ball Effect: Red
+        FireworkEffect smallBallEffect = FireworkEffect.builder()
+                .with(FireworkEffect.Type.BALL)
+                .withColor( Color.WHITE)
+                .build();
+
+        // Add both effects
+        meta.addEffect(largeBallEffect);
+        meta.addEffect(smallBallEffect);
+        meta.setPower(1);
+
+        firework.setFireworkMeta(meta);
+
+        // Detonate instantly
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
+    }
+
     protected static void loadFTLeaderboard(Map<UUID, Integer> ftLeaderboard, File ftLeaderboardFile) {
         if (!ftLeaderboardFile.exists()) return;
 
