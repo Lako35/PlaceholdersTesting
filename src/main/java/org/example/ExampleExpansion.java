@@ -1218,7 +1218,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 if (tick >= DURATION_TICKS - 6) {
                     bukkitColor = org.bukkit.Color.fromRGB(160,160,160); // final gray line
                 } else {
-                    double t = (double)tick / (double)(DURATION_TICKS - 1);
+                    double t = (double)tick / (double)(DURATION_TICKS - 6);
                     java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
                     bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
                 }
@@ -1322,7 +1322,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (identifier.startsWith("particleLine_")) {
             String[] parts = identifier.substring("particleLine_".length()).split(",");
             ParticleCenterToCenter(UUID.fromString(parts[0]), UUID.fromString(parts[1]));
-            return "";
+            return "Tracking...";
         }
 
 
