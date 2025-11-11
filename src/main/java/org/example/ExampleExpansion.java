@@ -410,10 +410,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // tick 79     : gray tail (final frame)
                 org.bukkit.Color bukkitColor;
                 float scale = 0.6f; // small dust
-                if (tick >= DURATION_TICKS - 1) {
+                if (tick >= DURATION_TICKS - 6) {
                     bukkitColor = org.bukkit.Color.fromRGB(160,160,160); // final gray line
                 } else {
-                    double t = (double)tick / (double)(DURATION_TICKS - 1);
+                    double t = (double)tick / (double)(DURATION_TICKS - 6);
                     java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
                     bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
                 }
@@ -472,7 +472,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (identifier.startsWith("particleLine_")) {
             String[] parts = identifier.substring("particleLine_".length()).split(",");
             ParticleCenterToCenter(UUID.fromString(parts[0]), UUID.fromString(parts[1]));
-            return "";
+            return "Tracking...";
         }
         
 if (identifier.equals("version")) {
