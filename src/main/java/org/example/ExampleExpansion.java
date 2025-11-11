@@ -1323,7 +1323,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
             try {
                 String[] parts = identifier.substring("particleLine_".length()).split(",");
 
-                if (!"5.0".equals(parts[2])) return "";
+                if (5 != Integer.parseInt(parts[3])) return "";
                 ParticleCenterToCenter(UUID.fromString(parts[0]), UUID.fromString(parts[1]));
                 return "Tracking...";
             } catch (Exception e) {
