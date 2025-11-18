@@ -473,7 +473,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             try {
                 String[] parts = identifier.substring("particleLine_".length()).split(",");
                 
-                if (5 != Integer.parseInt(parts[3])) return "";
+                if (5 != Integer.parseInt(parts[2])) return "";
                 ParticleCenterToCenter(UUID.fromString(parts[0]), UUID.fromString(parts[1]));
                 return "Tracking...";
             } catch (Exception e) {
