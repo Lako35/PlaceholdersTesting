@@ -9,16 +9,18 @@ import org.bukkit.block.data.*;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -45,8 +47,6 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -86,6 +86,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private static final String NOT_FOUND = "🛂";
     private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> TRACKED_ENTITIES = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
@@ -2450,6 +2451,124 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
+
+    private @Nullable Entity tryResolveEntity(@NotNull String token) {
+        // Try UUID first
+        try {
+            UUID id = UUID.fromString(token);
+            Entity e = Bukkit.getEntity(id);
+            if (e != null) return e;
+        } catch (IllegalArgumentException ignored) {}
+
+        // Then exact online player name
+        Player p = Bukkit.getPlayerExact(token);
+        return p; // may be null
+    }
+
+    private @Nullable ItemStack getItemByUiSlot(@NotNull PlayerInventory inv, int slot) {
+        // Player UI mapping
+        switch (slot) {
+            case 40: return inv.getItemInOffHand();
+            case 39: return inv.getHelmet();
+            case 38: return inv.getChestplate();
+            case 37: return inv.getLeggings();
+            case 36: return inv.getBoots();
+            default:
+                if (slot >= 0 && slot < inv.getSize()) return inv.getItem(slot);
+                return null;
+        }
+    }
+
+    /** Try PDC first (PublicBukkitValues), then fall back to serialized meta scan. */
+    /**
+     * Extract a value from an item's PDC, using a full namespaced key like:
+     *  - "executableitems:ei-id"
+     *  - "score:usage"
+     *  - "score:score-display"
+     *
+     * It tries STRING → INTEGER → DOUBLE and returns the first match as a clean String.
+     * On failure or missing key, returns "🛂".
+     */
+    public static @NotNull String extractEIValue(@Nullable ItemStack item,
+                                                 @NotNull String fullKey) {
+        if (item == null || item.getType().isAir()) return NOT_FOUND;
+        if (fullKey.isEmpty()) return NOT_FOUND;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return NOT_FOUND;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if (pdc == null) return NOT_FOUND;
+
+        // Expect "namespace:key" as it appears under PublicBukkitValues
+        NamespacedKey key = NamespacedKey.fromString(fullKey);
+        if (key == null) {
+            return NOT_FOUND;
+        }
+
+        // Try STRING
+        try {
+            String s = pdc.get(key, PersistentDataType.STRING);
+            if (s != null) {
+                return cleanString(s);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // wrong underlying type, fall through
+        }
+
+        // Try INTEGER
+        try {
+            Integer i = pdc.get(key, PersistentDataType.INTEGER);
+            if (i != null) {
+                return Integer.toString(i);
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Try DOUBLE
+        try {
+            Double d = pdc.get(key, PersistentDataType.DOUBLE);
+            if (d != null) {
+                return formatDouble(d);
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        return NOT_FOUND;
+    }
+
+    /**
+     * Strip wrapping quotes if present (e.g. "\"&cN/A\"" → "&cN/A").
+     */
+    private static @NotNull String cleanString(@NotNull String raw) {
+        String s = raw.trim();
+        if (s.length() >= 2 && s.startsWith("\"") && s.endsWith("\"")) {
+            s = s.substring(1, s.length() - 1);
+        }
+        return s;
+    }
+
+    /**
+     * Normalize doubles so you don't get "0.0d" / scientific notation.
+     * Examples:
+     *  - 0.0 -> "0.0"
+     *  - 10.0 -> "10.0"
+     */
+    private static @NotNull String formatDouble(@NotNull Double d) {
+        // basic string first
+        String txt = Double.toString(d);
+
+        // If it ever comes out in scientific notation, normalize
+        if (txt.contains("E") || txt.contains("e")) {
+            txt = String.format(java.util.Locale.US, "%.4f", d);
+            // trim trailing zeros but keep at least one decimal digit
+            txt = txt.replaceAll("0+$", "").replaceAll("\\.$", ".0");
+        }
+        return txt;
+    }
+
+
+
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -2592,8 +2711,83 @@ public class ExampleExpansion extends PlaceholderExpansion {
          */
 
         // INSERT HERE 
-        
-        
+
+
+
+        if (f1.startsWith("checkEI_")) {
+
+            wm(f2 , "EI Scanner");
+            
+            final String args = f1.substring("checkEI-".length());
+            final String[] parts = args.split(",");
+
+            try {
+                if (parts.length == 3) {
+                    // PLAYER/ENTITY form: PLAYER,SLOT,VARNAME
+                    final String who = parts[0].trim();
+                    final int slot = Integer.parseInt(parts[1].trim());
+                    final String varName = parts[2].trim();
+
+                    // Resolve target: UUID -> any Entity; else exact player name
+                    Inventory inv = null;
+                    Entity ent = tryResolveEntity(who);
+                    if (ent instanceof Player pl) {
+                        inv = pl.getInventory();
+                        ItemStack it = getItemByUiSlot(pl.getInventory(), slot);
+                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
+                        final String val = extractEIValue(it, varName);
+                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                    } else if (ent instanceof InventoryHolder holder) {
+                        inv = holder.getInventory();
+                        if (slot < 0 || slot >= inv.getSize()) return NOT_FOUND;
+                        ItemStack it = inv.getItem(slot);
+                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
+                        final String val = extractEIValue(it, varName);
+                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                    } else {
+                        // Try offline/online player by name (if not found as entity)
+                        Player pl = Bukkit.getPlayerExact(who);
+                        if (pl == null) return NOT_FOUND;
+                        ItemStack it = getItemByUiSlot(pl.getInventory(), slot);
+                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
+                        final String val = extractEIValue(it, varName);
+                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                    }
+
+                } else if (parts.length == 6) {
+                    // BLOCK form: blockworld,blockx,blocky,blockz,slot,varname
+                    final String worldName = parts[0].trim();
+                    final int bx = Integer.parseInt(parts[1].trim());
+                    final int by = Integer.parseInt(parts[2].trim());
+                    final int bz = Integer.parseInt(parts[3].trim());
+                    final int slot = Integer.parseInt(parts[4].trim());
+                    final String varName = parts[5].trim();
+
+                    World w = Bukkit.getWorld(worldName);
+                    if (w == null) return NOT_FOUND;
+
+                    Block b = w.getBlockAt(bx, by, bz);
+                    BlockState st = b.getState();
+                    if (!(st instanceof Container container)) return NOT_FOUND;
+
+                    Inventory inv = container.getInventory();
+                    if (slot < 0 || slot >= inv.getSize()) return NOT_FOUND;
+
+                    ItemStack it = inv.getItem(slot);
+                    if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
+
+                    final String val = extractEIValue(it, varName);
+                    return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+
+                } else {
+                    return "§cUse: %Archistructure_checkEI_PLAYER,SLOT,VARNAME%  OR  %Archistructure_checkEI_blockworld,blockx,blocky,blockz,slot,varname%";
+                }
+            } catch (Exception ex) {
+                return NOT_FOUND;
+            }
+        };
+
+
         if( f1.startsWith("stripColors_")) return stripColors(f1.substring("stripColors_".length()));
         
         if (f1.startsWith("invChecker_")) {
