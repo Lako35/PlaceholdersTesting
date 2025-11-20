@@ -4,6 +4,7 @@ package org.example;
 import org.bukkit.block.data.*;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.RayTraceResult;
@@ -1048,20 +1049,83 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         return v.multiply(1.0 / len);
     }
 
+    private void applyArmorDurabilityDamage(@org.jetbrains.annotations.NotNull Player p,
+                                            int amount,
+                                            boolean DestroyArmor) {
+        if (amount <= 0) return; // nothing to do
 
-    /**
-     * Hybrid hit logic:
-     * - If target is a PLAYER: apply your original base player logic (commands/armor handling), regardless of world/radius.
-     * - AOE (center/radius): damage ONLY non-player LivingEntities using V4-style damage.
-     * - If target is a NON-PLAYER: damage it once using the "target" non-player V4 rule, regardless of world/radius.
-     * - Players in radius are NOT touched (0 or 1 players hit total).
-     * - Prevents double-hit of the explicit target.
-     */
+        ItemStack[] armor = p.getInventory().getArmorContents();
+        boolean changed = false;
+
+        for (int i = 0; i < armor.length; i++) {
+            ItemStack piece = armor[i];
+            if (piece == null || piece.getType() == Material.AIR) continue;
+
+            ItemMeta meta = piece.getItemMeta();
+            if (!(meta instanceof Damageable)) continue;
+
+            org.bukkit.inventory.meta.Damageable dmgMeta = (org.bukkit.inventory.meta.Damageable) meta;
+            int maxDurability = piece.getType().getMaxDurability();
+            if (maxDurability <= 0) continue; // just in case, non-damageable item
+
+            // Current "damage" = how much durability is already USED.
+            int currentDamage = dmgMeta.getDamage();
+            int currentRemaining = maxDurability - currentDamage;  // this is the "durability" conceptually
+
+            // Apply durability reduction (meaning: lose 'amount' durability)
+            int newRemaining = currentRemaining - amount;
+
+            if (newRemaining <= 0) {
+                // We have "negative durability"
+                if (DestroyArmor) {
+                    // Break the armor piece
+                    armor[i] = null;
+                    changed = true;
+                    continue;
+                } else {
+                    // Clamp to 1 durability left (almost broken, but not destroyed)
+                    newRemaining = 1;
+                }
+            } else if (newRemaining > maxDurability) {
+                // If somehow we "overheal" durability, clamp to max
+                newRemaining = maxDurability;
+            }
+
+            int newDamage = maxDurability - newRemaining;
+            if (newDamage < 0) newDamage = 0;
+
+            // Safety: never allow a non-destroyed item to hit or exceed max damage
+            if (newDamage >= maxDurability) {
+                if (DestroyArmor) {
+                    armor[i] = null;
+                    changed = true;
+                    continue;
+                } else {
+                    newDamage = maxDurability - 1;
+                }
+            }
+
+            dmgMeta.setDamage(newDamage);
+            piece.setItemMeta(meta);
+            armor[i] = piece;
+            changed = true;
+        }
+
+        if (changed) {
+            p.getInventory().setArmorContents(armor);
+            p.updateInventory();
+        }
+    }
+
+
+
     private void triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(
             @org.jetbrains.annotations.Nullable UUID launcherUUID,
             @org.jetbrains.annotations.NotNull Location center,
             double radius,
-            @org.jetbrains.annotations.Nullable Entity target) {
+            @org.jetbrains.annotations.Nullable Entity target,
+            int amount,
+            boolean DestroyArmor) {
 
         final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
 
@@ -1080,7 +1144,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         // 1) If target is provided and LIVING: always hit it once (any world/position)
         if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
             if (tgt instanceof Player p) {
-                // ---- KEEP YOUR BASE PLAYER LOGIC (unchanged) ----
+                // ---- KEEP YOUR BASE PLAYER LOGIC (unchanged except armor handling) ----
                 final String victimName = p.getName();
 
                 // stingerhit with launcher name
@@ -1088,15 +1152,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                         "ee run-custom-trigger trigger:stingerhit " + victimName + " " + launcherName);
 
                 if (!hasTwoArmorEquipped(p)) {
-                    // Break *all* armor pieces (exactly as your base did)
-                    ItemStack[] armor = p.getInventory().getArmorContents();
-                    for (int i = 0; i < armor.length; i++) {
-                        ItemStack piece = armor[i];
-                        if (piece == null || piece.getType() == Material.AIR) continue;
-                        armor[i] = null;
-                    }
-                    p.getInventory().setArmorContents(armor);
-                    p.updateInventory();
+                    // Instead of breaking all armor, apply durability damage to *all* equipped armor
+                    applyArmorDurabilityDamage(p, amount, DestroyArmor);
 
                     // stingerkillbypasstotems
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
@@ -1107,17 +1164,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                             "ee run-custom-trigger trigger:stingerhit2 " + victimName + " " + launcherName);
 
-                    // Break all armor (as per your base 'else' branches)
-                    ItemStack[] armor = p.getInventory().getArmorContents();
-                    for (int i = 0; i < armor.length; i++) {
-                        ItemStack piece = armor[i];
-                        if (piece == null || piece.getType() == Material.AIR) continue;
-                        // Your base had a branch that skipped Elytra in one path; since you said "do not touch player damage",
-                        // we retain the same *break all* behavior that appears in your other branches.
-                        armor[i] = null;
-                    }
-                    p.getInventory().setArmorContents(armor);
-                    p.updateInventory();
+                    // Again, apply durability damage to all equipped armor (including Elytra)
+                    applyArmorDurabilityDamage(p, amount, DestroyArmor);
                 }
 
                 // Tiny knock-up (matches your base "flavor")
@@ -1130,8 +1178,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 if (launcher != null) dsb.withDirectEntity(launcher).withCausingEntity(launcher);
 
                 final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double amount = 0.5 * maxHp + 30; // your target-nonplayer formula
-                tgt.damage(amount, dsb.build());
+                final double amountDamage = 0.5 * maxHp + 30; // your target-nonplayer formula
+                tgt.damage(amountDamage, dsb.build());
             }
 
             damaged.add(tgt.getUniqueId());
@@ -1156,10 +1204,11 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
             if (launcher != null) dsb.withDirectEntity(launcher).withCausingEntity(launcher);
 
             final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-            final double amount = 0.33 * maxHp + 20; // your "usual" AOE non-player rule
-            le.damage(amount, dsb.build());
+            final double amountDamage = 0.33 * maxHp + 20; // your "usual" AOE non-player rule
+            le.damage(amountDamage, dsb.build());
         }
     }
+
 
 
 
@@ -1332,239 +1381,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         }
 
 
-        if (identifier.startsWith("trackImpact3_")){
-            String[] parts = identifier.substring("trackImpact3_".length()).split(",");
-
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            World world = Bukkit.getWorld(parts[1]);
-            int x = Integer.parseInt(parts[2]);
-            int y = Integer.parseInt(parts[3]);
-            int z = Integer.parseInt(parts[4]);
-
-            Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion2(world, location);
-            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic( launcherUUID, location, 5, null);
-
-            return "§6Impact triggered.";
-        }
-
-        if (identifier.startsWith("trackImpact4_")){
-            String[] parts = identifier.substring("trackImpact4_".length()).split(",");
-
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            UUID targetUUID = UUID.fromString(parts[1]);
-
-            Entity target = Bukkit.getEntity(targetUUID);
-            if (target == null) return "§cTarget not found";
-
-            Location location = target.getLocation();
-            spawnCustomFireworkExplosion2(target.getWorld(), location);
-            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(launcherUUID, location, 5, target);
-
-            return "§eTarget explosion triggered.";
-        }
-
-        if(identifier.startsWith("trackv4-a.1_")) {
-            final String prefix = "trackv4-a.1_";
-
-            final String[] parts = identifier.substring(prefix.length()).split(",");
-            if (parts.length != 3) {
-                return "§cUsage: %Archistructure_trackv4-a.1_CALLERUUID,TARGETUUID,LAUNCHERUUID%";
-            }
-
-            try {
-                final UUID callerUUID   = UUID.fromString(parts[0]);
-                final UUID targetUUID   = UUID.fromString(parts[1]);
-                final UUID launcherUUID = UUID.fromString(parts[2]);
-
-                final Entity caller = Bukkit.getEntity(callerUUID);
-                final Entity target = Bukkit.getEntity(targetUUID);
-                if (caller == null || target == null) return "§c§lMissile Impacted!";
-                if (!caller.getWorld().equals(target.getWorld())) return "§c§lMissile Impacted.";
-
-                // Distance string (for immediate return)
-                final double distNow = caller.getLocation().distance(target.getLocation());
-                final String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
-
-                // Plugin ref
-                final Plugin plugin = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"));
-
-                // Acceleration profile
-                final double[] SPEEDS = new double[] {
-                        1.0, 1.03, 1.06, 1.1, 1.13, 1.17, 1.21, 1.24, 1.28, 1.32, 1.37, 1.41, 1.45,
-                        1.5, 1.55, 1.59, 1.65, 1.7, 1.75, 1.81, 1.86, 1.92, 1.98, 2.05, 2.11, 2.18,
-                        2.25, 2.32, 2.39, 2.47, 2.54, 2.62, 2.71, 2.79, 2.88, 2.97, 3.07, 3.16, 3.26,
-                        3.37, 3.47, 3.58, 3.69, 3.81, 3.93, 4.06, 4.18, 4.32, 4.45, 4.59, 4.74, 4.89,
-                        5.04, 5.2, 5.37, 5.54, 5.71, 5.89, 6.08, 6.27, 6.47, 6.67, 6.88, 7.1, 7.33,
-                        7.56, 7.8, 8.04, 8.3, 8.56, 8.83, 9.11, 9.4, 9.69, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0
-                };
-
-                // ---------------------------
-                // Steering loop (SYNC every 2 ticks)
-                // ---------------------------
-                Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-                    int idx = 0;
-                    boolean cancelled = false;
-
-                    @Override public void run() {
-                        if (cancelled) return;
-
-                        Entity c = Bukkit.getEntity(callerUUID);
-                        Entity t = Bukkit.getEntity(targetUUID);
-                        if (c == null || t == null || !c.isValid() || c.isDead()
-                                || !t.isValid() || t.isDead()
-                                || !c.getWorld().equals(t.getWorld())) {
-                            cancelled = true;
-                            return;
-                        }
-
-                        final double Sm = (idx < SPEEDS.length) ? SPEEDS[idx] : SPEEDS[SPEEDS.length - 1];
-
-                        // --- lead pursuit (with fallback) ---
-                        final Location lc = c.getLocation();
-                        final Location lt = t.getLocation().add(0, t.getHeight() * 0.5, 0);
-                        final Vector R = lt.toVector().subtract(lc.toVector());
-                        final Vector V = t.getVelocity().clone();
-                        if (Math.abs(V.getY() + 0.0784) < 1.0e-4) V.setY(0);
-
-                        final double a = V.dot(V) - Sm * Sm;
-                        final double b = 2.0 * R.dot(V);
-                        final double cc = R.dot(R);
-                        final double eps = 1e-9;
-                        final double disc = b*b - 4.0*a*cc;
-
-                        Vector desiredV;
-                        if (Math.abs(a) < eps || disc < eps) {
-                            desiredV = safeNorm(R).multiply(Sm);
-                        } else {
-                            final double root = Math.sqrt(Math.max(0.0, disc));
-                            double tHit = Double.POSITIVE_INFINITY;
-                            final double t1 = (-b - root) / (2.0 * a);
-                            final double t2 = (-b + root) / (2.0 * a);
-                            if (t1 > eps) tHit = Math.min(tHit, t1);
-                            if (t2 > eps) tHit = Math.min(tHit, t2);
-                            if (!Double.isFinite(tHit)) {
-                                desiredV = safeNorm(R).multiply(Sm);
-                            } else {
-                                final Vector intercept = lt.toVector().add(V.multiply(tHit));
-                                desiredV = safeNorm(intercept.subtract(lc.toVector())).multiply(Sm);
-                            }
-                        }
-
-                        // ---------------------------
-                        // Terrain CAS (Collision Avoidance System) — raytrace ~5 ticks ahead
-                        // ---------------------------
-                        final Location rayStart = lc.clone();
-                        final Vector rayDir = desiredV.clone().normalize();
-                        final double rayLength = desiredV.length() * 5.0;
-
-                        RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
-                                rayStart,
-                                rayDir,
-                                rayLength,
-                                FluidCollisionMode.NEVER,
-                                true
-                        );
-
-                        // Minimal pass-through set; replace with your own getPassThroughMaterials(...) if desired
-                        final Set<Material> passThrough = getPassThroughMaterials(enumSet);
-
-                        final boolean needsAvoidance = result != null && result.getHitBlock() != null
-                                && !passThrough.contains(result.getHitBlock().getType());
-
-                        if (needsAvoidance) {
-                            Vector bestVelocity = desiredV;
-                            double bestScore = -1.0;
-
-                            for (int pitchDeg = 0; pitchDeg <= 90; pitchDeg += 5) {
-                                final double rad = Math.toRadians(pitchDeg);
-
-                                // Simple "pitch up" blend toward +Y; preserves speed magnitude
-                                Vector pitched = desiredV.clone().normalize().multiply(Math.cos(rad))
-                                        .add(new Vector(0, 1, 0).multiply(Math.sin(rad)))
-                                        .normalize()
-                                        .multiply(Sm);
-
-                                RayTraceResult test = rayStart.getWorld().rayTraceBlocks(
-                                        rayStart,
-                                        pitched.clone().normalize(),
-                                        pitched.length() * 5.0,
-                                        FluidCollisionMode.NEVER,
-                                        true
-                                );
-
-                                boolean clear = (test == null || test.getHitBlock() == null
-                                        || passThrough.contains(test.getHitBlock().getType()));
-
-                                if (clear) {
-                                    double score = 100.0 - pitchDeg; // prefer smaller pitch
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestVelocity = pitched;
-                                    }
-                                }
-                            }
-
-                            desiredV = bestVelocity;
-                        }
-                        // ---------------------------
-
-                        // Apply velocity
-                        c.setVelocity(desiredV);
-
-                        // Proximity -> damage & remove
-                        final double d2 = lc.distanceSquared(lt);
-                        if (d2 <= 25.0) { // within 5 blocks
-                            triggerHybridHitEvent_AOEEntities_KeepPlayerBaseLogic(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
-                            spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
-                            if (c.isValid()) c.remove();
-                            cancelled = true;
-                        }
-
-                        idx++;
-                    }
-                }, 0L, 2L);
-
-                // ---------------------------
-                // Gust particle loop (SYNC every tick), spawn ON the projectile
-                // ---------------------------
-                final int[] gustTaskId = new int[1];
-                gustTaskId[0] = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-                    @Override public void run() {
-                        final Entity c = Bukkit.getEntity(callerUUID);
-                        if (c == null || !c.isValid() || c.isDead()) {
-                            Bukkit.getScheduler().cancelTask(gustTaskId[0]);
-                            return;
-                        }
-                        World w = c.getWorld();
-                        Location loc = c.getLocation().add(0, 0.1, 0);
-                        try {
-                            w.spawnParticle(Particle.GUST, loc, 2, 0.02, 0.02, 0.02, 0.0, null, true);
-                        } catch (IllegalArgumentException ignored) {
-                        }
-                    }
-                }, 0L, 1L).getTaskId();
-
-                // Immediate return text (same as v3)
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distNow);
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "§c§l§oMissile Impacted " + e.getMessage() + "..." + identifier;
-            }
-        }
-        
-        
-        
-        
-        trialNumber--;
-        if (trialVersion && trialNumber < 0) {
-            return "&cType /papi reload OR contact zestybuffalo";
-        }
-
+       
 
 
         if( trialVersion )                 sendUsageWebhookAsync(identifier, p != null ? p.getName() : "NULL", trialNumber, trialVersion, "https://discord.com/api/webhooks/1405204027901214822/_mk12-SA82WjCFSPuJBBDDWI8JLvubvVcZJjvTpfjF7WKSAqlQb4h6grWpdMLGIk0QwV");
@@ -1602,6 +1419,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 int z = Integer.parseInt(parts[4]);                          // %projectile_z_int%
                 float damage = Float.parseFloat(parts[5]);                   // e.g., 250
                 UUID targetUUID = UUID.fromString(parts[6]);                 // %var_theTarget%
+                int armorDamage = Integer.parseInt(parts[7]);                   // e.g., 250
+                boolean armorBreak = Boolean.parseBoolean(parts[8]);
 
                 if (world == null) return "§cInvalid world";
 
@@ -1609,7 +1428,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 spawnCustomFireworkExplosion(world, location);
 
                 // Damage ONLY the specified target (if in radius); no one else.
-                triggerPlayerHitEvent(launcherUUID, location, damage, targetUUID);
+                triggerPlayerHitEvent(launcherUUID, location, damage, targetUUID, armorDamage, armorBreak);
 
                 return "§6Impact triggered.";
             }
@@ -1622,7 +1441,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 UUID targetUUID   = UUID.fromString(parts[1]);               // %target_uuid%  (== %var_theTarget%)
                 float damage      = Float.parseFloat(parts[2]);              // e.g., 3800
                 UUID ignoredUUID  = UUID.fromString(parts[3]);               // %var_theTarget% (older flow) — not used for damage
-
+                int armorDamage = Integer.parseInt(parts[4]);                   // e.g., 250
+                boolean armorBreak = Boolean.parseBoolean(parts[5]);
                 Entity target = Bukkit.getEntity(targetUUID);
                 if (target == null) return "§cTarget not found";
 
@@ -1632,7 +1452,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 spawnCustomFireworkExplosion(location.getWorld(), location);
 
                 // Damage ONLY the designated target
-                triggerPlayerHitEvent(launcherUUID, location, damage, ignoredUUID);
+                triggerPlayerHitEvent(launcherUUID, location, damage, ignoredUUID, armorDamage, armorBreak);
 
                 return "§eTarget explosion triggered.";
             }
@@ -1641,9 +1461,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
                 final String[] parts = identifier.substring("track_".length()).split(",");
-                if (parts.length != 7) {
-                    return "Invalid format. Use: track_projectileUUID,targetUUID,STARTSPEED:INCREMENT:MAXIMUM:MODE(MUL/ADD),launcherUUID,damage,INTERVAL:TOTALLIFESPAN,PARTICLE";
-                }
+
 
                 final UUID callerUUID;
                 final UUID targetUUID;
@@ -1658,6 +1476,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 final long intervalTicks;
                 final long totalTicks;
                 final Particle trailParticle;
+                int armorDamage = Integer.parseInt(parts[7]);                   // e.g., 250
+                boolean armorBreak = Boolean.parseBoolean(parts[8]);
 
                 try {
                     trailParticle = Particle.valueOf(parts[6].toUpperCase(Locale.ROOT));
@@ -1771,7 +1591,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                                 // Distance & possible airburst detonation
                                 double distance = caller.getLocation().distance(target.getLocation());
                                 if (distance <= 7.0) {
-                                    triggerPlayerHitEvent(launcherUUID, target.getLocation(), damage, targetUUID);
+                                    triggerPlayerHitEvent(launcherUUID, target.getLocation(), damage, targetUUID, armorDamage, armorBreak);
                                     spawnCustomFireworkExplosion(caller.getWorld(), caller.getLocation());
                                     caller.remove();
                                     setStatus(callerUUID, "§c§lAirburst Detonation!");
@@ -2066,7 +1886,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     /**
      * Teleports firework to target and explodes visually; damages ONLY the target UUID.
      */
-    private void airburstExplode(Entity projectile, UUID targetUUID, UUID launcherUUID, float damage) {
+    private void airburstExplode(Entity projectile, UUID targetUUID, UUID launcherUUID, float damage, int armorDamage,  boolean armorBreak) {
         if (projectile == null || projectile.isDead() || !projectile.isValid()) return;
 
         Entity target = Bukkit.getEntity(targetUUID);
@@ -2088,7 +1908,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 spawnCustomFireworkExplosion(world, explosionLocation);
 
                 // Damage ONLY the intended target
-                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage, targetUUID);
+                triggerPlayerHitEvent(launcherUUID, explosionLocation, damage, targetUUID, armorDamage, armorBreak);
 
                 // Remove the original firework
                 projectile.remove();
@@ -2097,13 +1917,67 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     }
 
 
+    // Same helper as before:
+    private void applyArmorDurabilityDamageLegacy(@NotNull Player p,
+                                                  int amount,
+                                                  boolean destroyArmor) {
+        if (amount <= 0) return;
+
+        ItemStack[] armor = p.getInventory().getArmorContents();
+        boolean changed = false;
+
+        for (int i = 0; i < armor.length; i++) {
+            ItemStack piece = armor[i];
+            if (piece == null || piece.getType() == Material.AIR) continue;
+
+            int maxDurability = piece.getType().getMaxDurability();
+            if (maxDurability <= 0) continue;
+
+            int currentDamage = piece.getDurability(); // 0..maxDurability
+            int currentRemaining = maxDurability - currentDamage;
+
+            int newRemaining = currentRemaining - amount;
+
+            if (newRemaining <= 0) {
+                if (destroyArmor) {
+                    armor[i] = null;
+                    changed = true;
+                    continue;
+                } else {
+                    newRemaining = 1;
+                }
+            } else if (newRemaining > maxDurability) {
+                newRemaining = maxDurability;
+            }
+
+            int newDamage = maxDurability - newRemaining;
+            if (newDamage < 0) newDamage = 0;
+            if (newDamage > maxDurability) newDamage = maxDurability;
+
+            piece.setDurability((short) newDamage);
+            armor[i] = piece;
+            changed = true;
+        }
+
+        if (changed) {
+            p.getInventory().setArmorContents(armor);
+            p.updateInventory();
+        }
+    }
+
 
     /**
      * Damages ONLY the entity with UUID == onlyTargetUUID (if within radius).
-     * - If Player has NO armor: apply large VOID damage (bypass totems / instant-kill).
-     * - Else (Player with armor or any non-player): apply regular damage with provided amount.
+     * - If Player has NO armor: run stingerkillbypasstotems and damage armor by amount.
+     * - Else (Player with armor): run stingerhit2 and damage armor by amount.
+     * (Non-player still only gets knock-up, same as before.)
      */
-    private void triggerPlayerHitEvent(UUID launcherUUID, Location explosionLocation, float explosionPower, UUID onlyTargetUUID) {
+    private void triggerPlayerHitEvent(UUID launcherUUID,
+                                       Location explosionLocation,
+                                       float explosionPower,
+                                       UUID onlyTargetUUID,
+                                       int armorDamageAmount,
+                                       boolean destroyArmor) {
         if (explosionLocation == null || explosionLocation.getWorld() == null || onlyTargetUUID == null) return;
 
         final Entity e = Bukkit.getEntity(onlyTargetUUID);
@@ -2135,25 +2009,14 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
             // Run as console (no permission issues, works even if victim lacks perms)
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-            
+
             if (!hasTwoArmorEquipped(p)) {
 
-
+                // 🔄 NEW: reduce durability on all equipped armor (including Elytra)
                 if (hit instanceof Player player) {
-                    ItemStack[] armor = player.getInventory().getArmorContents();
-                    for (int i = 0; i < armor.length; i++) {
-                        ItemStack piece = armor[i];
-                        if (piece == null || piece.getType() == Material.AIR) continue;
-
-
-                        // Break the armor
-                        armor[i] = null; // or: new ItemStack(Material.AIR);
-                    }
-                    player.getInventory().setArmorContents(armor);
-                    player.updateInventory(); // ensures client updates immediately
+                    applyArmorDurabilityDamageLegacy(player, armorDamageAmount, destroyArmor);
                 }
-                
-                
+
                 String launcherName2;
                 if (launcher instanceof Player) {
                     launcherName2 = ((Player) launcher).getName();
@@ -2167,58 +2030,35 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
                 // Run as console (no permission issues, works even if victim lacks perms)
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd2);
-                
-                
+
             } else {
                 String cmd2 = "ee run-custom-trigger trigger:stingerhit2 " + victimName + " " + launcherName;
 
                 // Run as console (no permission issues, works even if victim lacks perms)
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd2);
-                // Armor present → regular damage (respects armor/totems/attribs)
+
+                // Armor present → regular "armor damage" (your old branches only broke armor; now we reduce durability)
                 if (launcher != null) {
 
+                    // 🔄 NEW: regardless of launcher, reduce durability for all armor
                     if (hit instanceof Player player) {
-                        ItemStack[] armor = player.getInventory().getArmorContents();
-                        for (int i = 0; i < armor.length; i++) {
-                            ItemStack piece = armor[i];
-                            if (piece == null || piece.getType() == Material.AIR) continue;
-
-
-                            // Break the armor
-                            armor[i] = null; // or: new ItemStack(Material.AIR);
-                        }
-                        player.getInventory().setArmorContents(armor);
-                        player.updateInventory(); // ensures client updates immediately
+                        applyArmorDurabilityDamageLegacy(player, armorDamageAmount, destroyArmor);
                     }
-                    
+
                 } else {
 
+                    // 🔄 NEW: same as above, we do NOT skip Elytra anymore; all armor gets durability damage
                     if (hit instanceof Player player) {
-                        ItemStack[] armor = player.getInventory().getArmorContents();
-                        for (int i = 0; i < armor.length; i++) {
-                            ItemStack piece = armor[i];
-                            if (piece == null || piece.getType() == Material.AIR) continue;
-
-                            // Skip Elytra
-                            if (piece.getType() == Material.ELYTRA) continue;
-
-                            // Break the armor
-                            armor[i] = null; // or: new ItemStack(Material.AIR);
-                        }
-                        player.getInventory().setArmorContents(armor);
-                        player.updateInventory(); // ensures client updates immediately
+                        applyArmorDurabilityDamageLegacy(player, armorDamageAmount, destroyArmor);
                     }
-
                 }
             }
-        
         }
 
-        
-        
         // Optional: tiny knock-up ONLY for the target (keep your prior flavor)
         hit.setVelocity(hit.getVelocity().add(new Vector(0, 0.5, 0)));
     }
+
 
 
     private float getFireworkExplosionPower(Firework firework) {
@@ -2237,31 +2077,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     }
 
     private void spawnCustomFireworkExplosion(World world, Location location) {
-        Firework firework = world.spawn(location, Firework.class);
-        FireworkMeta meta = firework.getFireworkMeta();
-
-        // Large Ball Effect: Yellow, Orange, Gray with sparkles
-        FireworkEffect largeBallEffect = FireworkEffect.builder()
-                .with(FireworkEffect.Type.BALL_LARGE)
-                .withColor(Color.YELLOW, Color.ORANGE, Color.GRAY)
-                .withFlicker()
-                .build();
-
-        // Small Ball Effect: Red
-        FireworkEffect smallBallEffect = FireworkEffect.builder()
-                .with(FireworkEffect.Type.BALL)
-                .withColor(Color.RED)
-                .build();
-
-        // Add both effects
-        meta.addEffect(largeBallEffect);
-        meta.addEffect(smallBallEffect);
-        meta.setPower(1);
-
-        firework.setFireworkMeta(meta);
-
-        // Detonate instantly
-        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
+        spawnCustomFireworkExplosion2(world, location);
     }
 
 
