@@ -55,6 +55,13 @@ import static org.example.ExampleExpansion2.*;
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    // launcherUUID + ":" + targetUUID  -> projectile UUID
+    private static final java.util.concurrent.ConcurrentMap<String, UUID> ACTIVE_MISSILES =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static String missileKey(UUID launcher, UUID target) {
+        return launcher.toString() + ":" + target.toString();
+    }
 
     // One task per turret UUID
     private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
@@ -359,28 +366,68 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    public static void ParticleCenterToCenter(UUID uuidA, UUID uuidB) {
+    public static void ParticleCenterToCenter(UUID launcherUUID, UUID targetUUID) {
         final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (plugin == null) return;
 
-        // Quick upfront validation
-        Entity eA0 = Bukkit.getEntity(uuidA);
-        Entity eB0 = Bukkit.getEntity(uuidB);
+        // Quick upfront validation for initial player/target
+        Entity eA0 = Bukkit.getEntity(launcherUUID);
+        Entity eB0 = Bukkit.getEntity(targetUUID);
         if (eA0 == null || eB0 == null || !eA0.isValid() || !eB0.isValid()) return;
 
-        final int DURATION_TICKS = 80;     // 4 seconds
-        final int MAX_PARTICLES  = 20;     // cap per line
+        final int DURATION_TICKS = 80;     // 4 seconds (only for non-missile mode)
+        final int MAX_PARTICLES  = 25;     // cap per line
+        final String key         = missileKey(launcherUUID, targetUUID);
 
         new BukkitRunnable() {
             int tick = 0;
+            boolean everHadMissile = false;
 
             @Override
             public void run() {
-                if (tick++ >= DURATION_TICKS) { cancel(); return; }
+                // Look for an active missile for this launcher/target pair
+                UUID missileUUID = ACTIVE_MISSILES.get(key);
+                Entity missile = null;
+                boolean missileActive = false;
+                if (missileUUID != null) {
+                    missile = Bukkit.getEntity(missileUUID);
+                    if (missile != null && missile.isValid() && !missile.isDead()) {
+                        missileActive = true;
+                        everHadMissile = true;
+                    } else {
+                        // Clean up stale mapping
+                        ACTIVE_MISSILES.remove(key, missileUUID);
+                    }
+                }
+
+                // Lifetime control:
+                // - Normal mode: honor DURATION_TICKS.
+                // - Missile mode: ignore DURATION_TICKS, run while missile exists.
+                // - Once we had a missile and it’s gone, stop.
+                if (!missileActive) {
+                    if (everHadMissile) {
+                        cancel();
+                        return;
+                    }
+                    if (tick++ >= DURATION_TICKS) {
+                        cancel();
+                        return;
+                    }
+                } else {
+                    // missileActive: no tick++ or time limit
+                }
 
                 // Live fetch each tick
-                Entity a = Bukkit.getEntity(uuidA);
-                Entity b = Bukkit.getEntity(uuidB);
+                Entity a; // start of line
+                Entity b; // end of line (always the target)
+                b = Bukkit.getEntity(targetUUID);
+
+                if (missileActive) {
+                    a = missile;
+                } else {
+                    a = Bukkit.getEntity(launcherUUID);
+                }
+
                 if (a == null || b == null || !a.isValid() || !b.isValid()) { cancel(); return; }
 
                 // If either is a player and offline, stop
@@ -402,21 +449,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (len < 1e-6) return;
 
                 // Choose particle count for this frame (cap at MAX_PARTICLES, min 2)
-                int n = Math.max(2, Math.min(MAX_PARTICLES, (int)Math.ceil(len * 3)));
+                int n = Math.max(2, Math.min(MAX_PARTICLES, (int) Math.ceil(len * 3)));
                 Vector step = AB.multiply(1.0 / (n - 1));
 
-                // === Color this TICK: whole line uses one color ===
-                // ticks 0..78 : green -> yellow -> orange -> red
-                // tick 79     : gray tail (final frame)
+                // === Color and size ===
                 org.bukkit.Color bukkitColor;
-                float scale = 0.6f; // small dust
-                if (tick >= DURATION_TICKS - 6) {
-                    bukkitColor = org.bukkit.Color.fromRGB(160,160,160); // final gray line
+                float scale = 0.6f; // same as before
+
+                if (missileActive) {
+                    // Missile present → aqua, no gradient
+                    bukkitColor = org.bukkit.Color.fromRGB(0, 255, 255); // aqua
                 } else {
-                    double t = (double)tick / (double)(DURATION_TICKS - 6);
-                    java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
-                    bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
+                    // Original time-based gradient: Green → Yellow → Orange → Red
+                    if (tick >= DURATION_TICKS - 6) {
+                        bukkitColor = org.bukkit.Color.fromRGB(160, 160, 160); // final gray line
+                    } else {
+                        double t = (double) tick / (double) (DURATION_TICKS - 6);
+                        java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
+                        bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
+                    }
                 }
+
                 Particle.DustOptions dust = new Particle.DustOptions(bukkitColor, scale);
 
                 // Render line (force = true)
@@ -430,26 +483,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Time-based gradient: Green → Yellow → Orange → Red
             private java.awt.Color gyorOverTime(double t) {
                 // clamp
-                if (t < 0) t = 0; if (t > 1) t = 1;
+                if (t < 0) t = 0;
+                if (t > 1) t = 1;
 
                 // stops: 0.0   (0,255,0)   green
                 //        0.33  (255,255,0) yellow
                 //        0.66  (255,165,0) orange
                 //        1.0   (255,0,0)   red
-                if (t <= 1.0/3.0) {
-                    return lerp(new java.awt.Color(0,255,0),   new java.awt.Color(255,255,0), t/(1.0/3.0));
-                } else if (t <= 2.0/3.0) {
-                    double u = (t - 1.0/3.0) / (1.0/3.0);
-                    return lerp(new java.awt.Color(255,255,0), new java.awt.Color(255,165,0), u);
+                if (t <= 1.0 / 3.0) {
+                    return lerp(new java.awt.Color(0, 255, 0), new java.awt.Color(255, 255, 0), t / (1.0 / 3.0));
+                } else if (t <= 2.0 / 3.0) {
+                    double u = (t - 1.0 / 3.0) / (1.0 / 3.0);
+                    return lerp(new java.awt.Color(255, 255, 0), new java.awt.Color(255, 165, 0), u);
                 } else {
-                    double u = (t - 2.0/3.0) / (1.0/3.0);
-                    return lerp(new java.awt.Color(255,165,0), new java.awt.Color(255,0,0),   u);
+                    double u = (t - 2.0 / 3.0) / (1.0 / 3.0);
+                    return lerp(new java.awt.Color(255, 165, 0), new java.awt.Color(255, 0, 0), u);
                 }
             }
+
             private java.awt.Color lerp(java.awt.Color a, java.awt.Color b, double t) {
-                int r = (int)Math.round(a.getRed()   + (b.getRed()   - a.getRed())   * t);
-                int g = (int)Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
-                int bl= (int)Math.round(a.getBlue()  + (b.getBlue()  - a.getBlue())  * t);
+                int r = (int) Math.round(a.getRed() + (b.getRed() - a.getRed()) * t);
+                int g = (int) Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
+                int bl = (int) Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t);
                 return new java.awt.Color(
                         Math.max(0, Math.min(255, r)),
                         Math.max(0, Math.min(255, g)),
@@ -458,6 +513,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
+
 
 
     @SuppressWarnings({"ConstantValue"})
@@ -472,14 +528,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (identifier.startsWith("particleLine_")) {
             try {
                 String[] parts = identifier.substring("particleLine_".length()).split(",");
-                
-                if (5 != Integer.parseInt(parts[2])) return "";
-                ParticleCenterToCenter(UUID.fromString(parts[0]), UUID.fromString(parts[1]));
+
+                if (5 != Integer.parseInt(parts[2])) return ""; // keep: only start at time = 5
+
+                UUID launcherUUID = UUID.fromString(parts[0]); // player
+                UUID targetUUID   = UUID.fromString(parts[1]); // target
+
+                ParticleCenterToCenter(launcherUUID, targetUUID);
                 return "Tracking...";
             } catch (Exception e) {
                 return "";
             }
         }
+
         
 if (identifier.equals("version")) {
     return "0.0.0";
@@ -534,7 +595,8 @@ if (identifier.equals("version")) {
                 final Entity target = Bukkit.getEntity(targetUUID);
                 if (caller == null || target == null) return "§c§lMissile Impacted!";
                 if (!caller.getWorld().equals(target.getWorld())) return "§c§lMissile Impacted.";
-
+                final String missileKey = missileKey(launcherUUID, targetUUID);
+                ACTIVE_MISSILES.put(missileKey, callerUUID);
                 // Distance string (for immediate return)
                 final double distNow = caller.getLocation().distance(target.getLocation());
                 final String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
@@ -570,6 +632,8 @@ if (identifier.equals("version")) {
                         if (c == null || t == null || !c.isValid() || c.isDead()
                                 || !t.isValid() || t.isDead()
                                 || !c.getWorld().equals(t.getWorld())) {
+                            ACTIVE_MISSILES.remove(missileKey, callerUUID);
+
                             cancelled = true;
                             return;
                         }
