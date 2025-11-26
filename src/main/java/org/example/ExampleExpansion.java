@@ -3160,7 +3160,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
     // 1 hour per (player, s)
-    private static final long COOLDOWN_MS = 60L * 1000L;
+    private static final long COOLDOWN_MS = 60L * 1000L * 60;
 
     // Keyed by "playerUUID|normalizedS"
     private static final Map<String, Long> LAST_SENT = new ConcurrentHashMap<>();
