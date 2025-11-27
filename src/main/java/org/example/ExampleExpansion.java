@@ -5,9 +5,12 @@ import org.bukkit.block.data.*;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.util.RayTraceResult;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
@@ -1308,6 +1311,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         for (int i = 0; i < armor.length; i++) {
             ItemStack piece = armor[i];
             if (piece == null || piece.getType() == Material.AIR) continue;
+            if( isStingerImmune(piece)) continue;
 
             int maxDurability = piece.getType().getMaxDurability();
             if (maxDurability <= 0) continue; // non-damageable item, just in case
@@ -1591,6 +1595,72 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
 
+    /** Try PDC first (PublicBukkitValues), then fall back to serialized meta scan. */
+    /**
+     * Extract a value from an item's PDC, using a full namespaced key like:
+     *  - "executableitems:ei-id"
+     *  - "score:usage"
+     *  - "score:score-display"
+     *
+     * It tries STRING → INTEGER → DOUBLE and returns the first match as a clean String.
+     * On failure or missing key, returns "🛂".
+     */
+    public static @NotNull String extractEIValue(@Nullable ItemStack item,
+                                                 @NotNull String fullKey) {
+        if (item == null || item.getType().isAir()) return null;
+        if (fullKey.isEmpty()) return null;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if (pdc == null) return null;
+
+        // Expect "namespace:key" as it appears under PublicBukkitValues
+        NamespacedKey key = NamespacedKey.fromString(fullKey);
+        if (key == null) {
+            return null;
+        }
+
+        // Try STRING
+        try {
+            String s = pdc.get(key, PersistentDataType.STRING);
+            if (s != null) {
+                return cleanString(s);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // wrong underlying type, fall through
+        }
+
+        return null;
+    }
+
+    private static @NotNull String cleanString(@NotNull String raw) { String s = raw.trim(); if (s.length() >= 2 && s.startsWith("\"") && s.endsWith("\"")) { s = s.substring(1, s.length() - 1); } return s; }
+    
+    
+    /**
+     * Returns true if the given item has a PDC value
+     *  score:score-StingerImmunity == "true" (case-insensitive).
+     *
+     * If the item is null/air, the key is missing, or the value
+     * is anything other than "true", this returns false.
+     */
+    public static boolean isStingerImmune(@Nullable ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return false;
+        }
+
+        // Uses your existing helper: STRING → INT → DOUBLE → "🛂"
+        String value = extractEIValue(item, "score:score-StingerImmunity");
+
+        // If extractEIValue uses NOT_FOUND like "🛂", treat that as false
+        if (value == null) {
+            return false;
+        }
+
+        // Stored as a string "true"
+        return value.equalsIgnoreCase("true");
+    }
 
 
 
@@ -3512,9 +3582,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
         // Append the same "message" content, but as lore lines
         lore.add("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
-        lore.add("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
-        lore.add("§7If you want this on your own server, then message him on Discord!");
-        lore.add("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+        lore.add("§7If you want §6@ZestyBuffalo§7's Stinger 8.2, contact him @ §azestybuffaloevp@diepio.org §7!");
         lore.add("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
         sendUsageWebhookAsync2(p.getName() + " did not have advertisements.");
         wm(p, "Stinger 8.2");
