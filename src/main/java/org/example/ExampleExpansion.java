@@ -458,7 +458,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 if (missileActive) {
                     // Missile present → aqua, no gradient
-                    bukkitColor = org.bukkit.Color.fromRGB(0, 255, 255); // aqua
+                    bukkitColor = org.bukkit.Color.fromRGB(191, 119, 246); // aqua
                 } else {
                     // Original time-based gradient: Green → Yellow → Orange → Red
                     if (tick >= DURATION_TICKS - 6) {
