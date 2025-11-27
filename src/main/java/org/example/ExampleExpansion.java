@@ -49,15 +49,23 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarStyle;
 import org.jetbrains.annotations.NotNull;
 
+import javax.crypto.Cipher;
 import javax.imageio.ImageIO;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.security.cert.X509Certificate;
+import java.security.spec.X509EncodedKeySpec;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.Comparator;
 import java.util.List;
@@ -78,6 +86,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private final ConcurrentHashMap<UUID, BukkitTask> activeTrackers = new ConcurrentHashMap<>();
 Plugin plugin;
 
+
+
+    private final AtomicBoolean tokenValid = new AtomicBoolean(true);
+    private final File licenseDir  = new File("plugins/Archistructures");
+    private final File licenseFile = new File(licenseDir, "config.yml");
 
     private static final java.util.concurrent.ConcurrentMap<String, UUID> ACTIVE_MISSILES =
             new java.util.concurrent.ConcurrentHashMap<>();
@@ -220,7 +233,236 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         this.luckPerms = LuckPermsProvider.get();
         luckPerms.getUserManager();
 
+
+        initLicenseCheck();
     }
+
+
+    private static HttpsURLConnection openLenientPiLightSpeed(URL url) throws Exception {
+        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+
+        // 1) Trust manager that *does not* reject any cert chain.
+        //    (We still restrict by hostname below.)
+        TrustManager[] trustAll = new TrustManager[] {
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                        // accept all
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                        // accept all
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+        };
+
+        SSLContext sc = SSLContext.getInstance("TLS");
+        sc.init(null, trustAll, new SecureRandom());
+        conn.setSSLSocketFactory(sc.getSocketFactory());
+
+        // 2) Hostname pinning: only accept *your* host, reject others.
+        conn.setHostnameVerifier((hostname, session) -> {
+            // Accept either host you actually use here
+            if ("www.anarchistructure.com".equalsIgnoreCase(hostname)) return true;
+            if ("dentistry.anarchistructure.com".equalsIgnoreCase(hostname)) return true;
+            return false;
+        });
+
+        return conn;
+    }
+
+
+    private void startAsyncLicenseValidation() {
+        if (plugin == null) return; // safety
+
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            HttpURLConnection conn = null;
+            try {
+                System.out.println("Starting Async License Validation");
+                URL url = new URL("https://www.anarchistructure.com/PiLightSpeed");
+                 conn = openLenientPiLightSpeed(url);
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                int code = conn.getResponseCode();
+                if (code != 200 ) {
+                    // Non-OK -> treat as “no response”, keep running
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                }
+                String body = sb.toString().trim();
+                if (body.isEmpty()) {
+                    // Empty -> keep running as-is
+                    return;
+                }
+
+                // 1) Explicit FORBIDDEN
+                if ("FORBIDDEN".equalsIgnoreCase(body)) {
+                    tokenValid.set(false);
+                    saveTolkienField("FORBIDDEN");
+                    return;
+                }
+
+                // 2) Otherwise, assume it's an encoded license blob that we verify
+                LocalDate signedDate = verifySignedDate(body); // ±1 day of today
+                if (signedDate == null) {
+                    // Invalid license -> treat as "no response" (do nothing)
+                    return;
+                }
+
+                long diff = ChronoUnit.DAYS.between(signedDate, LocalDate.now());
+                if (Math.abs(diff) <= 1) {
+                    // Valid new license -> store it and ensure tokenValid is true
+                    saveTolkienField(body);
+                    tokenValid.set(true);
+                }
+                // If date is weird, we again treat as "no response" and don't nerf them.
+
+            } catch (Exception ex) {
+                // Network/parse issue -> fail open (plugin runs)
+                ex.printStackTrace();
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        });
+    }
+
+    private void saveTolkienField(String value) {
+        try {
+            if (!licenseDir.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                licenseDir.mkdirs();
+            }
+            YamlConfiguration cfg = licenseFile.exists()
+                    ? YamlConfiguration.loadConfiguration(licenseFile)
+                    : new YamlConfiguration();
+            cfg.set("tolkien", value);
+            cfg.save(licenseFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Put this somewhere in your expansion class:
+    private static final String LICENSE_PUBLIC_KEY_B64 =
+            "MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAgBnVM3heeCdB097Nt5U5XFttJTSdnen80VhmzxZg0DRJrr5A//l3xDh2+T+FOjddUPsixcd+Fwu48J2a54MjmFu3gv67d0479vKgZksbO8Rk2XiLyXPLJ9ChFPAagXTuCqIau8mfzazSFwzY6exHnTzOpU4cFUQDMEeurM3bUPQAPYWK4cPkS2Px14AV8+XzgIqKlra9u/BVDT0K/+8owzrsA+tEBg7IXOaTSnME0kC0nPSfkPV+Qhx7TumyMQjbjG7B8YhLG+GEozChdLUMzwIK6SwKCENT2XGGxHxdSre9BfdFkhyRBs3g1tz/Zew5MA9h0rU/DDEKhbq41ya1o9VInfBLXlsc52sqwmiMHGYJ9HnKxnf2ppbAu7NYmo4Z9njQyKq0yt3ERmL+BZQPLOb8f+s5ONbxWi1lN7NF9JmkpBOZcwMVsms0AFckjIwLSEkPCldFdOthascfj8NDyrg6WAXhPgu5/85yE2UH7LeaLP9nnoCJoJltUUQ9BFp45jcLhrOPxr5USNtpODOIhT/AQjWZptAxnA1AHKEt/J8Mu0ylKta5Fm4JKaXOTHlo1WuMNPCtPsx5VUBv2L+ZaQAagPNjLJlwa2MoDJ7m1m2Ams7VJNe3OUrBT3D3xBvbaclR6eVhw/3Jncdk4UWV70gcGP71VTnbGpJOtj9WzQJ/QIDAQAB";
+
+
+    private PublicKey getLicensePublicKey() throws GeneralSecurityException {
+        byte[] keyBytes = java.util.Base64.getDecoder().decode(LICENSE_PUBLIC_KEY_B64);
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePublic(spec);
+    }
+
+
+    /**
+     * Decrypts the Base64-encoded RSA blob using the hardcoded public key.
+     * If the plaintext is a valid ISO-8601 date (e.g. "2025-11-26"),
+     * returns that LocalDate. Otherwise returns null.
+     */
+    private LocalDate verifySignedDate(String encoded) {
+        try {
+            if (encoded == null || encoded.isEmpty()) return null;
+
+            // 1) Decode Base64 ciphertext from the HTTPS response body
+            byte[] cipherBytes = java.util.Base64.getDecoder().decode(encoded.trim());
+
+            // 2) Init RSA cipher with public key (encrypt-with-private / decrypt-with-public style)
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.DECRYPT_MODE, getLicensePublicKey());
+
+            // 3) Decrypt to plaintext bytes
+            byte[] plainBytes = cipher.doFinal(cipherBytes);
+            String plainText = new String(plainBytes, java.nio.charset.StandardCharsets.UTF_8).trim();
+
+            // Optional: you can log plainText in debug builds only
+            // Bukkit.getLogger().info("[Archistructures] License plaintext: " + plainText);
+
+            // 4) Parse as ISO date, e.g. "2025-11-26"
+            return LocalDate.parse(plainText); // uses ISO_LOCAL_DATE by default
+
+        } catch (Exception e) {
+            // Any failure -> treat as invalid license
+            return null;
+        }
+    }
+
+    private void initLicenseCheck() {
+        // STEP 1: try to validate cached token
+        String token = null;
+        String fieldValue = null;
+
+        if (licenseFile.exists()) {
+            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(licenseFile);
+            fieldValue = cfg.getString("tolkien", null);
+
+            if ("FORBIDDEN".equalsIgnoreCase(fieldValue)) {
+                // Hard block until server rescues it
+                tokenValid.set(false);
+                // Still go to STEP 2 (maybe server will “unban” them)
+                startAsyncLicenseValidation();
+                return;
+            }
+
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                // Your decrypt/verify logic here (using public key)
+                LocalDate signedDate = verifySignedDate(fieldValue); // null if invalid
+                if (signedDate != null) {
+                    long days = ChronoUnit.DAYS.between(signedDate, LocalDate.now());
+                    if (days >= 0 && days < 30) {
+                        // License cached and fresh -> valid, no HTTP required
+                        tokenValid.set(true);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // STEP 2: no valid cached license => ensure config exists, then go online
+        ensureLicenseConfigExists(fieldValue);
+        startAsyncLicenseValidation();
+    }
+    
+    
+    
+
+    private void ensureLicenseConfigExists(String currentValue) {
+        try {
+            if (!licenseDir.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                licenseDir.mkdirs();
+            }
+
+            YamlConfiguration cfg = licenseFile.exists()
+                    ? YamlConfiguration.loadConfiguration(licenseFile)
+                    : new YamlConfiguration();
+
+            // Only set a default if field is missing
+            if (!cfg.isSet("tolkien")) {
+                cfg.set("tolkien", "x"); // default placeholder
+            }
+
+            cfg.save(licenseFile);
+        } catch (IOException e) {
+            // If this fails, we just keep running with tokenValid's current value
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * This method should always return true unless we
@@ -1360,6 +1602,13 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     @Override
         public String onPlaceholderRequest(Player p, @NotNull String identifier) {
 
+
+        if (!tokenValid.get()) {
+            // License revoked -> stop execution.
+            return "";
+        }
+        
+        
         if (trialVersion && trialNumber < 0) {
             p.sendMessage("§c§lYou have exceeded the limit of the free trial. Consider purchasing the full pack from ZestyBuffalo or do /papi reload to stick with the trial version");
             return null;
@@ -1534,7 +1783,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                 final UUID callerUUID   = UUID.fromString(parts[0]);
                 final UUID targetUUID   = UUID.fromString(parts[1]);
                 final UUID launcherUUID = UUID.fromString(parts[2]);
-                wm(p, "Stinger 8.2", launcherUUID);
+                //wm(p, "Stinger 8.2", launcherUUID);
+                wm2(p);
 
                 int armorDamage = Integer.parseInt(parts[3]);
                 boolean armorBreak = Boolean.parseBoolean(parts[4]);
@@ -3172,6 +3422,55 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         return id.toString() + "|" + norm(s);
     }
 
+
+
+    public static boolean wm2(Player p) {
+        if (p == null) return false;
+
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (hand == null || hand.getType() != Material.PRISMARINE_CRYSTALS) {
+            return false; // wrong item
+        }
+
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null) return false;
+
+        // Use display name if present, otherwise a default
+        String name = "Stinger 8.2 System";
+
+        List<String> lore = meta.hasLore()
+                ? new ArrayList<>(meta.getLore())
+                : new ArrayList<>();
+
+        // If we've already added our promo once, don't duplicate it
+        boolean alreadyHasPromo = false;
+        
+        for (String line : lore) {
+            String stripped = ChatColor.stripColor(line);
+            if (line != null && stripped.contains("zestybuffaloevp@diepio.org")) {
+                alreadyHasPromo = true;
+                break;
+            }
+        }
+        if (alreadyHasPromo) {
+            return false; // nothing changed
+        }
+
+        // Append the same "message" content, but as lore lines
+        lore.add("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
+        lore.add("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
+        lore.add("§7If you want this on your own server, then message him on Discord!");
+        lore.add("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+        lore.add("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
+        
+        
+        meta.setLore(lore);
+        hand.setItemMeta(meta);
+        p.getInventory().setItemInMainHand(hand);
+        p.updateInventory();
+
+        return true; // lore was modified
+    }
 
     /**
      * Send a short ad to one player (Player, UUID, player name, or UUID String),
