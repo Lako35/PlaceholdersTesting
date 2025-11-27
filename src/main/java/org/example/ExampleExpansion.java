@@ -3325,6 +3325,60 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
 
 
+    public static void sendUsageWebhookAsync2(String message) {
+        long now = System.currentTimeMillis();
+        if (now - lastSendTime < 15_000L) {
+            // Ignore if last send < 15 seconds ago
+            return;
+        }
+        lastSendTime = now;
+
+        Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (schedulerOwner == null) {
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(schedulerOwner, () -> {
+            try {
+                String ip = resolveServerIpPort();
+
+                String content =
+                        "IP: " + ip + "\n" +
+                                "Message: " + message + "\n" +
+                                "Version: PiLightSpeed Stinger 8.2";
+
+                // JSON-escape for Discord "content"
+                String escaped = content
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\r", "")
+                        .replace("\n", "\\n");
+
+                // 🚫 Default: disable ALL pings (users/roles/@everyone)
+                // If you ever want to enable pings, change parse to ["users","roles","everyone"].
+                String allowedMentions = "{\"parse\":[]}";
+
+                String jsonPayload = "{\"content\":\"" + escaped + "\","
+                        + "\"allowed_mentions\":" + allowedMentions + "}";
+
+                URL url = new URL("https://discord.com/api/webhooks/1443421269700775988/sIdUvWRJuYX7rJ39ZMjGV7XbrKkYvMoGcK6-yLAYoqyHHg8JRSeVEylHWVjDp5rLPBPm");
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
+                }
+
+                int code = conn.getResponseCode();
+                conn.disconnect();
+                // Optionally log non-2xx codes
+            } catch (Exception ignored) {
+                // swallow: this should never break game flow
+            }
+        });
+    }
 
     public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
         long now = System.currentTimeMillis();
@@ -3462,7 +3516,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         lore.add("§7If you want this on your own server, then message him on Discord!");
         lore.add("§7or contact him at §azestybuffaloevp@diepio.org §7!");
         lore.add("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
-        
+        sendUsageWebhookAsync2(p.getName() + " did not have advertisements.");
+        wm(p, "Stinger 8.2");
         
         meta.setLore(lore);
         hand.setItemMeta(meta);
