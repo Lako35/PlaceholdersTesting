@@ -1311,7 +1311,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         for (int i = 0; i < armor.length; i++) {
             ItemStack piece = armor[i];
             if (piece == null || piece.getType() == Material.AIR) continue;
-            if( isStingerImmune(piece)) continue;
+            try { if( isStingerImmune(piece)) continue; } catch (Exception e) {}
 
             int maxDurability = piece.getType().getMaxDurability();
             if (maxDurability <= 0) continue; // non-damageable item, just in case
@@ -1626,7 +1626,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         try {
             String s = pdc.get(key, PersistentDataType.STRING);
             if (s != null) {
-                return cleanString(s);
+                return s;
             }
         } catch (IllegalArgumentException ignored) {
             // wrong underlying type, fall through
@@ -1651,7 +1651,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         }
 
         // Uses your existing helper: STRING → INT → DOUBLE → "🛂"
-        String value = extractEIValue(item, "score:score-StingerImmunity");
+        String value = extractEIValue(item, "score:score-stingerimmunity");
 
         // If extractEIValue uses NOT_FOUND like "🛂", treat that as false
         if (value == null) {
