@@ -1302,7 +1302,8 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
     }
     private void applyArmorDurabilityDamage(@org.jetbrains.annotations.NotNull Player p,
                                             int amount,
-                                            boolean DestroyArmor) {
+                                            boolean DestroyArmor,
+                                            UUID attacker) {
         if (amount <= 0) return; // nothing to do
 
         ItemStack[] armor = p.getInventory().getArmorContents();
@@ -1311,7 +1312,16 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         for (int i = 0; i < armor.length; i++) {
             ItemStack piece = armor[i];
             if (piece == null || piece.getType() == Material.AIR) continue;
-            try { if( isStingerImmune(piece)) continue; } catch (Exception e) {}
+            try { if( isStingerImmune(piece)) {
+                String cmd = "ee run-custom-trigger trigger:stingerarmorblocked " 
+                        + p.getName() + " " + Bukkit.getEntity(attacker).getName() + " " + piece.getType();
+
+                // Run as console (no permission issues, works even if victim lacks perms)
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                continue;
+            };            
+                
+            } catch (Exception e) {}
 
             int maxDurability = piece.getType().getMaxDurability();
             if (maxDurability <= 0) continue; // non-damageable item, just in case
@@ -1385,7 +1395,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
                 if (!hasTwoArmorEquipped(p)) {
                     // Instead of breaking all armor, apply durability damage to *all* equipped armor
-                    applyArmorDurabilityDamage(p, amount, DestroyArmor);
+                    applyArmorDurabilityDamage(p, amount, DestroyArmor, launcherUUID);
 
                     // stingerkillbypasstotems
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
@@ -1397,7 +1407,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
                             "ee run-custom-trigger trigger:stingerhit2 " + victimName + " " + launcherName);
 
                     // Again, apply durability damage to all equipped armor (including Elytra)
-                    applyArmorDurabilityDamage(p, amount, DestroyArmor);
+                    applyArmorDurabilityDamage(p, amount, DestroyArmor, launcherUUID);
                 }
 
                 // Tiny knock-up (matches your base "flavor")
