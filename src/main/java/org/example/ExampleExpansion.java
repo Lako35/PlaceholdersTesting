@@ -1884,6 +1884,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected String f1(Player f1) {
+        wm(f1, "Death Note");
         // Ensure player is holding a written book
         ItemStack item = f1.getInventory().getItemInMainHand();
         if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
@@ -4509,6 +4510,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             );
 
             String[] parts = f1.substring("turret_".length()).split(",");
+            wm(f2, "Sentry Gun Turret");
             // You access up to parts[19]; require at least 20
             if (parts.length < 20) return "§cInvalid format";
 
@@ -10370,135 +10372,123 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
+    // 1 minute per (player, itemString)
+    private static final long COOLDOWN_MS = 60L * 1000L * 5;
 
+    // Keyed by "playerUUID|itemString"
+    private static final Map<String, Long> LAST_SENT = new java.util.concurrent.ConcurrentHashMap<>();
 
-    // 1 hour per (player, s)
-    private static final long COOLDOWN_MS = 60L * 1000L;
+    // Use a constant global UUID (all zeros)
+    private static final UUID GLOBAL_UUID = new UUID(0L, 0L);
 
-    // Keyed by "playerUUID|normalizedS"
-    private static final Map<String, Long> LAST_SENT = new ConcurrentHashMap<>();
-
+    // Keep this if you still use it elsewhere.
+    @SuppressWarnings("unused")
     private static String norm(String s) {
-        return (s == null ? "item" : s.trim()).toLowerCase(Locale.ROOT);
+        return (s == null ? "item" : s.trim()).toLowerCase(java.util.Locale.ROOT);
     }
+
+    // IMPORTANT: stable but not destructive keying.
+// I recommend trim() to avoid bypassing cooldown with extra spaces.
     private static String key(UUID id, String s) {
-        return id.toString() + "|" + norm(s);
+        String itemKey = (s == null ? "item" : s.trim());
+        return id.toString() + "|" + itemKey;
+    }
+
+    private static String displayName(String s) {
+        return (s == null ? "item" : s.trim());
+    }
+
+    private static void sendAdLines(Player target, String name) {
+        // ==== YOUR BANNER + TEXT (unchanged) ====
+        target.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
+
+        target.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
+        target.sendMessage("§7If you want this on your own server, then message him on Discord!");
+        target.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+
+        target.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
+    }
+
+    private static boolean trySendToPlayer(Player target, String s) {
+        if (target == null) return false;
+
+        long now = System.currentTimeMillis();
+        String bucket = key(target.getUniqueId(), s);
+
+        long last = LAST_SENT.getOrDefault(bucket, 0L);
+        if (now - last < COOLDOWN_MS) return false;
+
+        String name = displayName(s);
+        sendAdLines(target, name);
+
+        LAST_SENT.put(bucket, now);
+        return true;
     }
 
     /**
-     * Send a short ad to one player (Player, UUID, player name, or UUID String),
-     * OR, if nobody is valid/available, broadcast it to all online players.
+     * Send a short ad to targets in order.
      *
-     * Behavior:
-     * - Tries `o`, then each of `others...` in order to find a valid/online player.
-     * - The FIRST successful send to a player will:
-     *      - respect per-(player,s) cooldown
-     *      - start that cooldown
-     *      - return true
-     * - If ALL provided targets fail (null/offline/rate-limited):
-     *      - Broadcast to ALL players as a fallback.
-     *      - Will STILL respect any existing cooldown for the "global bucket"
-     *        (so if it's still cooling down, it won't broadcast).
-     *      - WILL NOT start or update cooldown on broadcast.
-     *      - Returns false.
+     * Rules:
+     * - Per (player, item) cooldown = 60s.
+     * - If at least one valid/online player exists but all are on cooldown -> do nothing.
+     * - If NO valid/online player exists among provided args -> broadcast to all,
+     *   using (GLOBAL_UUID, item) cooldown = 60s (and update it on broadcast).
      *
-     * @param o       First target (Player | UUID | String(UUID or name))
-     * @param s       Label/name that defines the per-item cooldown bucket
-     * @param others  Optional additional targets to try in order
-     * @return true if sent directly to an individual player (and cooldown applied),
-     *         false if rate-limited everywhere or only broadcast happened
+     * @return true if sent to an individual player, false otherwise.
      */
     public static boolean wm(Object o, String s, Object... others) {
         if (!SCore_Installed) return false;
 
-        // Helper to try sending to one specific resolved Player
-        // Returns true if actually sent (and we set cooldown),
-        // false if player invalid OR still on cooldown.
-        java.util.function.Function<Object, Boolean> tryOne = (obj) -> {
-            Player target = resolvePlayer(obj);
-            if (target == null) return false;
-
-            UUID id = target.getUniqueId();
-            String bucket = key(id, s);
-
-            long now = System.currentTimeMillis();
-            long last = LAST_SENT.getOrDefault(bucket, 0L);
-            if (now - last < COOLDOWN_MS) {
-                // still on cooldown for this (player,s); reject this target
-                return false;
-            }
-
-            String name = (s == null ? "item" : s);
-            target.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
-
-            target.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
-            target.sendMessage("§7If you want this on your own server, then message him on Discord!");
-            target.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
-            target.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
-
-            LAST_SENT.put(bucket, now); // start cooldown for this specific player/s combo
-            return true;
-        };
-
-        // 1. Try primary target `o`
-        if (tryOne.apply(o)) {
-            return true;
-        }
-
-        // 2. Try each extra target in order until one works
+        // Build candidate list preserving order
+        java.util.List<Object> candidates = new java.util.ArrayList<>();
+        candidates.add(o);
         if (others != null) {
-            for (Object extra : others) {
-                if (tryOne.apply(extra)) {
-                    return true;
-                }
+            java.util.Collections.addAll(candidates, others);
+        }
+
+        boolean foundAnyOnlinePlayer = false;
+
+        for (Object obj : candidates) {
+            Player target = resolvePlayer(obj);
+            if (target == null) continue;
+
+            foundAnyOnlinePlayer = true;
+
+            if (trySendToPlayer(target, s)) {
+                return true; // sent + cooldown applied
             }
         }
 
-        // 3. Nobody worked / not online / all on cooldown:
-        //    Broadcast to ALL players as fallback.
-        //
-        //    We "respect previous cooldowns" by checking the bucket timestamp,
-        //    BUT we DO NOT set/update the cooldown after broadcasting here.
-        //
-        //    Use the fixed UUID bucket like your original code so it's still
-        //    tied to (s), but doesn't depend on a real player.
+        // If players exist but all on cooldown -> do nothing (NO broadcast)
+        if (foundAnyOnlinePlayer) {
+            return false;
+        }
+
+        // No valid players at all -> broadcast with global per-item cooldown
         try {
-            UUID globalId = UUID.fromString("eea7c926-9dc7-4e09-b71b-de7ef7846016");
-            String globalBucket = key(globalId, s);
-
             long now = System.currentTimeMillis();
-            long last = LAST_SENT.getOrDefault(globalBucket, 0L);
+            String globalBucket = key(GLOBAL_UUID, s);
 
-            // If we're still cooling down this broadcast bucket, then do nothing.
+            long last = LAST_SENT.getOrDefault(globalBucket, 0L);
             if (now - last < COOLDOWN_MS) {
                 return false;
             }
 
-            // Otherwise broadcast to everyone...
-            String name = (s == null ? "item" : s);
+            String name = displayName(s);
             for (Player p2 : Bukkit.getServer().getOnlinePlayers()) {
-                p2.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
-
-                p2.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
-                p2.sendMessage("§7If you want this on your own server, then message him on Discord!");
-                p2.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
-                p2.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
+                sendAdLines(p2, name);
             }
 
-            // IMPORTANT RULE CHANGE:
-            // We DO NOT put the broadcast bucket into LAST_SENT here.
-            // That means we are not "starting" or extending cooldown on fallback broadcast.
-            // (But if there was already a cooldown timestamp for that bucket from older logic,
-            //  we respected it above.)
+            // IMPORTANT: start/update global cooldown to stop spam
+            LAST_SENT.put(globalBucket, now);
 
         } catch (Exception ignored) {
-            // If somehow that fixed UUID or something explodes,
-            // just silently fail and return false like before.
+            // Fail silently
         }
 
-        // We only return true if we actually DM'd one specific player
         return false;
     }
+
 
     /**
      * Resolve an arbitrary object into an online Player, or null if not resolvable.
