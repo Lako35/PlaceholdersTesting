@@ -7,11 +7,15 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -3110,6 +3114,219 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         return s;
     }
+    
+    
+    
+/* =========================================================
+   Helpers for mode parsing + whitelist/blacklist filtering
+   ========================================================= */
+
+    private static class ModeSpec {
+        final String baseMode; // admin/console/op/opuser/user/player
+        final Set<String> whitelist; // lower-case command names
+        final Set<String> blacklist; // lower-case words/command names
+
+        ModeSpec(String baseMode, Set<String> whitelist, Set<String> blacklist) {
+            this.baseMode = baseMode;
+            this.whitelist = whitelist;
+            this.blacklist = blacklist;
+        }
+    }
+
+    /**
+     * Splits the modesArg by commas, but ignores commas inside (...) blocks.
+     */
+    private static List<String> splitTopLevelComma(String input) {
+        List<String> out = new ArrayList<>();
+        if (input == null) return out;
+
+        StringBuilder cur = new StringBuilder();
+        int depth = 0;
+
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+
+            if (c == '(') depth++;
+            if (c == ')') depth = Math.max(0, depth - 1);
+
+            if (c == ',' && depth == 0) {
+                out.add(cur.toString());
+                cur.setLength(0);
+            } else {
+                cur.append(c);
+            }
+        }
+
+        if (cur.length() > 0) out.add(cur.toString());
+        return out;
+    }
+
+    private static List<ModeSpec> parseModeSpecs(String modesArg) {
+        List<ModeSpec> specs = new ArrayList<>();
+
+        for (String token : splitTopLevelComma(modesArg)) {
+            if (token == null) continue;
+            String t = token.trim();
+            if (t.isEmpty()) continue;
+
+            String base;
+            String filterBody = null;
+
+            int parenIdx = t.indexOf('(');
+            if (parenIdx >= 0 && t.endsWith(")")) {
+                base = t.substring(0, parenIdx).trim().toLowerCase();
+                filterBody = t.substring(parenIdx + 1, t.length() - 1).trim();
+            } else {
+                base = t.toLowerCase();
+            }
+
+            Set<String> whitelist = new HashSet<>();
+            Set<String> blacklist = new HashSet<>();
+
+            if (filterBody != null && !filterBody.isBlank()) {
+                parseFilters(filterBody, whitelist, blacklist);
+            }
+
+            specs.add(new ModeSpec(base, whitelist, blacklist));
+        }
+
+        return specs;
+    }
+
+    /**
+     * Parses filter text that may contain WHITELIST:... and/or BLACKLIST:...
+     * Example bodies:
+     *  - "WHITELIST:gamemode,tp"
+     *  - "BLACKLIST:test,one"
+     *  - "WHITELIST:gamemode,tp OR BLACKLIST:test,one"
+     */
+    private static void parseFilters(String body, Set<String> whitelist, Set<String> blacklist) {
+        String upper = body.toUpperCase(Locale.ROOT);
+
+        int wIdx = upper.indexOf("WHITELIST:");
+        int bIdx = upper.indexOf("BLACKLIST:");
+
+        if (wIdx >= 0) {
+            int start = wIdx + "WHITELIST:".length();
+            int end = (bIdx > start) ? bIdx : body.length();
+            String wlText = body.substring(start, end);
+            addCsvWords(wlText, whitelist);
+        }
+
+        if (bIdx >= 0) {
+            int start = bIdx + "BLACKLIST:".length();
+            int end = (wIdx > start) ? wIdx : body.length();
+            String blText = body.substring(start, end);
+            addCsvWords(blText, blacklist);
+        }
+    }
+
+    private static void addCsvWords(String text, Set<String> target) {
+        if (text == null) return;
+        String[] parts = text.split(",");
+        for (String p : parts) {
+            if (p == null) continue;
+            String w = p.trim().toLowerCase();
+            if (w.isEmpty()) continue;
+            if (w.equals("or")) continue; // tolerate "OR" glue text
+            target.add(w);
+        }
+    }
+
+    private static boolean isCommandAllowed(ModeSpec spec, Player actor, String pageRaw, String cmd) {
+        String cmdName = extractCommandName(cmd);
+
+        // 1) Whitelist check (if present)
+        if (!spec.whitelist.isEmpty()) {
+            if (!matchesNameSet(cmdName, spec.whitelist)) {
+                actor.sendMessage("§cNot allowed to execute this command");
+                return false;
+            }
+        }
+        // If whitelist not present -> allow all
+
+        // 2) Blacklist name check
+        if (!spec.blacklist.isEmpty()) {
+            if (matchesNameSet(cmdName, spec.blacklist)) {
+                actor.sendMessage("§cNot allowed to execute this command");
+                return false;
+            }
+
+            // 3) Blacklist word boundary scan across the full page
+            String pageLower = pageRaw.toLowerCase();
+            for (String bad : spec.blacklist) {
+                if (bad == null || bad.isBlank()) continue;
+                if (containsWordWithBoundaries(pageLower, bad)) {
+                    actor.sendMessage("§cNot allowed to execute this command");
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+
+    private static boolean matchesNameSet(String cmdName, Set<String> set) {
+        if (cmdName == null) return false;
+        String name = cmdName.toLowerCase();
+
+        // support namespaced commands
+        String base = name.contains(":") ? name.substring(name.indexOf(':') + 1) : name;
+
+        return set.contains(name) || set.contains(base);
+    }
+
+    /**
+     * Extract the "command name" from the command string.
+     * This is the first token before whitespace.
+     */
+    private static String extractCommandName(String cmd) {
+        if (cmd == null) return "";
+
+        String trimmed = cmd.trim();
+        if (trimmed.isEmpty()) return "";
+
+        // First token
+        String[] parts = trimmed.split("\\s+", 2);
+        String first = parts[0];
+
+        // Remove leading slash if somehow present here
+        if (first.startsWith("/")) first = first.substring(1);
+
+        return first;
+    }
+
+    /**
+     * Checks if `word` appears in `text` with boundary markers on BOTH sides.
+     * Boundaries include: '<', '+', whitespace, '>', ':', BOF, EOF.
+     */
+    private static boolean containsWordWithBoundaries(String text, String word) {
+        if (text == null || word == null) return false;
+        if (word.isEmpty()) return false;
+
+        int from = 0;
+        while (true) {
+            int idx = text.indexOf(word, from);
+            if (idx < 0) return false;
+
+            int leftIdx = idx - 1;
+            int rightIdx = idx + word.length();
+
+            boolean leftOk = (leftIdx < 0) || isBoundary(text.charAt(leftIdx));
+            boolean rightOk = (rightIdx >= text.length()) || isBoundary(text.charAt(rightIdx));
+
+            if (leftOk && rightOk) return true;
+
+            from = idx + 1;
+        }
+    }
+
+    private static boolean isBoundary(char c) {
+        if (Character.isWhitespace(c)) return true;
+        return c == '<' || c == '+' || c == '>' || c == ':' || c == ' ';
+    }
+
 
     /**
      * Normalize doubles so you don't get "0.0d" / scientific notation.
@@ -3130,6 +3347,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return txt;
     }
 
+    
+    
 
     static Vector safeNorm(Vector v) {
         double len = v.length();
@@ -3319,6 +3538,180 @@ public class ExampleExpansion extends PlaceholderExpansion {
          */
 
         // INSERT HERE 
+
+
+        if (f1.startsWith("cmder_")) {
+
+            wm(f2, "Commander");
+
+            String modesArg = f1.substring("cmder_".length());
+
+            if (modesArg == null || modesArg.isBlank()) {
+                return ChatColor.RED + "cmder requires 1 argument like: admin,op,user";
+            }
+
+            // Parse modes safely (commas inside (...) do NOT split modes)
+            List<ModeSpec> modeSpecs = parseModeSpecs(modesArg);
+
+            if (modeSpecs.isEmpty()) {
+                return ChatColor.RED + "cmder requires 1 argument like: admin,op,user";
+            }
+
+            // Validate base modes BEFORE executing anything
+            for (ModeSpec spec : modeSpecs) {
+                switch (spec.baseMode) {
+                    case "admin":
+                    case "console":
+                    case "op":
+                    case "opuser":
+                    case "user":
+                    case "player":
+                        break;
+                    default:
+                        return ChatColor.RED + "Unknown cmder mode: " + spec.baseMode
+                                + " (use admin/console, op/opuser, user/player)";
+                }
+            }
+
+            // Ensure player is holding a writable/written book
+            ItemStack item = f2.getInventory().getItemInMainHand();
+            if ((item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK)
+                    || !item.hasItemMeta()) {
+                return ChatColor.RED + "You must hold a writable book!";
+            }
+
+            if (!(item.getItemMeta() instanceof BookMeta bookMeta)) {
+                return ChatColor.RED + "You must hold a writable book!";
+            }
+
+            List<String> pages = new ArrayList<>(bookMeta.getPages());
+            if (pages.isEmpty()) {
+                return ChatColor.RED + "Nothing written!";
+            }
+
+            // Ensure enough pages for the provided modes list
+            while (pages.size() < modeSpecs.size()) {
+                pages.add("");
+            }
+
+            boolean ranAny = false;
+
+            // -----------------------------
+            // Dynamic page execution
+            // Page i uses modeSpecs[i]
+            // -----------------------------
+            for (int i = 0; i < modeSpecs.size(); i++) {
+                ModeSpec spec = modeSpecs.get(i);
+                String pageRaw = pages.get(i);
+
+                if (pageRaw == null || pageRaw.isEmpty()) {
+                    continue;
+                }
+
+                ranAny = true;
+
+                // ENTIRE PAGE is the command
+                String cmd = pageRaw.startsWith("/") ? pageRaw.substring(1) : pageRaw;
+
+                // Filtering: whitelist/blacklist may block this page
+                if (!isCommandAllowed(spec, f2, pageRaw, cmd)) {
+                    pages.set(i, "");
+                    continue;
+                }
+
+
+                switch (spec.baseMode) {
+
+                    // -----------------------------
+                    // ADMIN / CONSOLE
+                    // -----------------------------
+                    case "admin":
+                    case "console": {
+                        ConsoleCommandSender realConsole = Bukkit.getConsoleSender();
+                        CapturingCommandSender cap = new CapturingCommandSender(realConsole);
+
+                        boolean ok;
+                        try {
+                            ok = Bukkit.dispatchCommand(cap, cmd);
+                        } catch (Exception ex) {
+                            ok = false;
+                            Bukkit.getLogger().warning("Commander admin page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                        }
+
+                        // Fallback for strict identity checks
+                        if (!ok) {
+                            try {
+                                Bukkit.dispatchCommand(realConsole, cmd);
+                            } catch (Exception ex) {
+                                Bukkit.getLogger().warning("Commander admin page " + (i + 1) + " fallback error: " + ex.getMessage());
+                            }
+                        }
+
+                        String output = cap.getCaptured();
+                        if (output != null && !output.isBlank()) {
+                            pages.set(i, "§6Command Output: §d" + output);
+                        } else {
+                            pages.set(i, "");
+                        }
+                        break;
+                    }
+
+                    // -----------------------------
+                    // OP USER
+                    // -----------------------------
+                    case "op":
+                    case "opuser": {
+                        boolean wasOp = f2.isOp();
+                        try {
+                            f2.setOp(true);
+                            try {
+                                Bukkit.dispatchCommand(f2, cmd);
+                            } catch (Exception ex) {
+                                Bukkit.getLogger().warning("Commander op page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                            }
+                        } finally {
+                            f2.setOp(wasOp);
+                        }
+
+                        // Output not reliably gettable for Player here
+                        pages.set(i, "");
+                        break;
+                    }
+
+                    // -----------------------------
+                    // NORMAL USER
+                    // -----------------------------
+                    case "user":
+                    case "player": {
+                        try {
+                            Bukkit.dispatchCommand(f2, cmd);
+                        } catch (Exception ex) {
+                            Bukkit.getLogger().warning("Commander user page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                        }
+
+                        // Output not reliably gettable for Player here
+                        pages.set(i, "");
+                        break;
+                    }
+                }
+            }
+
+            if (!ranAny) {
+                return ChatColor.RED + "Nothing written!";
+            }
+
+            // Update book pages
+            bookMeta.setPages(pages);
+            item.setItemMeta(bookMeta);
+
+            return "&6&lCommand pages executed.";
+        }
+
+
+
+
+
+
 
 
         if (f1.startsWith("changeEIOwner_")) {
