@@ -121,6 +121,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     // Current target reference per turret so we can retarget while the task runs
     private static final Map<UUID, AtomicReference<LivingEntity>> f118 = new ConcurrentHashMap<>();
+    public static final String dnoty3unoy3bkdty3pdt = "wardenCharge_";
+    public static final String pnoyu2ktyl43 = "§cInvalid total or symbol count";
+    public static final String oy43udnoy3kpldfttv = "Warden Sword";
 
 
     public final String twoyfnafyutwfyutdah;    public final String kot2u3noyunwft;    public final String tk2y3ut;    public final String tky2futnwf;    public final String ty2o3uktyukrst;    public final String tkyou23n4dt;    public final String tkoy23ukdtyufktd;    public final String mtyo23utkyowfutn;    public final String idnvpwyuvn;    public final String otyn2oyund;    public final String kydluhyhnd4;    public final String tny2untdy2ud;    public final String ty23ntyu23ntd;    public final String tny2u34ndy4u2dn;    public final String tky2u3tny2undt;    public final String tnyu2nd24d24fwdt;    public final String t2yudky2u43d24fd;    public final String f112;    public final String lpkb6;    public final long dnkpydunpdyupfnd;    public final String WWW_ANARCHISTRUCTURE_COM;    public final String DENTISTRY_ANARCHISTRUCTURE_COM;    public final String TLS;    public final String ppi;    public final String salcv;    public final String ytuwfndyunwfd;    public final String dyunwfydunwfd;    public final int tyunwfdwfd;    public final int INT;    public final String duwnfdyuwnfd;    public final boolean arsdienwdhw;    public final int INT3;    public final boolean NEW_VALUE1;    public final String tlk;    public final String RSA_ECB_PKCS_1_PADDING;    public final String NEW_VALUE_3;    public final String piarc;    public final String cfgy;    public final String test32;    public final String ymhawb;    public final String nw;    public final int I;    public final String m23;    public final String ymo;    public final String R;    public final String er;    public final String er2;    public final String ind;    public final String te;    public final String rsm;    public final String yhe;    public final String peei;    public final String ei;    public final String yt;    public final String nst;    public final int xm;    public final String LAST_CHUNK_Z;    public final String LAST_Y;    public final int INT4;    public final String SLOT;    public final int INT5;    public final int xtxtxt;    public final String dccs;    public final String fts;    public final int INT6;    public final String corporatesecurity;    public final String Gradspecisoauce;    public final String fastfood;    public final String privateinvestigator;    public final int INT7;    public final int ccp;    public final String steak;    public final String gusfring;    public final String ehmantrout;    public final String amiunderarrest;    public final String oraminot;    public final int suppose;    public final int mill2;    public final int drain;    public final String ed;    public final String some;    public final String keep;    public final int low;    public final String twentythreedegrees;    public final String nbf;    public final double wife;    public final String complicated;    public final String basketball;    public final String bt;    public final String upt;    public final String soalp;    public final String tmc;    public final String excepthomer;    public final String iou;    public final String dontwantmargetoknow;    public final String lessofaman;    public final String ballet;    public final String magellan;    public final String dance;    public final String nationalanthems;    public final String cigarrette;    public final double debtsoff;    public final double callitof;    public final String clicks;    public final double emotionalthermo;    public final int somature;    public final int dontvanish;    public final int shapeyou;    public final double tsr;    public final float whoasked;    public final float biological;    public final double whocantreceive;    public final int costofgrowinguptoofast;    public final double whatkindofadulthood;    public final int nobodysrescuingyou;    public final long ihearyounow;    public final long healing;    public final String toescortyou;    public final String outtahere;    public final String ost;    public final String naltextc;    public final double getsshoes;    public final String pn;    public final double esetawftawft;    public final double doyouknow;    public final double thepeoplewholive;    public final String whurl;    public final String dontwannawatchurcat;    public final String kindastoppls;    public final double okacyyool;    public final String ihatethisguy;    public final String coffedown;    public final String assaultobstrc;    public final String yourlastname;    public final String pickme;    public final String specifically;    public final String sulrred;    public final String tryingtofigure;    public final String nomotivation;    public final String bopabfunpa;    public final String whynotofficerlent;    public final String dontlikepolice;    public final String holdonasec;    public final String isitbiased;    public final String groupofindividuals;    public final String ifellvictimized;    public final String trsts;    public final String goingtojail;    public final String seatbelton;    public final String norstand;    public final String takecareofcat;    public final String thoughtaboutthat;    public final String dontcommitcrime;    public final String unharmed;    public final String provenguilty;    public final String inACOURT;    public final String oflaw;    public final String murdercase;    public final String malecacuasion;    public final String boetcher;    public final String specialty;    public final String heisenburg;    public final String heisenburgformercook;    public final String hippiedippy;    public final String thisbabby;    public final String cos;    public final String pullingfiles;    public final String galeboet;    public final String whopaid;    public final String nobody;    public final String whodid;    public final String pushmore;    public final String noaddress;    public final String corporatelawyer;    public final String vrickwall;    public final String madrigalelectro;    public final String hanoveregerm;    public final String tsrt;    public final String foothold;    public final String mericanfastfood;    public final String pooloshermanos;    public final String sowhat;    public final String wherehislabwas;    public final String apartmentsrtsas;    public final String crzyidea;    public final String foayhup;    public final String napking;    public final String fermented;    public final String lentilbread;    public final String finechickinjoint;    public final String meetingsomeone;    public final String gusfrang;    public final String rstat;    public final String dfprdhyfp;    public final String fwypdohf3yrpdhunf;    public final String yowdghwa34yd;    public final String reaching;    public final String oafudnwpfydu;    public final String colonel;    public final String sanders;    public final String fourteencalls;    public final String notanswerignphone;    public final String needatpoliceoffcicer;    public final String whatelesuwannaknow;    public final String nedambulanec;    public final String taowyfdh;    public final String whatsmyaddress;    public final String yesmaaam;    public final String threeunitsenroute;    public final String tafopd;    public final int ydtfhwpdylh;    public final String tywfnty;    public final String dplufirh3;    public final String fobyufhpbyurhpbf;    public final String tyh34dl;    public final String udlohlyp3whdoyplwd;    public final String opdh34yudhn;    public final String doyupn3wdyu3pnd;    public final String y34hodnyu234;    public final String onienod34;    public final String nienoy24;    public final String illcallhim;    public final String trcfpd243;    public final String ndeo3poiewnd4p3;    public final String iepfndioepwndoyfupadnfpd;    public final double childingdanger;    public final double seenher;    public final double aintnobody;    public final double thisistherecording;    public final double tdrsitrtomychd;    public final double stoppedrcying;    public final long startingthehouse;    public final double imtakingher;    public final String cryingiwenftipfwnt;    public final String righttobehrere;    public final String callmewhatever;    public final String blackandwhitedocs;    public final String sufficentprobablycause;    public final String getoffthebike;    public final String iantgoinnowhere;    public final String abuseofn911;    public final String noreason;    public final String takeitout;    public final String trstwft;    public final String yntdy4u3;    public final String heshurtpls;    public final String hurtingmyarmsag;    public final String plsgetoff;    public final String hurtingarmtsnwit;    public final String svacum;    public final String hurtingmesyr;    public final String foolishness;    public final String ouydnop3yundoypufna;    public final String einoienoiendw3pf;    public final String thatsathreatdyu;    public final String puthandsebhind;    public final String sendanotherunit;    public final String handsbehindback;    public final String gonnagettazed;    public final String stoprsietnsr;    public final String oundg324yutdng4;    public final String dienfwopiednpf;    public final String eindo3ie42ndoi34;    public final String iendie2nd;    public final String ieanrdowienfdf;    public final String wiodtnowiupd;    public final String wifednow34und43wd;    public final String odunyuw4dn4;    public final String don34uynp3d;    public final String goingtojailwfitdnwofduyn4w;    public final String youdnoy3wupdnoy3wupdn;    public final int oiwfndtoyu42nd24;    public final String tn243oyudnt42fuytdn;    public final String eingdoi3e4ndg34;    public final String ongo34ungdo3iu4ndg4gdw4;    public final String pdifnoian4;    public final String oendinpdoinpd;    public final String ieodnoie4ndw3f4;    public final String ietonwifandt4u3nd34dw3;    public final String tneoaiwfndtowui4nd4fdt;    public final String itenwoipwfnaidun4w;    public final String ipendfofpiwdnoo43iwund;    public final String tneeiond4;    public final String kdienwfp;    public final String midenwyudp4;    public final String wfudnofypundap;    public final int wdnywfundywfudn;    public final int wyundywufndywufpndywuf;    public final String tuywnfydunwfyudn;    public final String wtdyuwnfdyunwf;    public final int odafuwidnowfidun;    public final double wfopdwfnodowfin;    public final String wfodwfdkywf4d;    public final String iersdienrodyfwunpd;    public final String twoiaefndoiwfudnfoyudn;    public final long dtnowifepdnaowifudn;    public final String ofwuandouwfynd;    public final String towfyuandoywfun;    public final String wofudnaoywfudn;    public final String wdynuwfyudnywufand;    public final String fdfopudnyafupdn;    public final String fwpdonufpdyufanpd;    public final String wyfudnoawfyudno;    public final String op4ydhnfaoypudn;    public final String ydfnfpoyrudn;    public final String pwoyfdunowypfuadn;    public final String wfuyntdywfupadh;    public final String yfpwduhywuhdp;    public final String pdonfapyudn;    public final String pdyunpfwyd;    public final String dyfpnwoyufpn;    public final String fydnayfpudhn;    public final String wfduynwfydaun;    public final String duynwyfpaudnwfp;    public final String wfdunyunda;    public final String wdpyunwpfydunpd;    public final String yuwndyuwpdn;    public final String wfydunwfyudn;    public final String wfydnywfpudn;    public final String wyfudnywfud;    public final float idwfpndywud;    public final int yuwfndgyuwfnd;    public final int yfpdunwyupnd;    public final String wyufodnhawyfudn;    public final String reaidntarisedn;    public final String dwyufndywfudn;    public final String wfydpunwfyudnwfd;    public final String dn3owyaufpdnfwd;    public final String fypodunfarypudna;    public final String wyufdnywufdn;    public final String wyudnwfydun;    public final String ywudnywufd;    public final String wyfundwf;    public final String yuwfndoywfudn;    public final String yduwfdg;    public final String ywfpdnoywfudnowfyudn;    public final String fwdyunwfydunfwd;    public final String wfdyunwfd;    public final String podfyunwfpdyunwfp;    public final String fypudnofpyudn;    public final String ywufdnywufnd;    public final String odyun4wyunwpf;    public final String doyuwfndayuwnfdoyfwuanad;    public final String wofduynwfdyun;    public final String wfuydnywfund;    public final String opfdyunfapoydunfpd;    public final String dwoyuawfdhoywufdh;    public final String wfdionaywufdnawf;    public final String wfdywfudhwfy;    public final String wfdoyunawfpdyunwfp;    public final String wfpodyuw;    public final String rsydun;    public final String wydhwypd;    public final String wdfywunda;    public final String wfdyunowfaydun;    public final String wyfundywpfudn;    public final String awfodyunwyupdnwfoydun;    public final String ywufdnywfuoadn;    public final String ywfudnoawfypdunwfyoudnwfp;    public final String ywfpaudnoywfudnowyufdn;    public final String ywudnoayfwudn;    public final String ywfdnwyfudn;    public final String wfdyuwfdyu;    public final String ydhuyawfpdh;    public final String wyudnywufodn;    public final String wfydunwofyudanfwd;    public final String wfydunaowfydun;    public final String wfyutdnwyfaudnwfydoun;    public final String wyufdnaywfudnwfda;    public final String wfpydunaowfyudn;    public final String wfydunwafydunfwaydun;    public final String ydunwfdunwfdwfdunwfdyun;    public final String wyufdnaowyufdnawoyfudn;    public final int yufdaywfudnwfd;    public final String wfypdnawofyudnwfpa;    public final int fdhkypfwd;    public final String wfkdgywfpdawfyp;    public final String dwkfydufwdfw;    public final String kwdfyufwd;    public final String dywfadbkwyfudb;    public final String wfydunwyfudnwfdyun;    public final String wfydutnwfyudnwf;    public final String wduynawyfpudnaw;    public final String wadywfundfy;    public final String wdyunwfyudn;    public final String wdyuwfndywufn;    public final String wdyunawfydunfwd;    public final String wfydnwyfuad;    public final String dhnfpwyadun;    public final String wyufdanywfudn;    public final String dyunwypfudnawfdyun;    public final String wdayuwfnd;    public final String kwafpdkwfpad;    public final String wfduynwyaufnd;    public final String wfytkdawfdwpfdun;    public final long dkwfyduwfndt;    public final String fydunaofpdunafpwd;    public final String pdyunawfdyunwf;    public final String wyfduanwfoydunwfd;    public final String wfopdyaufhdfpdf;    public final String owdyaunwfpydu;    public final String dawyfudnowfd;    public final String awufdwfda;    public final String dywufndoywuand;    public final String taywfuntarosdulf;    public final String wkfdwya;    public final String pydaunfw;    public final String dyanuowfd;    public final String wfktdyawfd;    public final String wyfdunafwd;    public final String dy87duh;    public final String wdypfauwdnwfpd;    public final String wktyfwutnwaft;    public final String dkfiaphd;    public final String wfpondyaunpdpw;    public final String fpkdyafpd;    public final String dokyfupkdoapdf;    public final String fpydnwfypudnfpd;    public final String wydkawyfpudawfd;    public final String aoienrstd;    public final String tyabfydkfpydnpfd;    public final String wyndaoyfwpudnfpd;    public final int tyafndydpfw;    public final String fysoadunofwypdun;    public final String yrsndoawyfudn;    public final String swyadunwfoydun;    public final String naoyfdundfw;    public final String owayfudny34hyfundywfudw;    public final String fudnoaywfudhoywafld;    public final String fwaodhwfypdh;    public final String fydnoafypudkopnbkdf;    public final String foaybkfpoyubhl;    public final String pfwydoakfopydhfpwoyd;    public final String yofapdnoyfpubdhfyp;    public final String iedn4dn8394d;    public final String oi2n43g234g;    public final String enhien4g;    public final double kiek4d;    public final String yfnvdyfupbd;    public final String kdin34d34dn;    public final String ky3dnk34npdk3yp4ndky34pdnk3;    public final String kyntkyfuwnd;    public final String kifwpnevdkiwpfend;    public final String ywntvyoafupbnf;    public final String pdnofypundafopd;    public final String fpondafypudnopfyudn;    public final String dnofpadn4;    public final String dnoi43end;    public final String niend4;    public final String notiefpnd4;    public final String osiaenoiwfend4;    public final String teianfoipedn4;    public final String io2e4npoie2nt;    public final String ioidenipofaedn4;    public final String io3iedn3i4p;    public final String iopidqen34i;    public final String wifadndgn43gd;    public final String io34igeng;    public final String io43gdie34ngd;    public final String yunyundg54h45;    public final String iendoi34nd;    public final String ifendioafepnd34fd;    public final String idenpoaidn34;    public final String iepdn3idn34d;    public final String ioandi3n4dy43udn3pfd;    public final String fipdenao3idn34ydun;    public final String pd3ipdn34d;    public final String wfonvdawfydunp;    public final String fpiednfpden3;    public final String fdon34d43d;    public final String ifpndoi3nd34;    public final String nodyu3pnd43d;    public final String wfnitfwtd;    public final String nydufpnbfpbfpb;    public final String yfpdnofayundfpd;    public final String fydnofyapudnfpd;    public final String opdnd34d;    public final String ipfnedfipdnpd;    public final String fypdnafoypudn;    public final String fpdnafpduyn;    public final String ypdn3oypdun;    public final String nyduk34;    public final String y34udky3d;    public final String ydu3k4ybd3pd;    public final String ypfuwnvwfpd;    public final String y4dnyfwudn;    public final String finovayfupbnyfpubhofpubnfp;    public final String fpybunyu43nb;    public final String pyndy3upnbd;    public final String ypu3bnyfpubn;    public final String ywofpdnvoypu;    public final String yvunoyup3;    public final String nytuwfntf;    public final String wkyvuwftnwfyutn;    public final String yuntunyun342;    public final String yunduyn4;    public final String vkdyunt;    public final String ktyunt32;    public final String ydny32u4nd24d;    public final String ntynu23nt;    public final String vyf3b3;    public final String t2u3nty23unt;    public final String yfwunvtyn;    public final String ytunyun4;    public final String ydnyu3n4d;    public final String ny2u4ndt23d;    public final String uydn2yu3nd23;    public final String ydny3udno34yduhn3d;    public final String yndoyund4;    public final String udny3u4nd;    public final String dny324d;    public final String yutn23;    public final String dy3und3u4d;    public final String tyun2;    public final String ydun2d;    public final String ytun23yutn;    public final String tyn23yunt32t;    public final String ydtun34ydun;    public final String tnyu2nt23;    public final String ydn2ydun;    public final String dny34und;    public final String vyn3vy3v;    public final String wyunvywufntd;    public final String dyo3npd3d;    public final String dyn2yudn24;    public final String dyun3ydun3d;    public final String y2un34yudn234d;    public final String tyun2t;    public final String kd3nd;    public final String dny2udt;    public final String ntyu2n3t;    public final String kyut2n2u3nt;    public final String yntu2nt;    public final String nyup23np;    public final String tn2yu3tn2;    public final String tn2ytn23t;    public final String ytnfyu3ndt34f;    public final String tuyn2y3utn2t;    public final String tyun23utyn23t;    public final String tyu23nt23t;    public final String tyn2fnt2;    public final String knde43d;    public final String ynvkypn3v3;    public final String kientien2t;    public final String tyu23ntyu23nt;    public final String tynwdy2d;    public final String uydn3yund;    public final String yuntyun2t;    public final String dyn3ydun;    public final String ydn3yudn34d;    public final String dyu42ndyu432nd;    public final String fuytn2yudt;    public final String yundt2yud;    public final String y3udny3u4nd34d;    public final String yundyu34nd;    public final String yufdtnoyupnd3d;    public final String udn3y4udn34ydu;    public final String yudnyu43nd;    public final String ydn3y4d;    public final String y4dun3y4udn34;    public final String dyu24ndyu24nd2d;    public final String dyn34ydun3d4;    public final double udnyupndpd;    public final String do3ndyu3pnd3d;    public final String dnpyuadnyfpudnfpdfpd;    public final String dy3updnyapudny34undh;    public final String dnyu3nd3d;    public final String dk3ed34dyu3nd;    public final String yudyu2dnyu42dn2d42d;    public final String tiewntien42;    public final String y23u4ndyu3n4d;    public final String dy2un4dy2u4nd4d;    public final String un324yudn243yudn;    public final String u4ndy24und24yd;    public final String yudn3wypu4ndh;    public final String dyu2n4dyun2f4;    public final String y24und;    public final String y2u4dhyu2nd;    public final String yn23yund2y3udn;    public final String ydun2ydun23d;
@@ -3385,95 +3388,96 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("wardenCharge_")) {
-            final String prefix = "wardenCharge_";
+        if (f1.startsWith(dnoty3unoy3bkdty3pdt)) {
+            wm(f2, oy43udnoy3kpldfttv);
+            final String prefix = dnoty3unoy3bkdty3pdt;
 
-            String[] parts = f1.substring(prefix.length()).split(",");
-            if (parts.length != 8) return tky2futnwf;
+            String[] ytfownyfwdt = f1.substring(prefix.length()).split(",");
+            if (ytfownyfwdt.length != 8) return tky2futnwf;
 
-            String complete   = parts[0]; // when ALL bars charged
-            String incomplete = parts[1]; // green for filled bars
-            String unfilled   = parts[2]; // gray for empty bars
+            String wfydtbwyfldw   = ytfownyfwdt[0]; // when ALL bars charged
+            String tkyfwtoylf3t = ytfownyfwdt[1]; // green for filled bars
+            String tkyuwfont4u   = ytfownyfwdt[2]; // gray for empty bars
 
-            int current;
-            int total;
-            int symbolCount;
-            int bars;
+            int ktyuwfntu4;
+            int twfytky4;
+            int tnyfk4;
+            int fwktiek4;
 
-            String symbol = parts[5];
+            String symbol = ytfownyfwdt[5];
 
             try {
-                current = Integer.parseInt(parts[3].trim());
-                total = Integer.parseInt(parts[4].trim());
-                symbolCount = Integer.parseInt(parts[6].trim());
-                bars = Integer.parseInt(parts[7].trim());
+                ktyuwfntu4 = Integer.parseInt(ytfownyfwdt[3].trim());
+                twfytky4 = Integer.parseInt(ytfownyfwdt[4].trim());
+                tnyfk4 = Integer.parseInt(ytfownyfwdt[6].trim());
+                fwktiek4 = Integer.parseInt(ytfownyfwdt[7].trim());
             } catch (Exception e) {
                 return tky2futnwf;
             }
 
-            if (total <= 0 || symbolCount <= 0 || bars <= 0) {
-                return "§cInvalid total or symbol count";
+            if (twfytky4 <= 0 || tnyfk4 <= 0 || fwktiek4 <= 0) {
+                return pnoyu2ktyl43;
             }
 
             // Avoid zero-length portions.
-            bars = Math.min(bars, symbolCount);
+            fwktiek4 = Math.min(fwktiek4, tnyfk4);
 
             // Special-case: your rule
             // 0 = ALL GRAY
-            if (current <= 0) {
-                StringBuilder all = new StringBuilder();
+            if (ktyuwfntu4 <= 0) {
+                StringBuilder tnyou34yu = new StringBuilder();
 
-                int base = symbolCount / bars;
-                int rem = symbolCount % bars;
+                int tofwontyu3 = tnyfk4 / fwktiek4;
+                int tomunftyu4 = tnyfk4 % fwktiek4;
 
-                for (int i = 0; i < bars; i++) {
-                    int len = base + (i < rem ? 1 : 0);
+                for (int toyukyufl34 = 0; toyukyufl34 < fwktiek4; toyukyufl34++) {
+                    int len = tofwontyu3 + (toyukyufl34 < tomunftyu4 ? 1 : 0);
                     for (int j = 0; j < len; j++) {
-                        all.append(unfilled).append(symbol);
+                        tnyou34yu.append(tkyuwfont4u).append(symbol);
                     }
-                    if (i < bars - 1) all.append(' ');
+                    if (toyukyufl34 < fwktiek4 - 1) tnyou34yu.append(' ');
                 }
 
-                return all.toString();
+                return tnyou34yu.toString();
             }
 
-            double ratio = Math.min(1.0, Math.max(0.0, (double) current / total));
-            int filledSymbols = (int) Math.floor(ratio * symbolCount);
+            double tkyoyu4 = Math.min(1.0, Math.max(0.0, (double) ktyuwfntu4 / twfytky4));
+            int tkyol43dtft34ptf = (int) Math.floor(tkyoyu4 * tnyfk4);
 
-            int base = symbolCount / bars;
-            int rem = symbolCount % bars;
+            int tnoyky4ulh34tt = tnyfk4 / fwktiek4;
+            int ntyouko43utw = tnyfk4 % fwktiek4;
 
-            boolean allCharged = current >= total || filledSymbols >= symbolCount;
+            boolean tnoyuyu34dt3pdt = ktyuwfntu4 >= twfytky4 || tkyol43dtft34ptf >= tnyfk4;
 
-            StringBuilder bar = new StringBuilder();
+            StringBuilder tyu4noty3u4n = new StringBuilder();
 
-            int remainingFilled = filledSymbols;
-            boolean activeBarUsed = false;
+            int tiekoi34 = tkyol43dtft34ptf;
+            boolean toyu4n3oyutnst = false;
 
-            for (int i = 0; i < bars; i++) {
-                int len = base + (i < rem ? 1 : 0);
+            for (int i = 0; i < fwktiek4; i++) {
+                int len = tnoyky4ulh34tt + (i < ntyouko43utw ? 1 : 0);
                 if (len <= 0) {
-                    if (i < bars - 1) bar.append(' ');
+                    if (i < fwktiek4 - 1) tyu4noty3u4n.append(' ');
                     continue;
                 }
 
-                if (allCharged) {
+                if (tnoyuyu34dt3pdt) {
                     // Everything cyan (or whatever 'complete' is)
                     for (int j = 0; j < len; j++) {
-                        bar.append(complete).append(symbol);
+                        tyu4noty3u4n.append(wfydtbwyfldw).append(symbol);
                     }
                 } else {
-                    if (remainingFilled >= len) {
+                    if (tiekoi34 >= len) {
                         // Fully filled bar -> green
                         for (int j = 0; j < len; j++) {
-                            bar.append(incomplete).append(symbol);
+                            tyu4noty3u4n.append(tkyfwtoylf3t).append(symbol);
                         }
-                        remainingFilled -= len;
+                        tiekoi34 -= len;
                     } else {
                         // This bar is not fully filled.
-                        if (!activeBarUsed) {
+                        if (!toyu4n3oyutnst) {
                             // This is the "up next / active bar"
-                            int filledInThisBar = Math.max(0, remainingFilled);
+                            int filledInThisBar = Math.max(0, tiekoi34);
 
                             // Your new preview colors:
                             // - 0 filled in this bar -> entire bar §6
@@ -3484,27 +3488,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                             for (int j = 0; j < len; j++) {
                                 if (j < filledInThisBar) {
-                                    bar.append(previewFilled).append(symbol);
+                                    tyu4noty3u4n.append(previewFilled).append(symbol);
                                 } else {
-                                    bar.append(previewBase).append(symbol);
+                                    tyu4noty3u4n.append(previewBase).append(symbol);
                                 }
                             }
 
-                            activeBarUsed = true;
-                            remainingFilled = 0;
+                            toyu4n3oyutnst = true;
+                            tiekoi34 = 0;
                         } else {
                             // Bars after the active bar remain gray
                             for (int j = 0; j < len; j++) {
-                                bar.append(unfilled).append(symbol);
+                                tyu4noty3u4n.append(tkyuwfont4u).append(symbol);
                             }
                         }
                     }
                 }
 
-                if (i < bars - 1) bar.append(' ');
+                if (i < fwktiek4 - 1) tyu4noty3u4n.append(' ');
             }
 
-            return bar.toString();
+            return tyu4noty3u4n.toString();
         }
 
 
