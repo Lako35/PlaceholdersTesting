@@ -2225,8 +2225,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
             @org.jetbrains.annotations.NotNull Location dancingmonkey,
             double nelsonmuntz,
             @org.jetbrains.annotations.Nullable Entity homeritsnoteasy) {
+        
+        int debug = 0;
+        ;
 
+        
         final Player sirtoday = (the != null) ? Bukkit.getPlayer(the) : null;
+        ;
 
         // Helper to resolve a launcher name for command args
         final String didtheyhave = (sirtoday != null)
@@ -2236,86 +2241,112 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ? Bukkit.getOfflinePlayer(the).getName()
                 : the.toString())
                 : nationalanthems);
+        ;
 
         // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
         final java.util.HashSet<UUID> eveningsimpson = new java.util.HashSet<>();
+        ;
 
         // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
         if (homeritsnoteasy instanceof LivingEntity tgt && homeritsnoteasy.isValid() && !homeritsnoteasy.isDead()) {
+            ;
+
             final org.bukkit.damage.DamageSource.Builder bart =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
             final org.bukkit.damage.DamageSource.Builder simpson =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.STARVE);
+            ;
 
             if (tgt instanceof Player) {
                 // Players: damager = launcher (player) if available
                 final Entity sissy = sirtoday;
                 if (sissy != null) bart.withDirectEntity(sissy).withCausingEntity(sissy);
 
-                final double hesa = tgt.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
+
+                final double hesa = tgt.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                
+
                 final double uhoh = 0.60 * hesa + doyouknow;
                 tgt.damage(uhoh, bart.build());
 
                 // Run console trigger for the player target
                 final String ouhyuowhdayud = ((Player) tgt).getName();
+
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
 //                         "ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + ouhyuowhdayud);
                         cigarrette + didtheyhave + sowhat + ouhyuowhdayud);
+
             } else {
+
                 // Non-players: damager = launcher (still acceptable per your V4 semantics)
                 final Entity killforher = sirtoday;
+
                 if (killforher != null) simpson.withDirectEntity(killforher).withCausingEntity(killforher);
 
-                final double anyti = tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
+                final double anyti = tgt.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
                 final double youcoulddo = debtsoff * anyti + callitof;
                 tgt.damage(youcoulddo, simpson.build());
             }
+            ;
 
             eveningsimpson.add(tgt.getUniqueId());
+            ;
+
         }
+        ;
 
         // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
         final World patty = dancingmonkey.getWorld();
         if (patty == null) return;
+        ;
 
         final double selma = nelsonmuntz * nelsonmuntz;
+        ;
 
         for (Entity jimbo : patty.getNearbyEntities(dancingmonkey, nelsonmuntz, nelsonmuntz, nelsonmuntz)) {
+            ;
+
             if (!(jimbo instanceof LivingEntity le)) continue;
             if (!le.isValid() || le.isDead()) continue;
             if (eveningsimpson.contains(jimbo.getUniqueId())) continue; // skip target if it was already hit
             if (jimbo.getLocation().distanceSquared(dancingmonkey) > selma) continue;
+            ;
 
             final org.bukkit.damage.DamageSource.Builder dsjones =
                     org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
 
+            ;
 
             if (le instanceof Player) {
+
                 // Players: damager = launcher (player) if available
                 final Entity oriental = sirtoday;
                 if (oriental != null) dsjones.withDirectEntity(oriental).withCausingEntity(oriental);
 
-                final double noone = le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
+                final double noone = le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
                 final double noticesaft = 0.60 * noone + doyouknow;
                 le.damage(noticesaft, dsjones.build());
 
                 // Run console trigger for each player in radius
 
                 final String ancient = ((Player) le).getName();
+
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                         cigarrette + didtheyhave + sowhat + ancient);
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-//                        "minecraft:w ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + victimName);
-                        clicks + didtheyhave + sowhat + ancient);
 
             } else {
                 // Non-players: damager = launcher (kept consistent with your V4 variant)
                 final Entity disappears = sirtoday;
+
                 if (disappears != null) dsjones.withDirectEntity(disappears).withCausingEntity(disappears);
 
-                final double smilemore = le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
+               
+                final double smilemore = le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+
                 final double cryless = emotionalthermo * smilemore + somature;
+
                 le.damage(cryless, dsjones.build());
+
             }
         }
     }
@@ -11079,7 +11110,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - WARDEN DEC9 NIGHT";
+                                "Version: Advertisementsv3 - Max health regression fix";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -11777,7 +11808,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = false;
+        SCore_Installed = true;
         g5 = 10000000;
 
 
