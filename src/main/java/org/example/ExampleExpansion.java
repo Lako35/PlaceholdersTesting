@@ -1748,6 +1748,7 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
             }
         }
 
+        if( identifier.equals("velocityY")) return String.valueOf(p.getVelocity().getY()) ;
 
 
         if (identifier.startsWith("trackImpact3_")) {
