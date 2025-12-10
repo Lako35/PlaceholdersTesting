@@ -351,8 +351,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 final String victimName = ((Player) le).getName();
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                         "ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "minecraft:w ei run-custom-trigger trigger:Stinger81Hit player:" + launcherName + " " + victimName);
 
             } else {
                 // Non-players: damager = launcher (kept consistent with your V4 variant)
