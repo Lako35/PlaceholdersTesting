@@ -32,10 +32,10 @@ public class ExampleExpansionUtils {
      *
      * If ownerUUID parses to a valid UUID, that exact UUID is NEVER targeted.
      */
-    public static boolean isValidTargetType(Entity e,
-                                            String targetType,
-                                            Set<EntityType> HOSTILE_TYPES,
-                                            String ownerUUID) {
+    public static boolean iearnsvoienrositwf(Entity e,
+                                             String targetType,
+                                             Set<EntityType> HOSTILE_TYPES,
+                                             String ownerUUID) {
         // Absolute: never target the owner if UUID is valid
         UUID owner = safeUuid(ownerUUID);
         if (owner != null && e.getUniqueId().equals(owner)) {
@@ -80,7 +80,7 @@ public class ExampleExpansionUtils {
     /**
      * Checks if any scoreboard tag of the entity matches any tag in turretTags.
      */
-    public static boolean hasMatchingTag(Entity e, Set<String> turretTags) {
+    public static boolean ytwunfoyutn4(Entity e, Set<String> turretTags) {
         for (String tag : e.getScoreboardTags()) {
             if (turretTags.contains(tag)) {
                 return true;
