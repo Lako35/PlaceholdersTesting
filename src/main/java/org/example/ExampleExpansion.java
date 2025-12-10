@@ -3310,6 +3310,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // DO NOT MOVE
 
+        if (f1.startsWith(dn3owyaufpdnfwd)) {
+            wm(f2, f1.substring(dn3owyaufpdnfwd.length()));
+            return f1.substring(dn3owyaufpdnfwd.length());
+        }
+
         if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
             World temp = f2.getWorld();
             Location putyourfeet = f2.getEyeLocation();
@@ -3442,6 +3447,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+        if( f1.equals("velocityY")) return String.valueOf(f2.getVelocity().getY()) ;
 
         if (f1.startsWith(twoyfnafyutwfyutdah)) {
             wm(f2, kot2u3noyunwft);
@@ -6330,10 +6336,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(dn3owyaufpdnfwd)) {
-            wm(f2, f1.substring(dn3owyaufpdnfwd.length()));
-            return f1.substring(dn3owyaufpdnfwd.length());
-        }
+
 
 
 
@@ -11774,7 +11777,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = true;
+        SCore_Installed = false;
         g5 = 10000000;
 
 
