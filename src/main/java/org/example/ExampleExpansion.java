@@ -11928,7 +11928,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = false;
+        SCore_Installed = true;
         g5 = 10000000;
 
 
