@@ -495,14 +495,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
 
     private static void debugShulker(String msg) {
-        try {
-            // Keep it one line, prefix for filtering
-            String clean = msg.replace('\n', ' ').replace('\r', ' ');
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                    "minecraft:w Archistructure [ShulkerDebug] " + clean);
-        } catch (Exception ignored) {
-            // Don't ever break logic because debug failed
-        }
+        
     }
     
     
