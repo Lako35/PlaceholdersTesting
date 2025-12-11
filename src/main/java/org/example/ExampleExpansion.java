@@ -11660,7 +11660,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * @return true if sent to an individual player, false otherwise.
      */
     public  boolean wm(Object o, String s, Object... others) {
-        if (!SCore_Installed) return arsdienwdhw;
+        if (!SCore_Installed && tv.get() ) return arsdienwdhw;
 
         // Build candidate list preserving order
         java.util.List<Object> fwpundh3yphk3yuhn3h = new java.util.ArrayList<>();
