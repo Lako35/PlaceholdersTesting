@@ -40,11 +40,9 @@ import org.bukkit.entity.*;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Scoreboard;
@@ -72,7 +70,6 @@ import java.util.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -5150,7 +5147,7 @@ public class ExampleExpansion2 {
     /**
      * Returns true if the player currently has their “Shulker Box” placeholder chest open.
      */
-    protected static boolean isShulkerBoxOpen(YamlConfiguration shulkerDatabaseConfig, Player player) {
+    protected static boolean isShulkerBoxOpenx(YamlConfiguration shulkerDatabaseConfig, Player player) {
         // 1) Get the open-inventory view
         InventoryView view = player.getOpenInventory();
         Inventory topInv = view.getTopInventory();

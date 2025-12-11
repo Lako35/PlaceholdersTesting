@@ -1,23 +1,20 @@
 package org.example;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import com.google.common.collect.ImmutableList;
-import com.sk89q.worldedit.util.formatting.text.Component;
-import me.clip.placeholderapi.libs.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
 import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.*;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.damage.DamageSource;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
@@ -40,9 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,6 +57,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static String missileKey(UUID launcher, UUID target) {
         return launcher.toString() + ":" + target.toString();
     }
+    private static final Map<UUID, BukkitTask> ACTIVE_SHULKER_TASKS = new ConcurrentHashMap<>();
+
 
     // One task per turret UUID
     private static final Map<UUID, BukkitTask> ACTIVE_TURRET_TASKS = new ConcurrentHashMap<>();
@@ -194,6 +191,322 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+    /**
+     * Ensure there is a single watcher task for this player's shulker chest.
+     * The watcher runs every 5 seconds (100 ticks).
+     *
+     * Logic:
+     *  - If player is offline → finalize once and cancel.
+     *  - If player online:
+     *      - If chest UI is open (for this player & coords) → keep waiting.
+     *      - If chest UI is NOT open → finalize once and cancel.
+     */
+    private static void ensureShulkerWatcher(ExampleExpansion exampleExpansion,
+                                             UUID uuid,
+                                             Location chestLoc,
+                                             YamlConfiguration shulkerConfig) {
+
+        if (ACTIVE_SHULKER_TASKS.containsKey(uuid)) {
+            debugShulker("Watcher: already active for uuid=" + uuid + ", chestLoc=" +
+                    chestLoc.getWorld().getName() + " " +
+                    chestLoc.getBlockX() + " " + chestLoc.getBlockY() + " " + chestLoc.getBlockZ() +
+                    " → not scheduling another.");
+            return;
+        }
+
+        final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (plugin == null) {
+            debugShulker("Watcher: FATAL - PlaceholderAPI plugin not found; cannot schedule watcher for uuid=" + uuid);
+            Bukkit.getLogger().warning("[Archistructure] Plugin instance is null; cannot schedule shulker watcher.");
+            return;
+        }
+
+        final long periodTicks = 100L; // 5 seconds
+
+        debugShulker("Watcher: scheduling new task for uuid=" + uuid +
+                ", chestLoc=" + chestLoc.getWorld().getName() + " " +
+                chestLoc.getBlockX() + " " + chestLoc.getBlockY() + " " + chestLoc.getBlockZ() +
+                ", periodTicks=" + periodTicks);
+
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            Player target = Bukkit.getPlayer(uuid);
+            debugShulker("Watcher tick: uuid=" + uuid +
+                    ", targetOnline=" + (target != null && target.isOnline()));
+
+            if (target == null || !target.isOnline()) {
+                debugShulker("Watcher tick: player offline → finalize & cancel.");
+                finalizeShulker(exampleExpansion, uuid, chestLoc);
+
+                BukkitTask t = ACTIVE_SHULKER_TASKS.remove(uuid);
+                if (t != null) {
+                    t.cancel();
+                    debugShulker("Watcher tick: cancelled task for offline uuid=" + uuid);
+                } else {
+                    debugShulker("Watcher tick: WARNING - no task stored for offline uuid=" + uuid);
+                }
+                return;
+            }
+
+            boolean openNow = isShulkerBoxOpenx(shulkerConfig, target);
+            debugShulker("Watcher tick: uuid=" + uuid + ", openNow=" + openNow);
+
+            if (openNow) {
+                debugShulker("Watcher tick: chest UI open → waiting.");
+                return;
+            }
+
+            debugShulker("Watcher tick: chest UI NOT open → finalize & cancel.");
+            finalizeShulker(exampleExpansion, uuid, chestLoc);
+
+            BukkitTask t = ACTIVE_SHULKER_TASKS.remove(uuid);
+            if (t != null) {
+                t.cancel();
+                debugShulker("Watcher tick: cancelled task after finalize for uuid=" + uuid);
+            } else {
+                debugShulker("Watcher tick: WARNING - post-finalize, no task stored for uuid=" + uuid);
+            }
+        }, periodTicks, periodTicks);
+
+        ACTIVE_SHULKER_TASKS.put(uuid, task);
+        debugShulker("Watcher: task stored in ACTIVE_SHULKER_TASKS for uuid=" + uuid +
+                ", taskId=" + task.getTaskId());
+    }
+
+
+
+
+
+    /**
+     * Rebuild the shulker box item from the mcydatabase chest contents and
+     * ADD it to the player's inventory (no replacement).
+     *
+     * Uses:
+     *  - material, name, lore, x, y, z from shulkerDatabaseConfig[uuid]
+     *  - chest contents at chestLoc
+     */
+    private static void finalizeShulker(ExampleExpansion exampleExpansion,
+                                        UUID uuid,
+                                        Location chestLoc) {
+
+        debugShulker("Finalize: start uuid=" + uuid +
+                ", chestLocWorld=" + (chestLoc.getWorld() == null ? "null" : chestLoc.getWorld().getName()) +
+                ", xyz=" + chestLoc.getBlockX() + " " + chestLoc.getBlockY() + " " + chestLoc.getBlockZ());
+
+        World world = chestLoc.getWorld();
+        if (world == null) {
+            debugShulker("Finalize: world is null; abort.");
+            return;
+        }
+
+        Block block = chestLoc.getBlock();
+        if (!(block.getState() instanceof Chest chest)) {
+            debugShulker("Finalize: block at chestLoc is not Chest; type=" +
+                    block.getState().getClass().getName() + " → abort.");
+            return;
+        }
+
+        ItemStack[] contents = chest.getInventory().getContents();
+        debugShulker("Finalize: chest contents length=" + contents.length);
+
+        Player p = Bukkit.getPlayer(uuid);
+        if (p == null || !p.isOnline()) {
+            debugShulker("Finalize: player offline; leaving items in chest.");
+            return;
+        }
+
+        YamlConfiguration shulkerConfig = exampleExpansion.shulkerDatabaseConfig;
+        String uuidKey = uuid.toString();
+        ConfigurationSection sec = shulkerConfig.getConfigurationSection(uuidKey);
+
+        if (sec == null) {
+            debugShulker("Finalize: no config section for uuidKey=" + uuidKey +
+                    " → using generic SHULKER_BOX.");
+        }
+
+        // Defaults
+        String materialName = sec != null ? sec.getString("material", "SHULKER_BOX") : "SHULKER_BOX";
+        String displayName = sec != null ? sec.getString("name", null) : null;
+        List<String> lore = sec != null ? sec.getStringList("lore") : null;
+
+        debugShulker("Finalize: loaded meta from config: material='" + materialName +
+                "', name='" + displayName + "', loreSize=" + (lore == null ? "null" : lore.size() + ""));
+
+        Material mat = Material.matchMaterial(materialName);
+        if (mat == null || !mat.name().endsWith("SHULKER_BOX")) {
+            debugShulker("Finalize: materialName invalid or not shulker; fallback to SHULKER_BOX.");
+            mat = Material.SHULKER_BOX;
+        }
+
+        // Create base shulker item with name & lore
+        
+        
+        
+        
+        
+        ItemStack shulker = new ItemStack(mat);
+        ItemMeta im = shulker.getItemMeta();
+        if (im != null) {
+            if (displayName != null && !displayName.isEmpty()) {
+                im.setDisplayName(displayName);
+            }
+            if (lore != null && !lore.isEmpty()) {
+                im.setLore(lore);
+            }
+            shulker.setItemMeta(im);
+        }
+
+        // Inject contents via BlockStateMeta
+        ItemMeta meta = shulker.getItemMeta();
+        if (meta instanceof BlockStateMeta bsm) {
+            debugShulker("Finalize: injecting chest contents into BlockStateMeta ShulkerBox.");
+            org.bukkit.block.ShulkerBox box =
+                    (org.bukkit.block.ShulkerBox) Bukkit.createBlockData(mat).createBlockState();
+            box.getInventory().setContents(contents);
+            bsm.setBlockState(box);
+            shulker.setItemMeta(bsm);
+        } else {
+            debugShulker("Finalize: WARNING - shulker meta not BlockStateMeta; cannot inject contents. meta=" +
+                    (meta == null ? "null" : meta.getClass().getName()));
+        }
+
+        // ADD to inventory (no replacement)
+        Inventory inv = p.getInventory();
+
+        debugShulker("Finalize: scanning inventory for TempShulkerPlaceholder to replace.");
+        int placeholderSlot = -1;
+        for (int i = 0; i < inv.getSize(); i++) {
+            ItemStack stack = inv.getItem(i);
+            if (isTempShulkerPlaceholder(stack)) {
+                placeholderSlot = i;
+                debugShulker("Finalize: found TempShulkerPlaceholder at slot=" + i);
+                break;
+            }
+        }
+
+
+
+        if (placeholderSlot >= 0) {
+            debugShulker("Finalize: replacing TempShulkerPlaceholder in slot=" + placeholderSlot +
+                    " with final shulker item.");
+            inv.setItem(placeholderSlot, shulker);
+        } else {
+            // Fallback: no placeholder found → add item normally
+            debugShulker("Finalize: no TempShulkerPlaceholder found; adding shulker via addItem.");
+            HashMap<Integer, ItemStack> leftover = inv.addItem(shulker);
+            if (!leftover.isEmpty()) {
+                debugShulker("Finalize: leftover items after addItem()=" + leftover.size() +
+                        " → dropping at chestLoc.");
+                for (ItemStack l : leftover.values()) {
+                    world.dropItemNaturally(chestLoc.clone().add(0.5, 1.0, 0.5), l);
+                }
+            } else {
+                debugShulker("Finalize: shulker added to inventory with no leftovers.");
+            }
+        }
+
+        // Clear chest contents (always)
+        debugShulker("Finalize: clearing chest inventory at " +
+                chestLoc.getWorld().getName() + " " +
+                chestLoc.getBlockX() + " " + chestLoc.getBlockY() + " " + chestLoc.getBlockZ());
+        chest.getInventory().clear();
+
+        debugShulker("Finalize: done for uuid=" + uuid);
+    }
+
+
+
+
+
+    private static boolean isTempShulkerPlaceholder(@Nullable ItemStack stack) {
+        if (stack == null || stack.getType().isAir()) return false;
+
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return false;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        if (pdc == null) return false;
+
+        NamespacedKey key = NamespacedKey.fromString("executableitems:ei-id");
+        if (key == null) {
+            debugShulker("isTempShulkerPlaceholder: NamespacedKey.fromString returned null.");
+            return false;
+        }
+
+        String value = pdc.get(key, PersistentDataType.STRING);
+        boolean result = "TempShulkerPlaceholder".equalsIgnoreCase(value);
+
+        debugShulker("isTempShulkerPlaceholder: type=" + stack.getType() +
+                ", ei-id='" + value + "', result=" + result);
+
+        return result;
+    }
+
+
+
+    protected static boolean isShulkerBoxOpen(YamlConfiguration shulkerDatabaseConfig, Player player) {
+        InventoryView view = player.getOpenInventory();
+        Inventory topInv = view.getTopInventory();
+
+        InventoryHolder holder = topInv.getHolder();
+        debugShulker("isShulkerBoxOpen: player=" + player.getName() +
+                ", topInvType=" + topInv.getType() +
+                ", holderClass=" + (holder == null ? "null" : holder.getClass().getName()));
+
+        if (!(holder instanceof Chest chest)) {
+            debugShulker("isShulkerBoxOpen: holder not Chest → false.");
+            return false;
+        }
+
+        Location loc = chest.getLocation();
+        String uuidKey = player.getUniqueId().toString();
+        ConfigurationSection sec = shulkerDatabaseConfig.getConfigurationSection(uuidKey);
+
+        if (sec == null) {
+            debugShulker("isShulkerBoxOpen: no config section for uuidKey=" + uuidKey + " → false.");
+            return false;
+        }
+
+        if (!sec.contains("x") || !sec.contains("y") || !sec.contains("z")) {
+            debugShulker("isShulkerBoxOpen: section missing x/y/z for uuidKey=" + uuidKey + " → false.");
+            return false;
+        }
+
+        int x = sec.getInt("x");
+        int y = sec.getInt("y");
+        int z = sec.getInt("z");
+
+        debugShulker("isShulkerBoxOpen: chestLoc=" +
+                (loc.getWorld() == null ? "nullWorld" : loc.getWorld().getName()) + " " +
+                loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ() +
+                ", saved=(" + x + " " + y + " " + z + ")");
+
+        boolean sameWorld = loc.getWorld() != null && loc.getWorld().getName().equals("mcydatabase");
+        boolean sameCoords = loc.getBlockX() == x && loc.getBlockY() == y && loc.getBlockZ() == z;
+        boolean result = sameWorld && sameCoords;
+
+        debugShulker("isShulkerBoxOpen: sameWorld=" + sameWorld + ", sameCoords=" + sameCoords +
+                " → " + result);
+
+        return result;
+    }
+    
+
+    private static void debugShulker(String msg) {
+        try {
+            // Keep it one line, prefix for filtering
+            String clean = msg.replace('\n', ' ').replace('\r', ' ');
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                    "minecraft:w Archistructure [ShulkerDebug] " + clean);
+        } catch (Exception ignored) {
+            // Don't ever break logic because debug failed
+        }
+    }
+    
+    
+    
     private static @Nullable ItemStack getStackBySlot(Player p, int slot) {
         if (slot == 40) return p.getInventory().getItemInOffHand();
         if (slot >= 0 && slot < p.getInventory().getSize()) return p.getInventory().getItem(slot);
@@ -1467,6 +1780,329 @@ if (identifier.equals("version")) {
             }
         }
 
+
+        if (identifier.startsWith("shulkerOpen2")) {
+
+            debugShulker("Handler start: identifier=" + identifier + ", player=" + p.getName());
+
+            final String basePrefix = "shulkerOpen2";
+            String argPart = identifier.substring(basePrefix.length()); // "", "_0", "_0,foo"
+            debugShulker("Parsed argPart raw='" + argPart + "'");
+
+            Integer slot = null;
+
+            // -------- Parse optional slot argument --------
+            if (!argPart.isEmpty()) {
+                if (argPart.startsWith("_")) {
+                    debugShulker("argPart starts with '_', trimming. Before='" + argPart + "'");
+                    argPart = argPart.substring(1);
+                    debugShulker("argPart after trim='" + argPart + "'");
+                }
+
+                if (!argPart.isEmpty()) {
+                    String[] pp = argPart.split(",");
+                    debugShulker("Split argPart on ',', len=" + pp.length + ", first='" + pp[0] + "'");
+                    if (pp.length < 1 || pp[0].isEmpty()) {
+                        debugShulker("Invalid format: missing slot. identifier=" + identifier);
+                        return "§cInvalid format";
+                    }
+                    try {
+                        slot = Integer.parseInt(pp[0]);
+                        debugShulker("Successfully parsed slot=" + slot);
+                    } catch (NumberFormatException e) {
+                        debugShulker("NumberFormatException parsing slot from '" + pp[0] + "': " + e);
+                        return "§cInvalid slot";
+                    }
+                } else {
+                    debugShulker("argPart is empty after trim; treating as NO-SLOT call.");
+                }
+            } else {
+                debugShulker("argPart is empty; treating as NO-SLOT call.");
+            }
+
+            final UUID uuid = p.getUniqueId();
+            final String uuidKey = uuid.toString();
+            final YamlConfiguration shulkerConfig = shulkerDatabaseConfig;
+
+            debugShulker("Player UUID=" + uuidKey + ", slot=" + (slot == null ? "null (no-slot)" : slot));
+
+            // -------- Ensure / create mcydatabase world --------
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) {
+                debugShulker("mcydatabase world not found; creating flat world.");
+                world = Bukkit.createWorld(
+                        new WorldCreator("mcydatabase")
+                                .environment(World.Environment.NORMAL)
+                                .generateStructures(false)
+                                .type(WorldType.FLAT)
+                );
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+                debugShulker("mcydatabase created: " + world);
+            } else {
+                debugShulker("mcydatabase world already loaded: " + world.getName());
+            }
+
+            if (world == null) {
+                debugShulker("FATAL: mcydatabase world is NULL after creation attempt.");
+                return "§cFailed to load mcydatabase world!";
+            }
+
+            // -------- Load existing data for this UUID --------
+            debugShulker("Loading config section for uuidKey=" + uuidKey);
+            ConfigurationSection sec = shulkerConfig.getConfigurationSection(uuidKey);
+            boolean hadPriorCoords = false;
+            int x = 0, y = 0, z = 0;
+
+            if (sec != null) {
+                debugShulker("Existing section keys=" + sec.getKeys(false));
+                if (sec.contains("x") && sec.contains("y") && sec.contains("z")) {
+                    x = sec.getInt("x");
+                    y = sec.getInt("y");
+                    z = sec.getInt("z");
+                    hadPriorCoords = true;
+                    debugShulker("Parsed prior coords from section: x=" + x + ", y=" + y + ", z=" + z);
+                } else {
+                    debugShulker("Section found but missing x/y/z; treating as no prior coords.");
+                }
+            } else {
+                debugShulker("No config section for uuidKey=" + uuidKey + " (first time for this player).");
+            }
+
+            // ---------- Case 1: NO SLOT → Only check existing ----------
+            if (slot == null) {
+                debugShulker("NO-SLOT mode: just check existing chest & start watcher if present.");
+
+                if (!hadPriorCoords) {
+                    debugShulker("NO-SLOT mode: hadPriorCoords=false → returning 'none'.");
+                    return "none";
+                }
+
+                Location chestLoc = new Location(world, x, y, z);
+                Block block = chestLoc.getBlock();
+                debugShulker("NO-SLOT: chestLoc=" +
+                        chestLoc.getWorld().getName() + " " + x + " " + y + " " + z +
+                        ", current blockType=" + block.getType());
+
+                if (block.getType() != Material.CHEST) {
+                    debugShulker("NO-SLOT: block not CHEST, setting to CHEST.");
+                    block.setType(Material.CHEST);
+                }
+
+                debugShulker("NO-SLOT: ensuring watcher for uuid=" + uuid);
+                ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+                if (chestLoc.getBlock().getState() instanceof Chest chest) {
+                    debugShulker("NO-SLOT: opening chest UI at " + x + " " + y + " " + z);
+                    p.openInventory(chest.getInventory());
+                } else {
+                    debugShulker("NO-SLOT: WARNING - block at chestLoc not Chest after setType.");
+                }
+
+                debugShulker("NO-SLOT: returning 'existing'.");
+                return "existing";
+            }
+
+            // ---------- Case 2: SLOT PROVIDED → open shulker from that slot ----------
+            debugShulker("SLOT mode: slot=" + slot + " → fetching item from that slot.");
+
+            ItemStack current = getItemInSlot(p, slot);
+            if (current == null) {
+                debugShulker("SLOT mode: getItemInSlot returned null for slot=" + slot);
+                return "§cNo item in that slot!";
+            }
+            debugShulker("SLOT mode: current item type=" + current.getType() + ", amount=" + current.getAmount());
+
+            if (!current.getType().toString().endsWith("SHULKER_BOX")) {
+                debugShulker("SLOT mode: item type not a shulker box: " + current.getType());
+                return "§cItem is not a shulker box!";
+            }
+
+            // Allocate coords if needed
+            if (!hadPriorCoords) {
+                debugShulker("SLOT mode: hadPriorCoords=false, allocating new coords.");
+                int[] locArr = getNextAvailableCoordinatesCustom(
+                        viewOnlyChestConfig,
+                        viewOnlyChestDatabaseFile,
+                        world,
+                        9
+                );
+                x = locArr[0];
+                y = locArr[1];
+                z = locArr[2];
+
+                debugShulker("SLOT mode: allocated coords x=" + x + ", y=" + y + ", z=" + z +
+                        " → creating section & saving meta.");
+                if (sec == null) {
+                    sec = shulkerConfig.createSection(uuidKey);
+                }
+                sec.set("x", x);
+                sec.set("y", y);
+                sec.set("z", z);
+            } else {
+                debugShulker("SLOT mode: hadPriorCoords=true, using coords x=" + x + ", y=" + y + ", z=" + z);
+                if (sec == null) {
+                    sec = shulkerConfig.createSection(uuidKey);
+                    sec.set("x", x);
+                    sec.set("y", y);
+                    sec.set("z", z);
+                }
+            }
+
+            // Store shulker meta (material/color, name, lore)
+            ItemMeta im = current.getItemMeta();
+            String displayName = (im != null && im.hasDisplayName()) ? im.getDisplayName() : null;
+            List<String> lore = (im != null && im.hasLore()) ? im.getLore() : null;
+            String materialName = current.getType().name();
+
+            debugShulker("SLOT mode: storing meta -> material=" + materialName +
+                    ", name='" + displayName + "', loreSize=" + (lore == null ? "null" : lore.size() + ""));
+
+            sec.set("material", materialName);
+            if (displayName != null) {
+                sec.set("name", displayName);
+            } else {
+                sec.set("name", null);
+            }
+            if (lore != null && !lore.isEmpty()) {
+                sec.set("lore", lore);
+            } else {
+                sec.set("lore", null);
+            }
+
+            // Save config
+            debugShulker("SLOT mode: saving shulker config to file for uuidKey=" + uuidKey);
+            saveShulkerConfig(shulkerConfig, shulkerDatabaseFile);
+
+            Location chestLoc = new Location(world, x, y, z);
+
+            // Ensure chest block & populate from shulker contents
+            Block block = chestLoc.getBlock();
+            debugShulker("SLOT mode: chestLoc=" +
+                    chestLoc.getWorld().getName() + " " + x + " " + y + " " + z +
+                    ", blockType(before)=" + block.getType());
+
+            if (block.getType() != Material.CHEST) {
+                debugShulker("SLOT mode: block not CHEST; setting to CHEST.");
+                block.setType(Material.CHEST);
+            }
+
+            if (!(block.getState() instanceof Chest chest)) {
+                debugShulker("SLOT mode: FATAL - block state not Chest after setType; type=" +
+                        block.getState().getClass().getName());
+                return "§cFailed to create chest!";
+            }
+
+            debugShulker("SLOT mode: clearing chest inventory before copying shulker contents.");
+            chest.getInventory().clear();
+
+            ItemMeta meta = current.getItemMeta();
+            if (meta instanceof BlockStateMeta bsm && bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb) {
+                debugShulker("SLOT mode: BlockStateMeta + ShulkerBox found; copying contents into chest.");
+
+
+
+
+                // SLOT mode: BlockStateMeta + ShulkerBox found; copying contents into chest.
+            chest.getInventory().setContents(sb.getInventory().getContents());
+            } else {
+                debugShulker("SLOT mode: FAILED to extract shulker contents; meta=" +
+                        (meta == null ? "null" : meta.getClass().getName()));
+                return "§cFailed to read shulker box contents!";
+            }
+
+// >>> CHANGE: instead of clearing the slot, replace the shulker with a TempShulkerPlaceholder item <<<
+            Material glassColor = getGlassForShulker(current.getType());
+            debugShulker("SLOT mode: creating TempShulkerPlaceholder for slot=" + slot +
+                    ", glassColor=" + glassColor);
+
+            ItemStack placeholder = modifyItemForShulker(current, glassColor);
+            if (placeholder == null) {
+                debugShulker("SLOT mode: modifyItemForShulker returned null; falling back to original item.");
+                placeholder = current.clone();
+            }
+            p.getInventory().setItem(slot, placeholder);
+            debugShulker("SLOT mode: placed TempShulkerPlaceholder in slot=" + slot);
+            
+            
+            
+            
+            
+
+            // Start / reuse watcher
+            debugShulker("SLOT mode: ensuring watcher(uuid=" + uuid + ") for chestLoc=" +
+                    chestLoc.getWorld().getName() + " " + x + " " + y + " " + z);
+            ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+            if (chestLoc.getBlock().getState() instanceof Chest chest2) {
+                debugShulker("SLOT mode: opening chest UI for player at " +
+                        chestLoc.getWorld().getName() + " " + x + " " + y + " " + z);
+                p.openInventory(chest2.getInventory());
+            } else {
+                debugShulker("SLOT mode: WARNING - block state not Chest when trying to open UI.");
+            }
+
+            String result = hadPriorCoords ? "existing" : "new";
+            debugShulker("SLOT mode: returning result='" + result + "'");
+            return result;
+        }
+
+        if (identifier.equals("backpackCheck")) {
+
+       
+                // Check the currently open inventory UI for this player.
+                InventoryView view = p.getOpenInventory();
+                Inventory topInv = view.getTopInventory();
+                InventoryHolder holder = topInv.getHolder();
+
+                // If it's not a chest at all, it's definitely not our backpack UI.
+                if (!(holder instanceof Chest chest)) {
+                    return "true";
+                }
+
+                Location loc = chest.getLocation();
+                World world = loc.getWorld();
+
+                // Must be in the mcydatabase world to be considered a backpack chest
+                if (world == null || !"mcydatabase".equals(world.getName())) {
+                    return "true";
+                }
+
+                // Look up this player's assigned backpack coordinates
+                String uuid = p.getUniqueId().toString();
+                String coordinates = databaseConfig.getString(uuid);
+                if (coordinates == null || coordinates.isEmpty()) {
+                    // No backpack assigned yet; whatever is open is not the backpack UI
+                    return "true";
+                }
+
+                String[] parts = coordinates.split(" ");
+                if (parts.length < 3) {
+                    // Corrupt or malformed config
+                    return "true";
+                }
+
+                int x, y, z;
+                try {
+                    x = Integer.parseInt(parts[0]);
+                    y = Integer.parseInt(parts[1]);
+                    z = Integer.parseInt(parts[2]);
+                } catch (NumberFormatException e) {
+                    // Bad data in config; treat as not-backpack
+                    return "true";
+                }
+
+                // Compare open chest location with the stored backpack location
+                boolean isBackpackUi =
+                        loc.getBlockX() == x &&
+                                loc.getBlockY() == y &&
+                                loc.getBlockZ() == z;
+
+                // Requirement: If it IS the backpack's UI, return "false". Otherwise "true".
+                return isBackpackUi ? "false" : "true";
+            
+        }
+
+
         if (identifier.startsWith("cosmicEnchant_"))  return cosmicEnchant(p, identifier);
         if (identifier.startsWith("spawnFakeEntity_")) return fakeEntitySpawn(identifier);
         if (identifier.startsWith("switcher_")) return switcher(identifier);
@@ -1509,7 +2145,7 @@ if (identifier.equals("version")) {
         if (identifier.startsWith("xdesugun_001_")) return ExampleExpansion2.getString12(identifier);
         if (identifier.equals("vanta")) return ExampleExpansion2.getString6(this, p);
         if (identifier.startsWith("leaderboards_")) return ExampleExpansion2.getString13(this, identifier);
-        if (identifier.equalsIgnoreCase("shulkerCheck")) return ExampleExpansion2.isShulkerBoxOpen(shulkerDatabaseConfig, p) ? "yes" : "no";
+        if (identifier.equalsIgnoreCase("shulkerCheck")) return ExampleExpansion2.isShulkerBoxOpenx(shulkerDatabaseConfig, p) ? "yes" : "no";
         if (identifier.startsWith("shulkerOpen_")) return ExampleExpansion2.getString10(this, p, identifier);
         if (identifier.startsWith("shulkerClose_")) return ExampleExpansion2.getString11(this, p, identifier);
         if (identifier.startsWith("vertigoHallucination_")) return ExampleExpansion2.getString12(p, identifier);
