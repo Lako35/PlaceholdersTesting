@@ -1711,6 +1711,15 @@ if (identifier.equals("version")) {
         if (identifier.startsWith("shulkerOpen2")) {
 
 
+            // --- NEW: cancel any existing watcher task for this player ---
+            final UUID uuid2 = p.getUniqueId();
+            BukkitTask oldTask = ACTIVE_SHULKER_TASKS.get(uuid2);
+            if (oldTask != null) {
+                return "too quick";
+            } else {
+            }
+
+
             final String basePrefix = "shulkerOpen2";
             String argPart = identifier.substring(basePrefix.length()); // "", "_0", "_0,foo"
 
@@ -1800,7 +1809,7 @@ if (identifier.equals("version")) {
             }
 
             // ---------- Case 2: SLOT PROVIDED → open shulker from that slot ----------
-
+    
             ItemStack current = getItemInSlot(p, slot);
             if (current == null) {
                 return "§cNo item in that slot!";
