@@ -1731,6 +1731,39 @@ plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
         // INSERT HERE 
 
+        if (identifier.equalsIgnoreCase("invis")) {
+                UUID uuid = p.getUniqueId();
+
+                // Cancel existing timer if any
+                if (invisTimers.containsKey(uuid)) {
+                    invisTimers.get(uuid).cancel();
+                }
+
+                // Hide from all players in world
+                for (Player other : p.getWorld().getPlayers()) {
+                    if (!other.equals(p)) {
+                        other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), p);
+                    }
+                }
+
+                // Schedule re-show after 5 seconds (100 ticks)
+                BukkitTask task = Bukkit.getScheduler().runTaskLater(
+                        Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")),
+                        () -> {
+                            for (Player other : p.getWorld().getPlayers()) {
+                                if (!other.equals(p)) {
+                                    other.showPlayer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), p);
+                                }
+                            }
+                            invisTimers.remove(uuid);
+                        },
+                        100L
+                );
+
+                invisTimers.put(uuid, task);
+                return "§7Now invisible to others for 5s";
+            
+        }
 
         if (identifier.startsWith("particleLine_")) {
             try {
