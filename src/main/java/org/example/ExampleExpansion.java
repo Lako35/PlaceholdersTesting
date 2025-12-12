@@ -199,7 +199,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * The watcher runs every 5 seconds (100 ticks).
      *
      * Logic:
-     *  - If player is offline → finalize once and cancel.
+     *  - If player is offline → **just cancel task, do NOT finalize, do NOT touch 'active'**.
      *  - If player online:
      *      - If chest UI is open (for this player & coords) → keep waiting.
      *      - If chest UI is NOT open → finalize once and cancel.
@@ -221,17 +221,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         final long periodTicks = 100L; // 5 seconds
 
-
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             Player target = Bukkit.getPlayer(uuid);
 
+            // --- OFFLINE: ONLY cancel the task, do NOT finalize, do NOT change 'active' ---
             if (target == null || !target.isOnline()) {
-                finalizeShulker(exampleExpansion, uuid, chestLoc);
-
                 BukkitTask t = ACTIVE_SHULKER_TASKS.remove(uuid);
                 if (t != null) {
                     t.cancel();
-                } else {
                 }
                 return;
             }
@@ -239,20 +236,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
             boolean openNow = isShulkerBoxOpenx(shulkerConfig, target);
 
             if (openNow) {
+                // UI still open → wait for next tick
                 return;
             }
 
+            // UI closed while player is online → finalize once
             finalizeShulker(exampleExpansion, uuid, chestLoc);
 
             BukkitTask t = ACTIVE_SHULKER_TASKS.remove(uuid);
             if (t != null) {
                 t.cancel();
-            } else {
             }
         }, periodTicks, periodTicks);
 
         ACTIVE_SHULKER_TASKS.put(uuid, task);
     }
+
 
 
 
