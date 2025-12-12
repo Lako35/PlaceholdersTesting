@@ -257,7 +257,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-
     /**
      * Rebuild the shulker box item from the mcydatabase chest contents and
      * ADD it to the player's inventory (no replacement).
@@ -292,7 +291,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         String uuidKey = uuid.toString();
         ConfigurationSection sec = shulkerConfig.getConfigurationSection(uuidKey);
 
-        if (sec == null) {
+        if (sec != null) { 
+            sec.set("active", false);
+            saveShulkerConfig(shulkerConfig, exampleExpansion.shulkerDatabaseFile);
+         
         }
 
         // Defaults
@@ -1710,15 +1712,12 @@ if (identifier.equals("version")) {
 
         if (identifier.startsWith("shulkerOpen2")) {
 
-
-            // --- NEW: cancel any existing watcher task for this player ---
+            // --- Rate limit: if a watcher task is already active, bail out ---
             final UUID uuid2 = p.getUniqueId();
             BukkitTask oldTask = ACTIVE_SHULKER_TASKS.get(uuid2);
             if (oldTask != null) {
                 return "too quick";
-            } else {
             }
-
 
             final String basePrefix = "shulkerOpen2";
             String argPart = identifier.substring(basePrefix.length()); // "", "_0", "_0,foo"
@@ -1741,15 +1740,12 @@ if (identifier.equals("version")) {
                     } catch (NumberFormatException e) {
                         return "§cInvalid slot";
                     }
-                } else {
                 }
-            } else {
             }
 
             final UUID uuid = p.getUniqueId();
             final String uuidKey = uuid.toString();
             final YamlConfiguration shulkerConfig = shulkerDatabaseConfig;
-
 
             // -------- Ensure / create mcydatabase world --------
             World world = Bukkit.getWorld("mcydatabase");
@@ -1761,7 +1757,6 @@ if (identifier.equals("version")) {
                                 .type(WorldType.FLAT)
                 );
                 Bukkit.getLogger().info("Created the mcydatabase world.");
-            } else {
             }
 
             if (world == null) {
@@ -1772,6 +1767,7 @@ if (identifier.equals("version")) {
             ConfigurationSection sec = shulkerConfig.getConfigurationSection(uuidKey);
             boolean hadPriorCoords = false;
             int x = 0, y = 0, z = 0;
+            boolean active = false; // NEW: active flag
 
             if (sec != null) {
                 if (sec.contains("x") && sec.contains("y") && sec.contains("z")) {
@@ -1779,15 +1775,16 @@ if (identifier.equals("version")) {
                     y = sec.getInt("y");
                     z = sec.getInt("z");
                     hadPriorCoords = true;
-                } else {
                 }
-            } else {
+                // Read active flag (default false if missing)
+                active = sec.getBoolean("active", false);
             }
 
             // ---------- Case 1: NO SLOT → Only check existing ----------
             if (slot == null) {
 
-                if (!hadPriorCoords) {
+                // Only open an existing shulker if it's marked active AND we have coords
+                if (!hadPriorCoords || !active) {
                     return "none";
                 }
 
@@ -1802,14 +1799,32 @@ if (identifier.equals("version")) {
 
                 if (chestLoc.getBlock().getState() instanceof Chest chest) {
                     p.openInventory(chest.getInventory());
-                } else {
                 }
 
                 return "existing";
             }
 
-            // ---------- Case 2: SLOT PROVIDED → open shulker from that slot ----------
-    
+            // ---------- Case 2: SLOT PROVIDED → open shulker from that slot or reuse active ----------
+
+            // If already active and we have coords, just reopen the existing chest, ignore the slot
+            if (active && hadPriorCoords) {
+                Location chestLoc = new Location(world, x, y, z);
+                Block block = chestLoc.getBlock();
+
+                if (block.getType() != Material.CHEST) {
+                    block.setType(Material.CHEST);
+                }
+
+                ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+                if (chestLoc.getBlock().getState() instanceof Chest chest) {
+                    p.openInventory(chest.getInventory());
+                }
+
+                return "existing";
+            }
+
+            // Otherwise, we are (re)populating from the shulker in this slot
             ItemStack current = getItemInSlot(p, slot);
             if (current == null) {
                 return "§cNo item in that slot!";
@@ -1822,10 +1837,10 @@ if (identifier.equals("version")) {
             // Allocate coords if needed
             if (!hadPriorCoords) {
                 int[] locArr = getNextAvailableCoordinatesCustom(
-                        viewOnlyChestConfig,
-                        viewOnlyChestDatabaseFile,
+                        shulkerConfig,        // Viewonlychestconfig YamlConfiguration.loadConfiguration(viewOnlyChestDatabaseFile)
+                        shulkerDatabaseFile,  // File(viewOnlyChestDir, "viewonlychests.yml");
                         world,
-                        9
+                        20
                 );
                 x = locArr[0];
                 y = locArr[1];
@@ -1852,7 +1867,6 @@ if (identifier.equals("version")) {
             List<String> lore = (im != null && im.hasLore()) ? im.getLore() : null;
             String materialName = current.getType().name();
 
-
             sec.set("material", materialName);
             if (displayName != null) {
                 sec.set("name", displayName);
@@ -1864,6 +1878,9 @@ if (identifier.equals("version")) {
             } else {
                 sec.set("lore", null);
             }
+
+            // Mark this shulker as active when we populate from the user's inventory
+            sec.set("active", true);
 
             // Save config
             saveShulkerConfig(shulkerConfig, shulkerDatabaseFile);
@@ -1885,41 +1902,31 @@ if (identifier.equals("version")) {
 
             ItemMeta meta = current.getItemMeta();
             if (meta instanceof BlockStateMeta bsm && bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb) {
-
-
-
-
                 // SLOT mode: BlockStateMeta + ShulkerBox found; copying contents into chest.
-            chest.getInventory().setContents(sb.getInventory().getContents());
+                chest.getInventory().setContents(sb.getInventory().getContents());
             } else {
                 return "§cFailed to read shulker box contents!";
             }
 
-// >>> CHANGE: instead of clearing the slot, replace the shulker with a TempShulkerPlaceholder item <<<
+            // Instead of clearing the slot, replace the shulker with a TempShulkerPlaceholder item
             Material glassColor = getGlassForShulker(current.getType());
-
             ItemStack placeholder = modifyItemForShulker(current, glassColor);
             if (placeholder == null) {
                 placeholder = current.clone();
             }
             p.getInventory().setItem(slot, placeholder);
-            
-            
-            
-            
-            
 
-            // Start / reuse watcher
+            // Start watcher
             ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
 
             if (chestLoc.getBlock().getState() instanceof Chest chest2) {
                 p.openInventory(chest2.getInventory());
-            } else {
             }
 
             String result = hadPriorCoords ? "existing" : "new";
             return result;
         }
+
 
         if (identifier.equals("backpackCheck")) {
 
