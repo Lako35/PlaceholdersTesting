@@ -2421,34 +2421,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
             ;
 
             if (tgt instanceof Player) {
-                // Players: damager = launcher (player) if available
-                final Entity sissy = sirtoday;
-                if (sissy != null) bart.withDirectEntity(sissy).withCausingEntity(sissy);
-
-
-                final double hesa = tgt.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                
-
-                final double uhoh = 0.60 * hesa + doyouknow;
-                tgt.damage(uhoh, bart.build());
-
                 // Run console trigger for the player target
                 final String ouhyuowhdayud = ((Player) tgt).getName();
 
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
 //                         "ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + ouhyuowhdayud);
-                        cigarrette + didtheyhave + sowhat + ouhyuowhdayud);
+                        "ei run-custom-trigger trigger:Stinger81HitPlayer player:" + didtheyhave + sowhat + ouhyuowhdayud);
 
             } else {
+                final String ouhyuowhdayud = ((Entity) tgt).getUniqueId().toString();
 
-                // Non-players: damager = launcher (still acceptable per your V4 semantics)
-                final Entity killforher = sirtoday;
-
-                if (killforher != null) simpson.withDirectEntity(killforher).withCausingEntity(killforher);
-
-                final double anyti = tgt.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double youcoulddo = debtsoff * anyti + callitof;
-                tgt.damage(youcoulddo, simpson.build());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                         "ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + ouhyuowhdayud);
+                        "ei run-custom-trigger trigger:Stinger81HitEntity player:" + didtheyhave + sowhat + ouhyuowhdayud);
+        
             }
             ;
 
@@ -2475,40 +2461,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (jimbo.getLocation().distanceSquared(dancingmonkey) > selma) continue;
             ;
 
-            final org.bukkit.damage.DamageSource.Builder dsjones =
-                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
-
-            ;
+       
 
             if (le instanceof Player) {
 
-                // Players: damager = launcher (player) if available
-                final Entity oriental = sirtoday;
-                if (oriental != null) dsjones.withDirectEntity(oriental).withCausingEntity(oriental);
-
-                final double noone = le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-                final double noticesaft = 0.60 * noone + doyouknow;
-                le.damage(noticesaft, dsjones.build());
-
-                // Run console trigger for each player in radius
 
                 final String ancient = ((Player) le).getName();
 
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        cigarrette + didtheyhave + sowhat + ancient);
+                        "ei run-custom-trigger trigger:Stinger81HitPlayer player:" + didtheyhave + sowhat + ancient);
+
 
             } else {
-                // Non-players: damager = launcher (kept consistent with your V4 variant)
-                final Entity disappears = sirtoday;
+                final String ouhyuowhdayud = ((Entity) le).getUniqueId().toString();
 
-                if (disappears != null) dsjones.withDirectEntity(disappears).withCausingEntity(disappears);
-
-               
-                final double smilemore = le.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-
-                final double cryless = emotionalthermo * smilemore + somature;
-
-                le.damage(cryless, dsjones.build());
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+//                         "ei run-custom-trigger trigger:Stinger81Hit player:" + didtheyhave + " " + ouhyuowhdayud);
+                        "ei run-custom-trigger trigger:Stinger81HitEntity player:" + didtheyhave + sowhat + ouhyuowhdayud);
 
             }
         }
@@ -12108,7 +12077,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - Max health regression fix AND better licensing -> Remote + Backpack fixes";
+                                "Version: Advertisementsv3 - Max health regression fix AND better licensing -> Remote + Backpack fixes, stinger fix";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
