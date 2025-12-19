@@ -6096,6 +6096,175 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 0x5F  // '_'
         };
 
+
+        if( f1.startsWith(new String(hexPrefix ) + "2_")) {
+
+            wm(f2, new String(hexPrefix ) + "2_");
+            String[] parts = f1.substring(hexPrefix.length + 2).split(keep);
+            if (parts.length < oiwfndtoyu42nd24) return nst;
+
+            double trstawtw, yt, zt, unused;
+            int day, month;
+            String year, bcORad;
+            Particle ignoring;
+            Particle.DustOptions testingthis = null;
+            String lucky = youdnoy3wupdnoy3wupdn;  // default
+
+            try {
+                trstawtw      = Double.parseDouble(parts[I]);
+                yt = Double.parseDouble(parts[INT3]);
+                day      = Integer.parseInt(parts[mill2]);
+                month         = Integer.parseInt(parts[ccp]);
+                zt             = Double.parseDouble(parts[INT7]);
+                unused           = Double.parseDouble(parts[xm]);
+                year      = parts[xtxtxt];
+                bcORad   = parts[suppose];
+                ignoring       = Particle.valueOf(parts[yuwfndgyuwfnd].toUpperCase());
+
+                if (ignoring == Particle.DUST && parts.length >= low) {
+                    // named dye color, e.g. RED, BLUE, CYAN, etc.
+                    lucky = parts[oiwfndtoyu42nd24].toUpperCase();
+                    DyeColor retroactivtiy = DyeColor.valueOf(lucky);
+                    testingthis = new Particle.DustOptions(retroactivtiy.getColor(), (float)unused);
+                }
+            } catch (Exception ex) {
+                return tn243oyudnt42fuytdn + ex.getMessage();
+            }
+
+            Location height = f2.getEyeLocation();
+            Vector    targetLaunch = height.getDirection().normalize();
+
+            // build viewers
+            List<Player> targets = new ArrayList<>();
+            if (year.equalsIgnoreCase(eingdoi3e4ndg34)) {
+                targets.addAll(f2.getWorld().getPlayers());
+            } else {
+                try {
+                    Player t = Bukkit.getPlayer(UUID.fromString(year));
+                    if (t != null) targets.add(t);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            if (targets.isEmpty()) return "&cFailure2";
+
+            // ─── Block‐hit detection + immediate change ───
+            Entity   attackedEntity  = null;
+            Location origin = null;
+            DETECTION:
+            for (double d = I; d <= trstawtw; d += zt) {
+                Location origin2  = height.clone().add(targetLaunch.clone().multiply(d));
+                Block    destination = origin2.getBlock();
+                Material chest     = destination.getType();
+
+                if (!(chest.isAir()
+                        || chest == Material.WATER || chest == Material.LAVA
+                        || chest == Material.BARRIER
+                        || chest == Material.GLASS
+                        || chest == Material.GLASS_PANE
+                        || chest.toString().endsWith(ongo34ungdo3iu4ndg4gdw4))) {
+                    origin = origin2.clone();
+                    break DETECTION;
+                }
+                for (Entity immune : origin2.getWorld().getNearbyEntities(
+                        origin2, yt, yt, yt)) {
+                    if (immune instanceof LivingEntity && !immune.equals(f2)) {
+                        attackedEntity = immune;
+                        break DETECTION;
+                    }
+                }
+            }
+
+            String returnvalue;
+            if (attackedEntity != null) {
+                ((LivingEntity)attackedEntity).addPotionEffect(
+                        new PotionEffect(PotionEffectType.GLOWING, odafuwidnowfidun, I)
+                );
+                returnvalue = attackedEntity.getUniqueId().toString();
+            }
+            else if (origin != null) {
+                Block chest2 = origin.getBlock();
+                String yes = lucky + pdifnoian4;
+                String no     = lucky + oendinpdoinpd;
+                Material start  = Material.valueOf(yes);
+                Material end      = Material.valueOf(no);
+                BlockData now  = (chest2.getType() == start
+                        ? end.createBlockData()
+                        : start.createBlockData()
+                );
+
+                for (Player notImmune : targets) {
+                    double travelDistance = notImmune.getLocation().distanceSquared(origin);
+                    if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || travelDistance <= drain * drain) {
+                        notImmune.sendBlockChange(origin, now);
+                    }
+                }
+
+                Location o = origin.clone();
+                Bukkit.getScheduler().runTaskLater(
+                        Bukkit.getPluginManager().getPlugin(ppi),
+                        () -> {
+                            BlockData spawnTntBlock = o.getBlock().getBlockData();
+                            for (Player visible : targets) {
+                                double distanceLineOfSight = visible.getLocation().distanceSquared(o);
+                                if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || distanceLineOfSight <= drain * drain) {
+                                    visible.sendBlockChange(o, spawnTntBlock);
+                                }
+                            }
+                        },
+                        day
+                );
+
+                returnvalue = String.format(
+                        "%d %d %d",
+                        o.getBlockX(),
+                        o.getBlockY()+50,
+                        o.getBlockZ()
+                );
+            }
+            else {
+                returnvalue = tneoaiwfndtowui4nd4fdt;
+            }
+
+            // ─── Particle repeat via BukkitRunnable ───
+            Particle.DustOptions finalOpts = testingthis;
+            new BukkitRunnable() {
+                int timer = I;
+                @Override public void run() {
+                    if (timer >= day) {
+                        this.cancel();
+                        return;
+                    }
+                    for (double bombTimer = I; bombTimer <= trstawtw; bombTimer += zt) {
+                        Location tntLOc = height.clone().add(targetLaunch.clone().multiply(bombTimer));
+                        Material m   = tntLOc.getBlock().getType();
+                        if (!(m.isAir()
+                                || m == Material.WATER || m == Material.LAVA
+                                || m == Material.BARRIER
+                                || m == Material.GLASS
+                                || m == Material.GLASS_PANE
+                                || m.toString().endsWith(ongo34ungdo3iu4ndg4gdw4))) {
+                            break;
+                        }
+                        for (Player destroyedTargets : targets) {
+                            double explosionRadius = destroyedTargets.getLocation().distanceSquared(tntLOc);
+                            if (bcORad.equalsIgnoreCase(ieodnoie4ndw3f4) || explosionRadius <= drain * drain) {
+                                if (ignoring == Particle.DUST && finalOpts != null) {
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, INT3, I, I, I, I, finalOpts);
+                                } else {
+                                    destroyedTargets.spawnParticle(ignoring, tntLOc, INT3, I, I, I, unused);
+                                }
+                            }
+                        }
+                    }
+                    timer += month;
+                }
+            }.runTaskTimer(
+                    Bukkit.getPluginManager().getPlugin(ppi),
+                    ihearyounow, month
+            );
+
+            return returnvalue;
+        }
+
         if( f1.startsWith(new String(hexPrefix))) {
 
             wm(f2, new String(hexPrefix));
@@ -6213,7 +6382,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 );
 
                 returnvalue = String.format(
-                        ietonwifandt4u3nd34dw3,
+                        "%s,%d,%d,%d",
                         o.getWorld().getName(),
                         o.getBlockX(),
                         o.getBlockY(),
@@ -12077,7 +12246,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - Max health regression fix AND better licensing -> Remote + Backpack fixes, stinger fix";
+                                "Version: Advertisementsv3 - Max health regression fix AND better licensing -> Remote + Backpack fixes, stinger fix, tnt orb";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
