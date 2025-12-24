@@ -1513,7 +1513,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      */
     @Override
     public @NotNull String getIdentifier() {
-        return "Archistructure";
+        return "ArchisRocket0000121324";
     }
 
 
@@ -4167,6 +4167,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // INSERT HERE 
 
+
+
+        if (f1.equalsIgnoreCase("fireworkboost")) {
+            //wm(f2, fipdenao3idn34ydun);
+            try {
+                if( f2 != null) {
+                    if( !f2.isGliding() ) throw new IllegalArgumentException();
+                    // Create a Firework ItemStack
+                    ItemStack IENOARIEND = new ItemStack(Material.FIREWORK_ROCKET);
+                    FireworkMeta wfydtnywfund = (FireworkMeta) IENOARIEND.getItemMeta();
+
+                    if (wfydtnywfund != null) {
+                        wfydtnywfund.setPower(INT3); // Duration of 1
+                        wfydtnywfund.clearEffects(); // No star effects
+                        IENOARIEND.setItemMeta(wfydtnywfund);
+                    }
+
+                    // Apply the firework boost
+                    f2.fireworkBoost(IENOARIEND);
+                }
+
+                return pd3ipdn34d;
+            } catch (IllegalArgumentException e) {
+                return wfonvdawfydunp;
+            }
+
+        }
+        
+        
+        
 
         if (f1.startsWith("shulkerOpen2")) {
 
@@ -9957,31 +9987,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
         
-        if (f1.equalsIgnoreCase(ioandi3n4dy43udn3pfd)) {
-            wm(f2, fipdenao3idn34ydun);
-            try {
-                if( f2 != null) {
-                    if( !f2.isGliding() ) throw new IllegalArgumentException();
-                    // Create a Firework ItemStack
-                    ItemStack IENOARIEND = new ItemStack(Material.FIREWORK_ROCKET);
-                    FireworkMeta wfydtnywfund = (FireworkMeta) IENOARIEND.getItemMeta();
-    
-                    if (wfydtnywfund != null) {
-                        wfydtnywfund.setPower(INT3); // Duration of 1
-                        wfydtnywfund.clearEffects(); // No star effects
-                        IENOARIEND.setItemMeta(wfydtnywfund);
-                    }
-    
-                    // Apply the firework boost
-                    f2.fireworkBoost(IENOARIEND);       
-                }
-
-                return pd3ipdn34d;
-            } catch (IllegalArgumentException e) {
-                return wfonvdawfydunp;
-            }
-
-        }
+        
 
 
         if (f1.equalsIgnoreCase(fpiednfpden3)) { // %Archistructure_DN%
