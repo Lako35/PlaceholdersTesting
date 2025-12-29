@@ -1,10 +1,14 @@
 package org.example;
 
 
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.utility.MinecraftVersion;
+import com.comphenix.protocol.wrappers.WrappedDataValue;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
 import org.bukkit.command.ConsoleCommandSender;
@@ -108,6 +112,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     public static final String ty2ufntyu2nfd = "plugins/Archistructures/shulkers/";
     public static final String r12yftnhyoafhtdoyl = "shulkers.yml";
+    public static final String yfodunwy3u4dny43udn = "getBlock_";
+    public static final String o2ny4unvyu3wdnawpfd = "getBlockHasuno_";
+    public static final String n2oyunt2yuwfdht = "fakeGlowing_";
+    public static final String t2y3ftunyuondyuhyhl = "1.19.3";
+    public static final String t2ofutno2yfuwdhvnwypuvd = "done";
     public final String toywuanftwyft;
     public final String to23nyutn2fy3ut;
     public final String tony23untyquwfnt;
@@ -3790,6 +3799,46 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+    private static final ProtocolManager otyu2nfotyuhfwyvh = ProtocolLibrary.getProtocolManager();
+    private static final byte toyu2nfyutnwyfuth = 0x40;
+
+    /**
+     * Makes {@code target} glow ONLY for {@code viewer} (client-side).
+     * Call again with glowing=false to remove.
+     */
+    public static void tyounwfydtuhk2foypbdvhp2y3ldb(Player dy2fuhdyufhd, Entity kt2thhwsthfhwd, boolean kyunhyunoyuno) {
+        PacketContainer tnoy2untdoyu2fhdk = otyu2nfotyuhfwyvh.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        tnoy2untdoyu2fhdk.getIntegers().write(0, kt2thhwsthfhwd.getEntityId());
+
+        // Read current entity flags so we don't clobber other bits (sneaking, invis, etc.)
+        WrappedDataWatcher toynuwoyk2yfdlvbf = WrappedDataWatcher.getEntityWatcher(kt2thhwsthfhwd);
+        Object tmoy2funtyufhsrbyvuhp3 = toynuwoyk2yfdlvbf.getObject(0); // index 0 = flags byte
+        byte tn2oyfudnto2yfubdoy2lwfhd = (tmoy2funtyufhsrbyvuhp3 instanceof Byte) ? (Byte) tmoy2funtyufhsrbyvuhp3 : 0;
+
+        tn2oyfudnto2yfubdoy2lwfhd = kyunhyunoyuno ? (byte) (tn2oyfudnto2yfubdoy2lwfhd | toyu2nfyutnwyfuth) : (byte) (tn2oyfudnto2yfubdoy2lwfhd & ~toyu2nfyutnwyfuth);
+
+        // Only send index 0 (flags) to the viewer
+        WrappedDataWatcher t2ontyunyurndyroshv = new WrappedDataWatcher();
+        t2ontyunyurndyroshv.setObject(0, WrappedDataWatcher.Registry.get(Byte.class), tn2oyfudnto2yfubdoy2lwfhd, true);
+
+        // 1.19.3+ uses WrappedDataValue list (DataValueCollection) instead of Watchables
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion(t2y3ftunyuondyuhyhl))) {
+            List<WrappedDataValue> toyun2yofutnyruslbhv = new ArrayList<>();
+            for (WrappedWatchableObject oty2unftylb2fyldhvwr : t2ontyunyurndyroshv.getWatchableObjects()) {
+                if (oty2unftylb2fyldhvwr == null) continue;
+                WrappedDataWatcher.WrappedDataWatcherObject touyn2yfudhntowybvdoylpf = oty2unftylb2fyldhvwr.getWatcherObject();
+                toyun2yofutnyruslbhv.add(new WrappedDataValue(touyn2yfudhntowybvdoylpf.getIndex(), touyn2yfudhntowybvdoylpf.getSerializer(), oty2unftylb2fyldhvwr.getRawValue()));
+            }
+            tnoy2untdoyu2fhdk.getDataValueCollectionModifier().write(0, toyun2yofutnyruslbhv);
+        } else {
+            tnoy2untdoyu2fhdk.getWatchableCollectionModifier().write(0, t2ontyunyurndyroshv.getWatchableObjects());
+        }
+
+        otyu2nfotyuhfwyvh.sendServerPacket(dy2fuhdyufhd, tnoy2untdoyu2fhdk);
+    }
+
+
+
 
 
     private static @Nullable ItemStack getStackBySlot(Player p, int slot) {
@@ -4166,6 +4215,74 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+        if (f1.startsWith(n2oyunt2yuwfdht)) {
+            wm(f2, "Fake Glowing", Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
+            if(! f1(f2,"ProtocolLib")) return "failed - no protocollib";
+            tyounwfydtuhk2foypbdvhp2y3ldb(Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])), Boolean.valueOf(f1.substring(n2oyunt2yuwfdht.length()).split(",")[2]));
+            return t2ofutno2yfuwdhvnwypuvd;
+        }
+
+
+        if (f1.startsWith(yfodunwy3u4dny43udn)) {
+            wm(f2, "3x3 Free Version");
+
+            String[] parts = f1.substring(yfodunwy3u4dny43udn.length()).split(keep);
+            if (parts.length != 4) return "";
+            
+            
+            String worldName = parts[I];
+            int x            = Integer.parseInt(parts[INT3]);
+            int y            = Integer.parseInt(parts[mill2]);
+            int z            = Integer.parseInt(parts[ccp]);
+
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "Invalid world";
+            
+            return world.getBlockAt(x, y, z).getType().toString();
+        }
+
+
+        if (f1.startsWith(o2ny4unvyu3wdnawpfd)) {
+
+            String[] parts = f1.substring(o2ny4unvyu3wdnawpfd.length()).split(keep);
+            if (parts.length != 4) return "";
+
+
+            String worldName = parts[I];
+            int x            = Integer.parseInt(parts[INT3]);
+            int y            = Integer.parseInt(parts[mill2]);
+            int z            = Integer.parseInt(parts[ccp]);
+
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return "Invalid world";
+
+            Block b = world.getBlockAt(x, y, z);
+
+// 3x3x3 cube centered on (x,y,z), INCLUDING the origin (0,0,0)
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        Block b2 = world.getBlockAt(x + dx, y + dy, z + dz);
+                        Bukkit.dispatchCommand(
+                                Bukkit.getConsoleSender(),
+                                "ee run-custom-trigger trigger:3x3Test "
+                                        + b2.getType().toString() + " "
+                                        + world.getName() + " "
+                                        + (x + dx) + " "
+                                        + (y + dy) + " "
+                                        + (z + dz) + " "
+                                        + f2.getName()
+                        );
+                    }
+                }
+            }
+
+
+            return t2ofutno2yfuwdhvnwypuvd;
+        }
 
 
         if (f1.startsWith("shulkerOpen2")) {
@@ -6149,7 +6266,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (targets.isEmpty()) return "&cFailure2";
 
             // ─── Block‐hit detection + immediate change ───
-            Entity   attackedEntity  = null;
             Location origin = null;
             DETECTION:
             for (double d = I; d <= trstawtw; d += zt) {
@@ -6166,28 +6282,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     origin = origin2.clone();
                     break DETECTION;
                 }
-                for (Entity immune : origin2.getWorld().getNearbyEntities(
-                        origin2, yt, yt, yt)) {
-                    if (immune instanceof LivingEntity && !immune.equals(f2)) {
-                        attackedEntity = immune;
-                        break DETECTION;
-                    }
-                }
             }
 
             String returnvalue;
-            if (attackedEntity != null) {
-                ((LivingEntity)attackedEntity).addPotionEffect(
-                        new PotionEffect(PotionEffectType.GLOWING, odafuwidnowfidun, I)
-                );
-                returnvalue = attackedEntity.getUniqueId().toString();
-            }
-            else if (origin != null) {
+            if (origin != null) {
                 Block chest2 = origin.getBlock();
                 String yes = lucky + pdifnoian4;
                 String no     = lucky + oendinpdoinpd;
                 Material start  = Material.valueOf(yes);
                 Material end      = Material.valueOf(no);
+
                 BlockData now  = (chest2.getType() == start
                         ? end.createBlockData()
                         : start.createBlockData()
@@ -6266,6 +6370,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return returnvalue;
         }
+
 
         if( f1.startsWith(new String(hexPrefix))) {
 
@@ -12248,7 +12353,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck";
+                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck, getBlock, 3x3, glowing";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
