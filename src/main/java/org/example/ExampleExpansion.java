@@ -117,6 +117,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String n2oyunt2yuwfdht = "fakeGlowing_";
     public static final String t2y3ftunyuondyuhyhl = "1.19.3";
     public static final String t2ofutno2yfuwdhvnwypuvd = "done";
+    public static final String tno2yfutnyuwfnt = "ei give ";
+    public static final String tyotun2foywuht = "done";
+    public static final String to2nfwyuthnvwyfuv = "zestybuffalo4_";
+    public static final String voypkuwbvt = "zestybuffalo3_";
+    public static final String dnodyuh249dlfw = "lodestone2_";
+    public static final String otn2yfutho2yflvdfw = "§cBad Args";
+    public static final String kgot24intoy2fuwtn = "§cPlayer Not Found";
+    public static final String tn2oty2ufhvdtywavh = "Tracker Compass v2";
+    public static final String tno2yudnto2y4udn2d = "§cBad Slot";
+    public static final String odtn2y4fdlhy3dh = "§cEntity Not Found";
+    public static final String tno2y4dt2h4d = "§cNo Compass Detected";
+    public static final String tk2yodtu = "archistructurenotfound";
+    public static final String tno2ydh2y4fuldh = "§cWorld Mismatch!";
     public final String toywuanftwyft;
     public final String to23nyutn2fy3ut;
     public final String tony23untyquwfnt;
@@ -4032,6 +4045,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
+    
+    
+    
+    
+    
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -4039,7 +4057,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
     @SuppressWarnings({"ConstantValue"})
     @Override
         public String onPlaceholderRequest(Player f2, @NotNull String f1) {
-        
+
+
+      
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         boolean test = arsdienwdhw;
@@ -4212,10 +4232,105 @@ public class ExampleExpansion extends PlaceholderExpansion {
          */
         
 
+        
+        
 
 
         // INSERT HERE 
+        
+        if(f1.startsWith(dnodyuh249dlfw)) {
+            
+            String params = f1;
 
+
+
+
+
+            if (params != null && params.startsWith(dnodyuh249dlfw)) {
+
+                final int oytdu2fhoylvdhwfoytah = 1_000_000;
+                final int oyfowbvtylpnd3pd = 1000;
+
+                // lodestone2_PLAYER1UUID,SLOT,ENTITYTOTRACK
+                String ton2fyubtyovlwbavylhvf = params.substring(dnodyuh249dlfw.length());
+                String[] to2yfubvyluowbplyhwoylhdylh3 = ton2fyubtyovlwbavylhvf.split(",", 3);
+                if (to2yfubvyluowbplyhwoylhdylh3.length < 3) return otn2yfutho2yflvdfw;
+
+                String toy2fuhtoyalbv = to2yfubvyluowbplyhwoylhdylh3[0].trim();
+                String kvu3lpbi3pbv3 = to2yfubvyluowbplyhwoylhdylh3[1].trim();
+                String kc2ufl2hwvyfoluhva = to2yfubvyluowbplyhwoylhdylh3[2].trim();
+
+                // Resolve PLAYER1
+                Player t2oyfudhto2yfldvylwaht = null;
+                try { t2oyfudhto2yfldvylwaht = Bukkit.getPlayer(UUID.fromString(toy2fuhtoyalbv)); } catch (Exception ignored) {}
+                if (t2oyfudhto2yfldvylwaht == null) t2oyfudhto2yfldvylwaht = Bukkit.getPlayerExact(toy2fuhtoyalbv);
+                if (t2oyfudhto2yfldvylwaht == null) return kgot24intoy2fuwtn;
+                wm(t2oyfudhto2yfldvylwaht, tn2oty2ufhvdtywavh, f2);
+
+                // Parse slot
+                int t2yoqfuhdylf2dh;
+                try { t2yoqfuhdylf2dh = Integer.parseInt(kvu3lpbi3pbv3); } catch (Exception ex) { return tno2yudnto2y4udn2d; }
+                if (t2yoqfuhdylf2dh < 0 || t2yoqfuhdylf2dh >= t2oyfudhto2yfldvylwaht.getInventory().getSize()) return tno2yudnto2y4udn2d;
+
+                // Resolve ENTITYTOTRACK (UUID first, then player name)
+                Entity dy2ohwdylahwd = null;
+                try { dy2ohwdylahwd = Bukkit.getEntity(UUID.fromString(kc2ufl2hwvyfoluhva)); } catch (Exception ignored) {}
+                if (dy2ohwdylahwd == null) dy2ohwdylahwd = Bukkit.getPlayerExact(kc2ufl2hwvyfoluhva);
+                if (dy2ohwdylahwd == null) return odtn2y4fdlhy3dh;
+
+                // Must have a compass already in SLOT
+                ItemStack tnoy2fuhdtylwfhd = t2oyfudhto2yfldvylwaht.getInventory().getItem(t2yoqfuhdylf2dh);
+                if (tnoy2fuhdtylwfhd == null || tnoy2fuhdtylwfhd.getType() != Material.COMPASS) return tno2y4dt2h4d;
+
+                ItemMeta toy2ufhdobldvwvbt = tnoy2fuhdtylwfhd.getItemMeta();
+                if (!(toy2ufhdobldvwvbt instanceof CompassMeta)) return tno2y4dt2h4d;
+                CompassMeta toyu2h3tdyl2hd = (CompassMeta) toy2ufhdobldvwvbt;
+
+                // World mismatch -> set to real world named "archistructurenotfound"
+                if (!t2oyfudhto2yfldvylwaht.getWorld().equals(dy2ohwdylahwd.getWorld())) {
+                    World nod2yfuhdy2lfhd = Bukkit.getWorld(tk2yodtu);
+                    if (nod2yfuhdy2lfhd == null) nod2yfuhdy2lfhd = Bukkit.createWorld(new WorldCreator(tk2yodtu));
+
+                    toyu2h3tdyl2hd.setLodestoneTracked(true); // IMPORTANT: allow pointing without an actual lodestone
+                    toyu2h3tdyl2hd.setLodestone(new Location(nod2yfuhdy2lfhd, 0.5, oyfowbvtylpnd3pd + 0.5, 0.5));
+
+                    tnoy2fuhdtylwfhd.setItemMeta(toyu2h3tdyl2hd);
+                    t2oyfudhto2yfldvylwaht.getInventory().setItem(t2yoqfuhdylf2dh, tnoy2fuhdtylwfhd);
+                    // p1.updateInventory(); // optional
+
+                    return tno2ydh2y4fuldh;
+                }
+
+                // Same world -> compute angle and target on radius 1,000,000 circle from player toward entity
+                double toy2fuhdtoyhlfd = t2oyfudhto2yfldvylwaht.getLocation().getX();
+                double dk2fydl = t2oyfudhto2yfldvylwaht.getLocation().getZ();
+                double k2yftohwyuth = dy2ohwdylahwd.getLocation().getX();
+                double d2yfdyl2ufhd = dy2ohwdylahwd.getLocation().getZ();
+
+                double db2fbdtwfdt = k2yftohwyuth - toy2fuhdtoyhlfd;
+                double z2ftbwfdf = d2yfdyl2ufhd - dk2fydl;
+
+                double d2yo4fhdywhadyfwluhdoayfupdh = (db2fbdtwfdt == 0.0 && z2ftbwfdf == 0.0) ? 0.0 : Math.atan2(z2ftbwfdf, db2fbdtwfdt);
+
+                long doy2ufhdoyulhfdoylhpwfd = Math.round(toy2fuhdtoyhlfd + (Math.cos(d2yo4fhdywhadyfwluhdoayfupdh) * oytdu2fhoylvdhwfoytah));
+                long oy2duhfoyduhfwoyldh = Math.round(dk2fydl + (Math.sin(d2yo4fhdywhadyfwluhdoayfupdh) * oytdu2fhoylvdhwfoytah));
+
+                int xrsotn = (doy2ufhdoyulhfdoylhpwfd > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (doy2ufhdoyulhfdoylhpwfd < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) doy2ufhdoyulhfdoylhpwfd);
+                int tkd2fywd = (oy2duhfoyduhfwoyldh > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (oy2duhfoyduhfwoyldh < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) oy2duhfoyduhfwoyldh);
+
+                toyu2h3tdyl2hd.setLodestoneTracked(false); // IMPORTANT: allow pointing without an actual lodestone
+                toyu2h3tdyl2hd.setLodestone(new Location(t2oyfudhto2yfldvylwaht.getWorld(), xrsotn + 0.5, oyfowbvtylpnd3pd + 0.5, tkd2fywd + 0.5));
+
+                tnoy2fuhdtylwfhd.setItemMeta(toyu2h3tdyl2hd);
+                t2oyfudhto2yfldvylwaht.getInventory().setItem(t2yoqfuhdylf2dh, tnoy2fuhdtylwfhd);
+                // p1.updateInventory(); // optional
+
+                return "§c" + dy2ohwdylahwd.getWorld().getName() + " §a" + xrsotn + " §b" + oyfowbvtylpnd3pd + " §d" + tkd2fywd;
+            }
+
+        }
+
+        
         if (f1.startsWith(n2oyunt2yuwfdht)) {
             wm(f2, "Fake Glowing", Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
             if(! f1(f2,"ProtocolLib")) return "failed - no protocollib";
@@ -4562,8 +4677,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return tny2ufon ? to2i3ufnk2w : tony23untyquwfnt;
 
         }
-        
-        
         if( f1.equals(ton2y3uftno2yfwun)) return String.valueOf(f2.getVelocity().getY()) ;
 
         if (f1.startsWith(twoyfnafyutwfyutdah)) {
@@ -4827,7 +4940,49 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return bopabfunpa + whyassultme.getName();
         }
-        
+
+
+        // ============================================================================
+// zestybuffalo3 – Execute arbitrary command as CONSOLE
+// ============================================================================
+
+        if (f1.startsWith(voypkuwbvt)) {
+            String cmd = f1.substring(voypkuwbvt.length()).trim();
+            if (cmd.isEmpty()) {
+                return ""; // nothing to run
+            }
+
+            // Bukkit.dispatchCommand expects NO leading "/"
+            if (cmd.startsWith("/")) cmd = cmd.substring(1);
+
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+
+            return tyotun2foywuht; // or return "OK" if you want visible confirmation
+        }
+
+
+        // ============================================================================
+// zestybuffalo4 – Give EI item to the placeholder player (f2)
+// ============================================================================
+         
+
+        if (f1.startsWith(to2nfwyuthnvwyfuv)) {
+            // If no player context, do nothing
+            if (f2 == null || !f2.isOnline()) {
+                return "";
+            }
+
+            String dto2uyfnwoyuhvn = f1.substring(to2nfwyuthnvwyfuv.length()).trim();
+            if (dto2uyfnwoyuhvn.isEmpty()) {
+                return "";
+            }
+
+            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + f2.getName() + " " + dto2uyfnwoyuhvn;
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), to2fyuntkoyuwfhv);
+
+            return tyotun2foywuht; // or return "OK"
+        }
+
 
 
         if( f1.startsWith(whynotofficerlent)) {
