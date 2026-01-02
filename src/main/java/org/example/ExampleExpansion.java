@@ -3813,14 +3813,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static final ProtocolManager otyu2nfotyuhfwyvh = ProtocolLibrary.getProtocolManager();
-    private static final byte toyu2nfyutnwyfuth = 0x40;
+
 
     /**
      * Makes {@code target} glow ONLY for {@code viewer} (client-side).
      * Call again with glowing=false to remove.
      */
     public  void tyounwfydtuhk2foypbdvhp2y3ldb(Player dy2fuhdyufhd, Entity kt2thhwsthfhwd, boolean kyunhyunoyuno) {
+           ProtocolManager otyu2nfotyuhfwyvh = ProtocolLibrary.getProtocolManager();
+           byte toyu2nfyutnwyfuth = 0x40;
         PacketContainer tnoy2untdoyu2fhdk = otyu2nfotyuhfwyvh.createPacket(PacketType.Play.Server.ENTITY_METADATA);
         tnoy2untdoyu2fhdk.getIntegers().write(0, kt2thhwsthfhwd.getEntityId());
 
