@@ -42,10 +42,7 @@ import com.ssomar.score.variables.manager.VariablesManager;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
+
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.*;
@@ -433,7 +430,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected final File g21;
     protected final Map<UUID, Integer> g22;
-    protected final LuckPerms g23;
 
     protected final Map<UUID, Set<Location>> g24 = new HashMap<>();
     protected final Set<Material> g25 = Set.of(
@@ -1662,26 +1658,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    /**
-     * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
-     */
-    protected void f1(User f1, List<String> f2) {
-        Set<String> tp = new HashSet<>();
-        String basePath = peei;
-
-        for (String ifp : f2) {
-            File file2 = new File(basePath + ifp);
-            if (file2.exists() && file2.isDirectory()) {
-                f1(file2, tp);
-            }
-        }
-
-        // Assign new item permissions
-        tp.forEach(idt -> {
-            Node np = Node.builder(ei + idt).value(NEW_VALUE1).build();
-            f1.data().add(np);
-        });
-    }
 
 
 
@@ -10098,57 +10074,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.equals(yunyundg54h45) && f2 != null) {
-
-            if (!f1(f2, kd3nd)) return null;
-
-            User user = g23.getPlayerAdapter(Player.class).getUser(f2);
-
-            // Skip users with "ei.*" or "ei.itemfolderbypass"
-            if (user.getCachedData().getPermissionData().checkPermission("ei.*").asBoolean() ||
-                    user.getCachedData().getPermissionData().checkPermission("ei.itemfolderbypass").asBoolean() ||
-                    user.getCachedData().getPermissionData().checkPermission("ei.item.*").asBoolean()) {
-                return "&aEI Folder-Bypass Detected";
-            }
-
-            try {
-                // STEP 1: Remove "ei.item.*" unless immutable
-                user.getNodes().stream()
-                        .filter(node -> node.getKey().startsWith(ei)) // Find all "ei.item.*" permissions
-                        .filter(node -> {
-                            String itemName = node.getKey().substring(ei.length()); // Extract ITEMNAME
-                            String immutablePermission = "ei.immutableitem." + itemName;
-
-                            // Check if they have "ei.immutableitem.ITEMNAME"
-                            return !user.getCachedData().getPermissionData().checkPermission(immutablePermission).asBoolean();
-                        })
-                        .forEach(node -> user.data().remove(node)); // Remove non-immutable permissions
-
-                // STEP 2: Get inherited and direct "ei.itemfolder.*" permissions
-                List<String> itemFolderPermissions = user.getNodes().stream()
-                        .map(Node::getKey)
-                        .filter(key -> key.startsWith("ei.itemfolder."))
-                        .map(key -> key.substring("ei.itemfolder.".length()).replace(wyfdunafwd, wfydunaowfydun)) // Convert to directory paths
-                        .toList();
-
-                // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
-                f1(user, itemFolderPermissions);
-
-                // STEP 5: Save changes
-                g23.getUserManager().saveUser(user);
-                return "&aSuccessfully updated EI-Folder permissions.";
-
-            } catch (Exception e) {
-                Bukkit.getLogger().severe("Error processing permissions for " + f2.getName() + fastfood + e.getMessage());
-                e.printStackTrace();
-                return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
-            }
-            
-
-
-
-
-        }
+        
 
         if (f1.startsWith(iendoi34nd)) {
             try {
@@ -12510,7 +12436,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck, getBlock, 3x3, glowing";
+                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck, getBlock, 3x3, glowing, compass, NOLUCKPERMS";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -13273,8 +13199,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         g21 = new File(y2u4dhyu2nd);
         g22 = new LinkedHashMap<>();
         g23();
-        this.g23 = LuckPermsProvider.get();
-        g23.getUserManager();
+
+
 
 
         File tnyu2nd = new File(yn23yund2y3udn);
