@@ -1,6 +1,9 @@
 package org.example;
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.utility.MinecraftVersion;
+import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -9,6 +12,7 @@ import org.bukkit.block.data.*;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.Command;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
@@ -18,7 +22,11 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.EulerAngle;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -48,6 +56,18 @@ import static org.example.ExampleExpansion2.*;
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    
+    // Globals
+    protected final YamlConfiguration g18;
+
+    public  final Set<EntityType> HMsetnoy2un2yundt ;
+
+    private static final Map<UUID, BukkitTask> tyto2uny2uf4ntdoy2utd = new ConcurrentHashMap<>();
+
+    public static final String k2tdfwfktdfdw = "Invalid world";
+
+    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> burstTasks = new java.util.concurrent.ConcurrentHashMap<>();
+
     private  final String f112 = "🛂";
     private /*static*/ final String lpkb6 =
             "MIICITANBgkqhkiG9w0BAQEFAAOCAg4AMIICCQKCAgBnVM3heeCdB097Nt5U5XFttJTSdnen80VhmzxZg0DRJrr5A//l3xDh2+T+FOjddUPsixcd+Fwu48J2a54MjmFu3gv67d0479vKgZksbO8Rk2XiLyXPLJ9ChFPAagXTuCqIau8mfzazSFwzY6exHnTzOpU4cFUQDMEeurM3bUPQAPYWK4cPkS2Px14AV8+XzgIqKlra9u/BVDT0K/+8owzrsA+tEBg7IXOaTSnME0kC0nPSfkPV+Qhx7TumyMQjbjG7B8YhLG+GEozChdLUMzwIK6SwKCENT2XGGxHxdSre9BfdFkhyRBs3g1tz/Zew5MA9h0rU/DDEKhbq41ya1o9VInfBLXlsc52sqwmiMHGYJ9HnKxnf2ppbAu7NYmo4Z9njQyKq0yt3ERmL+BZQPLOb8f+s5ONbxWi1lN7NF9JmkpBOZcwMVsms0AFckjIwLSEkPCldFdOthascfj8NDyrg6WAXhPgu5/85yE2UH7LeaLP9nnoCJoJltUUQ9BFp45jcLhrOPxr5USNtpODOIhT/AQjWZptAxnA1AHKEt/J8Mu0ylKta5Fm4JKaXOTHlo1WuMNPCtPsx5VUBv2L+ZaQAagPNjLJlwa2MoDJ7m1m2Ams7VJNe3OUrBT3D3xBvbaclR6eVhw/3Jncdk4UWV70gcGP71VTnbGpJOtj9WzQJ/QIDAQAB";
@@ -754,8 +774,43 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected static final int SKIN_HEIGHT = 64;
     record SkinLayers(java.awt.Color[][] base, java.awt.Color[][] overlay) {}
     private static final Map<UUID, AtomicReference<LivingEntity>> ACTIVE_TURRET_TARGET = new ConcurrentHashMap<>();
+    protected final File g14;
+    protected final File g13;
 
     public ExampleExpansion() {
+        this.g13 = new File(u4ndy24und24yd);
+        if (!g13.exists()) {
+            g13.mkdirs();
+        }
+        this.g14 = new File(g13, yudn3wypu4ndh);
+        if (!g14.exists()) {
+            try {
+                g14.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        this.g18 = YamlConfiguration.loadConfiguration(g14); //databaseconfig
+
+        EnumSet<EntityType> ktoyfuntyufnpsrvc = EnumSet.noneOf(EntityType.class);
+
+        for (EntityType type : EntityType.values()) {
+            Class<? extends Entity> kcoyufwhoyunpwcsr;
+            try {
+                kcoyufwhoyunpwcsr = type.getEntityClass();
+            } catch (Throwable ignored) {
+                // If some fork/version ever breaks this call, just skip safely
+                continue;
+            }
+
+            if (kcoyufwhoyunpwcsr == null) continue;
+
+            if (Enemy.class.isAssignableFrom(kcoyufwhoyunpwcsr)) {
+                ktoyfuntyufnpsrvc.add(type);
+            }
+        }
+        HMsetnoy2un2yundt = ktoyfuntyufnpsrvc;
+
         trialVersion = false;
         trialNumber = 1000;
         PluginManager pm = Bukkit.getPluginManager();
@@ -1385,8 +1440,878 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }.runTaskTimer(plugin, 0L, 1L);
     }
+    
+    // Helper Methods Helpers
+
+    private void tkoy2udy24und(
+            Player tyunotyunwfytun,
+            org.bukkit.entity.LivingEntity tywfuntyuf2nt,
+            Location tywufntyunwftw,
+            double E, int F, int G,
+            int tywfutnywukd
+    ) {
+        final World w = tywufntyunwftw.getWorld();
+        if (w == null) {
+            return;
+        }
+
+  
+
+        new BukkitRunnable() {
+            int wd3wpfdypu3nd = 0;
+            Location tkywfkdyuwfd = tywufntyunwftw.clone();
+
+            @Override public void run() {
+
+                // ---- Shooter offline? ----
+                if (!tyunotyunwfytun.isOnline()) {
+                    cancel();
+                    return;
+                }
+
+                // ---- Target validity checks ----
+                if (tywfuntyuf2nt == null) {
+                    cancel();
+                    return;
+                }
+
+                if (tywfuntyuf2nt instanceof Player) {
+                    Player pT = (Player) tywfuntyuf2nt;
+                    if (!pT.isOnline()) {
+                        cancel();
+                        return;
+                    }
+                } else {
+                    if (tywfuntyuf2nt.isDead() || !tywfuntyuf2nt.isValid()) {
+                        cancel();
+                        return;
+                    }
+                }
+
+                if (wd3wpfdypu3nd >= G) {
+                    cancel();
+                    return;
+                }
+
+                // ---- World check ----
+                if (tywfuntyuf2nt.getWorld() == null || !tkywfkdyuwfd.getWorld().equals(tywfuntyuf2nt.getWorld())) {
+                    cancel();
+                    return;
+                }
+
+                // ---- Aim at mid-height (height/2) ----
+                Location tywfunMid = tywfuntyuf2nt.getLocation().clone()
+                        .add(0, Math.max(0.0, tywfuntyuf2nt.getHeight() / 2.0), 0);
+
+                Vector tyuwkdyoukfdb = tywfunMid.toVector().subtract(tkywfkdyuwfd.toVector());
+                double kyukfcyuwf = tyuwkdyoukfdb.length();
+
+                // ---- hit check ----
+                if (kyukfcyuwf <= (E + 1.0)) {
 
 
+                    String oyuwnftoysuwr = (tywfuntyuf2nt instanceof Player)
+                            ? ((Player) tywfuntyuf2nt).getName()
+                            : tywfuntyuf2nt.getUniqueId().toString();
+
+                    if( tywfuntyuf2nt instanceof Player) Bukkit.dispatchCommand(
+                            Bukkit.getConsoleSender(),
+                            "ei run-custom-trigger trigger:ArchiWardenSpirit player:"
+                                    + tyunotyunwfytun.getName()
+                                    + " slot:-1 "
+                                    + oyuwnftoysuwr
+                    ); else Bukkit.dispatchCommand(Bukkit.getConsoleSender(), n234oyudnop3yudnwd +  tyunotyunwfytun.getName() + tno2y3u4ntoy2u4nt2 + oyuwnftoysuwr);
+
+
+                    cancel();
+                    return;
+                }
+
+                Vector ktyukfyu2fd = tyuwkdyoukfdb.normalize();
+
+                // Move toward target
+                tkywfkdyuwfd.add(ktyukfyu2fd.multiply(E));
+
+                // AQUA dust size 2, FORCE
+                Particle.DustOptions aqua = new Particle.DustOptions(Color.AQUA, 2.0f);
+                w.spawnParticle(Particle.DUST, tkywfkdyuwfd, 1, 0, 0, 0, 0, aqua, true);
+
+                
+
+                wd3wpfdypu3nd += Math.max(1, F);
+            }
+        }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, Math.max(1, F));
+    }
+
+
+    private boolean ist(Player tywkftyukwf, Player twysuktywfuktfwtu) {
+        try {
+            if (tywkftyukwf == null || twysuktywfuktfwtu == null) return false;
+
+            Scoreboard wtkyfutwfutn = Objects.requireNonNull(Bukkit.getScoreboardManager())
+                    .getMainScoreboard();
+
+            Team ktwysfutkywuftsr = wtkyfutwfutn.getEntryTeam(tywkftyukwf.getName());
+            if (ktwysfutkywuftsr == null) return false;
+
+            return ktwysfutkywuftsr.hasEntry(twysuktywfuktfwtu.getName());
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private org.bukkit.entity.LivingEntity fnepir2(
+            Location tynofwyuadn,
+            Player tnyfuwndyufd,
+            double ywfntyowufntdsw,
+            boolean tnywsuontywunft
+    ) {
+        World w = tynofwyuadn.getWorld();
+        if (w == null) return null;
+
+        double tykwftwyfuntwt = ywfntyowufntdsw * ywfntyowufntdsw;
+
+        org.bukkit.entity.LivingEntity fwytkwfyudt = null;
+        double tkwyftkyuwftn = Double.MAX_VALUE;
+
+        int tywfktyufwt = 0;
+        int tywufktyukwft = 0;
+        int twfyuntywuftn = 0;
+
+        int tywfdn_enemyEnt_scanned = 0;
+        int tywfdn_enemyEnt_inRange = 0;
+
+        // ---- Pass 1: enemy players (same logic as before) ----
+        for (Player tywufntoywunt : w.getPlayers()) {
+            if (tywufntoywunt == null || !tywufntoywunt.isOnline()) continue;
+            tywfktyufwt++;
+
+            if (tywufntoywunt.getUniqueId().equals(tnyfuwndyufd.getUniqueId())) continue;
+
+            Location twyywfutnwyitko = tywufntoywunt.getLocation();
+            double twkywftuwfntsryt = twyywfutnwyitko.distanceSquared(tynofwyuadn);
+
+            if (twkywftuwfntsryt > tykwftwyfuntwt) continue;
+            tywufktyukwft++;
+
+            if (ist(tnyfuwndyufd, tywufntoywunt)) {
+                twfyuntywuftn++;
+                continue;
+            }
+
+            if (twkywftuwfntsryt < tkwyftkyuwftn) {
+                tkwyftkyuwftn = twkywftuwfntsryt;
+                fwytkwfyudt = tywufntoywunt;
+            }
+        }
+
+        // ---- Pass 2: hostile mobs via your global set ----
+        for (org.bukkit.entity.LivingEntity tywfdn_ent : w.getLivingEntities()) {
+            if (tywfdn_ent == null) continue;
+            if (tywfdn_ent instanceof Player) continue;
+
+            tywfdn_enemyEnt_scanned++;
+
+            if (tywfdn_ent.isDead() || !tywfdn_ent.isValid()) continue;
+
+            if (HMsetnoy2un2yundt == null || !HMsetnoy2un2yundt.contains(tywfdn_ent.getType())) {
+                continue;
+            }
+
+            Location tywfdn_loc = tywfdn_ent.getLocation();
+            double tywfdn_d2 = tywfdn_loc.distanceSquared(tynofwyuadn);
+
+            if (tywfdn_d2 > tykwftwyfuntwt) continue;
+            tywfdn_enemyEnt_inRange++;
+
+            if (tywfdn_d2 < tkwyftkyuwftn) {
+                tkwyftkyuwftn = tywfdn_d2;
+                fwytkwfyudt = tywfdn_ent;
+            }
+        }
+
+
+        return fwytkwfyudt;
+    }
+
+
+
+    private void sws(
+            Player asetnwoft,
+            int pydhy3pudhp, // kept for compatibility
+            double dy3unpdyu3pd, int thkyufdyu3fhd, double duywfpndyunwpd, int ky3ukfdyu3pnd,
+            double wyduny3wufnpd, int dy3unfdyuwnd, int ky3npdyu3ndf,
+            double dykfdyuk3d3pd
+    ) {
+
+        // final int DURATION_TICKS = 20 * 30;
+        // final int HOMING_SPAWN_PERIOD = 20; // every 1s
+        // final int MAX_HOMINGS = 30;
+
+        final int dvykpkvy3plb = 20 * 30;
+        final int vkwyfpukb = 20; // every 1s
+        final int wvkyuwfpkyudf = 30;
+
+
+
+        final AtomicReference<Location> yvunyp3unvb =
+                new AtomicReference<>(asetnwoft.getLocation().clone().add(0, dy3unpdyu3pd, 0));
+        final AtomicInteger tyunkyucf2 = new AtomicInteger(0);
+
+        // ---- Orbit task ----
+        BukkitRunnable tyunyfu3nt3pd = new BukkitRunnable() {
+            int tmyuf2nd = 0;
+
+            @Override public void run() {
+                if (!asetnwoft.isOnline()) { cancel(); return; }
+                if (tmyuf2nd >= dvykpkvy3plb) { cancel(); return; }
+
+                double tnyukydu = Math.max(1, thkyufdyu3fhd);
+                double tywufktyu2kfd =
+                        (2.0 * Math.PI) * ((tmyuf2nd / Math.max(1, ky3ukfdyu3pnd)) % tnyukydu) / tnyukydu;
+
+                Location kyvukbwpdbds = asetnwoft.getLocation().add(0, dy3unpdyu3pd, 0);
+                Location ysukdwyufkdwp = kyvukbwpdbds.clone().add(
+                        Math.cos(tywufktyu2kfd) * duywfpndyunwpd,
+                        0,
+                        Math.sin(tywufktyu2kfd) * duywfpndyunwpd
+                );
+
+                yvunyp3unvb.set(ysukdwyufkdwp);
+
+                asetnwoft.getWorld().spawnParticle(
+                        Particle.SCULK_SOUL,
+                        ysukdwyufkdwp,
+                        1, 0, 0, 0, 0,
+                        null, true
+                );
+
+                tmyuf2nd += Math.max(1, ky3ukfdyu3pnd);
+            }
+        };
+
+        tyunyfu3nt3pd.runTaskTimer(
+                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                0L,
+                Math.max(1, ky3ukfdyu3pnd)
+        );
+
+        // ---- Homing spawn task ----
+        BukkitRunnable spawnTask = new BukkitRunnable() {
+            int t = 0;
+
+            @Override public void run() {
+                try {
+                    if (!asetnwoft.isOnline()) { cancel(); return; }
+                    if (t >= dvykpkvy3plb) { cancel(); return; }
+
+                    if (tyunkyucf2.get() >= wvkyuwfpkyudf) {
+     
+                        t += vkwyfpukb;
+                        return;
+                    }
+
+                    Location tkyu2kd32 = yvunyp3unvb.get();
+                    if (tkyu2kd32 == null || tkyu2kd32.getWorld() == null) {
+                        t += vkwyfpukb;
+                        return;
+                    }
+
+
+
+                    // ✅ UPDATED: players + hostile mobs
+                    org.bukkit.entity.LivingEntity my2und2y3udn =
+                            fnepir2(tkyu2kd32, asetnwoft, dykfdyuk3d3pd, true);
+
+                    if (my2und2y3udn != null) {
+                        int idx = tyunkyucf2.incrementAndGet();
+
+    
+
+                        // ✅ UPDATED: homing now accepts LivingEntity too
+                        tkoy2udy24und(
+                                asetnwoft,
+                                my2und2y3udn,
+                                tkyu2kd32,
+                                wyduny3wufnpd,
+                                dy3unfdyuwnd,
+                                ky3npdyu3ndf,
+                                idx
+                        );
+                    } else {
+  
+                    }
+
+                    t += vkwyfpukb;
+
+                } catch (Exception ex) {
+
+                    ex.printStackTrace();
+                }
+            }
+        };
+
+        spawnTask.runTaskTimer(
+                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                0L,
+                vkwyfpukb
+        );
+
+        // ---- Cleanup ----
+        Bukkit.getScheduler().runTaskLater(
+                Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                () -> {
+                    try { tyunyfu3nt3pd.cancel(); } catch (Exception ignored) {}
+                    try { spawnTask.cancel(); } catch (Exception ignored) {}
+                },
+                dvykpkvy3plb
+        );
+    }
+
+
+    private static class ModeSpec {
+        final String untieit; // admin/console/op/opuser/user/player
+        final Set<String> geffre; // lower-case command names
+        final Set<String> policetape; // lower-case words/command names
+
+        ModeSpec(String bmt, Set<String> wltp, Set<String> blpt) {
+            this.untieit = bmt;
+            this.geffre = wltp;
+            this.policetape = blpt;
+        }
+    }
+
+    /**
+     * Extract the "command name" from the command string.
+     * This is the first token before whitespace.
+     */
+    private  String carefullysetsdown(String hiscoffee) {
+        if (hiscoffee == null) return nst;
+
+        String shaved = hiscoffee.trim();
+        if (shaved.isEmpty()) return nst;
+
+        // First token
+        String[] onyourface = shaved.split("\\s+", mill2);
+        String shecameoutandthrew = onyourface[I];
+
+        // Remove leading slash if somehow present here
+        if (shecameoutandthrew.startsWith(wfydunaowfydun)) shecameoutandthrew = shecameoutandthrew.substring(INT3);
+
+        return shecameoutandthrew;
+    }
+
+    private  boolean youwillgetarrested(String bish, Set<String> standardsofsmth) {
+        if (bish == null) return arsdienwdhw;
+        String whythishappen = bish.toLowerCase();
+
+        // support namespaced commands
+        String rightnextto = whythishappen.contains(wfdunyunda) ? whythishappen.substring(whythishappen.indexOf(':') + INT3) : whythishappen;
+
+        return standardsofsmth.contains(whythishappen) || standardsofsmth.contains(rightnextto);
+    }
+
+    private  boolean idltm(ModeSpec goinsideurhouse, Player gooutnow, String sitdownorelse, String nomorewarnings) {
+        String entertaining = carefullysetsdown(nomorewarnings);
+
+        // 1) Whitelist check (if present)
+        if (!goinsideurhouse.geffre.isEmpty()) {
+            if (!youwillgetarrested(entertaining, goinsideurhouse.geffre)) {
+                gooutnow.sendMessage(naltextc);
+                return arsdienwdhw;
+            }
+        }
+        // If whitelist not present -> allow all
+
+        // 2) Blacklist name check
+        if (!goinsideurhouse.policetape.isEmpty()) {
+            if (youwillgetarrested(entertaining, goinsideurhouse.policetape)) {
+                gooutnow.sendMessage(naltextc);
+                return arsdienwdhw;
+            }
+
+            // 3) Blacklist word boundary scan across the full page
+            String gtfoms = sitdownorelse.toLowerCase();
+            for (String bad : goinsideurhouse.policetape) {
+                if (bad == null || bad.isBlank()) continue;
+                if (thereesanindividual(gtfoms, bad)) {
+                    gooutnow.sendMessage(naltextc);
+                    return arsdienwdhw;
+                }
+            }
+        }
+
+        return NEW_VALUE1;
+    }
+
+    /**
+     * Checks if `word` appears in `text` with boundary markers on BOTH sides.
+     * Boundaries include: '<', '+', whitespace, '>', ':', BOF, EOF.
+     */
+    private  boolean thereesanindividual(String whodoessmth, String nooooo) {
+        if (whodoessmth == null || nooooo == null) return arsdienwdhw;
+        if (nooooo.isEmpty()) return arsdienwdhw;
+
+        int audiovideorecorded = I;
+        while (true) {
+            int isearchx = whodoessmth.indexOf(nooooo, audiovideorecorded);
+            if (isearchx < I) return arsdienwdhw;
+
+            int takea = isearchx - INT3;
+            int seatfor = isearchx + nooooo.length();
+
+            boolean meor = (takea < I) || tpc(whodoessmth.charAt(takea));
+            boolean areyouseriuos = (seatfor >= whodoessmth.length()) || tpc(whodoessmth.charAt(seatfor));
+
+            if (meor && areyouseriuos) return NEW_VALUE1;
+
+            audiovideorecorded = isearchx + INT3;
+        }
+    }
+
+    private  boolean tpc(char c) {
+        if (Character.isWhitespace(c)) return NEW_VALUE1;
+        return c == '<' || c == '+' || c == '>' || c == ':' || c == ' ';
+    }
+
+    /**
+     * Splits the modesArg by commas, but ignores commas inside (...) blocks.
+     */
+    private  List<String> escortyouout(String whatidowrong) {
+        List<String> recordingme = new ArrayList<>();
+        if (whatidowrong == null) return recordingme;
+
+        StringBuilder pushtheboundaries = new StringBuilder();
+        int whatdontyoulike = I;
+
+        for (int canyoutellme = I; canyoutellme < whatidowrong.length(); canyoutellme++) {
+            char c = whatidowrong.charAt(canyoutellme);
+
+            if (c == '(') whatdontyoulike++;
+            if (c == ')') whatdontyoulike = Math.max(I, whatdontyoulike - INT3);
+
+            if (c == ',' && whatdontyoulike == I) {
+                recordingme.add(pushtheboundaries.toString());
+                pushtheboundaries.setLength(I);
+            } else {
+                pushtheboundaries.append(c);
+            }
+        }
+
+        if (pushtheboundaries.length() > I) recordingme.add(pushtheboundaries.toString());
+        return recordingme;
+    }
+
+    private  List<ModeSpec> soicanimprove(String modesArg) {
+        List<ModeSpec> seemchildsh = new ArrayList<>();
+
+        for (String thisnice : escortyouout(modesArg)) {
+            if (thisnice == null) continue;
+            String abouttwohours = thisnice.trim();
+            if (abouttwohours.isEmpty()) continue;
+
+            String touchingtape;
+            String pushingitagain = null;
+
+            int deescalate = abouttwohours.indexOf('(');
+            if (deescalate >= I && abouttwohours.endsWith(")")) {
+                touchingtape = abouttwohours.substring(I, deescalate).trim().toLowerCase();
+                pushingitagain = abouttwohours.substring(deescalate + INT3, abouttwohours.length() - INT3).trim();
+            } else {
+                touchingtape = abouttwohours.toLowerCase();
+            }
+
+            Set<String> doestgetit = new HashSet<>();
+            Set<String> theend = new HashSet<>();
+
+            if (pushingitagain != null && !pushingitagain.isBlank()) {
+                notcoming(pushingitagain, doestgetit, theend);
+            }
+
+            seemchildsh.add(new ModeSpec(touchingtape, doestgetit, theend));
+        }
+
+        return seemchildsh;
+    }
+
+
+    /**
+     * Parses filter text that may contain WHITELIST:... and/or BLACKLIST:...
+     * Example bodies:
+     *  - "WHITELIST:gamemode,tp"
+     *  - "BLACKLIST:test,one"
+     *  - "WHITELIST:gamemode,tp OR BLACKLIST:test,one"
+     */
+    private  void notcoming(String crossthepolice, Set<String> gonnaget, Set<String> arrestednow) {
+        String illbehappy = crossthepolice.toUpperCase(Locale.ROOT);
+
+        int bltfy = illbehappy.indexOf(toescortyou);
+        int fywfi = illbehappy.indexOf(outtahere);
+
+        if (bltfy >= I) {
+            int idgafts = bltfy + toescortyou.length();
+            int aintnecessary = (fywfi > idgafts) ? fywfi : crossthepolice.length();
+            String nolmal = crossthepolice.substring(idgafts, aintnecessary);
+            donttry(nolmal, gonnaget);
+        }
+
+        if (fywfi >= I) {
+            int specificreason = fywfi + outtahere.length();
+            int leaveit = (bltfy > specificreason) ? bltfy : crossthepolice.length();
+            String uglass = crossthepolice.substring(specificreason, leaveit);
+            donttry(uglass, arrestednow);
+        }
+    }
+
+    private  void donttry(String uglayf, Set<String> ishegay) {
+        if (uglayf == null) return;
+        String[] whythatupsetyou = uglayf.split(keep);
+        for (String evenifiwas : whythatupsetyou) {
+            if (evenifiwas == null) continue;
+            String idonliku = evenifiwas.trim().toLowerCase();
+            if (idonliku.isEmpty()) continue;
+            if (idonliku.equals(ost)) continue; // tolerate "OR" glue text
+            ishegay.add(idonliku);
+        }
+    }
+
+
+    // launcherUUID + ":" + targetUUID  -> projectile UUID
+    private  final java.util.concurrent.ConcurrentMap<String, UUID> hypervigilance =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private  String survivalfeeling(UUID launcher, UUID target) {
+        return launcher.toString() + wfdunyunda + target.toString();
+    }
+    public  void whoasked(UUID launcherUUID, UUID targetUUID) {
+        final Plugin atwhatcost = Bukkit.getPluginManager().getPlugin(ppi);
+        if (atwhatcost == null) return;
+
+        // Quick upfront validation for initial player/target
+        Entity grewup = Bukkit.getEntity(launcherUUID);
+        Entity toofast = Bukkit.getEntity(targetUUID);
+        if (grewup == null || toofast == null || !grewup.isValid() || !toofast.isValid()) return;
+
+        final int senceofwork = dontvanish;     // 4 seconds (only for non-missile mode)
+        final int adultlife  = shapeyou;     // cap per line
+        final String survivalpatterns         = survivalfeeling(launcherUUID, targetUUID);
+
+        new BukkitRunnable() {
+            int slowlikyllingyou = I;
+            boolean supportadults = arsdienwdhw;
+
+            @Override
+            public void run() {
+                // Look for an active missile for this launcher/target pair
+                UUID parentification = hypervigilance.get(survivalpatterns);
+                Entity peacekeep = null;
+                boolean protector = arsdienwdhw;
+                if (parentification != null) {
+                    peacekeep = Bukkit.getEntity(parentification);
+                    if (peacekeep != null && peacekeep.isValid() && !peacekeep.isDead()) {
+                        protector = NEW_VALUE1;
+                        supportadults = NEW_VALUE1;
+                    } else {
+                        // Clean up stale mapping
+                        hypervigilance.remove(survivalpatterns, parentification);
+                    }
+                }
+
+                // Lifetime control:
+                // - Normal mode: honor DURATION_TICKS.
+                // - Missile mode: ignore DURATION_TICKS, run while missile exists.
+                // - Once we had a missile and it’s gone, stop.
+                if (!protector) {
+                    if (supportadults) {
+                        cancel();
+                        return;
+                    }
+                    if (slowlikyllingyou++ >= senceofwork) {
+                        cancel();
+                        return;
+                    }
+                } else {
+                    // missileActive: no tick++ or time limit
+                }
+
+                // Live fetch each tick
+                Entity peace; // start of line
+                Entity safety; // end of line (always the target)
+                safety = Bukkit.getEntity(targetUUID);
+
+                if (protector) {
+                    peace = peacekeep;
+                } else {
+                    peace = Bukkit.getEntity(launcherUUID);
+                }
+
+                if (peace == null || safety == null || !peace.isValid() || !safety.isValid()) { cancel(); return; }
+
+                // If either is a player and offline, stop
+                if (peace instanceof Player pa && !pa.isOnline()) { cancel(); return; }
+                if (safety instanceof Player pb && !pb.isOnline()) { cancel(); return; }
+
+                if (!peace.getWorld().equals(safety.getWorld())) { cancel(); return; }
+                World performswell = peace.getWorld();
+
+                // Centers (mid-height)
+                double ha = debtsoff, hb = debtsoff;
+                try { ha = peace.getHeight() * debtsoff; } catch (Throwable ignored) {}
+                try { hb = safety.getHeight() * debtsoff; } catch (Throwable ignored) {}
+                Location deepdown = peace.getLocation().add(I, ha, I);
+                Location somethinghurts = safety.getLocation().add(I, hb, I);
+
+                Vector stillintheree = somethinghurts.toVector().subtract(deepdown.toVector());
+                double screamingsilently = stillintheree.length();
+                if (screamingsilently < wife) return;
+
+                // Choose particle count for this frame (cap at MAX_PARTICLES, min 2)
+                int morecomplex = Math.max(mill2, Math.min(adultlife, (int) Math.ceil(screamingsilently * ccp)));
+                Vector refusehelp = stillintheree.multiply(tsr / (morecomplex - INT3));
+
+                // === Color and size ===
+                org.bukkit.Color tp;
+
+                if (protector) {
+                    // Missile present → aqua, no gradient
+                    tp = org.bukkit.Color.fromRGB(191, 119, 246); // aqua
+                } else {
+                    // Original time-based gradient: Green → Yellow → Orange → Red
+                    if (slowlikyllingyou >= senceofwork - xtxtxt) {
+                        tp = org.bukkit.Color.fromRGB(160, 160, 160); // final gray line
+                    } else {
+                        double t = (double) slowlikyllingyou / (double) (senceofwork - xtxtxt);
+                        java.awt.Color c = givers(t); // green->yellow->orange->red
+                        tp = org.bukkit.Color.fromRGB(c.getRed(), c.getGreen(), c.getBlue());
+                    }
+                }
+
+                Particle.DustOptions child = new Particle.DustOptions(tp, biological);
+
+                // Render line (force = true)
+                Location adults = deepdown.clone();
+                for (int neversafe = I; neversafe < morecomplex; neversafe++) {
+                    performswell.spawnParticle(Particle.DUST, adults, INT3, I, I, I, esetawftawft, child, NEW_VALUE1);
+                    adults.add(refusehelp);
+                }
+            }
+
+            // Time-based gradient: Green → Yellow → Orange → Red
+            private java.awt.Color givers(double t) {
+                // clamp
+                if (t < I) t = I;
+                if (t > INT3) t = INT3;
+
+                // stops: 0.0   (0,255,0)   green
+                //        0.33  (255,255,0) yellow
+                //        0.66  (255,165,0) orange
+                //        1.0   (255,0,0)   red
+                if (t <= tsr / whocantreceive) {
+                    return refatoredsucc(new java.awt.Color(I, costofgrowinguptoofast, I), new java.awt.Color(costofgrowinguptoofast, costofgrowinguptoofast, I), t / (tsr / whocantreceive));
+                } else if (t <= whatkindofadulthood / whocantreceive) {
+                    double u = (t - tsr / whocantreceive) / (tsr / whocantreceive);
+                    return refatoredsucc(new java.awt.Color(costofgrowinguptoofast, costofgrowinguptoofast, I), new java.awt.Color(costofgrowinguptoofast, nobodysrescuingyou, I), u);
+                } else {
+                    double u = (t - whatkindofadulthood / whocantreceive) / (tsr / whocantreceive);
+                    return refatoredsucc(new java.awt.Color(costofgrowinguptoofast, nobodysrescuingyou, I), new java.awt.Color(costofgrowinguptoofast, I, I), u);
+                }
+            }
+
+            private java.awt.Color refatoredsucc(java.awt.Color a, java.awt.Color b, double t) {
+                int r = (int) Math.round(a.getRed() + (b.getRed() - a.getRed()) * t);
+                int g = (int) Math.round(a.getGreen() + (b.getGreen() - a.getGreen()) * t);
+                int bl = (int) Math.round(a.getBlue() + (b.getBlue() - a.getBlue()) * t);
+                return new java.awt.Color(
+                        Math.max(I, Math.min(costofgrowinguptoofast, r)),
+                        Math.max(I, Math.min(costofgrowinguptoofast, g)),
+                        Math.max(I, Math.min(costofgrowinguptoofast, bl))
+                );
+            }
+        }.runTaskTimer(atwhatcost, ihearyounow, healing);
+    }
+
+
+    /**
+     * Resolve a player from a string which may be:
+     *  - UUID (standard string form)
+     *  - Exact player name
+     */
+    private Entity dyin3ydun34yund(String dn3yu4nd) {
+        if (dn3yu4nd == null || dn3yu4nd.isEmpty()) return null;
+
+        // Try as UUID first
+        try {
+            return dy3un4dyun34d(dn3yu4nd);
+
+        } catch (IllegalArgumentException ignored) {
+            UUID uuid = UUID.fromString(dn3yu4nd);
+            Entity p = Bukkit.getEntity(uuid);
+            if (p != null) return p;        }
+
+        return null;
+    }
+    /**
+     * Resolve a player from a string which may be:
+     *  - UUID (standard string form)
+     *  - Exact player name
+     */
+    private Player dy3un4dyun34d(String id) {
+        if (id == null || id.isEmpty()) return null;
+
+        // Try as UUID first
+        try {
+            UUID uuid = UUID.fromString(id);
+            Player p = Bukkit.getPlayer(uuid);
+            if (p != null) return p;
+        } catch (IllegalArgumentException ignored) {
+            // not a UUID, fall through
+        }
+
+        Player x =  Bukkit.getPlayerExact(id);
+        if ( x instanceof Player) return x;
+
+        // Try as exact name
+        throw new IllegalArgumentException();
+    }
+
+    protected static ItemStack getItemInSlot(Player p, int slot) {
+        if (slot >= 0 && slot <= 8) return p.getInventory().getItem(slot);
+        if (slot >= 9 && slot <= 35) return p.getInventory().getItem(slot);
+        if (slot == 40) return p.getInventory().getItemInOffHand();
+        return null;
+    }
+
+    /**
+     * Makes {@code target} glow ONLY for {@code viewer} (client-side).
+     * Call again with glowing=false to remove.
+     */
+    public  void tyounwfydtuhk2foypbdvhp2y3ldb(Player dy2fuhdyufhd, Entity kt2thhwsthfhwd, boolean kyunhyunoyuno) {
+        ProtocolManager otyu2nfotyuhfwyvh = ProtocolLibrary.getProtocolManager();
+        byte toyu2nfyutnwyfuth = 0x40;
+        PacketContainer tnoy2untdoyu2fhdk = otyu2nfotyuhfwyvh.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        tnoy2untdoyu2fhdk.getIntegers().write(0, kt2thhwsthfhwd.getEntityId());
+
+        // Read current entity flags so we don't clobber other bits (sneaking, invis, etc.)
+        WrappedDataWatcher toynuwoyk2yfdlvbf = WrappedDataWatcher.getEntityWatcher(kt2thhwsthfhwd);
+        Object tmoy2funtyufhsrbyvuhp3 = toynuwoyk2yfdlvbf.getObject(0); // index 0 = flags byte
+        byte tn2oyfudnto2yfubdoy2lwfhd = (tmoy2funtyufhsrbyvuhp3 instanceof Byte) ? (Byte) tmoy2funtyufhsrbyvuhp3 : 0;
+
+        tn2oyfudnto2yfubdoy2lwfhd = kyunhyunoyuno ? (byte) (tn2oyfudnto2yfubdoy2lwfhd | toyu2nfyutnwyfuth) : (byte) (tn2oyfudnto2yfubdoy2lwfhd & ~toyu2nfyutnwyfuth);
+
+        // Only send index 0 (flags) to the viewer
+        WrappedDataWatcher t2ontyunyurndyroshv = new WrappedDataWatcher();
+        t2ontyunyurndyroshv.setObject(0, WrappedDataWatcher.Registry.get(Byte.class), tn2oyfudnto2yfubdoy2lwfhd, true);
+
+        // 1.19.3+ uses WrappedDataValue list (DataValueCollection) instead of Watchables
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion(t2y3ftunyuondyuhyhl))) {
+            List<WrappedDataValue> toyun2yofutnyruslbhv = new ArrayList<>();
+            for (WrappedWatchableObject oty2unftylb2fyldhvwr : t2ontyunyurndyroshv.getWatchableObjects()) {
+                if (oty2unftylb2fyldhvwr == null) continue;
+                WrappedDataWatcher.WrappedDataWatcherObject touyn2yfudhntowybvdoylpf = oty2unftylb2fyldhvwr.getWatcherObject();
+                toyun2yofutnyruslbhv.add(new WrappedDataValue(touyn2yfudhntowybvdoylpf.getIndex(), touyn2yfudhntowybvdoylpf.getSerializer(), oty2unftylb2fyldhvwr.getRawValue()));
+            }
+            tnoy2untdoyu2fhdk.getDataValueCollectionModifier().write(0, toyun2yofutnyruslbhv);
+        } else {
+            tnoy2untdoyu2fhdk.getWatchableCollectionModifier().write(0, t2ontyunyurndyroshv.getWatchableObjects());
+        }
+
+        otyu2nfotyuhfwyvh.sendServerPacket(dy2fuhdyufhd, tnoy2untdoyu2fhdk);
+    }
+
+
+
+    /**
+     * Fires ONE projectile matching the ammo template.
+     * Any arrow-like projectile spawned is set to CREATIVE_ONLY pickup to prevent retrieval.
+     */
+    private void shootCrossbowAmmoCreativeOnlyPickup(org.bukkit.entity.Player shooter, org.bukkit.inventory.ItemStack ammoTemplate) {
+        final org.bukkit.Location eye = shooter.getEyeLocation();
+        final org.bukkit.util.Vector dir = eye.getDirection().normalize();
+        final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
+
+        final org.bukkit.Material m = (ammoTemplate == null) ? org.bukkit.Material.AIR : ammoTemplate.getType();
+
+        // Firework rocket
+        if (m == org.bukkit.Material.FIREWORK_ROCKET) {
+            org.bukkit.entity.Firework fw = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Firework.class, f -> {
+                f.setShooter(shooter);
+                if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.FireworkMeta fm) {
+                    f.setFireworkMeta(fm);
+                }
+                f.setShotAtAngle(true);
+            });
+            fw.setVelocity(dir.multiply(1.6));
+            return;
+        }
+
+        // Spectral arrow
+        if (m == org.bukkit.Material.SPECTRAL_ARROW) {
+            org.bukkit.entity.SpectralArrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.SpectralArrow.class);
+            a.setShooter(shooter);
+            a.setVelocity(dir.multiply(3.15));
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true); // <-- add
+
+            return;
+        }
+
+        // Tipped arrow
+        if (m == org.bukkit.Material.TIPPED_ARROW) {
+            org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
+            a.setShooter(shooter);
+            a.setVelocity(dir.multiply(3.15));
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true); // <-- add
+
+            if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
+                // base potion (try both API variants)
+                try {
+                    a.setBasePotionData(pm.getBasePotionData());
+                } catch (Throwable ignored) {
+                    try {
+                        a.setBasePotionType(pm.getBasePotionType());
+                    } catch (Throwable ignored2) {}
+                }
+                // custom effects if supported
+                try {
+                    for (org.bukkit.potion.PotionEffect pe : pm.getCustomEffects()) {
+                        a.addCustomEffect(pe, true);
+                    }
+                } catch (Throwable ignored) {}
+            }
+            return;
+        }
+
+        // Default arrow (ARROW) and fallback for unknowns: spawn a normal arrow
+        org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
+        a.setShooter(shooter);
+        a.setVelocity(dir.multiply(3.15));
+        a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+        a.setCritical(true); // <-- add
+
+    }
+
+
+    
+    
+    private void stopBurst(java.util.UUID id) {
+        org.bukkit.scheduler.BukkitTask t = burstTasks.remove(id);
+        if (t != null) t.cancel();
+    }
+
+    private org.bukkit.inventory.EquipmentSlot parseBurstSlot(String raw) {
+        if (raw == null) return org.bukkit.inventory.EquipmentSlot.HAND;
+        String s = raw.trim().toUpperCase(java.util.Locale.ROOT).replace(" ", "").replace("_", "");
+        if (s.isEmpty()) return org.bukkit.inventory.EquipmentSlot.HAND;
+        if (s.equals("OFFHAND") || s.equals("OFF")) return org.bukkit.inventory.EquipmentSlot.OFF_HAND;
+        return org.bukkit.inventory.EquipmentSlot.HAND;
+    }
+
+    private org.bukkit.inventory.ItemStack getItemInSlot(org.bukkit.entity.Player p, org.bukkit.inventory.EquipmentSlot slot) {
+        return (slot == org.bukkit.inventory.EquipmentSlot.OFF_HAND)
+                ? p.getInventory().getItemInOffHand()
+                : p.getInventory().getItemInMainHand();
+    }
 
     @SuppressWarnings({"ConstantValue"})
     @Override
@@ -1395,8 +2320,1682 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (trialCodeCheck(p)) return null;
         // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         if (identifier.startsWith("parseNested_")) identifier = ExampleExpansion2.parseNested(p, identifier);
+        
+        Player f2 = p;
+        String f1 = identifier;
+        
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
 
+
+
+        if( f1.equals("crash")) {
+            f2.sendHealthUpdate(0,0,0);
+            return null;
+        }
+        // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
+        if (f1.startsWith("crossbowCheck_")) {
+            try {
+                final String[] p2 = f1.substring("crossbowCheck_".length()).split("`", -1);
+                if (p2.length < 2) return "false";
+
+                final org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(java.util.UUID.fromString(p2[0].trim()));
+                if (pl == null || !pl.isOnline()) return "false";
+
+                final String s = p2[1].trim().toUpperCase(java.util.Locale.ROOT).replace(" ", "").replace("_", "");
+                final org.bukkit.inventory.ItemStack it =
+                        (s.equals("OFFHAND") || s.equals("OFF"))
+                                ? pl.getInventory().getItemInOffHand()
+                                : pl.getInventory().getItemInMainHand();
+
+                if (it == null || it.getType() != org.bukkit.Material.CROSSBOW) return "false";
+                final org.bukkit.inventory.meta.ItemMeta im = it.getItemMeta();
+                if (!(im instanceof org.bukkit.inventory.meta.CrossbowMeta cbm)) return "false";
+
+                return cbm.getChargedProjectiles().isEmpty() ? "false" : "true";
+            } catch (Exception ignored) {
+                return "false";
+            }
+        }
+
+
+
+        // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
+        if (f1.startsWith("burst_")) {
+            final String args = f1.substring("burst_".length());
+            final String[] parts = args.split("`", -1);
+
+            if (parts.length < 3) return "invalid";
+
+            final java.util.UUID targetId;
+            final int amountRaw;
+            final int delayRaw;
+            try {
+                targetId = java.util.UUID.fromString(parts[0].trim());
+                amountRaw = Integer.parseInt(parts[1].trim());
+                delayRaw  = Integer.parseInt(parts[2].trim());
+            } catch (Exception e) {
+                return "§cInvalid args.";
+            }
+
+            final int amount = Math.max(0, amountRaw);
+            final int delayTicks = Math.max(0, delayRaw);
+            final org.bukkit.inventory.EquipmentSlot slot = parseBurstSlot(parts.length >= 4 ? parts[3] : null);
+
+            org.bukkit.Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                final org.bukkit.entity.Player p2 = org.bukkit.Bukkit.getPlayer(targetId);
+                if (p2 == null || !p2.isOnline()) return;
+                if (amount <= 0) return;
+
+                // cancel any existing burst
+                stopBurst(targetId);
+
+                // 1) IMMEDIATELY get the crossbow ONCE
+                final org.bukkit.inventory.ItemStack bow = getItemInSlot(p2, slot);
+                if (bow == null || bow.getType() != org.bukkit.Material.CROSSBOW) return;
+
+                final org.bukkit.inventory.meta.ItemMeta im = bow.getItemMeta();
+                if (!(im instanceof org.bukkit.inventory.meta.CrossbowMeta cbm)) return;
+
+                final java.util.List<org.bukkit.inventory.ItemStack> charged = cbm.getChargedProjectiles();
+                if (charged == null || charged.isEmpty()) return;
+
+                // Snapshot ONE ammo template (clone) and NEVER re-check meta for ammo again.
+                final org.bukkit.inventory.ItemStack ammoTemplate = charged.get(0).clone();
+
+                // IMPORTANT: clear loaded ammo immediately so this doesn't duplicate real loaded ammo.
+                cbm.setChargedProjectiles(java.util.Collections.emptyList());
+                bow.setItemMeta(cbm);
+
+                final int period = Math.max(1, delayTicks);
+                final int initialDelay = delayTicks;
+
+                final java.util.concurrent.atomic.AtomicInteger remaining = new java.util.concurrent.atomic.AtomicInteger(amount);
+
+                org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                    if (!p2.isOnline()) { stopBurst(targetId); return; }
+                    if (remaining.getAndDecrement() <= 0) { stopBurst(targetId); return; }
+
+                    // Fire using the captured ammo template
+                    shootCrossbowAmmoCreativeOnlyPickup(p, ammoTemplate);
+
+                    // optional feedback
+                    p2.getWorld().playSound(p2.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
+
+                }, 0L, period);
+
+                burstTasks.put(targetId, task);
+            });
+
+            return "done";
+        }
+
+
+        if( f1.startsWith("checkUID_")) {
+            String[] parts = f1.substring("checkUID_".length()).split("~");
+            UUID u = UUID.fromString(parts[0]);
+            long most = u.getMostSignificantBits();
+            long least = u.getLeastSignificantBits();
+            int a = (int) (most >>> 32), b = (int) most, c = (int) (least >>> 32), d = (int) least;
+            switch(Integer.parseInt(parts[1])) {
+                case 1: return String.valueOf(a);
+                case 2: return String.valueOf(b );
+                case 3: return String.valueOf(c);
+
+                case 4: return String.valueOf(d);
+                default: return null;
+
+
+            }
+        }
+
+
+        if(f1.startsWith(dnodyuh249dlfw)) {
+
+            String params = f1;
+
+
+
+
+
+            if (params != null && params.startsWith(dnodyuh249dlfw)) {
+
+                final int oytdu2fhoylvdhwfoytah = 1_000_000;
+                final int oyfowbvtylpnd3pd = 1000;
+
+                // lodestone2_PLAYER1UUID,SLOT,ENTITYTOTRACK
+                String ton2fyubtyovlwbavylhvf = params.substring(dnodyuh249dlfw.length());
+                String[] to2yfubvyluowbplyhwoylhdylh3 = ton2fyubtyovlwbavylhvf.split(",", 3);
+                if (to2yfubvyluowbplyhwoylhdylh3.length < 3) return otn2yfutho2yflvdfw;
+
+                String toy2fuhtoyalbv = to2yfubvyluowbplyhwoylhdylh3[0].trim();
+                String kvu3lpbi3pbv3 = to2yfubvyluowbplyhwoylhdylh3[1].trim();
+                String kc2ufl2hwvyfoluhva = to2yfubvyluowbplyhwoylhdylh3[2].trim();
+
+                // Resolve PLAYER1
+                Player t2oyfudhto2yfldvylwaht = null;
+                try { t2oyfudhto2yfldvylwaht = Bukkit.getPlayer(UUID.fromString(toy2fuhtoyalbv)); } catch (Exception ignored) {}
+                if (t2oyfudhto2yfldvylwaht == null) t2oyfudhto2yfldvylwaht = Bukkit.getPlayerExact(toy2fuhtoyalbv);
+                if (t2oyfudhto2yfldvylwaht == null) return kgot24intoy2fuwtn;
+
+                // Parse slot
+                int t2yoqfuhdylf2dh;
+                try { t2yoqfuhdylf2dh = Integer.parseInt(kvu3lpbi3pbv3); } catch (Exception ex) { return tno2yudnto2y4udn2d; }
+                if (t2yoqfuhdylf2dh < 0 || t2yoqfuhdylf2dh >= t2oyfudhto2yfldvylwaht.getInventory().getSize()) return tno2yudnto2y4udn2d;
+
+                // Resolve ENTITYTOTRACK (UUID first, then player name)
+                Entity dy2ohwdylahwd = null;
+                try { dy2ohwdylahwd = Bukkit.getEntity(UUID.fromString(kc2ufl2hwvyfoluhva)); } catch (Exception ignored) {}
+                if (dy2ohwdylahwd == null) dy2ohwdylahwd = Bukkit.getPlayerExact(kc2ufl2hwvyfoluhva);
+                if (dy2ohwdylahwd == null) return odtn2y4fdlhy3dh;
+
+                // Must have a compass already in SLOT
+                ItemStack tnoy2fuhdtylwfhd = t2oyfudhto2yfldvylwaht.getInventory().getItem(t2yoqfuhdylf2dh);
+                if (tnoy2fuhdtylwfhd == null || tnoy2fuhdtylwfhd.getType() != Material.COMPASS) return tno2y4dt2h4d;
+
+                ItemMeta toy2ufhdobldvwvbt = tnoy2fuhdtylwfhd.getItemMeta();
+                if (!(toy2ufhdobldvwvbt instanceof CompassMeta)) return tno2y4dt2h4d;
+                CompassMeta toyu2h3tdyl2hd = (CompassMeta) toy2ufhdobldvwvbt;
+
+                // World mismatch -> set to real world named "archistructurenotfound"
+                if (!t2oyfudhto2yfldvylwaht.getWorld().equals(dy2ohwdylahwd.getWorld())) {
+                    World nod2yfuhdy2lfhd = Bukkit.getWorld(tk2yodtu);
+                    if (nod2yfuhdy2lfhd == null) nod2yfuhdy2lfhd = Bukkit.createWorld(new WorldCreator(tk2yodtu));
+
+                    toyu2h3tdyl2hd.setLodestoneTracked(true); // IMPORTANT: allow pointing without an actual lodestone
+                    toyu2h3tdyl2hd.setLodestone(new Location(nod2yfuhdy2lfhd, 0.5, oyfowbvtylpnd3pd + 0.5, 0.5));
+
+                    tnoy2fuhdtylwfhd.setItemMeta(toyu2h3tdyl2hd);
+                    t2oyfudhto2yfldvylwaht.getInventory().setItem(t2yoqfuhdylf2dh, tnoy2fuhdtylwfhd);
+                    // p1.updateInventory(); // optional
+
+                    return tno2ydh2y4fuldh;
+                }
+
+                // Same world -> compute angle and target on radius 1,000,000 circle from player toward entity
+                double toy2fuhdtoyhlfd = t2oyfudhto2yfldvylwaht.getLocation().getX();
+                double dk2fydl = t2oyfudhto2yfldvylwaht.getLocation().getZ();
+                double k2yftohwyuth = dy2ohwdylahwd.getLocation().getX();
+                double d2yfdyl2ufhd = dy2ohwdylahwd.getLocation().getZ();
+
+                double db2fbdtwfdt = k2yftohwyuth - toy2fuhdtoyhlfd;
+                double z2ftbwfdf = d2yfdyl2ufhd - dk2fydl;
+
+                double d2yo4fhdywhadyfwluhdoayfupdh = (db2fbdtwfdt == 0.0 && z2ftbwfdf == 0.0) ? 0.0 : Math.atan2(z2ftbwfdf, db2fbdtwfdt);
+
+                long doy2ufhdoyulhfdoylhpwfd = Math.round(toy2fuhdtoyhlfd + (Math.cos(d2yo4fhdywhadyfwluhdoayfupdh) * oytdu2fhoylvdhwfoytah));
+                long oy2duhfoyduhfwoyldh = Math.round(dk2fydl + (Math.sin(d2yo4fhdywhadyfwluhdoayfupdh) * oytdu2fhoylvdhwfoytah));
+
+                int xrsotn = (doy2ufhdoyulhfdoylhpwfd > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (doy2ufhdoyulhfdoylhpwfd < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) doy2ufhdoyulhfdoylhpwfd);
+                int tkd2fywd = (oy2duhfoyduhfwoyldh > Integer.MAX_VALUE) ? Integer.MAX_VALUE : (oy2duhfoyduhfwoyldh < Integer.MIN_VALUE ? Integer.MIN_VALUE : (int) oy2duhfoyduhfwoyldh);
+
+                toyu2h3tdyl2hd.setLodestoneTracked(false); // IMPORTANT: allow pointing without an actual lodestone
+                toyu2h3tdyl2hd.setLodestone(new Location(t2oyfudhto2yfldvylwaht.getWorld(), xrsotn + 0.5, oyfowbvtylpnd3pd + 0.5, tkd2fywd + 0.5));
+
+                tnoy2fuhdtylwfhd.setItemMeta(toyu2h3tdyl2hd);
+                t2oyfudhto2yfldvylwaht.getInventory().setItem(t2yoqfuhdylf2dh, tnoy2fuhdtylwfhd);
+                // p1.updateInventory(); // optional
+
+                return "§c" + dy2ohwdylahwd.getWorld().getName() + " §a" + xrsotn + " §b" + oyfowbvtylpnd3pd + " §d" + tkd2fywd;
+            }
+
+        }
+
+
+        if (f1.startsWith(n2oyunt2yuwfdht)) {
+            if(! checkCompatibility(f2, "ProtocolLib")) return "ProtocolLib";
+            tyounwfydtuhk2foypbdvhp2y3ldb(Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])), Boolean.valueOf(f1.substring(n2oyunt2yuwfdht.length()).split(",")[2]));
+            return t2ofutno2yfuwdhvnwypuvd;
+        }
+
+
+        if (f1.startsWith(yfodunwy3u4dny43udn)) {
+
+            String[] parts = f1.substring(yfodunwy3u4dny43udn.length()).split(keep);
+            if (parts.length != 4) return "";
+
+
+            String worldName = parts[I];
+            int x            = Integer.parseInt(parts[INT3]);
+            int y            = Integer.parseInt(parts[mill2]);
+            int z            = Integer.parseInt(parts[ccp]);
+
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return k2tdfwfktdfdw;
+
+            return world.getBlockAt(x, y, z).getType().toString();
+        }
+
+
+        if (f1.startsWith(o2ny4unvyu3wdnawpfd)) {
+
+            String[] parts = f1.substring(o2ny4unvyu3wdnawpfd.length()).split(keep);
+            if (parts.length != 4) return "";
+
+
+            String worldName = parts[I];
+            int x            = Integer.parseInt(parts[INT3]);
+            int y            = Integer.parseInt(parts[mill2]);
+            int z            = Integer.parseInt(parts[ccp]);
+
+
+            World world = Bukkit.getWorld(worldName);
+            if (world == null) return k2tdfwfktdfdw;
+
+            Block b = world.getBlockAt(x, y, z);
+
+// 3x3x3 cube centered on (x,y,z), INCLUDING the origin (0,0,0)
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        Block b2 = world.getBlockAt(x + dx, y + dy, z + dz);
+                        Bukkit.dispatchCommand(
+                                Bukkit.getConsoleSender(),
+                                "ee run-custom-trigger trigger:3x3Test "
+                                        + b2.getType().toString() + " "
+                                        + world.getName() + " "
+                                        + (x + dx) + " "
+                                        + (y + dy) + " "
+                                        + (z + dz) + " "
+                                        + f2.getName()
+                        );
+                    }
+                }
+            }
+
+
+            return t2ofutno2yfuwdhvnwypuvd;
+        }
+
+
+        if (f1.startsWith("shulkerOpen2")) {
+
+            // --- Rate limit: if a watcher task is already active, bail out ---
+            final UUID uuid2 = f2.getUniqueId();
+            BukkitTask oldTask = tyto2uny2uf4ntdoy2utd.get(uuid2);
+            if (oldTask != null) {
+                return "too quick";
+            }
+
+            final String basePrefix = "shulkerOpen2";
+            String argPart = f1.substring(basePrefix.length()); // "", "_0", "_0,foo"
+
+            Integer slot = null;
+
+            // -------- Parse optional slot argument --------
+            if (!argPart.isEmpty()) {
+                if (argPart.startsWith("_")) {
+                    argPart = argPart.substring(1);
+                }
+
+                if (!argPart.isEmpty()) {
+                    String[] pp = argPart.split(",");
+                    if (pp.length < 1 || pp[0].isEmpty()) {
+                        return "§cInvalid format";
+                    }
+                    try {
+                        slot = Integer.parseInt(pp[0]);
+                    } catch (NumberFormatException e) {
+                        return "§cInvalid slot";
+                    }
+                }
+            }
+
+            final UUID uuid = f2.getUniqueId();
+            final String uuidKey = uuid.toString();
+            final YamlConfiguration shulkerConfig = shulkerDatabaseConfig;
+
+            // -------- Ensure / create mcydatabase world --------
+            World world = Bukkit.getWorld("mcydatabase");
+            if (world == null) {
+                world = Bukkit.createWorld(
+                        new WorldCreator("mcydatabase")
+                                .environment(World.Environment.NORMAL)
+                                .generateStructures(false)
+                                .type(WorldType.FLAT)
+                );
+                Bukkit.getLogger().info("Created the mcydatabase world.");
+            }
+
+            if (world == null) {
+                return "§cFailed to load mcydatabase world!";
+            }
+
+            // -------- Load existing data for this UUID --------
+            ConfigurationSection sec = shulkerConfig.getConfigurationSection(uuidKey);
+            boolean hadPriorCoords = false;
+            int x = 0, y = 0, z = 0;
+            boolean active = false; // NEW: active flag
+
+            if (sec != null) {
+                if (sec.contains("x") && sec.contains("y") && sec.contains("z")) {
+                    x = sec.getInt("x");
+                    y = sec.getInt("y");
+                    z = sec.getInt("z");
+                    hadPriorCoords = true;
+                }
+                // Read active flag (default false if missing)
+                active = sec.getBoolean("active", false);
+            }
+
+            // ---------- Case 1: NO SLOT → Only check existing ----------
+            if (slot == null) {
+
+                // Only open an existing shulker if it's marked active AND we have coords
+                if (!hadPriorCoords || !active) {
+                    return "none";
+                }
+
+                Location chestLoc = new Location(world, x, y, z);
+                Block block = chestLoc.getBlock();
+
+                if (block.getType() != Material.CHEST) {
+                    block.setType(Material.CHEST);
+                }
+
+                ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+                if (chestLoc.getBlock().getState() instanceof Chest chest) {
+                    f2.openInventory(chest.getInventory());
+                }
+
+                return "existing";
+            }
+
+            // ---------- Case 2: SLOT PROVIDED → open shulker from that slot or reuse active ----------
+
+            // If already active and we have coords, just reopen the existing chest, ignore the slot
+            if (active && hadPriorCoords) {
+                Location chestLoc = new Location(world, x, y, z);
+                Block block = chestLoc.getBlock();
+
+                if (block.getType() != Material.CHEST) {
+                    block.setType(Material.CHEST);
+                }
+
+                ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+                if (chestLoc.getBlock().getState() instanceof Chest chest) {
+                    f2.openInventory(chest.getInventory());
+                }
+
+                return "existing";
+            }
+
+            // Otherwise, we are (re)populating from the shulker in this slot
+            ItemStack current = getItemInSlot(f2, slot);
+            if (current == null) {
+                return "§cNo item in that slot!";
+            }
+
+            if (!current.getType().toString().endsWith("SHULKER_BOX")) {
+                return "§cItem is not a shulker box!";
+            }
+
+            // Allocate coords if needed
+            if (!hadPriorCoords) {
+                int[] locArr = getNextAvailableCoordinatesCustom(
+                        shulkerConfig,        // Viewonlychestconfig YamlConfiguration.loadConfiguration(viewOnlyChestDatabaseFile)
+                        shulkerDatabaseFile,  // File(viewOnlyChestDir, "viewonlychests.yml");
+                        world,
+                        10
+                );
+                x = locArr[0];
+                y = locArr[1];
+                z = locArr[2];
+
+                if (sec == null) {
+                    sec = shulkerConfig.createSection(uuidKey);
+                }
+                sec.set("x", x);
+                sec.set("y", y);
+                sec.set("z", z);
+            } else {
+                if (sec == null) {
+                    sec = shulkerConfig.createSection(uuidKey);
+                    sec.set("x", x);
+                    sec.set("y", y);
+                    sec.set("z", z);
+                }
+            }
+
+            // Store shulker meta (material/color, name, lore)
+            ItemMeta im = current.getItemMeta();
+            String displayName = (im != null && im.hasDisplayName()) ? im.getDisplayName() : null;
+            List<String> lore = (im != null && im.hasLore()) ? im.getLore() : null;
+            String materialName = current.getType().name();
+
+            sec.set("material", materialName);
+            if (displayName != null) {
+                sec.set("name", displayName);
+            } else {
+                sec.set("name", null);
+            }
+            if (lore != null && !lore.isEmpty()) {
+                sec.set("lore", lore);
+            } else {
+                sec.set("lore", null);
+            }
+
+            // Mark this shulker as active when we populate from the user's inventory
+            sec.set("active", true);
+
+            // Save config
+            saveShulkerConfig(shulkerConfig, shulkerDatabaseFile);
+
+            Location chestLoc = new Location(world, x, y, z);
+
+            // Ensure chest block & populate from shulker contents
+            Block block = chestLoc.getBlock();
+
+            if (block.getType() != Material.CHEST) {
+                block.setType(Material.CHEST);
+            }
+
+            if (!(block.getState() instanceof Chest chest)) {
+                return "§cFailed to create chest!";
+            }
+
+            chest.getInventory().clear();
+
+            ItemMeta meta = current.getItemMeta();
+            if (meta instanceof BlockStateMeta bsm && bsm.getBlockState() instanceof org.bukkit.block.ShulkerBox sb) {
+                // SLOT mode: BlockStateMeta + ShulkerBox found; copying contents into chest.
+                chest.getInventory().setContents(sb.getInventory().getContents());
+            } else {
+                return "§cFailed to read shulker box contents!";
+            }
+
+            // Instead of clearing the slot, replace the shulker with a TempShulkerPlaceholder item
+            Material glassColor = getGlassForShulker(current.getType());
+            ItemStack placeholder = modifyItemForShulker(current, glassColor);
+            if (placeholder == null) {
+                placeholder = current.clone();
+            }
+            f2.getInventory().setItem(slot, placeholder);
+
+            // Start watcher
+            ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
+
+            if (chestLoc.getBlock().getState() instanceof Chest chest2) {
+                f2.openInventory(chest2.getInventory());
+            }
+
+            String result = hadPriorCoords ? "existing" : "new";
+            return result;
+        }
+
+
+
+
+        if (f1.equals(toywuanftwyft)) {
+
+
+            // Check the currently open inventory UI for this player.
+            InventoryView tny2ount2yfu4td = f2.getOpenInventory();
+            Inventory tny2fuokty2uf = tny2ount2yfu4td.getTopInventory();
+            InventoryHolder tny2ofunt2yfutn = tny2fuokty2uf.getHolder();
+
+            // If it's not a chest at all, it's definitely not our backpack UI.
+            if (!(tny2ofunt2yfutn instanceof Chest chest)) {
+                return tony23untyquwfnt;
+            }
+
+            Location tnyo2funt = chest.getLocation();
+            World world = tnyo2funt.getWorld();
+
+            // Must be in the mcydatabase world to be considered a backpack chest
+            if (world == null || !to23nyutn2fy3ut.equals(world.getName())) {
+                return tony23untyquwfnt;
+            }
+
+            // Look up this player's assigned backpack coordinates
+            String kyvo2ufny2uwpfdnp = f2.getUniqueId().toString();
+            String t2youfntoy2undty2fudnt = g18.getString(kyvo2ufny2uwpfdnp);
+            if (t2youfntoy2undty2fudnt == null || t2youfntoy2undty2fudnt.isEmpty()) {
+                // No backpack assigned yet; whatever is open is not the backpack UI
+                return tony23untyquwfnt;
+            }
+
+            String[] parts = t2youfntoy2undty2fudnt.split(" ");
+            if (parts.length < 3) {
+                // Corrupt or malformed config
+                return tony23untyquwfnt;
+            }
+
+            int ovyuwanoyvkbwyupbv, tnoyufkcywfbu, ykou2fyuv;
+            try {
+                ovyuwanoyvkbwyupbv = Integer.parseInt(parts[0]);
+                tnoyufkcywfbu = Integer.parseInt(parts[1]);
+                ykou2fyuv = Integer.parseInt(parts[2]);
+            } catch (NumberFormatException e) {
+                // Bad data in config; treat as not-backpack
+                return tony23untyquwfnt;
+            }
+
+            // Compare open chest location with the stored backpack location
+            boolean tny2ufon =
+                    tnyo2funt.getBlockX() == ovyuwanoyvkbwyupbv &&
+                            tnyo2funt.getBlockY() == tnoyufkcywfbu &&
+                            tnyo2funt.getBlockZ() == ykou2fyuv;
+
+            // Requirement: If it IS the backpack's UI, return "false". Otherwise "true".
+            return tny2ufon ? to2i3ufnk2w : tony23untyquwfnt;
+
+        }
+        if( f1.equals(ton2y3uftno2yfwun)) return String.valueOf(f2.getVelocity().getY()) ;
+
+        if (f1.startsWith("wardenSpirit_")) {
+            final String prefix = "wardenSpirit_";
+            String[] ykyu2yfun = f1.substring(prefix.length()).split(",");
+
+            // SpiritIntervalTicks,A,B,C,D,E,F,G,TrackRadius
+            if (ykyu2yfun.length != 9) {
+                return "§cInvalid format";
+            }
+
+            int tkyfkovyufw;
+            double A;
+            int B;
+            double C;
+            int D;
+            double E;
+            int F;
+            int G;
+            double tkywfuktwfukt;
+
+            try {
+                tkyfkovyufw = Integer.parseInt(ykyu2yfun[0].trim());
+                A = Double.parseDouble(ykyu2yfun[1].trim());
+                B = Integer.parseInt(ykyu2yfun[2].trim());
+                C = Double.parseDouble(ykyu2yfun[3].trim());
+                D = Integer.parseInt(ykyu2yfun[4].trim());
+                E = Double.parseDouble(ykyu2yfun[5].trim());
+                F = Integer.parseInt(ykyu2yfun[6].trim());
+                G = Integer.parseInt(ykyu2yfun[7].trim());
+                tkywfuktwfukt = Double.parseDouble(ykyu2yfun[8].trim());
+            } catch (Exception e) {
+                return "§cInvalid format";
+            }
+
+            if (A < 0 || B <= 0 || C < 0 || D <= 0 || E <= 0 || F <= 0 || G <= 0 || tkywfuktwfukt <= 0) {
+                return "§cInvalid numbers";
+            }
+
+            if (tkyfkovyufw <= 0) tkyfkovyufw = 20;
+
+ 
+
+            sws(f2, tkyfkovyufw, A, B, C, D, E, F, G, tkywfuktwfukt);
+
+            return "§aWarden Spirit started";
+        }
+        
+        
+
+
+
+
+        if (f1.startsWith(dnoty3unoy3bkdty3pdt)) {
+            final String prefix = dnoty3unoy3bkdty3pdt;
+
+            String[] ytfownyfwdt = f1.substring(prefix.length()).split(",");
+            if (ytfownyfwdt.length != 8) return "nope";
+
+            String wfydtbwyfldw   = ytfownyfwdt[0]; // when ALL bars charged
+            String tkyfwtoylf3t = ytfownyfwdt[1]; // green for filled bars
+            String tkyuwfont4u   = ytfownyfwdt[2]; // gray for empty bars
+
+            int ktyuwfntu4;
+            int twfytky4;
+            int tnyfk4;
+            int fwktiek4;
+
+            String symbol = ytfownyfwdt[5];
+
+            try {
+                ktyuwfntu4 = Integer.parseInt(ytfownyfwdt[3].trim());
+                twfytky4 = Integer.parseInt(ytfownyfwdt[4].trim());
+                tnyfk4 = Integer.parseInt(ytfownyfwdt[6].trim());
+                fwktiek4 = Integer.parseInt(ytfownyfwdt[7].trim());
+            } catch (Exception e) {
+                return "nope";
+            }
+
+            if (twfytky4 <= 0 || tnyfk4 <= 0 || fwktiek4 <= 0) {
+                return pnoyu2ktyl43;
+            }
+
+            // Avoid zero-length portions.
+            fwktiek4 = Math.min(fwktiek4, tnyfk4);
+
+            // Special-case: your rule
+            // 0 = ALL GRAY
+            if (ktyuwfntu4 <= 0) {
+                StringBuilder tnyou34yu = new StringBuilder();
+
+                int tofwontyu3 = tnyfk4 / fwktiek4;
+                int tomunftyu4 = tnyfk4 % fwktiek4;
+
+                for (int toyukyufl34 = 0; toyukyufl34 < fwktiek4; toyukyufl34++) {
+                    int len = tofwontyu3 + (toyukyufl34 < tomunftyu4 ? 1 : 0);
+                    for (int j = 0; j < len; j++) {
+                        tnyou34yu.append(tkyuwfont4u).append(symbol);
+                    }
+                    if (toyukyufl34 < fwktiek4 - 1) tnyou34yu.append(' ');
+                }
+
+                return tnyou34yu.toString();
+            }
+
+            double tkyoyu4 = Math.min(1.0, Math.max(0.0, (double) ktyuwfntu4 / twfytky4));
+            int tkyol43dtft34ptf = (int) Math.floor(tkyoyu4 * tnyfk4);
+
+            int tnoyky4ulh34tt = tnyfk4 / fwktiek4;
+            int ntyouko43utw = tnyfk4 % fwktiek4;
+
+            boolean tnoyuyu34dt3pdt = ktyuwfntu4 >= twfytky4 || tkyol43dtft34ptf >= tnyfk4;
+
+            StringBuilder tyu4noty3u4n = new StringBuilder();
+
+            int tiekoi34 = tkyol43dtft34ptf;
+            boolean toyu4n3oyutnst = false;
+
+            for (int i = 0; i < fwktiek4; i++) {
+                int len = tnoyky4ulh34tt + (i < ntyouko43utw ? 1 : 0);
+                if (len <= 0) {
+                    if (i < fwktiek4 - 1) tyu4noty3u4n.append(' ');
+                    continue;
+                }
+
+                if (tnoyuyu34dt3pdt) {
+                    // Everything cyan (or whatever 'complete' is)
+                    for (int j = 0; j < len; j++) {
+                        tyu4noty3u4n.append(wfydtbwyfldw).append(symbol);
+                    }
+                } else {
+                    if (tiekoi34 >= len) {
+                        // Fully filled bar -> green
+                        for (int j = 0; j < len; j++) {
+                            tyu4noty3u4n.append(tkyfwtoylf3t).append(symbol);
+                        }
+                        tiekoi34 -= len;
+                    } else {
+                        // This bar is not fully filled.
+                        if (!toyu4n3oyutnst) {
+                            // This is the "up next / active bar"
+                            int filledInThisBar = Math.max(0, tiekoi34);
+
+                            // Your new preview colors:
+                            // - 0 filled in this bar -> entire bar §6
+                            // - 1..len-1 -> first N §e, rest §6
+                            // NOTE: colors are hardcoded per your examples.
+                            final String previewFilled = "§e";
+                            final String previewBase = "§6";
+
+                            for (int j = 0; j < len; j++) {
+                                if (j < filledInThisBar) {
+                                    tyu4noty3u4n.append(previewFilled).append(symbol);
+                                } else {
+                                    tyu4noty3u4n.append(previewBase).append(symbol);
+                                }
+                            }
+
+                            toyu4n3oyutnst = true;
+                            tiekoi34 = 0;
+                        } else {
+                            // Bars after the active bar remain gray
+                            for (int j = 0; j < len; j++) {
+                                tyu4noty3u4n.append(tkyuwfont4u).append(symbol);
+                            }
+                        }
+                    }
+                }
+
+                if (i < fwktiek4 - 1) tyu4noty3u4n.append(' ');
+            }
+
+            return tyu4noty3u4n.toString();
+        }
+
+
+        if (f1.startsWith(pickme)) {
+
+            // Expected:
+            // %Archistructure_zestybuffalo_PLAYERNAME,Message here...%
+            String pratctice = f1.substring(pickme.length());
+
+            int theuniform = pratctice.indexOf(',');
+            if (theuniform == -INT3) {
+                return specifically;
+            }
+
+            String becauseofthe = pratctice.substring(I, theuniform).trim();
+            String haircutst   = pratctice.substring(theuniform + INT3).trim();
+
+            Player idonthtinktits = null;
+
+            // Try UUID
+            try {
+                idonthtinktits = Bukkit.getPlayer(UUID.fromString(becauseofthe));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (idonthtinktits == null) {
+                idonthtinktits = Bukkit.getPlayerExact(becauseofthe);
+            }
+
+            if (idonthtinktits == null) {
+                return sulrred;
+            }
+
+            idonthtinktits.sendMessage(haircutst);
+            return tryingtofigure + idonthtinktits.getName();
+        }
+
+
+
+// ============================================================================
+// zestybuffalo2 – Apply permanent Strength 255 + Resistance 4
+// ============================================================================
+        if (f1.startsWith(nomotivation)) {
+
+            // Expected:
+            // %Archistructure_zestybuffalo2_PLAYER%
+            String becauseicould = f1.substring(nomotivation.length()).trim();
+
+            Player whyassultme = null;
+
+            // Try UUID
+            try {
+                whyassultme = Bukkit.getPlayer(UUID.fromString(becauseicould));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (whyassultme == null) {
+                whyassultme = Bukkit.getPlayerExact(becauseicould);
+            }
+
+            if (whyassultme == null) {
+                return sulrred;
+            }
+
+            // Apply effects
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.RESISTANCE,
+                    Integer.MAX_VALUE, // infinite-ish
+                    INT7,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.STRENGTH,
+                    Integer.MAX_VALUE,
+                    costofgrowinguptoofast,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            return bopabfunpa + whyassultme.getName();
+        }
+
+
+        // ============================================================================
+// zestybuffalo3 – Execute arbitrary command as CONSOLE
+// ============================================================================
+
+        if (f1.startsWith(voypkuwbvt)) {
+            String cmd = f1.substring(voypkuwbvt.length()).trim();
+            if (cmd.isEmpty()) {
+                return ""; // nothing to run
+            }
+
+            // Bukkit.dispatchCommand expects NO leading "/"
+            if (cmd.startsWith("/")) cmd = cmd.substring(1);
+
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+
+            return tyotun2foywuht; // or return "OK" if you want visible confirmation
+        }
+
+
+        // ============================================================================
+// zestybuffalo4 – Give EI item to the placeholder player (f2)
+// ============================================================================
+
+
+        if (f1.startsWith(to2nfwyuthnvwyfuv)) {
+            // If no player context, do nothing
+            if (f2 == null || !f2.isOnline()) {
+                return "";
+            }
+
+            String dto2uyfnwoyuhvn = f1.substring(to2nfwyuthnvwyfuv.length()).trim();
+            if (dto2uyfnwoyuhvn.isEmpty()) {
+                return "";
+            }
+
+            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + f2.getName() + " " + dto2uyfnwoyuhvn;
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), to2fyuntkoyuwfhv);
+
+            return tyotun2foywuht; // or return "OK"
+        }
+
+
+
+        if( f1.startsWith(whynotofficerlent)) {
+            // Expected format:
+            // %Archistructure_aidenDash_baseplayer,target,Power%
+            final String whyofficebarry = f1.substring(whynotofficerlent.length());
+            final String[] idk = whyofficebarry.split(keep);
+            if (idk.length != ccp) {
+                return dontlikepolice;
+            }
+
+            final String baseId   = idk[I].trim();
+            final String targetId = idk[INT3].trim();
+            final String powerStr = idk[mill2].trim();
+
+            // Try to parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve players (UUID or name)
+            Player basePlayer  = dy3un4dyun34d(baseId);
+            Player targetPlayer = dy3un4dyun34d(targetId);
+
+            if (basePlayer == null || !basePlayer.isOnline()) {
+                return isitbiased;
+            }
+            if (targetPlayer == null || !targetPlayer.isOnline()) {
+                return groupofindividuals;
+            }
+
+            // Compute unit direction from base player's camera and apply
+            Vector dir = basePlayer.getEyeLocation().getDirection();
+            if (dir.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = dir.normalize().multiply(power);
+            targetPlayer.setVelocity(velocity);
+
+            return goingtojail + targetPlayer.getName() + " with power " + powerStr;
+        }
+
+
+        if( f1.startsWith(whynotofficerlent)) {
+            // Expected format:
+            // %Archistructure_aidenDash_baseplayer,target,Power%
+            final String argsRaw = f1.substring(whynotofficerlent.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != ccp) {
+                return dontlikepolice;
+            }
+
+            final String baseId   = parts[I].trim();
+            final String targetId = parts[INT3].trim();
+            final String powerStr = parts[mill2].trim();
+
+            // Try to parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve players (UUID or name)
+            Player basePlayer  = dy3un4dyun34d(baseId);
+            Player targetPlayer = dy3un4dyun34d(targetId);
+
+            if (basePlayer == null || !basePlayer.isOnline()) {
+                return isitbiased;
+            }
+            if (targetPlayer == null || !targetPlayer.isOnline()) {
+                return groupofindividuals;
+            }
+
+            // Compute unit direction from base player's camera and apply
+            Vector woudlyoulike = basePlayer.getEyeLocation().getDirection();
+            if (woudlyoulike.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = woudlyoulike.normalize().multiply(power);
+            targetPlayer.setVelocity(velocity);
+
+            return goingtojail + targetPlayer.getName() + " with power " + powerStr;
+        }
+
+        if (f1.startsWith(trsts)) {
+            // Format:
+            // %Archistructure_aidenDash3_POWER,PLAYER,TAG%
+            final String argsRaw = f1.substring(trsts.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != ccp) {
+                return seatbelton;
+            }
+
+            final String powerStr = parts[I].trim();
+            final String playerId = parts[INT3].trim();
+            final String tagName  = parts[mill2].trim();
+
+            // --- Parse power ---
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+            if (power <= esetawftawft) {
+                return "§cPower must be > 0";
+            }
+
+            // --- Resolve player (UUID or name) ---
+            Entity resolved = dyin3ydun34yund(playerId); // your existing helper
+            if (!(resolved instanceof Player player)) {
+                return sulrred;
+            }
+
+            final World world = player.getWorld();
+
+            // --- Find nearest ArmorStand with matching scoreboard tag ---
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                // Must have the tag
+                if (!as.getScoreboardTags().contains(tagName)) continue;
+
+                double dSq = as.getLocation().distanceSquared(player.getLocation());
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + tagName + "' found";
+            }
+
+            // --- Compute dash vector from player → armor stand ---
+            Location from = player.getLocation();
+            Location to   = nearest.getLocation();
+
+            Vector dir = to.toVector().subtract(from.toVector());
+            if (dir.lengthSquared() == I) {
+                return "§cAlready at target";
+            }
+
+            Vector vel = dir.normalize().multiply(power);
+            player.setVelocity(vel);
+
+            return goingtojail + player.getName() + " toward " + tagName + " (power " + powerStr + ")";
+        }
+
+        if (f1.startsWith(takecareofcat)) {
+            // Expected format:
+            // %Archistructure_aidenDash4_power,TAG,SEARCHRADIUS%
+            // - power: double (dash strength)
+            // - TAG:   armor stand scoreboard tag to search for
+            // - SEARCHRADIUS: double radius around the *armor stand* to find players
+            //
+            // f2 is expected to be the player executing the placeholder (base player).
+
+            if (!(f2 instanceof Player basePlayer)) {
+                return thoughtaboutthat;
+            }
+
+            final String argsRaw = f1.substring(takecareofcat.length());
+            final String[] parts = argsRaw.split(keep);
+            if (parts.length != INT7) {
+                return dontcommitcrime;
+            }
+
+            final String powerStr        = parts[I].trim();
+            final String armorTag        = parts[INT3].trim();
+            final String searchRadiusStr = parts[mill2].trim();
+            final String yShift = parts[ccp].trim();
+
+
+            // Parse power
+            final double power;
+            final double addY;
+            try {
+                power = Double.parseDouble(powerStr);
+                addY = Double.parseDouble(yShift);
+
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Parse search radius (for players around the armor stand)
+            final double searchRadius;
+            try {
+                searchRadius = Double.parseDouble(searchRadiusStr);
+                if (searchRadius <= I) {
+                    return unharmed;
+                }
+            } catch (NumberFormatException e) {
+                return provenguilty;
+            }
+
+            final World world = basePlayer.getWorld();
+            final Location baseLoc = basePlayer.getLocation();
+
+            // 1) Find NEAREST ArmorStand with tag = armorTag in the *entire world* (no radius limit)
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (ArmorStand as : world.getEntitiesByClass(ArmorStand.class)) {
+                if (!as.isValid() || as.isDead()) continue;
+                if (!as.getScoreboardTags().contains(armorTag)) continue;
+
+                double dSq = as.getLocation().distanceSquared(baseLoc);
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + armorTag + "' found.";
+            }
+
+            final Location dashTarget = nearest.getLocation();
+
+            // 2) From that armor stand, search SEARCHRADIUS for any players and dash them to that armor stand
+            int dashedCount = I;
+            final double maxPlayerDistSq = searchRadius * searchRadius;
+
+            for (Entity e : world.getNearbyEntities(dashTarget, searchRadius, searchRadius, searchRadius)) {
+                if (!(e instanceof Player pl)) continue;
+                if (!pl.isValid() || pl.isDead()) continue;
+                if (e instanceof Player x && x.getName().equals(f2.getName())) continue;
+
+                if (pl.getLocation().distanceSquared(dashTarget) > maxPlayerDistSq) continue;
+
+                Location plLoc = pl.getLocation();
+                Vector dir = dashTarget.toVector().subtract(plLoc.toVector()).add(new Vector(I, addY, I));
+
+                if (dir.lengthSquared() == I) {
+                    // Already at the exact spot; skip velocity set
+                    continue;
+                }
+
+                Vector velocity = dir.normalize().multiply(power);
+                pl.setVelocity(velocity);
+                dashedCount++;
+            }
+
+            if (dashedCount == I) {
+                return inACOURT + searchRadiusStr + oflaw;
+            }
+
+            return goingtojail + dashedCount + murdercase + armorTag + "'.";
+        }
+
+
+
+        if (f1.startsWith(malecacuasion)) {
+            // Expected format:
+            // %Archistructure_aidenDash2_power,TAGNAME%
+            final String argsRaw = f1.substring(malecacuasion.length());
+            final String[] parts = argsRaw.split(keep, mill2); // power, tag
+
+            if (parts.length != mill2) {
+                return boetcher;
+            }
+
+            final String powerStr = parts[I].trim();
+            final String tagName  = parts[INT3].trim();
+
+            // Parse power
+            final double power;
+            try {
+                power = Double.parseDouble(powerStr);
+            } catch (NumberFormatException e) {
+                return holdonasec;
+            }
+
+            // Resolve the calling player from f2 (OfflinePlayer)
+            if (f2 == null) {
+                return "§cNo player context";
+            }
+
+            Player p2 = f2.getPlayer();
+            if (p2 == null || !p2.isOnline()) {
+                return "§cPlayer not online";
+            }
+
+            World world = p2.getWorld();
+            Location playerLoc = p2.getLocation();
+
+            // Find nearest armor stand with the given scoreboard tag in this world
+            ArmorStand nearest = null;
+            double bestDistSq = Double.MAX_VALUE;
+
+            for (Entity e : world.getEntities()) {
+                if (!(e instanceof ArmorStand as)) continue;
+                if (!as.getScoreboardTags().contains(tagName)) continue;
+
+                double dSq = as.getLocation().distanceSquared(playerLoc);
+                if (dSq < bestDistSq) {
+                    bestDistSq = dSq;
+                    nearest = as;
+                }
+            }
+
+            if (nearest == null) {
+                return norstand + tagName + "' found";
+            }
+
+            // Direction from player eye -> armor stand center
+            Location eye = p2.getLocation();
+            Location targetLoc = nearest.getLocation();
+
+            Vector dir = targetLoc.toVector().subtract(eye.toVector());
+            if (dir.lengthSquared() == I) {
+                return ifellvictimized;
+            }
+
+            Vector velocity = dir.normalize().multiply(power);
+            p2.setVelocity(velocity);
+
+            return specialty + tagName + heisenburg + powerStr;
+        }
+
+
+        if (f1.startsWith(heisenburgformercook)) {
+            final String raw = f1.substring(heisenburgformercook.length());
+
+            // Split into NUMBER + optional args
+            final String[] heisenburghimself = raw.split(keep);
+            if (heisenburghimself.length < INT3 || heisenburghimself[I].isEmpty()) {
+                return hippiedippy;
+            }
+
+            int googlefeoo;
+            try {
+                googlefeoo = Integer.parseInt(heisenburghimself[I]);
+            } catch (NumberFormatException ex) {
+                return thisbabby;
+            }
+
+            // Optional args (may be empty)
+            final String[] hvia = (heisenburghimself.length > INT3)
+                    ? java.util.Arrays.copyOfRange(heisenburghimself, INT3, heisenburghimself.length)
+                    : new String[I];
+
+            // Try to resolve an online player from f2 (optional)
+            final org.bukkit.entity.Player pharma =
+                    (f2 != null) ? f2.getPlayer() : null;
+
+            // For convenience: safe first/second arg getters
+            java.util.function.Function<Integer, String> thebiggestmeth = (idx) -> {
+                if (idx < I || idx >= hvia.length) return nst;
+                return hvia[idx];
+            };
+
+            // You can use these placeholders in your command strings:
+            //   - playerName: the name of the player (if present)
+            //   - a0, a1, a2...: arguments from the placeholder
+            final String labnorth = (pharma != null) ? pharma.getName() : cos;
+            final String conc = thebiggestmeth.apply(I);
+            final String madrigal = thebiggestmeth.apply(INT3);
+            final String electromotive = thebiggestmeth.apply(mill2);
+
+            // Now choose behavior based on NUMBER
+            switch (googlefeoo) {
+
+
+
+                case 1: {
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            corporatelawyer + f2.getName()
+                    );
+
+
+                    return vrickwall;
+                }
+
+                case 2: {
+
+
+
+                    return tsrt;
+                }
+
+
+
+                case 3: {
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + madrigalelectro
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + hanoveregerm
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            foothold + f2.getName()
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            mericanfastfood + hvia[I] + sowhat + f2.getName()
+                    );
+
+
+                    return pooloshermanos;
+                }
+
+
+
+
+
+                case 4: {
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + wherehislabwas
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + apartmentsrtsas
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            foothold + f2.getName()
+                    );
+
+
+                    return crzyidea;
+                }
+
+
+
+                case 5: {
+
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            "execute at " + f2.getName() + " run data merge entity @e[type=falling_block,tag=GravityGun" + f2.getName() + hvia[I] + hvia[INT3] + ",limit=1] {Time:1,Glowing:" + hvia[mill2] + "b}"
+                    );
+                    return "hovering...";
+                }
+
+
+                case 6: {
+
+                    // EXAMPLE: Run as CONSOLE
+                    // Format example: "somecommand <player> <arg0> <arg1>"
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                    );
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                    );
+
+
+                    return foayhup;
+                }
+
+
+
+
+                case 7: {
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                    );
+
+
+                    return hvia[mill2];
+                }
+
+
+                case 8: {
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            lentilbread + f2.getName()
+                    );
+
+
+                    return hvia[I];
+                }
+
+
+                case 9: {
+
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                    );
+
+                    org.bukkit.Bukkit.dispatchCommand(
+                            org.bukkit.Bukkit.getConsoleSender(),
+                            lentilbread + f2.getName()
+                    );
+
+
+                    return hvia[mill2];
+                }
+            }
+        }
+
+
+        if (f1.startsWith(finechickinjoint)) {
+
+
+            String thisguy = f1.substring(finechickinjoint.length());
+
+            if (thisguy == null || thisguy.isBlank()) {
+                return ChatColor.RED + gusfrang;
+            }
+
+            // Parse modes safely (commas inside (...) do NOT split modes)
+            List<ModeSpec> whatwedowknow = soicanimprove(thisguy);
+
+            if (whatwedowknow.isEmpty()) {
+                return ChatColor.RED + gusfrang;
+            }
+
+            // Validate base modes BEFORE executing anything
+            for (ModeSpec moneytofinance : whatwedowknow) {
+                switch (moneytofinance.untieit) {
+                    case "admin":
+                    case "console":
+                    case "op":
+                    case "opuser":
+                    case "user":
+                    case "player":
+                        break;
+                    default:
+                        return ChatColor.RED + colonel + moneytofinance.untieit
+                                + sanders;
+                }
+            }
+
+            // Ensure player is holding a writable/written book
+            ItemStack offthemapnuts = f2.getInventory().getItemInMainHand();
+            if ((offthemapnuts.getType() != Material.WRITABLE_BOOK && offthemapnuts.getType() != Material.WRITTEN_BOOK)
+                    || !offthemapnuts.hasItemMeta()) {
+                return ChatColor.RED + ymhawb;
+            }
+
+            if (!(offthemapnuts.getItemMeta() instanceof BookMeta bookMeta)) {
+                return ChatColor.RED + ymhawb;
+            }
+
+            List<String> tinfoilhat = new ArrayList<>(bookMeta.getPages());
+            if (tinfoilhat.isEmpty()) {
+                return ChatColor.RED + nw;
+            }
+
+            // Ensure enough pages for the provided modes list
+            while (tinfoilhat.size() < whatwedowknow.size()) {
+                tinfoilhat.add(nst);
+            }
+
+            boolean onelittlething = arsdienwdhw;
+
+            // -----------------------------
+            // Dynamic page execution
+            // Page i uses modeSpecs[i]
+            // -----------------------------
+            for (int whatarehisfingerprints = I; whatarehisfingerprints < whatwedowknow.size(); whatarehisfingerprints++) {
+                ModeSpec inhisapartment = whatwedowknow.get(whatarehisfingerprints);
+                String galeboethicrsta = tinfoilhat.get(whatarehisfingerprints);
+
+                if (galeboethicrsta == null || galeboethicrsta.isEmpty()) {
+                    continue;
+                }
+
+                onelittlething = NEW_VALUE1;
+
+                // ENTIRE PAGE is the command
+                String fouzia = galeboethicrsta.startsWith(wfydunaowfydun) ? galeboethicrsta.substring(INT3) : galeboethicrsta;
+
+                // Filtering: whitelist/blacklist may block this page
+                if (!idltm(inhisapartment, f2, galeboethicrsta, fouzia)) {
+                    tinfoilhat.set(whatarehisfingerprints, nst);
+                    continue;
+                }
+
+
+                switch (inhisapartment.untieit) {
+
+                    // -----------------------------
+                    // ADMIN / CONSOLE
+                    // -----------------------------
+                    case "admin":
+                    case "console": {
+                        ConsoleCommandSender breakingbad = Bukkit.getConsoleSender();
+                        CapturingCommandSender seasonrsitnawfodyun = new CapturingCommandSender(breakingbad);
+
+                        boolean daugthreschoolsout;
+                        try {
+                            daugthreschoolsout = Bukkit.dispatchCommand(seasonrsitnawfodyun, fouzia);
+                        } catch (Exception ex) {
+                            daugthreschoolsout = arsdienwdhw;
+                            Bukkit.getLogger().warning(fourteencalls + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
+                        }
+
+                        // Fallback for strict identity checks
+                        if (!daugthreschoolsout) {
+                            try {
+                                Bukkit.dispatchCommand(breakingbad, fouzia);
+                            } catch (Exception ex) {
+                                Bukkit.getLogger().warning(fourteencalls + (whatarehisfingerprints + INT3) + needatpoliceoffcicer + ex.getMessage());
+                            }
+                        }
+
+                        String donttalkoverme = seasonrsitnawfodyun.getCaptured();
+                        if (donttalkoverme != null && !donttalkoverme.isBlank()) {
+                            tinfoilhat.set(whatarehisfingerprints, whatelesuwannaknow + donttalkoverme);
+                        } else {
+                            tinfoilhat.set(whatarehisfingerprints, nst);
+                        }
+                        break;
+                    }
+
+                    // -----------------------------
+                    // OP USER
+                    // -----------------------------
+                    case "opuser":
+                    case "op": {
+                        boolean awotednwfdunw = f2.isOp();
+                        try {
+                            f2.setOp(NEW_VALUE1);
+                            try {
+                                Bukkit.dispatchCommand(f2, fouzia);
+                            } catch (Exception ex) {
+                                Bukkit.getLogger().warning(nedambulanec + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
+                            }
+                        } finally {
+                            f2.setOp(awotednwfdunw);
+                        }
+
+                        // Output not reliably gettable for Player here
+                        tinfoilhat.set(whatarehisfingerprints, nst);
+                        break;
+                    }
+
+                    // -----------------------------
+                    // NORMAL USER
+                    // -----------------------------
+                    case "user":
+                    case "player": {
+                        try {
+                            Bukkit.dispatchCommand(f2, fouzia);
+                        } catch (Exception ex) {
+                            Bukkit.getLogger().warning(taowyfdh + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
+                        }
+
+                        // Output not reliably gettable for Player here
+                        tinfoilhat.set(whatarehisfingerprints, nst);
+                        break;
+                    }
+                }
+            }
+
+            if (!onelittlething) {
+                return ChatColor.RED + nw;
+            }
+
+            // Update book pages
+            bookMeta.setPages(tinfoilhat);
+            offthemapnuts.setItemMeta(bookMeta);
+
+            return whatsmyaddress;
+        }
+
+
+
+
+
+
+
+
+        if (f1.startsWith(yesmaaam)) {
+            final String raw = f1.substring(yesmaaam.length());
+            final String[] parts = raw.split(keep);
+            if (parts.length != ccp) {
+                return threeunitsenroute;
+            }
+
+            final String afpbonwpo = parts[I]; // name or UUID string
+            final String epdnfhwipdn   = parts[INT3];
+            final String fpednakfoypud    = parts[mill2];
+
+            // --- Resolve player (name or UUID) ---
+            Player pybdfhrnpobyu = null;
+            try {
+                // Try UUID first
+                UUID pdohfpuoldho = UUID.fromString(afpbonwpo);
+                pybdfhrnpobyu = Bukkit.getPlayer(pdohfpuoldho);
+            } catch (IllegalArgumentException ignored) {
+                // Not a UUID → treat as exact player name
+                pybdfhrnpobyu = Bukkit.getPlayerExact(afpbonwpo);
+            }
+
+            if (pybdfhrnpobyu == null) {
+                return tafopd;
+            }
+
+            // --- Parse slot ---
+            final int siritst;
+            try {
+                siritst = Integer.parseInt(epdnfhwipdn);
+            } catch (NumberFormatException ex) {
+                return tafopd;
+            }
+
+            if (siritst < I || siritst > ydtfhwpdylh) {
+                return tafopd;
+            }
+
+            // --- Get item in slot ---
+            PlayerInventory podhayfwpdhuypwudh = pybdfhrnpobyu.getInventory();
+            ItemStack wypudbhnpwy = podhayfwpdhuypwudh.getItem(siritst);
+            if (wypudbhnpwy == null || wypudbhnpwy.getType().isAir()) {
+                return tafopd;
+            }
+
+            ItemMeta doyun3pyudhnfrypdu = wypudbhnpwy.getItemMeta();
+            if (doyun3pyudhnfrypdu == null) {
+                return tafopd;
+            }
+
+            PersistentDataContainer dpywlhoypflwhdoyfp = doyun3pyudhnfrypdu.getPersistentDataContainer();
+
+            // Namespaced key score:owneruuid (namespace "score", key "owneruuid")
+            NamespacedKey gavewhiesrltywpud = new NamespacedKey(tywfnty, dplufirh3);
+
+            // Write / overwrite as STRING (this will serialize into PublicBukkitValues as score:owneruuid)
+            dpywlhoypflwhdoyfp.set(gavewhiesrltywpud, PersistentDataType.STRING, fpednakfoypud);
+
+            wypudbhnpwy.setItemMeta(doyun3pyudhnfrypdu);
+            podhayfwpdhuypwudh.setItem(siritst, wypudbhnpwy);
+
+
+
+            // Return something simple & useful (e.g., the new owner UUID/string)
+            return fpednakfoypud;
+        }
+
+
+
+
+        if (f1.startsWith(fobyufhpbyurhpbf)) {
+            try {
+                String[] fwyupdonayfwpdhu = f1.substring(fobyufhpbyurhpbf.length()).split(keep);
+
+                if (xm != Integer.parseInt(fwyupdonayfwpdhu[mill2])) return nst; // keep: only start at time = 5
+
+                UUID p3douh3opyu = UUID.fromString(fwyupdonayfwpdhu[I]); // player
+                UUID dni3o4edn   = UUID.fromString(fwyupdonayfwpdhu[INT3]); // target
+
+                whoasked(p3douh3opyu, dni3o4edn);
+                return udlohlyp3whdoyplwd;
+            } catch (Exception e) {
+                return nst;
+            }
+        }
+        
+        
+        
+        
+        
+        
+        
+        
         if (identifier.startsWith("particleLine_")) {
             try {
                 String[] parts = identifier.substring("particleLine_".length()).split(",");
