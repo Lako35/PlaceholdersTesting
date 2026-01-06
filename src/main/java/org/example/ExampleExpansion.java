@@ -24,8 +24,6 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.luckperms.api.LuckPerms;
-import net.luckperms.api.LuckPermsProvider;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
@@ -112,7 +110,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected final YamlConfiguration viewOnlyChestConfig;
     protected final File ftLeaderboardFile;
     protected final Map<UUID, Integer> ftLeaderboard;
-    protected final LuckPerms luckPerms;
     protected final Map<UUID, Set<Location>> trackedBlocks = new HashMap<>();
     protected final Set<Material> oresAndImportantBlocks = Set.of( Material.DIAMOND_ORE, Material.DEEPSLATE_DIAMOND_ORE, Material.IRON_ORE, Material.DEEPSLATE_IRON_ORE, Material.GOLD_ORE, Material.DEEPSLATE_GOLD_ORE, Material.EMERALD_ORE, Material.DEEPSLATE_EMERALD_ORE, Material.LAPIS_ORE, Material.DEEPSLATE_LAPIS_ORE, Material.REDSTONE_ORE, Material.DEEPSLATE_REDSTONE_ORE, Material.COAL_ORE, Material.DEEPSLATE_COAL_ORE, Material.NETHER_QUARTZ_ORE, Material.NETHER_GOLD_ORE, Material.ANCIENT_DEBRIS);
     protected final Map<Location, BukkitTask> jesusTimers = new HashMap<>();
@@ -150,8 +147,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         ftLeaderboardFile = new File("plugins/Archistructures/FTLeaderboard.txt");
         ftLeaderboard = new LinkedHashMap<>();
         ExampleExpansion2.loadFTLeaderboard(ftLeaderboard, ftLeaderboardFile);
-        this.luckPerms = LuckPermsProvider.get();
-        luckPerms.getUserManager();
         File shulkerDir = new File("plugins/Archistructures/shulkers/");
         if (!shulkerDir.exists()) shulkerDir.mkdirs();
         this.shulkerDatabaseFile = new File(shulkerDir, "shulkers.yml");
@@ -541,7 +536,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 final Entity damager = launcher;
                 if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
 
-                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                // Todo change maxhp?
+                final double maxHp = 20 ; //tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.60 * maxHp + 10.0;
                 tgt.damage(amount, dsb.build());
 
@@ -553,8 +549,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Non-players: damager = launcher (still acceptable per your V4 semantics)
                 final Entity damager = launcher;
                 if (damager != null) dsb2.withDirectEntity(damager).withCausingEntity(damager);
-
-                final double maxHp = tgt.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                
+                // Todo change maxhp?
+                final double maxHp = 20 ; //tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.5 * maxHp + 200.0;
                 tgt.damage(amount, dsb2.build());
             }
@@ -582,8 +579,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Players: damager = launcher (player) if available
                 final Entity damager = launcher;
                 if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
-
-                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                // Todo change maxhp?
+                final double maxHp = 20 ; //le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.60 * maxHp + 10.0;
                 le.damage(amount, dsb.build());
 
@@ -597,8 +594,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Non-players: damager = launcher (kept consistent with your V4 variant)
                 final Entity damager = launcher;
                 if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
-
-                final double maxHp = le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+                // Todo change maxhp?
+                final double maxHp = 20 ; // le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.33 * maxHp + 300;
                 le.damage(amount, dsb.build());
             }
