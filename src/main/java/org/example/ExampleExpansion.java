@@ -107,6 +107,23 @@ import java.util.stream.Stream;
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
 
+
+    public static final String to2yudtnwyufdahwyfdh = "crossbowCheck_";
+    public static final String od2tf4yudhtwyfudht = "Burst Crossbow";
+    public static final String dod2u4nywuhd = "burst_";
+    public static final String od2yf4udhwyudfh = "§cUsage: burst_PLAYERUUID`AMOUNT`DELAY`(SLOT)";
+    public static final String od2yuf4dn2wdf = "§aBurst queued.";
+    public static final String odtn2yf4udny2wufn = "checkUID_";
+    public static final String ton2yfutnyuoftn = "Fake Glowing";
+    public static final String oyd2unf4yuwn = "ProtocolLib";
+    public static final String o2dyf4uwndotyun = "failed - no protocollib";
+    public static final String di2ewnfoyudn = "3x3 Free Version";
+    public static final String k2tdfwfktdfdw = "Invalid world";
+    public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
+    // Globals
+    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> burstTasks = new java.util.concurrent.ConcurrentHashMap<>();
+
+
     public final String ty2ufntyu2nfd;
     public final String r12yftnhyoafhtdoyl;
     public final String yfodunwy3u4dny43udn;
@@ -4023,6 +4040,97 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
+    // Helper Methods // Helpers // 
+
+    private void stopBurst(java.util.UUID id) {
+        org.bukkit.scheduler.BukkitTask t = burstTasks.remove(id);
+        if (t != null) t.cancel();
+    }
+
+    private org.bukkit.inventory.EquipmentSlot parseBurstSlot(String raw) {
+        if (raw == null) return org.bukkit.inventory.EquipmentSlot.HAND;
+        String s = raw.trim().toUpperCase(java.util.Locale.ROOT).replace(" ", "").replace("_", "");
+        if (s.isEmpty()) return org.bukkit.inventory.EquipmentSlot.HAND;
+        if (s.equals("OFFHAND") || s.equals("OFF")) return org.bukkit.inventory.EquipmentSlot.OFF_HAND;
+        return org.bukkit.inventory.EquipmentSlot.HAND;
+    }
+
+    private org.bukkit.inventory.ItemStack getItemInSlot(org.bukkit.entity.Player p, org.bukkit.inventory.EquipmentSlot slot) {
+        return (slot == org.bukkit.inventory.EquipmentSlot.OFF_HAND)
+                ? p.getInventory().getItemInOffHand()
+                : p.getInventory().getItemInMainHand();
+    }
+
+    /**
+     * Fires ONE projectile matching the ammo template.
+     * Any arrow-like projectile spawned is set to CREATIVE_ONLY pickup to prevent retrieval.
+     */
+    private void shootCrossbowAmmoCreativeOnlyPickup(org.bukkit.entity.Player shooter, org.bukkit.inventory.ItemStack ammoTemplate) {
+        final org.bukkit.Location eye = shooter.getEyeLocation();
+        final org.bukkit.util.Vector dir = eye.getDirection().normalize();
+        final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
+
+        final org.bukkit.Material m = (ammoTemplate == null) ? org.bukkit.Material.AIR : ammoTemplate.getType();
+
+        // Firework rocket
+        if (m == org.bukkit.Material.FIREWORK_ROCKET) {
+            org.bukkit.entity.Firework fw = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Firework.class, f -> {
+                f.setShooter(shooter);
+                if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.FireworkMeta fm) {
+                    f.setFireworkMeta(fm);
+                }
+                f.setShotAtAngle(true);
+            });
+            fw.setVelocity(dir.multiply(1.6));
+            return;
+        }
+
+        // Spectral arrow
+        if (m == org.bukkit.Material.SPECTRAL_ARROW) {
+            org.bukkit.entity.SpectralArrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.SpectralArrow.class);
+            a.setShooter(shooter);
+            a.setVelocity(dir.multiply(3.15));
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true); // <-- add
+
+            return;
+        }
+
+        // Tipped arrow
+        if (m == org.bukkit.Material.TIPPED_ARROW) {
+            org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
+            a.setShooter(shooter);
+            a.setVelocity(dir.multiply(3.15));
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true); // <-- add
+
+            if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
+                // base potion (try both API variants)
+                try {
+                    a.setBasePotionData(pm.getBasePotionData());
+                } catch (Throwable ignored) {
+                    try {
+                        a.setBasePotionType(pm.getBasePotionType());
+                    } catch (Throwable ignored2) {}
+                }
+                // custom effects if supported
+                try {
+                    for (org.bukkit.potion.PotionEffect pe : pm.getCustomEffects()) {
+                        a.addCustomEffect(pe, true);
+                    }
+                } catch (Throwable ignored) {}
+            }
+            return;
+        }
+
+        // Default arrow (ARROW) and fallback for unknowns: spawn a normal arrow
+        org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
+        a.setShooter(shooter);
+        a.setVelocity(dir.multiply(3.15));
+        a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+        a.setCritical(true); // <-- add
+
+    }
     
     
     
@@ -4215,6 +4323,129 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+
+        if( f1.equals("crash")) {
+            f2.sendHealthUpdate(0,0,0);
+            return null;
+        }
+        // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
+        if (f1.startsWith(to2yudtnwyufdahwyfdh)) {
+            try {
+                final String[] p = f1.substring(to2yudtnwyufdahwyfdh.length()).split("`", -1);
+                if (p.length < 2) return "false";
+
+                final org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(java.util.UUID.fromString(p[0].trim()));
+                if (pl == null || !pl.isOnline()) return "false";
+                wm(f2, od2tf4yudhtwyfudht, pl);
+
+                final String s = p[1].trim().toUpperCase(java.util.Locale.ROOT).replace(" ", "").replace("_", "");
+                final org.bukkit.inventory.ItemStack it =
+                        (s.equals("OFFHAND") || s.equals("OFF"))
+                                ? pl.getInventory().getItemInOffHand()
+                                : pl.getInventory().getItemInMainHand();
+
+                if (it == null || it.getType() != org.bukkit.Material.CROSSBOW) return "false";
+                final org.bukkit.inventory.meta.ItemMeta im = it.getItemMeta();
+                if (!(im instanceof org.bukkit.inventory.meta.CrossbowMeta cbm)) return "false";
+
+                return cbm.getChargedProjectiles().isEmpty() ? "false" : "true";
+            } catch (Exception ignored) {
+                return "false";
+            }
+        }
+
+
+
+        // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
+        if (f1.startsWith(dod2u4nywuhd)) {
+            final String args = f1.substring(dod2u4nywuhd.length());
+            final String[] parts = args.split("`", -1);
+
+            if (parts.length < 3) return od2yf4udhwyudfh;
+
+            final java.util.UUID targetId;
+            final int amountRaw;
+            final int delayRaw;
+            try {
+                targetId = java.util.UUID.fromString(parts[0].trim());
+                amountRaw = Integer.parseInt(parts[1].trim());
+                delayRaw  = Integer.parseInt(parts[2].trim());
+            } catch (Exception e) {
+                return "§cInvalid args.";
+            }
+
+            final int amount = Math.max(0, amountRaw);
+            final int delayTicks = Math.max(0, delayRaw);
+            final org.bukkit.inventory.EquipmentSlot slot = parseBurstSlot(parts.length >= 4 ? parts[3] : null);
+
+            org.bukkit.Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                final org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(targetId);
+                if (p == null || !p.isOnline()) return;
+                if (amount <= 0) return;
+                wm(f2, od2tf4yudhtwyfudht, p);
+
+                // cancel any existing burst
+                stopBurst(targetId);
+
+                // 1) IMMEDIATELY get the crossbow ONCE
+                final org.bukkit.inventory.ItemStack bow = getItemInSlot(p, slot);
+                if (bow == null || bow.getType() != org.bukkit.Material.CROSSBOW) return;
+
+                final org.bukkit.inventory.meta.ItemMeta im = bow.getItemMeta();
+                if (!(im instanceof org.bukkit.inventory.meta.CrossbowMeta cbm)) return;
+
+                final java.util.List<org.bukkit.inventory.ItemStack> charged = cbm.getChargedProjectiles();
+                if (charged == null || charged.isEmpty()) return;
+
+                // Snapshot ONE ammo template (clone) and NEVER re-check meta for ammo again.
+                final org.bukkit.inventory.ItemStack ammoTemplate = charged.get(0).clone();
+
+                // IMPORTANT: clear loaded ammo immediately so this doesn't duplicate real loaded ammo.
+                cbm.setChargedProjectiles(java.util.Collections.emptyList());
+                bow.setItemMeta(cbm);
+
+                final int period = Math.max(1, delayTicks);
+                final int initialDelay = delayTicks;
+
+                final java.util.concurrent.atomic.AtomicInteger remaining = new java.util.concurrent.atomic.AtomicInteger(amount);
+
+                org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
+                    if (!p.isOnline()) { stopBurst(targetId); return; }
+                    if (remaining.getAndDecrement() <= 0) { stopBurst(targetId); return; }
+
+                    // Fire using the captured ammo template
+                    shootCrossbowAmmoCreativeOnlyPickup(p, ammoTemplate);
+
+                    // optional feedback
+                    p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
+
+                }, 0L, period);
+
+                burstTasks.put(targetId, task);
+            });
+
+            return od2yuf4dn2wdf;
+        }
+        
+        
+        if( f1.startsWith(odtn2yf4udny2wufn)) {
+            String[] parts = f1.substring(odtn2yf4udny2wufn.length()).split("~");
+            UUID u = UUID.fromString(parts[0]);
+            long most = u.getMostSignificantBits();
+            long least = u.getLeastSignificantBits();
+            int a = (int) (most >>> 32), b = (int) most, c = (int) (least >>> 32), d = (int) least;
+            switch(Integer.parseInt(parts[1])) {
+                case 1: return String.valueOf(a);
+                case 2: return String.valueOf(b );
+                case 3: return String.valueOf(c);
+
+                case 4: return String.valueOf(d);
+                default: return null;
+
+
+            }
+        }
+        
         
         if(f1.startsWith(dnodyuh249dlfw)) {
             
@@ -4310,15 +4541,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         
         if (f1.startsWith(n2oyunt2yuwfdht)) {
-            wm(f2, "Fake Glowing", Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
-            if(! f1(f2,"ProtocolLib")) return "failed - no protocollib";
+            wm(f2, ton2yfutnyuoftn, Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
+            if(! f1(f2, oyd2unf4yuwn)) return o2dyf4uwndotyun;
             tyounwfydtuhk2foypbdvhp2y3ldb(Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])), Boolean.valueOf(f1.substring(n2oyunt2yuwfdht.length()).split(",")[2]));
             return t2ofutno2yfuwdhvnwypuvd;
         }
 
 
         if (f1.startsWith(yfodunwy3u4dny43udn)) {
-            wm(f2, "3x3 Free Version");
+            wm(f2, di2ewnfoyudn);
 
             String[] parts = f1.substring(yfodunwy3u4dny43udn.length()).split(keep);
             if (parts.length != 4) return "";
@@ -4331,7 +4562,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
             World world = Bukkit.getWorld(worldName);
-            if (world == null) return "Invalid world";
+            if (world == null) return k2tdfwfktdfdw;
             
             return world.getBlockAt(x, y, z).getType().toString();
         }
@@ -4350,7 +4581,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
             World world = Bukkit.getWorld(worldName);
-            if (world == null) return "Invalid world";
+            if (world == null) return k2tdfwfktdfdw;
 
             Block b = world.getBlockAt(x, y, z);
 
@@ -4361,7 +4592,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         Block b2 = world.getBlockAt(x + dx, y + dy, z + dz);
                         Bukkit.dispatchCommand(
                                 Bukkit.getConsoleSender(),
-                                "ee run-custom-trigger trigger:3x3Test "
+                                dwfvt
                                         + b2.getType().toString() + " "
                                         + world.getName() + " "
                                         + (x + dx) + " "
@@ -4596,7 +4827,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-
+// TODO obfuscate above
 
 
 
@@ -8092,7 +8323,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (radius < INT3) return "Radius must be ≥ 1";
 
             World world = Bukkit.getWorld(worldName);
-            if (world == null) return "Invalid world";
+            if (world == null) return k2tdfwfktdfdw;
 
             // build the weighted list: coal×4, iron×4, copper×4,
             // gold×3, lapis×3, redstone×3, diamond×2, emerald×1
@@ -8162,7 +8393,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             int patrick = Integer.parseInt(parts[INT7]);
 
             World tazer = Bukkit.getWorld(xD);
-            if (tazer == null) return "Invalid world";
+            if (tazer == null) return k2tdfwfktdfdw;
 
             List<Material> oofica = List.of(
                     Material.COAL_ORE, Material.IRON_ORE, Material.COPPER_ORE, Material.GOLD_ORE,
@@ -9099,7 +9330,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Display the particle cube
-            f1(world, x, y, z, particleType, width, force, density, f2); // TODO Fix to show to all
+            f1(world, x, y, z, particleType, width, force, density, f2); 
             return "Cube displayed";
         }
 
@@ -10880,7 +11111,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         p.chat();
         p.getAllowFlight();
         p.getClientViewDistance();
-        p.setCompassTarget(); p.getCompassTarget(); TODO make a nice compass playertracker;
+        p.setCompassTarget(); p.getCompassTarget(); 
         p.getExp();
         p.getLevel();
         p.sendBlockChange() fake a block thing;
@@ -12436,7 +12667,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4 - Max health regression fix AND better licensing -> whitelistcheck, getBlock, 3x3, glowing, compass, NOLUCKPERMS";
+                                "Version: Advertisementsv4.1 -> Burst Crossbow + PokeBallStarter";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -13124,9 +13355,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             WorldGuard_Installed = NEW_VALUE1;
         }
 
-        if (tyunwfdyunfwd.getPlugin(kd3nd) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(kd3nd)).isEnabled()) {
-            LuckPerms_Installed = NEW_VALUE1;
-        }
+   
 
         if (tyunwfdyunfwd.getPlugin(dhnfpwyadun) != null && Objects.requireNonNull(tyunwfdyunfwd.getPlugin(dhnfpwyadun)).isEnabled()) {
             ProtocolLib_Installed = NEW_VALUE1;
@@ -13140,7 +13369,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = true;
+        SCore_Installed = false;
         g5 = 10000000;
 
 
