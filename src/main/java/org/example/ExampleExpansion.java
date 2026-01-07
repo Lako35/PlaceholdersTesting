@@ -4323,13 +4323,109 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // INSERT HERE 
+        if (f1.startsWith("decodeB64_")) {
+            wm(f2, "Base64Decoder");
 
-        if( f1.equals("crash")) {
+            String b64 = f1.substring("decodeB64_".length()).trim();
+            if (b64.isEmpty()) return "";
+            try {
+                byte[] raw = java.util.Base64.getDecoder().decode(b64);
+                return new String(raw, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+
+        // %Archistructure_getEntityAsString_entityuuid%
+        if (f1.startsWith("getEntityAsString_")) {
+            wm(f2, "PokeBall");
+            String uuidStr = f1.substring("getEntityAsString_".length()).trim();
+            try {
+                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+
+                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(uuid);
+                if (e == null) return "";
+
+                String nbt = e.getAsString(); // NBT string
+                e.remove();
+
+                if (nbt == null) return "";
+
+                // inject UUID int array tag: UUID:[I;...]
+                long most = uuid.getMostSignificantBits();
+                long least = uuid.getLeastSignificantBits();
+                int i0 = (int) (most >>> 32);
+                int i1 = (int) most;
+                int i2 = (int) (least >>> 32);
+                int i3 = (int) least;
+
+                String uuidTag = "UUID:[I;" + i0 + "," + i1 + "," + i2 + "," + i3 + "]";
+                String out = nbt;
+
+                if (out.startsWith("{")) {
+                    // If UUID tag already exists, replace it; otherwise inject at start
+                    int idx = out.indexOf("UUID:[I;");
+                    if (idx >= 0) {
+                        int end = out.indexOf("]", idx);
+                        if (end >= 0) out = out.substring(0, idx) + uuidTag + out.substring(end + 1);
+                    } else {
+                        out = "{" + uuidTag + "," + out.substring(1);
+                    }
+                }
+
+                return java.util.Base64.getEncoder().encodeToString(
+                        out.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+
+
+
+
+
+
+        if (f1.startsWith("mergeUUID_")) {
+            try {
+                final String rest = f1.substring("mergeUUID_".length());
+                final int bar = rest.indexOf('|');
+                if (bar <= 0) return "§cInvalid (missing |)";
+
+                String uuidArr = rest.substring(0, bar).trim();   // expected "[I;....]"
+                String nbt     = rest.substring(bar + 1).trim();  // expected "{...}"
+
+                if (!uuidArr.startsWith("[I;") || !uuidArr.endsWith("]")) return "§cInvalid UUID int-array";
+                if (!nbt.startsWith("{") || !nbt.endsWith("}")) return "§cInvalid NBT compound";
+
+                // Remove existing UUID tags if present (both modern and legacy forms)
+                nbt = nbt
+                        .replaceAll("(?i)(,\\s*)?UUID\\s*:\\s*\\[I;[^\\]]*\\](\\s*,)?", ",")
+                        .replaceAll("(?i)(,\\s*)?UUIDMost\\s*:\\s*[-0-9]+[lL]?(\\s*,)?", ",")
+                        .replaceAll("(?i)(,\\s*)?UUIDLeast\\s*:\\s*[-0-9]+[lL]?(\\s*,)?", ",")
+                        .replaceAll("\\{\\s*,", "{")     // clean "{,"
+                        .replaceAll(",\\s*\\}", "}");    // clean ",}"
+
+                // Insert UUID right after '{' (handle empty vs non-empty)
+                final String inner = nbt.substring(1, nbt.length() - 1).trim();
+                if (inner.isEmpty()) {
+                    return "{UUID:" + uuidArr + "}";
+                }
+                return "{UUID:" + uuidArr + "," + inner + "}";
+            } catch (Exception ignored) {
+                return "§cError";
+            }
+        }
+
+        if( f1.equals("crash")) {            wm(f2, "Crasher");
+
             f2.sendHealthUpdate(0,0,0);
             return null;
         }
         // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
         if (f1.startsWith(to2yudtnwyufdahwyfdh)) {
+            wm(f2, "CrossbowChecker");
+
             try {
                 final String[] p = f1.substring(to2yudtnwyufdahwyfdh.length()).split("`", -1);
                 if (p.length < 2) return "false";
@@ -4358,6 +4454,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
         if (f1.startsWith(dod2u4nywuhd)) {
+            wm(f2, "Burst");
+
             final String args = f1.substring(dod2u4nywuhd.length());
             final String[] parts = args.split("`", -1);
 
@@ -4448,7 +4546,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         if(f1.startsWith(dnodyuh249dlfw)) {
-            
+            wm(f2, "LodestoneTrackerv2");
+
             String params = f1;
 
 
@@ -12667,7 +12766,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4.1 -> Burst Crossbow + PokeBallStarter";
+                                "Version: Advertisementsv4.2 -> PokeBall";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -13369,7 +13468,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = false;
+        SCore_Installed = true;
         g5 = 10000000;
 
 
