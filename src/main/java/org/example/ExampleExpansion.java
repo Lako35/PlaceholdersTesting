@@ -3558,6 +3558,63 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        if (f1.startsWith("decodeB64_")) {
+
+            String b64 = f1.substring("decodeB64_".length()).trim();
+            if (b64.isEmpty()) return "";
+            try {
+                byte[] raw = java.util.Base64.getDecoder().decode(b64);
+                return new String(raw, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+
+        // %Archistructure_getEntityAsString_entityuuid%
+        if (f1.startsWith("getEntityAsString_")) {
+            String uuidStr = f1.substring("getEntityAsString_".length()).trim();
+            try {
+                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+
+                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(uuid);
+                if (e == null) return "";
+
+                String nbt = e.getAsString(); // NBT string
+                e.remove();
+
+                if (nbt == null) return "";
+
+                // inject UUID int array tag: UUID:[I;...]
+                long most = uuid.getMostSignificantBits();
+                long least = uuid.getLeastSignificantBits();
+                int i0 = (int) (most >>> 32);
+                int i1 = (int) most;
+                int i2 = (int) (least >>> 32);
+                int i3 = (int) least;
+
+                String uuidTag = "UUID:[I;" + i0 + "," + i1 + "," + i2 + "," + i3 + "]";
+                String out = nbt;
+
+                if (out.startsWith("{")) {
+                    // If UUID tag already exists, replace it; otherwise inject at start
+                    int idx = out.indexOf("UUID:[I;");
+                    if (idx >= 0) {
+                        int end = out.indexOf("]", idx);
+                        if (end >= 0) out = out.substring(0, idx) + uuidTag + out.substring(end + 1);
+                    } else {
+                        out = "{" + uuidTag + "," + out.substring(1);
+                    }
+                }
+
+                return java.util.Base64.getEncoder().encodeToString(
+                        out.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+        
+        
         if (identifier.startsWith("trackv4-a.2_")) {
             return onTrackV4A2(p, identifier.substring("trackv4-a.2_".length()));
         }
