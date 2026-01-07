@@ -695,51 +695,6 @@ public class ExampleExpansion2 {
         }
     }
 
-    protected static @Nullable String getString8(ExampleExpansion exampleExpansion, Player p) {
-        if (!exampleExpansion.checkCompatibility(p, "LuckPerms")) return null;
-
-        User user = exampleExpansion.luckPerms.getPlayerAdapter(Player.class).getUser(p);
-
-        // Skip users with "ei.*" or "ei.itemfolderbypass"
-        if (user.getCachedData().getPermissionData().checkPermission("ei.*").asBoolean() ||
-                user.getCachedData().getPermissionData().checkPermission("ei.itemfolderbypass").asBoolean() ||
-                user.getCachedData().getPermissionData().checkPermission("ei.item.*").asBoolean()) {
-            return "&aEI Folder-Bypass Detected";
-        }
-
-        try {
-            // STEP 1: Remove "ei.item.*" unless immutable
-            user.getNodes().stream()
-                    .filter(node -> node.getKey().startsWith("ei.item.")) // Find all "ei.item.*" permissions
-                    .filter(node -> {
-                        String itemName = node.getKey().substring("ei.item.".length()); // Extract ITEMNAME
-                        String immutablePermission = "ei.immutableitem." + itemName;
-
-                        // Check if they have "ei.immutableitem.ITEMNAME"
-                        return !user.getCachedData().getPermissionData().checkPermission(immutablePermission).asBoolean();
-                    })
-                    .forEach(node -> user.data().remove(node)); // Remove non-immutable permissions
-
-            // STEP 2: Get inherited and direct "ei.itemfolder.*" permissions
-            List<String> itemFolderPermissions = user.getNodes().stream()
-                    .map(Node::getKey)
-                    .filter(key -> key.startsWith("ei.itemfolder."))
-                    .map(key -> key.substring("ei.itemfolder.".length()).replace(".", "/")) // Convert to directory paths
-                    .toList();
-
-            // STEP 3 & 4: Get valid items and apply "ei.item.*" permissions
-            processItemFolderPermissions(user, itemFolderPermissions);
-
-            // STEP 5: Save changes
-            exampleExpansion.luckPerms.getUserManager().saveUser(user);
-            return "&aSuccessfully updated EI-Folder permissions.";
-
-        } catch (Exception e) {
-            Bukkit.getLogger().severe("Error processing permissions for " + p.getName() + ": " + e.getMessage());
-            e.printStackTrace();
-            return "&cSomething went wrong with LP EI-Folder: " + e.getMessage();
-        }
-    }
 
     protected static @NotNull String getString25(ExampleExpansion exampleExpansion, Player p, @NotNull String identifier) {
         String[] args = identifier.substring("XRAY-".length()).split("-");
