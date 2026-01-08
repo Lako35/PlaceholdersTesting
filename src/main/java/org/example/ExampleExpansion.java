@@ -3400,7 +3400,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * Fires ONE projectile matching the ammo template.
      * Any arrow-like projectile spawned is set to CREATIVE_ONLY pickup to prevent retrieval.
      */
-    private void shootCrossbowAmmoCreativeOnlyPickup(org.bukkit.entity.Player shooter, org.bukkit.inventory.ItemStack ammoTemplate) {
+    private void shootCrossbowAmmoCreativeOnlyPickup(org.bukkit.entity.Player shooter, org.bukkit.inventory.ItemStack ammoTemplate, String tag) {
         final org.bukkit.Location eye = shooter.getEyeLocation();
         final org.bukkit.util.Vector dir = eye.getDirection().normalize();
         final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
@@ -3416,6 +3416,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
                 f.setShotAtAngle(true);
             });
+            fw.addScoreboardTag(tag);
             fw.setVelocity(dir.multiply(1.6));
             return;
         }
@@ -3427,6 +3428,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             a.setVelocity(dir.multiply(3.15));
             a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
             a.setCritical(true); // <-- add
+            a.addScoreboardTag(tag);
 
             return;
         }
@@ -3438,6 +3440,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             a.setVelocity(dir.multiply(3.15));
             a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
             a.setCritical(true); // <-- add
+            a.addScoreboardTag(tag);
 
             if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
                 // base potion (try both API variants)
@@ -3464,6 +3467,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         a.setVelocity(dir.multiply(3.15));
         a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
         a.setCritical(true); // <-- add
+        a.addScoreboardTag(tag);
 
     }
 
@@ -3752,14 +3756,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-
+        if( identifier.startsWith("hasTag_")) {
+            String[] parts = identifier.substring("hasTag_".length()).split(",");
+            
+            return String.valueOf(Bukkit.getEntity(UUID.fromString(parts[0].trim())).getScoreboardTags().contains(parts[1]));
+        }
 
         // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
         if (f1.startsWith("burst_")) {
             final String args = f1.substring("burst_".length());
             final String[] parts = args.split("`", -1);
 
-            if (parts.length < 3) return "invalid";
+            if (parts.length < 4) return "invalid";
 
             final java.util.UUID targetId;
             final int amountRaw;
@@ -3811,7 +3819,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     if (remaining.getAndDecrement() <= 0) { stopBurst(targetId); return; }
 
                     // Fire using the captured ammo template
-                    shootCrossbowAmmoCreativeOnlyPickup(p, ammoTemplate);
+                    shootCrossbowAmmoCreativeOnlyPickup(p, ammoTemplate, parts[3]);
 
                     // optional feedback
                     p2.getWorld().playSound(p2.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
