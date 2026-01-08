@@ -3395,54 +3395,71 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-
     /**
      * Fires ONE projectile matching the ammo template.
      * Any arrow-like projectile spawned is set to CREATIVE_ONLY pickup to prevent retrieval.
      */
-    private void shootCrossbowAmmoCreativeOnlyPickup(org.bukkit.entity.Player shooter, org.bukkit.inventory.ItemStack ammoTemplate, String tag) {
+    private void shootCrossbowAmmoCreativeOnlyPickup(
+            org.bukkit.entity.Player shooter,
+            org.bukkit.inventory.ItemStack ammoTemplate,
+            String tag
+    ) {
         final org.bukkit.Location eye = shooter.getEyeLocation();
         final org.bukkit.util.Vector dir = eye.getDirection().normalize();
-        final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
+
+        // NOTE: launchProjectile picks its own spawn position (typically from the shooter).
+        // If you REALLY want your old offset spawn point, you can teleport after launch (optional).
+        // final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
 
         final org.bukkit.Material m = (ammoTemplate == null) ? org.bukkit.Material.AIR : ammoTemplate.getType();
 
         // Firework rocket
         if (m == org.bukkit.Material.FIREWORK_ROCKET) {
-            org.bukkit.entity.Firework fw = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Firework.class, f -> {
-                f.setShooter(shooter);
-                if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.FireworkMeta fm) {
-                    f.setFireworkMeta(fm);
-                }
-                f.setShotAtAngle(true);
-            });
+            org.bukkit.entity.Firework fw = shooter.launchProjectile(
+                    org.bukkit.entity.Firework.class,
+                    dir.clone().multiply(1.6)
+            );
+
+            // fw.teleport(spawnLoc); // optional
+            fw.setShooter(shooter);
+            fw.setShotAtAngle(true);
             fw.addScoreboardTag(tag);
-            fw.setVelocity(dir.multiply(1.6));
+
+            if (ammoTemplate != null && ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.FireworkMeta fm) {
+                fw.setFireworkMeta(fm);
+            }
             return;
         }
 
         // Spectral arrow
         if (m == org.bukkit.Material.SPECTRAL_ARROW) {
-            org.bukkit.entity.SpectralArrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.SpectralArrow.class);
-            a.setShooter(shooter);
-            a.setVelocity(dir.multiply(3.15));
-            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
-            a.setCritical(true); // <-- add
-            a.addScoreboardTag(tag);
+            org.bukkit.entity.SpectralArrow a = shooter.launchProjectile(
+                    org.bukkit.entity.SpectralArrow.class,
+                    dir.clone().multiply(3.15)
+            );
 
+            // a.teleport(spawnLoc); // optional
+            a.setShooter(shooter); // usually already set, but safe
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true);
+            a.addScoreboardTag(tag);
             return;
         }
 
         // Tipped arrow
         if (m == org.bukkit.Material.TIPPED_ARROW) {
-            org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
+            org.bukkit.entity.Arrow a = shooter.launchProjectile(
+                    org.bukkit.entity.Arrow.class,
+                    dir.clone().multiply(3.15)
+            );
+
+            // a.teleport(spawnLoc); // optional
             a.setShooter(shooter);
-            a.setVelocity(dir.multiply(3.15));
             a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
-            a.setCritical(true); // <-- add
+            a.setCritical(true);
             a.addScoreboardTag(tag);
 
-            if (ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
+            if (ammoTemplate != null && ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
                 // base potion (try both API variants)
                 try {
                     a.setBasePotionData(pm.getBasePotionData());
@@ -3451,6 +3468,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         a.setBasePotionType(pm.getBasePotionType());
                     } catch (Throwable ignored2) {}
                 }
+
                 // custom effects if supported
                 try {
                     for (org.bukkit.potion.PotionEffect pe : pm.getCustomEffects()) {
@@ -3461,15 +3479,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return;
         }
 
-        // Default arrow (ARROW) and fallback for unknowns: spawn a normal arrow
-        org.bukkit.entity.Arrow a = shooter.getWorld().spawn(spawnLoc, org.bukkit.entity.Arrow.class);
-        a.setShooter(shooter);
-        a.setVelocity(dir.multiply(3.15));
-        a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
-        a.setCritical(true); // <-- add
-        a.addScoreboardTag(tag);
+        // Default arrow (ARROW) and fallback
+        org.bukkit.entity.Arrow a = shooter.launchProjectile(
+                org.bukkit.entity.Arrow.class,
+                dir.clone().multiply(3.15)
+        );
 
+        // a.teleport(spawnLoc); // optional
+        a.setShooter(shooter);
+        a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+        a.setCritical(true);
+        a.addScoreboardTag(tag);
     }
+
 
 
     
