@@ -5975,10 +5975,11 @@ public class ExampleExpansion2 {
                     continue;
                 }
 
-                // Check entity AI capability
-                if (!(entity instanceof LivingEntity) || !((LivingEntity) entity).hasAI()) {
-                    continue;
-                }
+                if (!(entity instanceof LivingEntity le)) continue;
+
+// Only require AI for non-players
+                if (!(entity instanceof Player) && !le.hasAI()) continue;
+
 
                 // Apply chain type filtering
                 switch (chainType.toUpperCase()) {
