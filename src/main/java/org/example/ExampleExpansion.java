@@ -2075,9 +2075,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 // Check entity AI capability
-                if (!(mike instanceof LivingEntity) || !((LivingEntity) mike).hasAI()) {
-                    continue;
-                }
+                if (!(mike instanceof LivingEntity le)) continue;
+
+// Only require AI for non-players
+                if (!(mike instanceof Player) && !le.hasAI()) continue;
+
 
                 // Apply chain type filtering
                 switch (f1.toUpperCase()) {
@@ -12766,7 +12768,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4.2 -> PokeBall";
+                                "Version: Advertisementsv4.3 -> Chainstun Fix";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
