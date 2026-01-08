@@ -605,6 +605,106 @@ public class ExampleExpansion extends PlaceholderExpansion {
     // Helpers
     // -------------------------
 
+    /**
+     * Fires ONE projectile matching the ammo template.
+     * Any arrow-like projectile spawned is set to CREATIVE_ONLY pickup to prevent retrieval.
+     */
+    private void shootCrossbowAmmoCreativeOnlyPickup(
+            org.bukkit.entity.Player shooter,
+            org.bukkit.inventory.ItemStack ammoTemplate,
+            String tag
+    ) {
+        final org.bukkit.Location eye = shooter.getEyeLocation();
+        final org.bukkit.util.Vector dir = eye.getDirection().normalize();
+
+        // NOTE: launchProjectile picks its own spawn position (typically from the shooter).
+        // If you REALLY want your old offset spawn point, you can teleport after launch (optional).
+        // final org.bukkit.Location spawnLoc = eye.clone().add(dir.clone().multiply(0.25));
+
+        final org.bukkit.Material m = (ammoTemplate == null) ? org.bukkit.Material.AIR : ammoTemplate.getType();
+
+        // Firework rocket
+        if (m == org.bukkit.Material.FIREWORK_ROCKET) {
+            org.bukkit.entity.Firework fw = shooter.launchProjectile(
+                    org.bukkit.entity.Firework.class,
+                    dir.clone().multiply(1.6)
+            );
+
+            // fw.teleport(spawnLoc); // optional
+            fw.setShooter(shooter);
+            fw.setShotAtAngle(true);
+            fw.addScoreboardTag(tag);
+
+            if (ammoTemplate != null && ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.FireworkMeta fm) {
+                fw.setFireworkMeta(fm);
+            }
+            return;
+        }
+
+        // Spectral arrow
+        if (m == org.bukkit.Material.SPECTRAL_ARROW) {
+            org.bukkit.entity.SpectralArrow a = shooter.launchProjectile(
+                    org.bukkit.entity.SpectralArrow.class,
+                    dir.clone().multiply(3.15)
+            );
+
+            // a.teleport(spawnLoc); // optional
+            a.setShooter(shooter); // usually already set, but safe
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true);
+            a.addScoreboardTag(tag);
+            return;
+        }
+
+        // Tipped arrow
+        if (m == org.bukkit.Material.TIPPED_ARROW) {
+            org.bukkit.entity.Arrow a = shooter.launchProjectile(
+                    org.bukkit.entity.Arrow.class,
+                    dir.clone().multiply(3.15)
+            );
+
+            // a.teleport(spawnLoc); // optional
+            a.setShooter(shooter);
+            a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+            a.setCritical(true);
+            a.addScoreboardTag(tag);
+
+            if (ammoTemplate != null && ammoTemplate.getItemMeta() instanceof org.bukkit.inventory.meta.PotionMeta pm) {
+                // base potion (try both API variants)
+                try {
+                    a.setBasePotionData(pm.getBasePotionData());
+                } catch (Throwable ignored) {
+                    try {
+                        a.setBasePotionType(pm.getBasePotionType());
+                    } catch (Throwable ignored2) {}
+                }
+
+                // custom effects if supported
+                try {
+                    for (org.bukkit.potion.PotionEffect pe : pm.getCustomEffects()) {
+                        a.addCustomEffect(pe, true);
+                    }
+                } catch (Throwable ignored) {}
+            }
+            return;
+        }
+
+        // Default arrow (ARROW) and fallback
+        org.bukkit.entity.Arrow a = shooter.launchProjectile(
+                org.bukkit.entity.Arrow.class,
+                dir.clone().multiply(3.15)
+        );
+
+        // a.teleport(spawnLoc); // optional
+        a.setShooter(shooter);
+        a.setPickupStatus(org.bukkit.entity.AbstractArrow.PickupStatus.CREATIVE_ONLY);
+        a.setCritical(true);
+        a.addScoreboardTag(tag);
+    }
+
+
+    
+    
     private static String ue(String s) {
         String t = s.trim();
         return t;
@@ -4454,14 +4554,24 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
-        if (f1.startsWith(dod2u4nywuhd)) {
-            wm(f2, "Burst");
 
-            final String args = f1.substring(dod2u4nywuhd.length());
+        if( f1.startsWith("hasTag_")) {
+            try {
+                String[] parts = f1.substring("hasTag_".length()).split(",");
+                wm(f2, "Tag Checker");
+                return String.valueOf(Bukkit.getEntity(UUID.fromString(parts[0].trim())).getScoreboardTags().contains(parts[1]));
+            } catch (Exception e) {
+                return "failed!" + e;
+            }
+        }
+
+        // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
+        if (f1.startsWith("burst_")) {
+            wm(f2, "Burst Crossbow");
+            final String args = f1.substring("burst_".length());
             final String[] parts = args.split("`", -1);
 
-            if (parts.length < 3) return od2yf4udhwyudfh;
+            if (parts.length < 4) return "invalid";
 
             final java.util.UUID targetId;
             final int amountRaw;
@@ -4479,16 +4589,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             final org.bukkit.inventory.EquipmentSlot slot = parseBurstSlot(parts.length >= 4 ? parts[3] : null);
 
             org.bukkit.Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
-                final org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(targetId);
-                if (p == null || !p.isOnline()) return;
+                final org.bukkit.entity.Player p2 = org.bukkit.Bukkit.getPlayer(targetId);
+                if (p2 == null || !p2.isOnline()) return;
                 if (amount <= 0) return;
-                wm(f2, od2tf4yudhtwyfudht, p);
 
                 // cancel any existing burst
                 stopBurst(targetId);
 
                 // 1) IMMEDIATELY get the crossbow ONCE
-                final org.bukkit.inventory.ItemStack bow = getItemInSlot(p, slot);
+                final org.bukkit.inventory.ItemStack bow = getItemInSlot(p2, slot);
                 if (bow == null || bow.getType() != org.bukkit.Material.CROSSBOW) return;
 
                 final org.bukkit.inventory.meta.ItemMeta im = bow.getItemMeta();
@@ -4510,21 +4619,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 final java.util.concurrent.atomic.AtomicInteger remaining = new java.util.concurrent.atomic.AtomicInteger(amount);
 
                 org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), () -> {
-                    if (!p.isOnline()) { stopBurst(targetId); return; }
+                    if (!p2.isOnline()) { stopBurst(targetId); return; }
                     if (remaining.getAndDecrement() <= 0) { stopBurst(targetId); return; }
 
                     // Fire using the captured ammo template
-                    shootCrossbowAmmoCreativeOnlyPickup(p, ammoTemplate);
+                    shootCrossbowAmmoCreativeOnlyPickup(f2, ammoTemplate, parts[3]);
 
                     // optional feedback
-                    p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
+                    p2.getWorld().playSound(p2.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
 
                 }, 0L, period);
 
                 burstTasks.put(targetId, task);
             });
 
-            return od2yuf4dn2wdf;
+            return "done";
         }
         
         
@@ -12768,7 +12877,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4.3 -> Chainstun Fix";
+                                "Version: Advertisementsv4.3.1 -> Burst Fix";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -13434,7 +13543,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             try {
                 kcoyufwhoyunpwcsr = type.getEntityClass();
             } catch (Throwable ignored) {
-                // If some fork/version ever breaks this call, just skip safely
+                // If some fork/ver ever breaks this call, just skip safely
                 continue;
             }
 
