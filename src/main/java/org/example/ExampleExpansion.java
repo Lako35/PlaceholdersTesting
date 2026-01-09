@@ -100,7 +100,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static final java.util.concurrent.ConcurrentHashMap<java.util.UUID, java.util.UUID> STINGER_LAST_FULL_LOCK =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    private enum StingerMode { PLAYERSONLY, HOSTILESONLY, ENTITIES, ALL }
+    private enum StingerMode { PLAYERS, HOSTILES, ENTITIES, ALL }
 
     private static final class StingerLockState {
         final UUID playerId;
@@ -1405,7 +1405,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 launcher.sendMessage("§dYou have struck §6" + (tgt.getName() != null ? tgt.getName() : tgt.getType() ) + "§d with Stinger 8.2");
 
                 final double maxHp = 20 ; //tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
-                final double amount = 0.5 * maxHp + 200.0;
+                final double amount = 0.5 * maxHp + 3000;
                 tgt.damage(amount, dsb2.build());
             }
             damaged.add(tgt.getUniqueId());
@@ -1443,7 +1443,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
                 // Todo change maxhp?
                 final double maxHp = 20 ; // le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
-                final double amount = 0.33 * maxHp + 300;
+                final double amount = 0.33 * maxHp + 3000;
                 launcher.sendMessage("§dYou have struck §6" + (le.getName() != null ? le.getName() : le.getType() ) + "§d with Stinger 8.2");
                 le.damage(amount, dsb.build());
             }
@@ -1778,6 +1778,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 // Apply velocity
                 c.setVelocity(desiredV);
+                spawnParticle(c.getLocation(), Particle.GUST, null);
 
                 // Proximity -> damage & remove
                 final double d2 = lc.distanceSquared(lt);
@@ -2341,8 +2342,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private static boolean isAllowedByMode(StingerMode mode, org.bukkit.entity.Entity e) {
         switch (mode) {
-            case PLAYERSONLY:  return e instanceof org.bukkit.entity.Player;
-            case HOSTILESONLY: return !(e instanceof org.bukkit.entity.Player) && isHostile(e);
+            case PLAYERS:  return e instanceof org.bukkit.entity.Player;
+            case HOSTILES: return !(e instanceof org.bukkit.entity.Player) && isHostile(e);
             case ENTITIES:     return !(e instanceof org.bukkit.entity.Player);
             case ALL:          return true;
         }
