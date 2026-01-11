@@ -1627,7 +1627,7 @@ public class ExampleExpansion2 extends PlaceholderExpansion {
      */
     @Override
     public @NotNull String getIdentifier() {
-        return "Stinger";
+        return "BallisticZestyBuffalo";
     }
 
 
@@ -4271,21 +4271,12 @@ public class ExampleExpansion2 extends PlaceholderExpansion {
                 // Todo change maxhp?
                 final double maxHp = 20 ; //tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.60 * maxHp + 10.0;
-                tgt.damage(amount, dsb.build());
                 // Run console trigger for the player target
                 final String victimName = ((Player) tgt).getName();
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                         "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + victimName);
             } else {
-                // Non-players: damager = launcher (still acceptable per your V4 semantics)
-                final Entity damager = launcher;
-                if (damager != null) dsb2.withDirectEntity(damager).withCausingEntity(damager);
-                // Todo change maxhp?
-                launcher.sendMessage("§dYou have struck §6" + (tgt.getName() != null ? tgt.getName() : tgt.getType() ) + "§d with Stinger 8.2");
-
-                final double maxHp = 20 ; //tgt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
-                final double amount = 0.5 * maxHp + 3000;
-                tgt.damage(amount, dsb2.build());
+             
             }
             damaged.add(tgt.getUniqueId());
         }
@@ -4310,21 +4301,13 @@ public class ExampleExpansion2 extends PlaceholderExpansion {
                 // Todo change maxhp?
                 final double maxHp = 20 ; //le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
                 final double amount = 0.60 * maxHp + 10.0;
-                le.damage(amount, dsb.build());
                 // Run console trigger for each player in radius
 
                 final String victimName = ((Player) le).getName();
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
                         "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + victimName);
             } else {
-                // Non-players: damager = launcher (kept consistent with your V4 variant)
-                final Entity damager = launcher;
-                if (damager != null) dsb.withDirectEntity(damager).withCausingEntity(damager);
-                // Todo change maxhp?
-                final double maxHp = 20 ; // le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getBaseValue();
-                final double amount = 0.33 * maxHp + 3000;
-                launcher.sendMessage("§dYou have struck §6" + (le.getName() != null ? le.getName() : le.getType() ) + "§d with Stinger 8.2");
-                le.damage(amount, dsb.build());
+         
             }
         }
     }
