@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public class WG {
-    static @NotNull String wg2(ExampleExpansion exampleExpansion, Player f2, String f1) {
+    static @NotNull String wg2(ExampleExpansion2 exampleExpansion, Player f2, String f1) {
         if (!exampleExpansion.f1(f2, "worldguard")) return "§cInstall worldguard...";
         try {
             String[] parts = f1.substring("countPlayersInRegion_".length()).split(",");
@@ -51,7 +51,7 @@ public class WG {
         }
     }
 
-    static @Nullable String wg(ExampleExpansion exampleExpansion, Player f2, String f1) {
+    static @Nullable String wg(ExampleExpansion2 exampleExpansion, Player f2, String f1) {
         if (!exampleExpansion.f1(f2, "WorldGuard")) return null;
 
         String params = f1.substring("nearestPlayerNotTeam2_".length());

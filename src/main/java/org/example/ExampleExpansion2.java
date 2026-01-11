@@ -6,39 +6,27 @@ import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
-import me.ryanhamshire.GriefPrevention.Claim;
-import me.ryanhamshire.GriefPrevention.ClaimPermission;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.ssomar.score.utils.emums.VariableType;
-import com.ssomar.score.variables.Variable;
-import com.ssomar.score.variables.VariableForEnum;
-import com.ssomar.score.variables.manager.VariablesManager;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
@@ -46,9 +34,6 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.*;
-import org.bukkit.block.data.type.Slab;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
@@ -56,8 +41,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import org.bukkit.boss.BossBar;
-import org.bukkit.boss.BarStyle;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.Cipher;
@@ -96,7 +79,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -105,7 +87,7 @@ import java.util.stream.Stream;
  *
  */
 @SuppressWarnings("ALL")
-public class ExampleExpansion extends PlaceholderExpansion {
+public class ExampleExpansion2 extends PlaceholderExpansion {
 
 
     public static final String to2yudtnwyufdahwyfdh = "crossbowCheck_";
@@ -3670,7 +3652,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             *      - If chest UI is open (for this player & coords) → keep waiting.
             *      - If chest UI is NOT open → finalize once and cancel.
             */
-    private static void ensureShulkerWatcher(ExampleExpansion exampleExpansion,
+    private static void ensureShulkerWatcher(ExampleExpansion2 exampleExpansion,
                                              UUID uuid,
                                              Location chestLoc,
                                              YamlConfiguration shulkerConfig) {
@@ -3730,7 +3712,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      *  - material, name, lore, x, y, z from shulkerDatabaseConfig[uuid]
      *  - chest contents at chestLoc
      */
-    private static void finalizeShulker(ExampleExpansion exampleExpansion,
+    private static void finalizeShulker(ExampleExpansion2 exampleExpansion,
                                         UUID uuid,
                                         Location chestLoc) {
 
@@ -8145,7 +8127,7 @@ private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> STINGER_
 
 
 
-    public ExampleExpansion() {
+    public ExampleExpansion2() {
         int debug = 0;
         File shulkerDir = new File("plugins/Archistructures/shulkers/");
         if (!shulkerDir.exists()) shulkerDir.mkdirs();
