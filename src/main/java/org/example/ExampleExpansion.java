@@ -1,6 +1,9 @@
 package org.example;
 
 
+
+
+
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
@@ -9,6 +12,7 @@ import com.comphenix.protocol.wrappers.WrappedWatchableObject;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
 import org.bukkit.command.ConsoleCommandSender;
@@ -98,6 +102,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+
+
+
 
 /**
  * This class will automatically register as a placeholder expansion
@@ -601,9 +609,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    // -------------------------
-    // Helpers
-    // -------------------------
+    
+    
+    
 
     /**
      * Fires ONE projectile matching the ammo template.
@@ -2906,10 +2914,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     
-    
-/* =========================================================
-   Helpers for mode parsing + whitelist/blacklist filtering
-   ========================================================= */
 
     private static class ModeSpec {
         final String untieit; // admin/console/op/opuser/user/player
@@ -4144,6 +4148,452 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     // Helper Methods // Helpers // 
 
+
+    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> shrinkRayTasks =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private void stopShrinkRay(java.util.UUID shooterId) {
+        org.bukkit.scheduler.BukkitTask t = shrinkRayTasks.remove(shooterId);
+        if (t != null) t.cancel();
+    }
+
+    private enum ShrinkHitType { AIR, BLOCK, LIVING, PLAYER }
+
+    private static final class ShrinkHit {
+        final ShrinkHitType type;
+        final org.bukkit.Location end;            // where the beam stops (hitpos/center/end)
+        final org.bukkit.block.Block hitBlock;    // only for BLOCK
+        final org.bukkit.entity.Entity hitEntity; // only for LIVING/PLAYER
+
+        ShrinkHit(ShrinkHitType type, org.bukkit.Location end, org.bukkit.block.Block b, org.bukkit.entity.Entity e) {
+            this.type = type;
+            this.end = end;
+            this.hitBlock = b;
+            this.hitEntity = e;
+        }
+    }
+
+    private String startShrinkRay(org.bukkit.entity.Player shooter, double range, int durationTicks, int intervalTicks) {
+        if (shooter == null || !shooter.isOnline()) return "none";
+        if (range <= 0) return "none";
+        if (durationTicks <= 0) durationTicks = 1;
+        if (intervalTicks < 1) intervalTicks = 1;
+
+        // stop any existing ray for this shooter
+        stopShrinkRay(shooter.getUniqueId());
+
+        // compute FIRST hit now (for return value)
+        ShrinkHit first = computeShrinkHit(shooter, range);
+
+        // schedule the effect + trigger spam for DURATION/INTERVAL
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int runs = (int) Math.ceil(durationTicks / (double) intervalTicks);
+        final int[] remaining = new int[]{ runs };
+
+        final java.util.UUID sid = shooter.getUniqueId();
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(sid);
+            if (p == null || !p.isOnline()) {
+                if (holder[0] != null) holder[0].cancel();
+                shrinkRayTasks.remove(sid);
+                return;
+            }
+
+            ShrinkHit hit = computeShrinkHit(p, range);
+
+            // Beam line effect (always)
+            org.bukkit.Location eye = p.getLocation().add(0, p.getHeight() / 2 , 0);
+            org.bukkit.World w = eye.getWorld();
+            if (w != null && hit.end != null && hit.end.getWorld() != null && w.equals(hit.end.getWorld())) {
+                spawnLineAndClouds(w, eye, hit.end);
+            }
+
+            // Stop-at-hit extra visuals + trigger
+            if (hit.type == ShrinkHitType.PLAYER) {
+                // stop at entity, do BALL + lines
+                runParticleBall(hit.hitEntity.getUniqueId());
+
+                // trigger (every interval), payload = player name
+                String payload = ((org.bukkit.entity.Player) hit.hitEntity).getName();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                            "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitPLAYER " + payload + " " + System.currentTimeMillis());
+
+            } else if (hit.type == ShrinkHitType.LIVING) {
+                // stop at entity, do BALL + lines
+                runParticleBall(hit.hitEntity.getUniqueId());
+
+                // trigger (every interval), payload = uuid
+                String payload = hit.hitEntity.getUniqueId().toString();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitLIVINGENTITY " + payload+ " " + System.currentTimeMillis());
+
+            } else if (hit.type == ShrinkHitType.BLOCK) {
+                // block in the way: JUST the lines (no ball), implied radius 0.5
+                runParticleLinesOnlyAt(hit.end, 0.5, null);
+
+                // trigger (every interval), payload = world,x,y,z (single token)
+                org.bukkit.block.Block b = hit.hitBlock;
+                String payload = b.getWorld().getName() + "," + b.getX() + "," + b.getY() + "," + b.getZ();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitBLOCK " + payload+ " " + System.currentTimeMillis());
+
+            } else {
+                // AIR: JUST the lines, implied radius 0.25 (no trigger)
+                runParticleLinesOnlyAt(hit.end, 0.25, p); // optional vibration-to-player
+            }
+
+            remaining[0]--;
+            if (remaining[0] <= 0) {
+                if (holder[0] != null) holder[0].cancel();
+                shrinkRayTasks.remove(sid);
+            }
+        }, 0L, intervalTicks);
+
+        shrinkRayTasks.put(sid, holder[0]);
+
+        // Return value (based on FIRST hit right now)
+        if (first.type == ShrinkHitType.AIR) return "none";
+        if (first.type == ShrinkHitType.BLOCK) {
+            org.bukkit.block.Block b = first.hitBlock;
+            return b.getWorld().getName() + " " + b.getX() + " " + b.getY() + " " + b.getZ();
+        }
+        if (first.type == ShrinkHitType.PLAYER) {
+            return ((org.bukkit.entity.Player) first.hitEntity).getName();
+        }
+        // LIVING
+        return first.hitEntity.getUniqueId().toString();
+    }
+
+
+    private ShrinkHit computeShrinkHit(org.bukkit.entity.Player p, double range) {
+        org.bukkit.Location eye = p.getEyeLocation();
+        org.bukkit.World w = eye.getWorld();
+        if (w == null) {
+            return new ShrinkHit(ShrinkHitType.AIR, eye, null, null);
+        }
+
+        org.bukkit.util.Vector dir = eye.getDirection().normalize();
+
+        // Find nearest BLOCK hit first
+        org.bukkit.util.RayTraceResult blockHit = null;
+        try {
+            blockHit = w.rayTraceBlocks(eye, dir, range, org.bukkit.FluidCollisionMode.NEVER, true);
+        } catch (Throwable ignored) {}
+
+        double maxEntityDist = range;
+        if (blockHit != null && blockHit.getHitPosition() != null) {
+            maxEntityDist = Math.max(0.0, blockHit.getHitPosition().clone().subtract(eye.toVector()).length() - 0.01);
+        }
+
+        // Now find ENTITY hit, but only up to before the block
+        org.bukkit.util.RayTraceResult entHit = null;
+        try {
+            entHit = w.rayTraceEntities(eye, dir, maxEntityDist, e ->
+                    e != null && e.isValid() && !e.isDead() && e != p && (e instanceof org.bukkit.entity.LivingEntity));
+        } catch (Throwable ignored) {}
+
+        if (entHit != null && entHit.getHitEntity() != null) {
+            org.bukkit.entity.Entity e = entHit.getHitEntity();
+            org.bukkit.Location end = getEntityCenter(e);
+
+            if (e instanceof org.bukkit.entity.Player) {
+                return new ShrinkHit(ShrinkHitType.PLAYER, end, null, e);
+            }
+            return new ShrinkHit(ShrinkHitType.LIVING, end, null, e);
+        }
+
+        if (blockHit != null && blockHit.getHitBlock() != null) {
+            org.bukkit.block.Block b = blockHit.getHitBlock();
+            org.bukkit.Location end;
+            if (blockHit.getHitPosition() != null) {
+                org.bukkit.util.Vector v = blockHit.getHitPosition();
+                end = new org.bukkit.Location(w, v.getX(), v.getY(), v.getZ());
+            } else {
+                end = b.getLocation().add(0.5, 0.5, 0.5);
+            }
+            return new ShrinkHit(ShrinkHitType.BLOCK, end, b, null);
+        }
+
+        // AIR
+        org.bukkit.Location end = eye.clone().add(dir.multiply(range));
+        return new ShrinkHit(ShrinkHitType.AIR, end, null, null);
+    }
+    private void runParticleLinesOnlyAt(org.bukkit.Location center, double radius, org.bukkit.entity.Entity vibrationTargetOrNull) {
+        if (center == null || center.getWorld() == null) return;
+        org.bukkit.World w = center.getWorld();
+
+        // Pick 5 random directions ONCE
+        final org.bukkit.util.Vector[] dirs = new org.bukkit.util.Vector[5];
+        for (int i = 0; i < dirs.length; i++) dirs[i] = randomUnitVector();
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int totalTicks = 3;
+        final int[] tick = new int[]{0};
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (tick[0] >= totalTicks) { holder[0].cancel(); return; }
+
+            double frac = (totalTicks <= 1) ? 1.0 : (tick[0] / (double) (totalTicks - 1)); // 0 -> 1
+            double dist = (2.0 - frac) * radius; // 2R down to R
+
+            for (org.bukkit.util.Vector d : dirs) {
+                org.bukkit.Location p = center.clone().add(d.getX() * dist, d.getY() * dist, d.getZ() * dist);
+
+
+                // Optional vibration
+                if (vibrationTargetOrNull != null) {
+                    try {
+                        final double VIB_DIST = 5.0;
+
+// start point is always 5 blocks from the target center, along the same beam direction
+                        org.bukkit.Location vibStart = center.clone().add(d.getX() * VIB_DIST, d.getY() * VIB_DIST, d.getZ() * VIB_DIST);
+
+                        org.bukkit.Vibration vib = new org.bukkit.Vibration(
+                                vibStart,
+                                new org.bukkit.Vibration.Destination.EntityDestination(vibrationTargetOrNull),
+                                7
+                        );
+                        w.spawnParticle(org.bukkit.Particle.VIBRATION, vibStart, 1, 0, 0, 0, 0, vib);
+                    } catch (Throwable ignored) {}
+                }
+            }
+
+            tick[0]++;
+        }, 0L, 1L);
+    }
+
+
+
+    private void runParticleBall(UUID targetId) {
+        org.bukkit.entity.Entity target = org.bukkit.Bukkit.getEntity(targetId);
+        if (target == null || !target.isValid() || target.isDead()) return;
+
+        org.bukkit.World w = target.getWorld();
+        if (w == null) return;
+
+        // === BALL instantly ===
+        org.bukkit.Location center = getEntityCenter(target);
+        double r = getSphereRadius(target);
+
+        // 20 randomized particles around the sphere surface
+        for (int i = 0; i < 20; i++) {
+            org.bukkit.util.Vector dir = randomUnitVector();
+            org.bukkit.Location at = center.clone().add(dir.getX() * r, dir.getY() * r, dir.getZ() * r);
+
+            int pick = RNG.nextInt(4);
+            switch (pick) {
+                case 0 -> w.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, at, 1, 0, 0, 0, 0);
+                case 1 -> w.spawnParticle(org.bukkit.Particle.WITCH,         at, 1, 0, 0, 0, 0);
+                default -> w.spawnParticle(org.bukkit.Particle.ELECTRIC_SPARK, at, 1, 0, 0, 0, 0);
+            }
+        }
+
+        // === 7 ticks of 5 "lines" moving from 2R -> R ===
+        // Pick 5 random directions ONCE so they look like distinct beams
+        final org.bukkit.util.Vector[] dirs = new org.bukkit.util.Vector[5];
+        for (int i = 0; i < dirs.length; i++) dirs[i] = randomUnitVector();
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int totalTicks = 3;
+        final int[] tick = new int[]{0};
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Entity t = org.bukkit.Bukkit.getEntity(targetId);
+            if (t == null || !t.isValid() || t.isDead()) { holder[0].cancel(); return; }
+
+            org.bukkit.World ww = t.getWorld();
+            if (ww == null) { holder[0].cancel(); return; }
+
+            // Recompute center + radius each tick (accounts for movement + size modifiers)
+            org.bukkit.Location c = getEntityCenter(t);
+            double radius = getSphereRadius(t);
+
+            // 0..6 inclusive
+            int iTick = tick[0];
+            double frac = (totalTicks <= 1) ? 1.0 : (iTick / (double) (totalTicks - 1)); // 0 -> 1
+            double dist = (2.0 - frac) * radius; // 2R down to R
+
+            for (org.bukkit.util.Vector d : dirs) {
+                org.bukkit.Location p = c.clone().add(d.getX() * dist, d.getY() * dist, d.getZ() * dist);
+
+                // "one particle per tick" position, but with multiple particle TYPES at that spot:
+                ww.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, p, 1, 0, 0, 0, 0);
+
+                // Vibration particle aimed at the target entity
+                try {
+                    final double VIB_DIST = 5.0;
+
+// start point is always 5 blocks from the target center, along the same beam direction
+                    org.bukkit.Location vibStart = c.clone().add(d.getX() * VIB_DIST, d.getY() * VIB_DIST, d.getZ() * VIB_DIST);
+
+                    org.bukkit.Vibration vib = new org.bukkit.Vibration(
+                            vibStart,
+                            new org.bukkit.Vibration.Destination.EntityDestination(t),
+                            7
+                    );
+                    ww.spawnParticle(org.bukkit.Particle.VIBRATION, vibStart, 1, 0, 0, 0, 0, vib);
+
+                } catch (Throwable ignored) {
+                    // If VIBRATION isn't available on a server build, just skip it
+                }
+            }
+
+            tick[0]++;
+            if (tick[0] >= totalTicks) holder[0].cancel();
+        }, 0L, 1L);
+    }
+
+
+    private double getSphereRadius(org.bukkit.entity.Entity e) {
+        // Sphere radius based on live dimensions (accounts for scaling/size modifiers)
+        double base = Math.max(e.getWidth(), e.getHeight()) / 2.0;
+        // slight padding so it reads clearly
+        return Math.max(0.35, base * 1.10);
+    }
+
+    private org.bukkit.util.Vector randomUnitVector() {
+        // uniform on sphere
+        double z = (RNG.nextDouble() * 2.0) - 1.0;      // [-1,1]
+        double t = RNG.nextDouble() * (Math.PI * 2.0);  // [0,2pi)
+        double r = Math.sqrt(Math.max(0.0, 1.0 - z*z));
+        return new org.bukkit.util.Vector(r * Math.cos(t), z, r * Math.sin(t));
+    }
+
+    private void startParticleLine(UUID sourceId, UUID targetId, int ticksTotal, int ticksInterval) {
+        if (ticksTotal <= 0) return;
+        if (ticksInterval < 1) ticksInterval = 1;
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int runs = (int) Math.ceil(ticksTotal / (double) ticksInterval);
+        final int[] remaining = new int[]{ runs };
+
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Entity src = org.bukkit.Bukkit.getEntity(sourceId);
+            org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(targetId);
+
+            if (src == null || tgt == null || !src.isValid() || !tgt.isValid() || src.isDead() || tgt.isDead()) {
+                remaining[0] = 0;
+            } else {
+                org.bukkit.World w = src.getWorld();
+                if (w == null || tgt.getWorld() == null || !w.equals(tgt.getWorld())) {
+                    remaining[0] = 0;
+                } else {
+                    org.bukkit.Location a = getEntityCenter(src);
+                    org.bukkit.Location b = getEntityCenter(tgt);
+                    spawnLineAndClouds(w, a, b);
+
+                    remaining[0]--;
+                }
+            }
+
+            if (remaining[0] <= 0) {
+                if (holder[0] != null) holder[0].cancel();
+            }
+        }, 0L, ticksInterval);
+    }
+
+
+    /** Spawns ENCHANTED_HIT line (2 per block) + random cloud every 1 block within 0.5 delta. */
+    private void spawnLineAndClouds(org.bukkit.World w, org.bukkit.Location a, org.bukkit.Location b) {
+        org.bukkit.util.Vector av = a.toVector();
+        org.bukkit.util.Vector bv = b.toVector();
+        org.bukkit.util.Vector diff = bv.clone().subtract(av);
+
+        double len = diff.length();
+        if (len < 0.0001) return;
+
+        org.bukkit.util.Vector dir = diff.clone().multiply(1.0 / len);
+
+        // 2 particles per block => step = 0.5
+        double step = 1;
+
+        // Line particles
+        for (double d = 0.0; d <= len; d += step) {
+            org.bukkit.util.Vector p = av.clone().add(dir.clone().multiply(d));
+            w.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT,
+                    p.getX(), p.getY(), p.getZ(),
+                    1, 0, 0, 0, 0);
+        }
+
+        // Cloud particles: every 1 block
+        int blocks = (int) Math.floor(len);
+        for (int i = 0; i <= blocks; i++) {
+            org.bukkit.util.Vector base = av.clone().add(dir.clone().multiply(i));
+
+            org.bukkit.util.Vector off = randomOffsetInSphere(0.5);
+            org.bukkit.util.Vector at = base.clone().add(off);
+
+            int pick = RNG.nextInt(3);
+            if (pick == 0) {
+                // white -> aqua dust transition, size 0.5
+                // Requires modern Spigot (Particle.DustTransition + DUST_COLOR_TRANSITION)
+                org.bukkit.Particle.DustTransition dt =
+                        new org.bukkit.Particle.DustTransition(
+                                org.bukkit.Color.fromRGB(255, 255, 255),
+                                org.bukkit.Color.fromRGB(0, 255, 255),
+                                0.5f
+                        );
+                w.spawnParticle(org.bukkit.Particle.DUST_COLOR_TRANSITION,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0, dt);
+            } else if (pick == 1) {
+                w.spawnParticle(org.bukkit.Particle.ELECTRIC_SPARK,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0);
+            } else {
+                w.spawnParticle(org.bukkit.Particle.GLOW,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    private org.bukkit.Location getEntityCenter(org.bukkit.entity.Entity e) {
+        org.bukkit.Location l = e.getLocation().clone();
+        // “center” approximation: half height above feet
+        double y = (e instanceof org.bukkit.entity.LivingEntity)
+                ? ((org.bukkit.entity.LivingEntity) e).getHeight() / 2.0
+                : 0.5; // fallback
+        l.add(0, y, 0);
+        return l;
+    }
+
+    /** Uniform-ish random point inside radius sphere */
+    private org.bukkit.util.Vector randomOffsetInSphere(double radius) {
+        while (true) {
+            double x = (RNG.nextDouble() * 2 - 1) * radius;
+            double y = (RNG.nextDouble() * 2 - 1) * radius;
+            double z = (RNG.nextDouble() * 2 - 1) * radius;
+            if ((x*x + y*y + z*z) <= radius*radius) {
+                return new org.bukkit.util.Vector(x, y, z);
+            }
+        }
+    }
+    private static final java.util.Random RNG = new java.util.Random();
+
+
     private void stopBurst(java.util.UUID id) {
         org.bukkit.scheduler.BukkitTask t = burstTasks.remove(id);
         if (t != null) t.cancel();
@@ -4421,10 +4871,93 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
 
         
-        
 
 
         // INSERT HERE 
+
+
+        if (f1.equalsIgnoreCase("removePlayerModifiers")) {
+            if (f2 == null || !f2.isOnline()) return "no-player";
+
+            org.bukkit.attribute.AttributeInstance move = f2.getAttribute(org.bukkit.attribute.Attribute.MOVEMENT_SPEED);
+            org.bukkit.attribute.AttributeInstance jump = null;
+            org.bukkit.attribute.AttributeInstance interact = null;
+
+            // Jump and interaction range may not exist on older Spigot APIs — handle gracefully
+            try { jump = f2.getAttribute(org.bukkit.attribute.Attribute.JUMP_STRENGTH); } catch (Throwable ignored) {}
+            try { interact = f2.getAttribute(Attribute.ENTITY_INTERACTION_RANGE); } catch (Throwable ignored) {}
+
+            if (move != null) {
+                for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(move.getModifiers())) {
+                    move.removeModifier(mod);
+                }
+            }
+            if (jump != null) {
+                for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(jump.getModifiers())) {
+                    jump.removeModifier(mod);
+                }
+            }
+            if (interact != null) {
+                for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(interact.getModifiers())) {
+                    interact.removeModifier(mod);
+                }
+            }
+
+            return "cleared";
+        }
+
+
+        if (f1.startsWith("shrinkRay_")) {
+            wm(f2, "Shrink Ray");
+            // shrinkRay_RANGE`DURATION`INTERVAL
+            String raw = f1.substring("shrinkRay_".length());
+            String[] parts = raw.split("`");
+            if (parts.length < 3) return "none";
+
+            try {
+                double range = Double.parseDouble(parts[0].trim());
+                int duration = Integer.parseInt(parts[1].trim());
+                int interval = Integer.parseInt(parts[2].trim());
+
+                // Start task (beam follows view angle) and also compute initial return value
+                return startShrinkRay(f2, range, duration, interval);
+            } catch (Throwable ignored) {
+                return "none";
+            }
+        }
+
+        if (f1.startsWith("shrinkRayBall_")) {
+            try {
+                UUID targetId = UUID.fromString(f1.substring("shrinkRayBall_".length()).trim());
+                runParticleBall(targetId);
+                return "ok";
+            } catch (Exception ignored) {
+                return "x";
+            }
+        }
+
+        if (f1.startsWith("shrinkRayParticle_")) {
+            // params example: particleLine_SOURCE`TARGET`TICKSTOTAL`TICKSINTERVAL
+            String raw = f1.substring("shrinkRayParticle_".length());
+            String[] parts = raw.split("`");
+            if (parts.length < 4) return "x";
+
+            try {
+                UUID sourceId = UUID.fromString(parts[0].trim());
+                UUID targetId = UUID.fromString(parts[1].trim());
+                int ticksTotal = Integer.parseInt(parts[2].trim());
+                int ticksInterval = Integer.parseInt(parts[3].trim());
+
+                startParticleLine(sourceId, targetId, ticksTotal, ticksInterval);
+                return "ok";
+            } catch (Exception ignored) {
+                return "x";
+            }
+
+        }
+        
+        
+        
         if (f1.startsWith("decodeB64_")) {
             wm(f2, "Base64Decoder");
 
@@ -12877,7 +13410,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4.3.1 -> Burst Fix";
+                                "Version: Advertisementsv4.4 -> Shrink Ray";
 
                 // JSON-escape for Discord "content"
                 String escaped = content

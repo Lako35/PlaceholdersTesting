@@ -19,6 +19,8 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+
+
     </repositories>
 
     
@@ -81,6 +83,7 @@
 
         <!--    <version>1.21.1-R0.1-SNAPSHOT</version>         -->
 
+        
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
