@@ -4237,7 +4237,7 @@ public class ExampleExpansion2 extends PlaceholderExpansion {
 // - launcherUUID: player who fired it (used as damager for PLAYERS)
 // - center/radius: AOE center and radius
 // - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
-    private static void triggerPlayerHitEventV4_AOE(
+    private static void triggerPlayerHitEventV4_2_AOE(
             @org.jetbrains.annotations.Nullable UUID launcherUUID,
             @org.jetbrains.annotations.NotNull Location center,
             double radius,
@@ -4458,7 +4458,7 @@ public class ExampleExpansion2 extends PlaceholderExpansion {
                 final double d2 = lc.distanceSquared(lt);
                 if (d2 <= 25.0) { // within 5 blocks
                     spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
-                    triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, t);
+                    triggerPlayerHitEventV4_2_AOE(launcherUUID, c.getLocation(), 5.0, t);
                     if (c.isValid()) c.remove();
                     stopTrackV4A2(missileUUID);
                     return;
