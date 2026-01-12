@@ -128,7 +128,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String di2ewnfoyudn = "3x3 Free Version";
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
+    
+    public static final String version = "Version: Advertisementsv5.2 -> §kO§f, Shrink Ray, Stinger8.2, Ballistic, Version";
     // Globals
+    
+    
 
     private static final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> FAKE_GLOW_TASKS = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.Map<java.util.UUID, java.util.Set<java.util.UUID>> FAKE_GLOW_ACTIVE = new java.util.concurrent.ConcurrentHashMap<>();
@@ -6504,6 +6508,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // mvn -q clean package 
         // INSERT HERE 
+        if( identifier.equals("version")) {
+            
+            return version;
+        }
         final String FAKE_GLOW_PREFIX = "fakeGlowingBallistic_";
         wm(invokingPlayer, "Client Glowing");
 
@@ -15191,7 +15199,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv5.1 -> OBFUSCATED, Shrink Ray, Stinger8.2";
+                                version;
 
                 // JSON-escape for Discord "content"
                 String escaped = content
