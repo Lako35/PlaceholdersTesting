@@ -129,7 +129,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
     
-    public static final String version = "Version: Advertisementsv5.2 -> §kO§f, Shrink Ray, Stinger8.2, Ballistic, Version";
+    public static final String version = "Version: Advertisementsv5.4 -> §kO§f, Shrink Ray, Stinger8.2, BallisticStingerGlowing, Version, BallisticTracker";
     // Globals
     
     
@@ -208,7 +208,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private static final Map<UUID, BukkitTask> tyto2uny2uf4ntdoy2utd = new ConcurrentHashMap<>();
     
     // HOSTILE MOBS
-    public  final Set<EntityType> HMsetnoy2un2yundt ;
+    public  final Set<EntityType> HostileMobSet;
     private static final java.util.concurrent.ConcurrentHashMap<Object, Object> f113 = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<UUID, f115> f114 = new ConcurrentHashMap<>();
@@ -3509,7 +3509,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             if (tywfdn_ent.isDead() || !tywfdn_ent.isValid()) continue;
 
-            if (HMsetnoy2un2yundt == null || !HMsetnoy2un2yundt.contains(tywfdn_ent.getType())) {
+            if (HostileMobSet == null || !HostileMobSet.contains(tywfdn_ent.getType())) {
                 continue;
             }
 
@@ -4157,6 +4157,378 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     
     // Helper Methods // Helpers // 
+         private  final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> BALLISTIC_SEARCHER_TASKS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.scheduler.BukkitTask>();
+
+    private enum BallisticTargetsMode { PLAYERS, HOSTILES, ENTITIES, ALL }
+
+    // You said this exists globally already:
+
+    protected  @org.jetbrains.annotations.NotNull String ballisticSearcherParse(
+            org.bukkit.entity.Player invokingPlayer,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (invokingPlayer == null || !invokingPlayer.isOnline()) return "none";
+
+            final String PREFIX = "ballisticSearcher_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+            String[] a = raw.split(",", -1);
+            if (a.length < 6) return "failed";
+
+            double particlesPerBlock = Double.parseDouble(a[0].trim());
+            int intervalTicks = Integer.parseInt(a[1].trim());
+            int totalTicks = Integer.parseInt(a[2].trim());
+            float ptfxSize = Float.parseFloat(a[3].trim());
+            double range = Double.parseDouble(a[4].trim());
+            BallisticTargetsMode mode = BallisticTargetsMode.valueOf(a[5].trim().toUpperCase(java.util.Locale.ROOT));
+
+            startBallisticSearcher(invokingPlayer, particlesPerBlock, intervalTicks, totalTicks, ptfxSize, range, mode);
+            return "ok";
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    private  void startBallisticSearcher(
+            org.bukkit.entity.Player viewer,
+            double particlesPerBlock,
+            int intervalTicks,
+            int totalTicks,
+            float ptfxSize,
+            double range,
+            BallisticTargetsMode mode
+    ) {
+        if (viewer == null || !viewer.isOnline()) return;
+
+        if (particlesPerBlock <= 0.01) particlesPerBlock = 1.0;
+        if (intervalTicks < 1) intervalTicks = 1;
+        if (totalTicks < 1) totalTicks = intervalTicks;
+        if (ptfxSize < 0.01f) ptfxSize = 0.6f;
+        if (range <= 0.1) range = 8.0;
+
+        final java.util.UUID vid = viewer.getUniqueId();
+
+        // Cancel any existing task for this viewer (replace behavior)
+        org.bukkit.scheduler.BukkitTask old = BALLISTIC_SEARCHER_TASKS.remove(vid);
+        if (old != null) {
+            try { old.cancel(); } catch (Throwable ignored) {}
+        }
+
+        final int runs = (int) Math.ceil(totalTicks / (double) intervalTicks);
+        final int[] remaining = new int[]{ runs };
+
+        final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        double finalRange = range;
+        double finalRange1 = range;
+        double finalRange2 = range;
+        double finalParticlesPerBlock = particlesPerBlock;
+        float finalPtfxSize = ptfxSize;
+        org.bukkit.scheduler.BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
+            @Override public void run() {
+                org.bukkit.entity.Player v = org.bukkit.Bukkit.getPlayer(vid);
+                if (v == null || !v.isOnline()) {
+                    stopBallisticSearcher(vid);
+                    return;
+                }
+
+                org.bukkit.World w = v.getWorld();
+                if (w == null) {
+                    stopBallisticSearcher(vid);
+                    return;
+                }
+
+                // Player midsection
+                org.bukkit.Location playerMid = getMidSection(v);
+
+                // Scan nearby entities (cube then sphere filter)
+                java.util.Collection<org.bukkit.entity.Entity> near = w.getNearbyEntities(
+                        playerMid,
+                        finalRange, finalRange1, finalRange2
+                );
+
+                double r2 = finalRange * finalRange1;
+
+                java.util.Iterator<org.bukkit.entity.Entity> it = near.iterator();
+                while (it.hasNext()) {
+                    org.bukkit.entity.Entity e = it.next();
+                    if (e == null) continue;
+                    if (!e.isValid() || e.isDead()) continue;
+                    if (e.getUniqueId().equals(vid)) continue;
+
+                    // Only consider LivingEntity for non-player entity targeting
+                    // (Players are LivingEntity too)
+                    if (!(e instanceof org.bukkit.entity.LivingEntity)) continue;
+
+                    org.bukkit.Location emid = getMidSection(e);
+
+                    if (!sameWorld(playerMid, emid)) continue;
+                    if (emid.distanceSquared(playerMid) > r2) continue;
+
+                    if (!shouldTargetByMode(e, mode)) continue;
+
+                    // LINE IS DRAWN FROM TARGET -> PLAYER (requested)
+                    boolean isPlayerTarget = (e instanceof org.bukkit.entity.Player);
+
+                    drawGradientLineToViewer(
+                            v,
+                            emid,          // from target mid
+                            playerMid,     // to player mid
+                            finalRange,
+                            finalParticlesPerBlock,
+                            finalPtfxSize,
+                            isPlayerTarget
+                    );
+                }
+
+                remaining[0]--;
+                if (remaining[0] <= 0) {
+                    stopBallisticSearcher(vid);
+                }
+            }
+        }.runTaskTimer(plugin, 0L, (long) intervalTicks);
+
+        BALLISTIC_SEARCHER_TASKS.put(vid, task);
+    }
+
+    private  void stopBallisticSearcher(java.util.UUID viewerId) {
+        org.bukkit.scheduler.BukkitTask t = BALLISTIC_SEARCHER_TASKS.remove(viewerId);
+        if (t != null) {
+            try { t.cancel(); } catch (Throwable ignored) {}
+        }
+    }
+
+    // ===============================
+// Target filters
+// ===============================
+    private  boolean shouldTargetByMode(org.bukkit.entity.Entity e, BallisticTargetsMode mode) {
+        if (mode == null) return false;
+
+        if (mode == BallisticTargetsMode.PLAYERS) {
+            return (e instanceof org.bukkit.entity.Player);
+        }
+
+        if (mode == BallisticTargetsMode.ENTITIES) {
+            // ENTITIES does not include players
+            if (e instanceof org.bukkit.entity.Player) return false;
+            return true;
+        }
+
+        if (mode == BallisticTargetsMode.HOSTILES) {
+            // HOSTILES excludes players; must be in HostileMobSet
+            if (e instanceof org.bukkit.entity.Player) return false;
+            if (HostileMobSet == null) return false;
+            return HostileMobSet.contains(e.getType());
+        }
+
+        // ALL: players + other entities
+        return true;
+    }
+
+    // ===============================
+// Midsection + utils
+// ===============================
+    private static org.bukkit.Location getMidSection(org.bukkit.entity.Entity e) {
+        org.bukkit.Location l = e.getLocation().clone();
+        double h = 1.0;
+        try { h = e.getHeight(); } catch (Throwable ignored) {}
+        l.add(0.0, h * 0.5, 0.0);
+        return l;
+    }
+
+    private static boolean sameWorld(org.bukkit.Location a, org.bukkit.Location b) {
+        if (a == null || b == null) return false;
+        if (a.getWorld() == null || b.getWorld() == null) return false;
+        return a.getWorld().equals(b.getWorld());
+    }
+
+// ===============================
+// Gradient line drawing (viewer-only)
+// ===============================
+//
+// Key idea:
+// - We map position distance-from-target (s) to u = s / RANGE, not s / currentDist.
+// - That means if the current distance is shorter than RANGE, you only traverse the "near" part of the gradient.
+// - At target: u=0 -> RED (players) or VIOLET (entities)
+// - At max range: u approaches 1 -> GREEN (players) or CYAN (entities)
+// - Drawn from TARGET -> PLAYER so you "pass by" particles.
+// ===============================
+
+    private static void drawGradientLineToViewer(
+            org.bukkit.entity.Player viewer,
+            org.bukkit.Location fromTarget,
+            org.bukkit.Location toPlayer,
+            double range,
+            double particlesPerBlock,
+            float ptfxSize,
+            boolean isPlayerTarget
+    ) {
+        if (viewer == null || !viewer.isOnline()) return;
+        if (fromTarget == null || toPlayer == null) return;
+        if (!sameWorld(fromTarget, toPlayer)) return;
+
+        org.bukkit.util.Vector a = fromTarget.toVector();
+        org.bukkit.util.Vector b = toPlayer.toVector();
+        org.bukkit.util.Vector ab = b.clone().subtract(a);
+
+        double len = ab.length();
+        if (len < 0.001) return;
+
+        org.bukkit.util.Vector dir = ab.multiply(1.0 / len);
+
+        // number of points along the line
+        int n = (int) Math.ceil(len * particlesPerBlock);
+        if (n < 2) n = 2;
+
+        // For "at RANGE see whole gradient", we scale color by s/range (not s/len)
+        double invRange = (range <= 0.0001) ? 0.0 : (1.0 / range);
+
+        for (int i = 0; i < n; i++) {
+            double t = (n == 1) ? 0.0 : (i / (double) (n - 1));
+            double s = len * t;              // distance from target along the line
+            double u = s * invRange;         // normalized to full RANGE
+            if (u < 0.0) u = 0.0;
+            if (u > 1.0) u = 1.0;
+
+            org.bukkit.Color c = isPlayerTarget ? colorPlayers(u) : colorEntities(u);
+            org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(c, ptfxSize);
+
+            org.bukkit.util.Vector p = a.clone().add(dir.clone().multiply(s));
+            org.bukkit.Location loc = new org.bukkit.Location(fromTarget.getWorld(), p.getX(), p.getY(), p.getZ());
+
+            spawnDustToViewerForced(viewer, loc, dust);
+        }
+    }
+
+// ===============================
+// Color wheel curves (HSV piecewise, smooth)
+//
+// Players (target->far): RED -> ORANGE -> YELLOW -> GREEN
+// Entities (target->far): VIOLET -> BLUE -> CYAN
+// ===============================
+
+    private static org.bukkit.Color colorPlayers(double u) {
+        // 3 segments: [0..1/3]=red->orange, [1/3..2/3]=orange->yellow, [2/3..1]=yellow->green
+        double seg = u * 3.0;
+
+        float h1, h2;
+        float tt;
+
+        if (seg <= 1.0) {
+            h1 = 0f;    // red
+            h2 = 30f;   // orange
+            tt = (float) seg;
+        } else if (seg <= 2.0) {
+            h1 = 30f;   // orange
+            h2 = 60f;   // yellow
+            tt = (float) (seg - 1.0);
+        } else {
+            h1 = 60f;   // yellow
+            h2 = 120f;  // green
+            tt = (float) (seg - 2.0);
+        }
+
+        float h = h1 + (h2 - h1) * tt;
+        return hsvToBukkitColor(h, 1.0f, 1.0f);
+    }
+
+    private static org.bukkit.Color colorEntities(double u) {
+        // 2 segments: [0..0.5]=violet->blue, [0.5..1]=blue->cyan
+        double seg = u * 2.0;
+
+        float h1, h2;
+        float tt;
+
+        if (seg <= 1.0) {
+            h1 = 270f;  // violet
+            h2 = 240f;  // blue
+            tt = (float) seg;
+        } else {
+            h1 = 240f;  // blue
+            h2 = 180f;  // cyan
+            tt = (float) (seg - 1.0);
+        }
+
+        float h = h1 + (h2 - h1) * tt;
+        return hsvToBukkitColor(h, 1.0f, 1.0f);
+    }
+
+    private static org.bukkit.Color hsvToBukkitColor(float hDeg, float s, float v) {
+        // h in [0..360)
+        float h = hDeg % 360f;
+        if (h < 0) h += 360f;
+
+        float c = v * s;
+        float x = c * (1f - Math.abs(((h / 60f) % 2f) - 1f));
+        float m = v - c;
+
+        float r1, g1, b1;
+
+        if (h < 60f)      { r1 = c; g1 = x; b1 = 0f; }
+        else if (h < 120f){ r1 = x; g1 = c; b1 = 0f; }
+        else if (h < 180f){ r1 = 0f; g1 = c; b1 = x; }
+        else if (h < 240f){ r1 = 0f; g1 = x; b1 = c; }
+        else if (h < 300f){ r1 = x; g1 = 0f; b1 = c; }
+        else              { r1 = c; g1 = 0f; b1 = x; }
+
+        int r = clamp255((int) Math.round((r1 + m) * 255.0));
+        int g = clamp255((int) Math.round((g1 + m) * 255.0));
+        int b = clamp255((int) Math.round((b1 + m) * 255.0));
+
+        return org.bukkit.Color.fromRGB(r, g, b);
+    }
+
+
+// ===============================
+// Viewer-only particle spawn with "force" if available (reflection)
+// Falls back to Player#spawnParticle without force if needed.
+// ===============================
+
+    private static void spawnDustToViewerForced(
+            org.bukkit.entity.Player viewer,
+            org.bukkit.Location loc,
+            org.bukkit.Particle.DustOptions dust
+    ) {
+        try {
+            // Try Player#spawnParticle(Particle, Location, int, double,double,double, double, Object, boolean)
+            // Some APIs include the boolean "force" at the end.
+            java.lang.reflect.Method m = viewer.getClass().getMethod(
+                    "spawnParticle",
+                    org.bukkit.Particle.class,
+                    org.bukkit.Location.class,
+                    int.class,
+                    double.class, double.class, double.class,
+                    double.class,
+                    java.lang.Object.class,
+                    boolean.class
+            );
+
+            m.invoke(viewer,
+                    org.bukkit.Particle.DUST,
+                    loc,
+                    1,
+                    0.0, 0.0, 0.0,
+                    0.0,
+                    dust,
+                    Boolean.TRUE
+            );
+            return;
+        } catch (Throwable ignored) {
+            // fall through
+        }
+
+        // Fallback (no force param)
+        try {
+            viewer.spawnParticle(org.bukkit.Particle.DUST, loc, 1, 0.0, 0.0, 0.0, 0.0, dust);
+        } catch (Throwable ignored) {}
+    }
+    
     private void startFakeGlowingBallistic(Player viewer, double radius, long intervalTicks, int runs, FakeGlowTargets mode) {
         if (viewer == null) return;
 
@@ -4252,7 +4624,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if (!(e instanceof org.bukkit.entity.LivingEntity)) return false;
                 if (e instanceof Player) return false;
                 // HMsetnoy2un2yundt is your hostile EntityType allowlist
-                return HMsetnoy2un2yundt != null && HMsetnoy2un2yundt.contains(e.getType());
+                return HostileMobSet != null && HostileMobSet.contains(e.getType());
 
             case ENTITIES:
             default:
@@ -6508,6 +6880,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // mvn -q clean package 
         // INSERT HERE 
+        
+        if( identifier.startsWith("ballisticSearcher_")){
+            wm(invokingPlayer, "BallisticSearcher");
+            return ballisticSearcherParse(invokingPlayer,identifier);
+        }
+        
         if( identifier.equals("version")) {
             
             return version;
@@ -9857,7 +10235,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     for (Entity ifntoiwfundotyu : wfdunwfyudn.getNearbyEntities(wfdemwyfden, kdiwfedk, kdiwfedk, kdiwfedk)) {
                         if (!(ifntoiwfundotyu instanceof LivingEntity le) || ifntoiwfundotyu.isDead()) continue;
                         if (!ifntoiwfundotyu.getWorld().equals(wfdunwfyudn)) continue;
-                        if (!ExampleExpansionUtils.iearnsvoienrositwf(ifntoiwfundotyu, wfyudnyufwnd, HMsetnoy2un2yundt, kwfnktywfnt)) continue;
+                        if (!ExampleExpansionUtils.iearnsvoienrositwf(ifntoiwfundotyu, wfyudnyufwnd, HostileMobSet, kwfnktywfnt)) continue;
                         if (ExampleExpansionUtils.ytwunfoyutn4(ifntoiwfundotyu, wyfdnoywfundoywfund)) continue;
 
                         Location wofudnowfyund = le.getLocation().clone().add(I, le.getHeight() / whatkindofadulthood, I);
@@ -15875,7 +16253,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ktoyfuntyufnpsrvc.add(type);
             }
         }
-        HMsetnoy2un2yundt = ktoyfuntyufnpsrvc;
+        HostileMobSet = ktoyfuntyufnpsrvc;
 
         PluginManager tyunwfdyunfwd = Bukkit.getPluginManager();
 
