@@ -92,9 +92,25 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     // Optional: persist last full lock even after cleanup()
     private static final java.util.concurrent.ConcurrentHashMap<UUID, UUID> STINGER_LAST_FULL_LOCK_PERSIST = new java.util.concurrent.ConcurrentHashMap<>();
-    
-    
-    
+
+
+
+    private static boolean isBaseValidTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
+        if (e == null) return false;
+        if (!e.isValid() || e.isDead()) return false;
+        if (!e.getWorld().equals(pl.getWorld())) return false;
+        if (!(e instanceof org.bukkit.entity.LivingEntity)) return false;
+        if (isLockoutActive(pl.getUniqueId(), e.getUniqueId())) return false;
+
+        // Still must respect mode rules even during grace
+        return isAllowedByMode(st.mode, e);
+    }
+
+    private static boolean canSeeTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
+        // “See” means your existing FOV + LOS rules
+        return inFov(pl, e, st.fovDeg) && hasAllowedLineOfSight(pl, e, st.passThruBlocks);
+    }
+
     private static final java.util.concurrent.ConcurrentHashMap<String, java.util.Set<java.util.UUID>> ACTIVE_MISSILES_MULTI =
             new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.concurrent.ConcurrentHashMap<java.util.UUID, java.util.UUID> STINGER_LAST_FULL_LOCK =
@@ -103,6 +119,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private enum StingerMode { PLAYERS, HOSTILES, ENTITIES, ALL }
 
     private static final class StingerLockState {
+        int graceUntilTick = 0; // 0 = not in grace
+
         final UUID playerId;
 
         // doppler state
@@ -175,6 +193,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         /** Use this instead of "currentTargetId = null". */
         void clearTarget(org.bukkit.Location lastKnown) {
+            graceUntilTick = 0;
+
             if (lastKnown != null) lastTargetLoc = lastKnown.clone();
             currentTargetId = null;
             resetLockAndDoppler();
@@ -1450,6 +1470,81 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
+
+
+
+
+
+
+    // AOE SONIC_BOOM damage (copy of your area hit behavior with V4 rules)
+// - center: explosion/impact location
+// - radius: e.g. 5.0 (your proximity radius)
+// - caller: projectile or thing that caused it (used as damager for non-players)
+// - launcherUUID: player who fired it (used as damager for players)
+    // AOE SONIC_BOOM damage (V4 rules) with "always damage target if provided" semantics.
+// - caller: projectile or source entity (used as damager for NON-players)
+// - launcherUUID: player who fired it (used as damager for PLAYERS)
+// - center/radius: AOE center and radius
+// - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
+    private static void triggerPlayerHitEventV4_2_AOE(
+            @org.jetbrains.annotations.Nullable UUID launcherUUID,
+            @org.jetbrains.annotations.NotNull Location center,
+            double radius,
+            @org.jetbrains.annotations.Nullable Entity target) {
+
+
+        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
+
+        // Helper to resolve a launcher name for command args
+        final String launcherName = (launcher != null)
+                ? launcher.getName()
+                : (launcherUUID != null
+                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
+                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
+                : launcherUUID.toString())
+                : "unknown");
+
+        // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
+        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
+
+        // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
+        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
+            if (tgt instanceof Player) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + tgt.getName());
+            } else {
+                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + tgt.getUniqueId().toString() + " " + tgt.getType());
+            }
+            damaged.add(tgt.getUniqueId());
+        }
+
+        // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
+        final World world = center.getWorld();
+        if (world == null) return;
+        final double r2 = radius * radius;
+
+        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (!(e instanceof LivingEntity le)) continue;
+            if (!le.isValid() || le.isDead()) continue;
+            if (damaged.contains(e.getUniqueId())) continue; // skip target if it was already hit
+            if (e.getLocation().distanceSquared(center) > r2) continue;
+            final org.bukkit.damage.DamageSource.Builder dsb =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
+
+            if (le instanceof Player) {
+ 
+
+                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + le.getName());
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + le.getUniqueId().toString() + " " + le.getType());
+            }
+        }
+    }
+
+
     public static void ParticleCenterToCenter(UUID launcherUUID, UUID targetUUID) {
         final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (plugin == null) return;
@@ -1784,7 +1879,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 final double d2 = lc.distanceSquared(lt);
                 if (d2 <= 25.0) { // within 5 blocks
                     spawnCustomFireworkExplosion2(c.getWorld(), c.getLocation());
-                    triggerPlayerHitEventV4_AOE(launcherUUID, c.getLocation(), 5.0, t);
+                    triggerPlayerHitEventV4_2_AOE(launcherUUID, c.getLocation(), 5.0, t);
                     if (c.isValid()) c.remove();
                     stopTrackV4A2(missileUUID);
                     return;
@@ -2164,15 +2259,53 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Render + sound + completion
             if (st.currentTargetId != null) {
-                
+
+                final int LOCK_GRACE_TICKS = 20; // 1 second
+
                 org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(st.currentTargetId);
-                if (!isValidTargetFor(pl, st, tgt)) {
+
+// 1) Hard invalid → clear immediately
+                if (!isBaseValidTargetFor(pl, st, tgt)) {
                     if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
-                    // gray “lost” line once
                     drawLostLineOnce(pl, st);
                     clearLock(pl, st, true);
                     return;
                 }
+
+// 2) Base valid, but maybe not visible
+                final boolean visible = canSeeTargetFor(pl, st, tgt);
+
+                if (!visible) {
+                    if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
+
+                    // Only apply grace after FULL lock
+                    if (st.fullyLocked) {
+                        // Start grace if not already started
+                        if (st.graceUntilTick <= 0) {
+                            st.graceUntilTick = st.localTick + LOCK_GRACE_TICKS;
+                        }
+
+                        // Still within grace: KEEP LOCK (do not clear)
+                        if (st.localTick <= st.graceUntilTick) {
+                            // optional: show the gray lost line occasionally while in grace
+                            // drawLostLineOnce(pl, st);  // or throttle with a tick gate if you want
+                            return; // keep currentTargetId intact
+                        }
+
+                        // Grace expired → clear
+                        drawLostLineOnce(pl, st);
+                        clearLock(pl, st, true);
+                        return;
+                    }
+
+                    // Not fully locked yet → strict behavior (same as before)
+                    drawLostLineOnce(pl, st);
+                    clearLock(pl, st, true);
+                    return;
+                }
+
+// 3) Visible again → cancel grace so player can “look away for 1s” again later
+                if (st.graceUntilTick > 0) st.graceUntilTick = 0;
 
                 // Reveal glow does NOT require full lock (as long as we currently have a valid target)
                 if (tgt instanceof org.bukkit.entity.Player lockedPlayer) {
@@ -2561,10 +2694,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
             removeRevealIfAny(shooter, st);
         }
     }
-
-// ===============================
-// Helpers
-// ===============================
 
     private static final java.util.concurrent.ConcurrentHashMap<String, Long> STINGER_LOCKOUT_UNTIL_MS =
             new java.util.concurrent.ConcurrentHashMap<>();
@@ -3585,61 +3714,41 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
-        if (f1.startsWith("decodeB64_")) {
 
-            String b64 = f1.substring("decodeB64_".length()).trim();
-            if (b64.isEmpty()) return "";
-            try {
-                byte[] raw = java.util.Base64.getDecoder().decode(b64);
-                return new String(raw, java.nio.charset.StandardCharsets.UTF_8);
-            } catch (Exception ignored) {
-                return "";
-            }
+        if (identifier.startsWith("trackImpact5_")){
+            String[] parts = identifier.substring("trackImpact5_".length()).split(",");
+
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            World world = Bukkit.getWorld(parts[1]);
+            int x = Integer.parseInt(parts[2]);
+            int y = Integer.parseInt(parts[3]);
+            int z = Integer.parseInt(parts[4]);
+
+            Location location = new Location(world, x, y, z);
+            spawnCustomFireworkExplosion2(world, location);
+            triggerPlayerHitEventV4_2_AOE( launcherUUID, location, 5, null);
+
+            return "§6Impact triggered.";
         }
 
-        // %Archistructure_getEntityAsString_entityuuid%
-        if (f1.startsWith("getEntityAsString_")) {
-            String uuidStr = f1.substring("getEntityAsString_".length()).trim();
-            try {
-                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+        if (identifier.startsWith("trackImpact6_")){
+            String[] parts = identifier.substring("trackImpact6_".length()).split(",");
 
-                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(uuid);
-                if (e == null) return "";
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            UUID targetUUID = UUID.fromString(parts[1]);
 
-                String nbt = e.getAsString(); // NBT string
-                e.remove();
+            Entity target = Bukkit.getEntity(targetUUID);
+            if (target == null) return "§cTarget not found";
 
-                if (nbt == null) return "";
+            Location location = target.getLocation();
+            spawnCustomFireworkExplosion2(target.getWorld(), location);
+            triggerPlayerHitEventV4_2_AOE(launcherUUID, location, 5, target);
 
-                // inject UUID int array tag: UUID:[I;...]
-                long most = uuid.getMostSignificantBits();
-                long least = uuid.getLeastSignificantBits();
-                int i0 = (int) (most >>> 32);
-                int i1 = (int) most;
-                int i2 = (int) (least >>> 32);
-                int i3 = (int) least;
-
-                String uuidTag = "UUID:[I;" + i0 + "," + i1 + "," + i2 + "," + i3 + "]";
-                String out = nbt;
-
-                if (out.startsWith("{")) {
-                    // If UUID tag already exists, replace it; otherwise inject at start
-                    int idx = out.indexOf("UUID:[I;");
-                    if (idx >= 0) {
-                        int end = out.indexOf("]", idx);
-                        if (end >= 0) out = out.substring(0, idx) + uuidTag + out.substring(end + 1);
-                    } else {
-                        out = "{" + uuidTag + "," + out.substring(1);
-                    }
-                }
-
-                return java.util.Base64.getEncoder().encodeToString(
-                        out.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-                );
-            } catch (Exception ignored) {
-                return "";
-            }
+            return "§eTarget explosion triggered.";
         }
+        
+        
+        
         
         
         if (identifier.startsWith("trackv4-a.2_")) {
@@ -3747,14 +3856,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "none";
             }
         }
-
-
-
-        if( f1.equals("crash")) {
-            f2.sendHealthUpdate(0,0,0);
-            return null;
-        }
-        // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
         if (f1.startsWith("crossbowCheck_")) {
             try {
                 final String[] p2 = f1.substring("crossbowCheck_".length()).split("`", -1);
@@ -3778,6 +3879,73 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return "false";
             }
         }
+
+
+
+
+
+
+        if (f1.startsWith("decodeB64_")) {
+
+            String b64 = f1.substring("decodeB64_".length()).trim();
+            if (b64.isEmpty()) return "";
+            try {
+                byte[] raw = java.util.Base64.getDecoder().decode(b64);
+                return new String(raw, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+
+        // %Archistructure_getEntityAsString_entityuuid%
+        if (f1.startsWith("getEntityAsString_")) {
+            String uuidStr = f1.substring("getEntityAsString_".length()).trim();
+            try {
+                java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
+
+                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(uuid);
+                if (e == null) return "";
+
+                String nbt = e.getAsString(); // NBT string
+                e.remove();
+
+                if (nbt == null) return "";
+
+                // inject UUID int array tag: UUID:[I;...]
+                long most = uuid.getMostSignificantBits();
+                long least = uuid.getLeastSignificantBits();
+                int i0 = (int) (most >>> 32);
+                int i1 = (int) most;
+                int i2 = (int) (least >>> 32);
+                int i3 = (int) least;
+
+                String uuidTag = "UUID:[I;" + i0 + "," + i1 + "," + i2 + "," + i3 + "]";
+                String out = nbt;
+
+                if (out.startsWith("{")) {
+                    // If UUID tag already exists, replace it; otherwise inject at start
+                    int idx = out.indexOf("UUID:[I;");
+                    if (idx >= 0) {
+                        int end = out.indexOf("]", idx);
+                        if (end >= 0) out = out.substring(0, idx) + uuidTag + out.substring(end + 1);
+                    } else {
+                        out = "{" + uuidTag + "," + out.substring(1);
+                    }
+                }
+
+                return java.util.Base64.getEncoder().encodeToString(
+                        out.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                );
+            } catch (Exception ignored) {
+                return "";
+            }
+        }
+        if( f1.equals("crash")) {
+            f2.sendHealthUpdate(0,0,0);
+            return null;
+        }
+        // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
+        
 
         if( identifier.startsWith("hasTag_")) {
             String[] parts = identifier.substring("hasTag_".length()).split(",");
