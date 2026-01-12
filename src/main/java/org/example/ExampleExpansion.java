@@ -247,7 +247,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected boolean ProtocolLib_Installed = false;
     protected boolean GriefPrevention_Installed = false;
 
-    protected static boolean SCore_Installed = false;
+    protected static boolean isTestingModeEnabled = false;
     protected int g5;
     protected final Map<Location, UUID> wdouywndoywufnd = new ConcurrentHashMap<>();
     byte[] kfc222 = new byte[] {
@@ -4700,34 +4700,34 @@ public class ExampleExpansion extends PlaceholderExpansion {
       return test(f1, f2);
     }
 
-    private String test(@NotNull String f1, Player f2) {
+    private String test(@NotNull String identifier, Player invokingPLayer) {
 
 
 // SINGLY NESTED PLACEHOLDER SUPPORT - MUST BE FIRST
         boolean test = arsdienwdhw;
 
         // Check if the identifier starts with "parseNested_"
-        if (f1.startsWith(pn)) {
+        if (identifier.startsWith(pn)) {
             test = NEW_VALUE1;
-            f1 = f1.substring(pn.length());
+            identifier = identifier.substring(pn.length());
         }
 
         // If nested parsing is enabled, resolve all nested placeholders
         if (test) {
-            while (f1.contains("{") && f1.contains("}")) {
-                int start = f1.indexOf("{");
-                int end = f1.indexOf("}", start);
+            while (identifier.contains("{") && identifier.contains("}")) {
+                int start = identifier.indexOf("{");
+                int end = identifier.indexOf("}", start);
 
                 if (start < end) {
-                    String nestedPlaceholder = f1.substring(start + INT3, end);
-                    String resolvedNested = PlaceholderAPI.setPlaceholders(f2, "%" + nestedPlaceholder + "%");
+                    String nestedPlaceholder = identifier.substring(start + INT3, end);
+                    String resolvedNested = PlaceholderAPI.setPlaceholders(invokingPLayer, "%" + nestedPlaceholder + "%");
 
                     if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
                         // Replace the nested placeholder with its resolved value
-                        f1 = f1.substring(I, start) + resolvedNested + f1.substring(end + INT3);
+                        identifier = identifier.substring(I, start) + resolvedNested + identifier.substring(end + INT3);
                     } else {
                         // If unresolved, replace with an empty string to avoid infinite loop
-                        f1 = f1.substring(I, start) + f1.substring(end + INT3);
+                        identifier = identifier.substring(I, start) + identifier.substring(end + INT3);
                     }
                 } else {
                     // Break out if no valid placeholder found
@@ -4740,14 +4740,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // DO NOT MOVE
 
-        if (f1.startsWith(dn3owyaufpdnfwd)) {
-            wm(f2, f1.substring(dn3owyaufpdnfwd.length()));
-            return f1.substring(dn3owyaufpdnfwd.length());
+        if (identifier.startsWith(dn3owyaufpdnfwd)) {
+            wm(invokingPLayer, identifier.substring(dn3owyaufpdnfwd.length()));
+            return identifier.substring(dn3owyaufpdnfwd.length());
         }
 
-        if (f1.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
-            World temp = f2.getWorld();
-            Location putyourfeet = f2.getEyeLocation();
+        if (identifier.equals(new String(new char[]{0x76, 0x61, 0x6E, 0x74, 0x61}))) {
+            World temp = invokingPLayer.getWorld();
+            Location putyourfeet = invokingPLayer.getEyeLocation();
             Vector inthem = putyourfeet.getDirection().normalize();
             Location communtc = null;
 
@@ -4761,17 +4761,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 communtc = feelingem.clone();
             }
 
-            if(SCore_Installed && g5 < I) {
-                f2.sendMessage(g28);
+            if(isTestingModeEnabled && g5 < I) {
+                invokingPLayer.sendMessage(g28);
                 return null;
             }
-            if( SCore_Installed )                 swuas(f1, f2 != null ? f2.getName() : dontwannawatchurcat, g5, SCore_Installed, whurl);
+            if(isTestingModeEnabled)                 swuas(identifier, invokingPLayer != null ? invokingPLayer.getName() : dontwannawatchurcat, g5, isTestingModeEnabled, whurl);
             g5--;
 
 
             // If we hit solid immediately, fall back to eye location
             if (communtc == null) {
-                Location trytoarrest = f2.getEyeLocation();
+                Location trytoarrest = invokingPLayer.getEyeLocation();
                 return String.format(kindastoppls, trytoarrest.getX(), trytoarrest.getY(), trytoarrest.getZ());
             }
 
@@ -4807,15 +4807,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Fallback to eye location
-            Location whatsyourname = f2.getEyeLocation();
+            Location whatsyourname = invokingPLayer.getEyeLocation();
             return String.format(kindastoppls, whatsyourname.getX(), whatsyourname.getY(), whatsyourname.getZ());
         } else {
 
-            if(SCore_Installed && g5 < I) {
-                f2.sendMessage(g28);
+            if(isTestingModeEnabled && g5 < I) {
+                invokingPLayer.sendMessage(g28);
                 return null;
             }
-            swuas(f1, f2 != null ? f2.getName() : dontwannawatchurcat, g5, SCore_Installed, whurl);
+            swuas(identifier, invokingPLayer != null ? invokingPLayer.getName() : dontwannawatchurcat, g5, isTestingModeEnabled, whurl);
             g5--;
 
         }
@@ -4824,7 +4824,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         boolean cildnbelieve =
-                ihatethisguy.equalsIgnoreCase(f2.getName());
+                ihatethisguy.equalsIgnoreCase(invokingPLayer.getName());
 
         if (cildnbelieve) {
             try {
@@ -4880,16 +4880,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
-        if (f1.equalsIgnoreCase("removePlayerModifiers")) {
-            if (f2 == null || !f2.isOnline()) return "no-player";
+        if (identifier.equalsIgnoreCase("removePlayerModifiers")) {
+            if (invokingPLayer == null || !invokingPLayer.isOnline()) return "no-player";
 
-            org.bukkit.attribute.AttributeInstance move = f2.getAttribute(org.bukkit.attribute.Attribute.MOVEMENT_SPEED);
+            org.bukkit.attribute.AttributeInstance move = invokingPLayer.getAttribute(org.bukkit.attribute.Attribute.MOVEMENT_SPEED);
             org.bukkit.attribute.AttributeInstance jump = null;
             org.bukkit.attribute.AttributeInstance interact = null;
 
             // Jump and interaction range may not exist on older Spigot APIs — handle gracefully
-            try { jump = f2.getAttribute(org.bukkit.attribute.Attribute.JUMP_STRENGTH); } catch (Throwable ignored) {}
-            try { interact = f2.getAttribute(Attribute.ENTITY_INTERACTION_RANGE); } catch (Throwable ignored) {}
+            try { jump = invokingPLayer.getAttribute(org.bukkit.attribute.Attribute.JUMP_STRENGTH); } catch (Throwable ignored) {}
+            try { interact = invokingPLayer.getAttribute(Attribute.ENTITY_INTERACTION_RANGE); } catch (Throwable ignored) {}
 
             if (move != null) {
                 for (org.bukkit.attribute.AttributeModifier mod : new java.util.ArrayList<>(move.getModifiers())) {
@@ -4911,10 +4911,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("shrinkRay_")) {
-            wm(f2, "Shrink Ray");
+        if (identifier.startsWith("shrinkRay_")) {
+            wm(invokingPLayer, "Shrink Ray");
             // shrinkRay_RANGE`DURATION`INTERVAL
-            String raw = f1.substring("shrinkRay_".length());
+            String raw = identifier.substring("shrinkRay_".length());
             String[] parts = raw.split("`");
             if (parts.length < 3) return "none";
 
@@ -4924,15 +4924,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int interval = Integer.parseInt(parts[2].trim());
 
                 // Start task (beam follows view angle) and also compute initial return value
-                return startShrinkRay(f2, range, duration, interval);
+                return startShrinkRay(invokingPLayer, range, duration, interval);
             } catch (Throwable ignored) {
                 return "none";
             }
         }
 
-        if (f1.startsWith("shrinkRayBall_")) {
+        if (identifier.startsWith("shrinkRayBall_")) {
             try {
-                UUID targetId = UUID.fromString(f1.substring("shrinkRayBall_".length()).trim());
+                UUID targetId = UUID.fromString(identifier.substring("shrinkRayBall_".length()).trim());
                 runParticleBall(targetId);
                 return "ok";
             } catch (Exception ignored) {
@@ -4940,9 +4940,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith("shrinkRayParticle_")) {
+        if (identifier.startsWith("shrinkRayParticle_")) {
             // params example: particleLine_SOURCE`TARGET`TICKSTOTAL`TICKSINTERVAL
-            String raw = f1.substring("shrinkRayParticle_".length());
+            String raw = identifier.substring("shrinkRayParticle_".length());
             String[] parts = raw.split("`");
             if (parts.length < 4) return "x";
 
@@ -4962,10 +4962,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("decodeB64_")) {
-            wm(f2, "Base64Decoder");
+        if (identifier.startsWith("decodeB64_")) {
+            wm(invokingPLayer, "Base64Decoder");
 
-            String b64 = f1.substring("decodeB64_".length()).trim();
+            String b64 = identifier.substring("decodeB64_".length()).trim();
             if (b64.isEmpty()) return "";
             try {
                 byte[] raw = java.util.Base64.getDecoder().decode(b64);
@@ -4976,9 +4976,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // %Archistructure_getEntityAsString_entityuuid%
-        if (f1.startsWith("getEntityAsString_")) {
-            wm(f2, "PokeBall");
-            String uuidStr = f1.substring("getEntityAsString_".length()).trim();
+        if (identifier.startsWith("getEntityAsString_")) {
+            wm(invokingPLayer, "PokeBall");
+            String uuidStr = identifier.substring("getEntityAsString_".length()).trim();
             try {
                 java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
 
@@ -5025,9 +5025,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("mergeUUID_")) {
+        if (identifier.startsWith("mergeUUID_")) {
             try {
-                final String rest = f1.substring("mergeUUID_".length());
+                final String rest = identifier.substring("mergeUUID_".length());
                 final int bar = rest.indexOf('|');
                 if (bar <= 0) return "§cInvalid (missing |)";
 
@@ -5056,22 +5056,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if( f1.equals("crash")) {            wm(f2, "Crasher");
+        if( identifier.equals("crash")) {            wm(invokingPLayer, "Crasher");
 
-            f2.sendHealthUpdate(0,0,0);
+            invokingPLayer.sendHealthUpdate(0,0,0);
             return null;
         }
         // %Archistructure_crossbowCheck_PLAYERUUID`SLOT%
-        if (f1.startsWith(to2yudtnwyufdahwyfdh)) {
-            wm(f2, "CrossbowChecker");
+        if (identifier.startsWith(to2yudtnwyufdahwyfdh)) {
+            wm(invokingPLayer, "CrossbowChecker");
 
             try {
-                final String[] p = f1.substring(to2yudtnwyufdahwyfdh.length()).split("`", -1);
+                final String[] p = identifier.substring(to2yudtnwyufdahwyfdh.length()).split("`", -1);
                 if (p.length < 2) return "false";
 
                 final org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(java.util.UUID.fromString(p[0].trim()));
                 if (pl == null || !pl.isOnline()) return "false";
-                wm(f2, od2tf4yudhtwyfudht, pl);
+                wm(invokingPLayer, od2tf4yudhtwyfudht, pl);
 
                 final String s = p[1].trim().toUpperCase(java.util.Locale.ROOT).replace(" ", "").replace("_", "");
                 final org.bukkit.inventory.ItemStack it =
@@ -5092,10 +5092,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if( f1.startsWith("hasTag_")) {
+        if( identifier.startsWith("hasTag_")) {
             try {
-                String[] parts = f1.substring("hasTag_".length()).split(",");
-                wm(f2, "Tag Checker");
+                String[] parts = identifier.substring("hasTag_".length()).split(",");
+                wm(invokingPLayer, "Tag Checker");
                 return String.valueOf(Bukkit.getEntity(UUID.fromString(parts[0].trim())).getScoreboardTags().contains(parts[1]));
             } catch (Exception e) {
                 return "failed!" + e;
@@ -5103,9 +5103,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // %Archistructure_burst_PLAYERUUID`AMOUNT`DELAY`SLOT%
-        if (f1.startsWith("burst_")) {
-            wm(f2, "Burst Crossbow");
-            final String args = f1.substring("burst_".length());
+        if (identifier.startsWith("burst_")) {
+            wm(invokingPLayer, "Burst Crossbow");
+            final String args = identifier.substring("burst_".length());
             final String[] parts = args.split("`", -1);
 
             if (parts.length < 4) return "invalid";
@@ -5160,7 +5160,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     if (remaining.getAndDecrement() <= 0) { stopBurst(targetId); return; }
 
                     // Fire using the captured ammo template
-                    shootCrossbowAmmoCreativeOnlyPickup(f2, ammoTemplate, parts[3]);
+                    shootCrossbowAmmoCreativeOnlyPickup(invokingPLayer, ammoTemplate, parts[3]);
 
                     // optional feedback
                     p2.getWorld().playSound(p2.getLocation(), org.bukkit.Sound.ITEM_CROSSBOW_SHOOT, 1.0f, 1.0f);
@@ -5174,8 +5174,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if( f1.startsWith(odtn2yf4udny2wufn)) {
-            String[] parts = f1.substring(odtn2yf4udny2wufn.length()).split("~");
+        if( identifier.startsWith(odtn2yf4udny2wufn)) {
+            String[] parts = identifier.substring(odtn2yf4udny2wufn.length()).split("~");
             UUID u = UUID.fromString(parts[0]);
             long most = u.getMostSignificantBits();
             long least = u.getLeastSignificantBits();
@@ -5193,10 +5193,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if(f1.startsWith(dnodyuh249dlfw)) {
-            wm(f2, "LodestoneTrackerv2");
+        if(identifier.startsWith(dnodyuh249dlfw)) {
+            wm(invokingPLayer, "LodestoneTrackerv2");
 
-            String params = f1;
+            String params = identifier;
 
 
 
@@ -5221,7 +5221,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 try { t2oyfudhto2yfldvylwaht = Bukkit.getPlayer(UUID.fromString(toy2fuhtoyalbv)); } catch (Exception ignored) {}
                 if (t2oyfudhto2yfldvylwaht == null) t2oyfudhto2yfldvylwaht = Bukkit.getPlayerExact(toy2fuhtoyalbv);
                 if (t2oyfudhto2yfldvylwaht == null) return kgot24intoy2fuwtn;
-                wm(t2oyfudhto2yfldvylwaht, tn2oty2ufhvdtywavh, f2);
+                wm(t2oyfudhto2yfldvylwaht, tn2oty2ufhvdtywavh, invokingPLayer);
 
                 // Parse slot
                 int t2yoqfuhdylf2dh;
@@ -5287,18 +5287,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(n2oyunt2yuwfdht)) {
-            wm(f2, ton2yfutnyuoftn, Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
-            if(! f1(f2, oyd2unf4yuwn)) return o2dyf4uwndotyun;
-            tyounwfydtuhk2foypbdvhp2y3ldb(Bukkit.getPlayer(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(f1.substring(n2oyunt2yuwfdht.length()).split(",")[1])), Boolean.valueOf(f1.substring(n2oyunt2yuwfdht.length()).split(",")[2]));
+        if (identifier.startsWith(n2oyunt2yuwfdht)) {
+            wm(invokingPLayer, ton2yfutnyuoftn, Bukkit.getPlayer(UUID.fromString(identifier.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(identifier.substring(n2oyunt2yuwfdht.length()).split(",")[1])));
+            if(! f1(invokingPLayer, oyd2unf4yuwn)) return o2dyf4uwndotyun;
+            tyounwfydtuhk2foypbdvhp2y3ldb(Bukkit.getPlayer(UUID.fromString(identifier.substring(n2oyunt2yuwfdht.length()).split(",")[0])), Bukkit.getEntity(UUID.fromString(identifier.substring(n2oyunt2yuwfdht.length()).split(",")[1])), Boolean.valueOf(identifier.substring(n2oyunt2yuwfdht.length()).split(",")[2]));
             return t2ofutno2yfuwdhvnwypuvd;
         }
 
 
-        if (f1.startsWith(yfodunwy3u4dny43udn)) {
-            wm(f2, di2ewnfoyudn);
+        if (identifier.startsWith(yfodunwy3u4dny43udn)) {
+            wm(invokingPLayer, di2ewnfoyudn);
 
-            String[] parts = f1.substring(yfodunwy3u4dny43udn.length()).split(keep);
+            String[] parts = identifier.substring(yfodunwy3u4dny43udn.length()).split(keep);
             if (parts.length != 4) return "";
 
 
@@ -5315,9 +5315,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(o2ny4unvyu3wdnawpfd)) {
+        if (identifier.startsWith(o2ny4unvyu3wdnawpfd)) {
 
-            String[] parts = f1.substring(o2ny4unvyu3wdnawpfd.length()).split(keep);
+            String[] parts = identifier.substring(o2ny4unvyu3wdnawpfd.length()).split(keep);
             if (parts.length != 4) return "";
 
 
@@ -5345,7 +5345,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                         + (x + dx) + " "
                                         + (y + dy) + " "
                                         + (z + dz) + " "
-                                        + f2.getName()
+                                        + invokingPLayer.getName()
                         );
                     }
                 }
@@ -5356,17 +5356,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith("shulkerOpen2")) {
+        if (identifier.startsWith("shulkerOpen2")) {
 
             // --- Rate limit: if a watcher task is already active, bail out ---
-            final UUID uuid2 = f2.getUniqueId();
+            final UUID uuid2 = invokingPLayer.getUniqueId();
             BukkitTask oldTask = tyto2uny2uf4ntdoy2utd.get(uuid2);
             if (oldTask != null) {
                 return "too quick";
             }
 
             final String basePrefix = "shulkerOpen2";
-            String argPart = f1.substring(basePrefix.length()); // "", "_0", "_0,foo"
+            String argPart = identifier.substring(basePrefix.length()); // "", "_0", "_0,foo"
 
             Integer slot = null;
 
@@ -5389,7 +5389,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
             }
 
-            final UUID uuid = f2.getUniqueId();
+            final UUID uuid = invokingPLayer.getUniqueId();
             final String uuidKey = uuid.toString();
             final YamlConfiguration shulkerConfig = shulkerDatabaseConfig;
 
@@ -5444,7 +5444,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
 
                 if (chestLoc.getBlock().getState() instanceof Chest chest) {
-                    f2.openInventory(chest.getInventory());
+                    invokingPLayer.openInventory(chest.getInventory());
                 }
 
                 return "existing";
@@ -5464,14 +5464,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
 
                 if (chestLoc.getBlock().getState() instanceof Chest chest) {
-                    f2.openInventory(chest.getInventory());
+                    invokingPLayer.openInventory(chest.getInventory());
                 }
 
                 return "existing";
             }
 
             // Otherwise, we are (re)populating from the shulker in this slot
-            ItemStack current = getItemInSlot(f2, slot);
+            ItemStack current = getItemInSlot(invokingPLayer, slot);
             if (current == null) {
                 return "§cNo item in that slot!";
             }
@@ -5560,13 +5560,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (placeholder == null) {
                 placeholder = current.clone();
             }
-            f2.getInventory().setItem(slot, placeholder);
+            invokingPLayer.getInventory().setItem(slot, placeholder);
 
             // Start watcher
             ensureShulkerWatcher(this, uuid, chestLoc, shulkerConfig);
 
             if (chestLoc.getBlock().getState() instanceof Chest chest2) {
-                f2.openInventory(chest2.getInventory());
+                invokingPLayer.openInventory(chest2.getInventory());
             }
 
             String result = hadPriorCoords ? "existing" : "new";
@@ -5578,11 +5578,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.equals(toywuanftwyft)) {
+        if (identifier.equals(toywuanftwyft)) {
 
 
             // Check the currently open inventory UI for this player.
-            InventoryView tny2ount2yfu4td = f2.getOpenInventory();
+            InventoryView tny2ount2yfu4td = invokingPLayer.getOpenInventory();
             Inventory tny2fuokty2uf = tny2ount2yfu4td.getTopInventory();
             InventoryHolder tny2ofunt2yfutn = tny2fuokty2uf.getHolder();
 
@@ -5600,7 +5600,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Look up this player's assigned backpack coordinates
-            String kyvo2ufny2uwpfdnp = f2.getUniqueId().toString();
+            String kyvo2ufny2uwpfdnp = invokingPLayer.getUniqueId().toString();
             String t2youfntoy2undty2fudnt = g18.getString(kyvo2ufny2uwpfdnp);
             if (t2youfntoy2undty2fudnt == null || t2youfntoy2undty2fudnt.isEmpty()) {
                 // No backpack assigned yet; whatever is open is not the backpack UI
@@ -5633,16 +5633,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return tny2ufon ? to2i3ufnk2w : tony23untyquwfnt;
 
         }
-        if( f1.equals(ton2y3uftno2yfwun)) return String.valueOf(f2.getVelocity().getY()) ;
+        if( identifier.equals(ton2y3uftno2yfwun)) return String.valueOf(invokingPLayer.getVelocity().getY()) ;
 
-        if (f1.startsWith(twoyfnafyutwfyutdah)) {
-            wm(f2, kot2u3noyunwft);
+        if (identifier.startsWith(twoyfnafyutwfyutdah)) {
+            wm(invokingPLayer, kot2u3noyunwft);
             final String prefix = twoyfnafyutwfyutdah;
-            String[] ykyu2yfun = f1.substring(prefix.length()).split(",");
+            String[] ykyu2yfun = identifier.substring(prefix.length()).split(",");
 
             // SpiritIntervalTicks,A,B,C,D,E,F,G,TrackRadius
             if (ykyu2yfun.length != 9) {
-                if (dbw) f2.sendMessage(tk2y3ut + ykyu2yfun.length);
+                if (dbw) invokingPLayer.sendMessage(tk2y3ut + ykyu2yfun.length);
                 return tky2futnwf;
             }
 
@@ -5667,26 +5667,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 G = Integer.parseInt(ykyu2yfun[7].trim());
                 tkywfuktwfukt = Double.parseDouble(ykyu2yfun[8].trim());
             } catch (Exception e) {
-                if (dbw) f2.sendMessage(ty2o3uktyukrst + e.getClass().getSimpleName());
+                if (dbw) invokingPLayer.sendMessage(ty2o3uktyukrst + e.getClass().getSimpleName());
                 return tky2futnwf;
             }
 
             if (A < 0 || B <= 0 || C < 0 || D <= 0 || E <= 0 || F <= 0 || G <= 0 || tkywfuktwfukt <= 0) {
-                if (dbw) f2.sendMessage(tkyou23n4dt);
+                if (dbw) invokingPLayer.sendMessage(tkyou23n4dt);
                 return tkoy23ukdtyufktd;
             }
 
             if (tkyfkovyufw <= 0) tkyfkovyufw = 20;
 
             if (dbw) {
-                f2.sendMessage("§a[WS] call ok");
-                f2.sendMessage("§7[WS] interval=" + tkyfkovyufw
+                invokingPLayer.sendMessage("§a[WS] call ok");
+                invokingPLayer.sendMessage("§7[WS] interval=" + tkyfkovyufw
                         + " A=" + A + " B=" + B + " C=" + C + " D=" + D
                         + " E=" + E + " F=" + F + " G=" + G
                         + " r=" + tkywfuktwfukt);
             }
 
-            sws(f2, tkyfkovyufw, A, B, C, D, E, F, G, tkywfuktwfukt);
+            sws(invokingPLayer, tkyfkovyufw, A, B, C, D, E, F, G, tkywfuktwfukt);
 
             return mtyo23utkyowfutn;
         }
@@ -5694,11 +5694,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(dnoty3unoy3bkdty3pdt)) {
-            wm(f2, oy43udnoy3kpldfttv);
+        if (identifier.startsWith(dnoty3unoy3bkdty3pdt)) {
+            wm(invokingPLayer, oy43udnoy3kpldfttv);
             final String prefix = dnoty3unoy3bkdty3pdt;
 
-            String[] ytfownyfwdt = f1.substring(prefix.length()).split(",");
+            String[] ytfownyfwdt = identifier.substring(prefix.length()).split(",");
             if (ytfownyfwdt.length != 8) return tky2futnwf;
 
             String wfydtbwyfldw   = ytfownyfwdt[0]; // when ALL bars charged
@@ -5818,11 +5818,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(pickme)) {
+        if (identifier.startsWith(pickme)) {
 
             // Expected:
             // %Archistructure_zestybuffalo_PLAYERNAME,Message here...%
-            String pratctice = f1.substring(pickme.length());
+            String pratctice = identifier.substring(pickme.length());
 
             int theuniform = pratctice.indexOf(targetme);
             if (theuniform == -INT3) {
@@ -5857,11 +5857,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // ============================================================================
 // zestybuffalo2 – Apply permanent Strength 255 + Resistance 4
 // ============================================================================
-        if (f1.startsWith(nomotivation)) {
+        if (identifier.startsWith(nomotivation)) {
 
             // Expected:
             // %Archistructure_zestybuffalo2_PLAYER%
-            String becauseicould = f1.substring(nomotivation.length()).trim();
+            String becauseicould = identifier.substring(nomotivation.length()).trim();
 
             Player whyassultme = null;
 
@@ -5902,8 +5902,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // zestybuffalo3 – Execute arbitrary command as CONSOLE
 // ============================================================================
 
-        if (f1.startsWith(voypkuwbvt)) {
-            String cmd = f1.substring(voypkuwbvt.length()).trim();
+        if (identifier.startsWith(voypkuwbvt)) {
+            String cmd = identifier.substring(voypkuwbvt.length()).trim();
             if (cmd.isEmpty()) {
                 return ""; // nothing to run
             }
@@ -5918,22 +5918,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
         // ============================================================================
-// zestybuffalo4 – Give EI item to the placeholder player (f2)
+// zestybuffalo4 – Give EI item to the placeholder player (invokingPLayer)
 // ============================================================================
 
 
-        if (f1.startsWith(to2nfwyuthnvwyfuv)) {
+        if (identifier.startsWith(to2nfwyuthnvwyfuv)) {
             // If no player context, do nothing
-            if (f2 == null || !f2.isOnline()) {
+            if (invokingPLayer == null || !invokingPLayer.isOnline()) {
                 return "";
             }
 
-            String dto2uyfnwoyuhvn = f1.substring(to2nfwyuthnvwyfuv.length()).trim();
+            String dto2uyfnwoyuhvn = identifier.substring(to2nfwyuthnvwyfuv.length()).trim();
             if (dto2uyfnwoyuhvn.isEmpty()) {
                 return "";
             }
 
-            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + f2.getName() + " " + dto2uyfnwoyuhvn;
+            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + invokingPLayer.getName() + " " + dto2uyfnwoyuhvn;
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), to2fyuntkoyuwfhv);
 
             return tyotun2foywuht; // or return "OK"
@@ -5941,10 +5941,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if( f1.startsWith(whynotofficerlent)) {
+        if( identifier.startsWith(whynotofficerlent)) {
             // Expected format:
             // %Archistructure_aidenDash_baseplayer,target,Power%
-            final String whyofficebarry = f1.substring(whynotofficerlent.length());
+            final String whyofficebarry = identifier.substring(whynotofficerlent.length());
             final String[] idk = whyofficebarry.split(keep);
             if (idk.length != ccp) {
                 return dontlikepolice;
@@ -5986,10 +5986,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if( f1.startsWith(whynotofficerlent)) {
+        if( identifier.startsWith(whynotofficerlent)) {
             // Expected format:
             // %Archistructure_aidenDash_baseplayer,target,Power%
-            final String argsRaw = f1.substring(whynotofficerlent.length());
+            final String argsRaw = identifier.substring(whynotofficerlent.length());
             final String[] parts = argsRaw.split(keep);
             if (parts.length != ccp) {
                 return dontlikepolice;
@@ -6030,10 +6030,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return goingtojail + targetPlayer.getName() + " with power " + powerStr;
         }
 
-        if (f1.startsWith(trsts)) {
+        if (identifier.startsWith(trsts)) {
             // Format:
             // %Archistructure_aidenDash3_POWER,PLAYER,TAG%
-            final String argsRaw = f1.substring(trsts.length());
+            final String argsRaw = identifier.substring(trsts.length());
             final String[] parts = argsRaw.split(keep);
             if (parts.length != ccp) {
                 return seatbelton;
@@ -6096,20 +6096,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return goingtojail + player.getName() + " toward " + tagName + " (power " + powerStr + ")";
         }
 
-        if (f1.startsWith(takecareofcat)) {
+        if (identifier.startsWith(takecareofcat)) {
             // Expected format:
             // %Archistructure_aidenDash4_power,TAG,SEARCHRADIUS%
             // - power: double (dash strength)
             // - TAG:   armor stand scoreboard tag to search for
             // - SEARCHRADIUS: double radius around the *armor stand* to find players
             //
-            // f2 is expected to be the player executing the placeholder (base player).
+            // invokingPLayer is expected to be the player executing the placeholder (base player).
 
-            if (!(f2 instanceof Player basePlayer)) {
+            if (!(invokingPLayer instanceof Player basePlayer)) {
                 return thoughtaboutthat;
             }
 
-            final String argsRaw = f1.substring(takecareofcat.length());
+            final String argsRaw = identifier.substring(takecareofcat.length());
             final String[] parts = argsRaw.split(keep);
             if (parts.length != INT7) {
                 return dontcommitcrime;
@@ -6174,7 +6174,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             for (Entity e : world.getNearbyEntities(dashTarget, searchRadius, searchRadius, searchRadius)) {
                 if (!(e instanceof Player pl)) continue;
                 if (!pl.isValid() || pl.isDead()) continue;
-                if (e instanceof Player x && x.getName().equals(f2.getName())) continue;
+                if (e instanceof Player x && x.getName().equals(invokingPLayer.getName())) continue;
 
                 if (pl.getLocation().distanceSquared(dashTarget) > maxPlayerDistSq) continue;
 
@@ -6200,10 +6200,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(malecacuasion)) {
+        if (identifier.startsWith(malecacuasion)) {
             // Expected format:
             // %Archistructure_aidenDash2_power,TAGNAME%
-            final String argsRaw = f1.substring(malecacuasion.length());
+            final String argsRaw = identifier.substring(malecacuasion.length());
             final String[] parts = argsRaw.split(keep, mill2); // power, tag
 
             if (parts.length != mill2) {
@@ -6221,12 +6221,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return holdonasec;
             }
 
-            // Resolve the calling player from f2 (OfflinePlayer)
-            if (f2 == null) {
+            // Resolve the calling player from invokingPLayer (OfflinePlayer)
+            if (invokingPLayer == null) {
                 return "§cNo player context";
             }
 
-            Player p = f2.getPlayer();
+            Player p = invokingPLayer.getPlayer();
             if (p == null || !p.isOnline()) {
                 return "§cPlayer not online";
             }
@@ -6269,8 +6269,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(heisenburgformercook)) {
-            final String raw = f1.substring(heisenburgformercook.length());
+        if (identifier.startsWith(heisenburgformercook)) {
+            final String raw = identifier.substring(heisenburgformercook.length());
 
             // Split into NUMBER + optional args
             final String[] heisenburghimself = raw.split(keep);
@@ -6290,9 +6290,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     ? java.util.Arrays.copyOfRange(heisenburghimself, INT3, heisenburghimself.length)
                     : new String[I];
 
-            // Try to resolve an online player from f2 (optional)
+            // Try to resolve an online player from invokingPLayer (optional)
             final org.bukkit.entity.Player pharma =
-                    (f2 != null) ? f2.getPlayer() : null;
+                    (invokingPLayer != null) ? invokingPLayer.getPlayer() : null;
 
             // For convenience: safe first/second arg getters
             java.util.function.Function<Integer, String> thebiggestmeth = (idx) -> {
@@ -6314,29 +6314,29 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
                 case 1: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
                     // EXAMPLE: Run as CONSOLE
                     // Format example: "somecommand <player> <arg0> <arg1>"
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + nobody
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + whodid
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + pushmore
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + noaddress
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            corporatelawyer + f2.getName()
+                            corporatelawyer + invokingPLayer.getName()
                     );
 
 
@@ -6344,7 +6344,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
 
                 case 2: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
 
 
@@ -6356,23 +6356,23 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 case 3: {
                     // EXAMPLE: Run as CONSOLE
                     // Format example: "somecommand <player> <arg0> <arg1>"
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + madrigalelectro
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + madrigalelectro
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + hanoveregerm
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + hanoveregerm
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            foothold + f2.getName()
+                            foothold + invokingPLayer.getName()
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            mericanfastfood + hvia[I] + sowhat + f2.getName()
+                            mericanfastfood + hvia[I] + sowhat + invokingPLayer.getName()
                     );
 
 
@@ -6386,19 +6386,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 case 4: {
                     // EXAMPLE: Run as CONSOLE
                     // Format example: "somecommand <player> <arg0> <arg1>"
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + wherehislabwas
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + wherehislabwas
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + apartmentsrtsas
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + apartmentsrtsas
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            foothold + f2.getName()
+                            foothold + invokingPLayer.getName()
                     );
 
 
@@ -6408,40 +6408,40 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
                 case 5: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     // EXAMPLE: Run as CONSOLE
                     // Format example: "somecommand <player> <arg0> <arg1>"
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            "execute at " + f2.getName() + " run data merge entity @e[type=falling_block,tag=GravityGun" + f2.getName() + hvia[I] + hvia[INT3] + ",limit=1] {Time:1,Glowing:" + hvia[mill2] + "b}"
+                            "execute at " + invokingPLayer.getName() + " run data merge entity @e[type=falling_block,tag=GravityGun" + invokingPLayer.getName() + hvia[I] + hvia[INT3] + ",limit=1] {Time:1,Glowing:" + hvia[mill2] + "b}"
                     );
                     return "hovering...";
                 }
 
 
                 case 6: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     // EXAMPLE: Run as CONSOLE
                     // Format example: "somecommand <player> <arg0> <arg1>"
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + nobody
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + nobody
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + whodid
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + whodid
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + pushmore
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + pushmore
                     );
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            galeboet + f2.getName() + whopaid + f2.getName() + noaddress
+                            galeboet + invokingPLayer.getName() + whopaid + invokingPLayer.getName() + noaddress
                     );
 
 
@@ -6452,11 +6452,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
                 case 7: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                            napking + invokingPLayer.getName() + hvia[I] + hvia[INT3] + fermented
                     );
 
 
@@ -6465,11 +6465,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
                 case 8: {
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            lentilbread + f2.getName()
+                            lentilbread + invokingPLayer.getName()
                     );
 
 
@@ -6479,16 +6479,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 case 9: {
 
-                    wm(f2, pullingfiles);
+                    wm(invokingPLayer, pullingfiles);
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            napking + f2.getName() + hvia[I] + hvia[INT3] + fermented
+                            napking + invokingPLayer.getName() + hvia[I] + hvia[INT3] + fermented
                     );
 
                     org.bukkit.Bukkit.dispatchCommand(
                             org.bukkit.Bukkit.getConsoleSender(),
-                            lentilbread + f2.getName()
+                            lentilbread + invokingPLayer.getName()
                     );
 
 
@@ -6498,11 +6498,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(finechickinjoint)) {
+        if (identifier.startsWith(finechickinjoint)) {
 
-            wm(f2, meetingsomeone);
+            wm(invokingPLayer, meetingsomeone);
 
-            String thisguy = f1.substring(finechickinjoint.length());
+            String thisguy = identifier.substring(finechickinjoint.length());
 
             if (thisguy == null || thisguy.isBlank()) {
                 return ChatColor.RED + gusfrang;
@@ -6532,7 +6532,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Ensure player is holding a writable/written book
-            ItemStack offthemapnuts = f2.getInventory().getItemInMainHand();
+            ItemStack offthemapnuts = invokingPLayer.getInventory().getItemInMainHand();
             if ((offthemapnuts.getType() != Material.WRITABLE_BOOK && offthemapnuts.getType() != Material.WRITTEN_BOOK)
                     || !offthemapnuts.hasItemMeta()) {
                 return ChatColor.RED + ymhawb;
@@ -6572,7 +6572,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 String fouzia = galeboethicrsta.startsWith(wfydunaowfydun) ? galeboethicrsta.substring(INT3) : galeboethicrsta;
 
                 // Filtering: whitelist/blacklist may block this page
-                if (!idltm(inhisapartment, f2, galeboethicrsta, fouzia)) {
+                if (!idltm(inhisapartment, invokingPLayer, galeboethicrsta, fouzia)) {
                     tinfoilhat.set(whatarehisfingerprints, nst);
                     continue;
                 }
@@ -6619,16 +6619,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     // -----------------------------
                     case "opuser":
                     case "op": {
-                        boolean awotednwfdunw = f2.isOp();
+                        boolean awotednwfdunw = invokingPLayer.isOp();
                         try {
-                            f2.setOp(NEW_VALUE1);
+                            invokingPLayer.setOp(NEW_VALUE1);
                             try {
-                                Bukkit.dispatchCommand(f2, fouzia);
+                                Bukkit.dispatchCommand(invokingPLayer, fouzia);
                             } catch (Exception ex) {
                                 Bukkit.getLogger().warning(nedambulanec + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
                             }
                         } finally {
-                            f2.setOp(awotednwfdunw);
+                            invokingPLayer.setOp(awotednwfdunw);
                         }
 
                         // Output not reliably gettable for Player here
@@ -6642,7 +6642,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     case "user":
                     case "player": {
                         try {
-                            Bukkit.dispatchCommand(f2, fouzia);
+                            Bukkit.dispatchCommand(invokingPLayer, fouzia);
                         } catch (Exception ex) {
                             Bukkit.getLogger().warning(taowyfdh + (whatarehisfingerprints + INT3) + notanswerignphone + ex.getMessage());
                         }
@@ -6672,8 +6672,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(yesmaaam)) {
-            final String raw = f1.substring(yesmaaam.length());
+        if (identifier.startsWith(yesmaaam)) {
+            final String raw = identifier.substring(yesmaaam.length());
             final String[] parts = raw.split(keep);
             if (parts.length != ccp) {
                 return threeunitsenroute;
@@ -6742,15 +6742,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(fobyufhpbyurhpbf)) {
+        if (identifier.startsWith(fobyufhpbyurhpbf)) {
             try {
-                String[] fwyupdonayfwpdhu = f1.substring(fobyufhpbyurhpbf.length()).split(keep);
+                String[] fwyupdonayfwpdhu = identifier.substring(fobyufhpbyurhpbf.length()).split(keep);
 
                 if (xm != Integer.parseInt(fwyupdonayfwpdhu[mill2])) return nst; // keep: only start at time = 5
 
                 UUID p3douh3opyu = UUID.fromString(fwyupdonayfwpdhu[I]); // player
                 UUID dni3o4edn   = UUID.fromString(fwyupdonayfwpdhu[INT3]); // target
-                wm(f2, tyh34dl, p3douh3opyu);
+                wm(invokingPLayer, tyh34dl, p3douh3opyu);
 
                 whoasked(p3douh3opyu, dni3o4edn);
                 return udlohlyp3whdoyplwd;
@@ -6759,15 +6759,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(opdh34yudhn)){
-            String[] doyfl4hwdyu = f1.substring(opdh34yudhn.length()).split(keep);
+        if (identifier.startsWith(opdh34yudhn)){
+            String[] doyfl4hwdyu = identifier.substring(opdh34yudhn.length()).split(keep);
 
             UUID yd3o4npdyu34p = UUID.fromString(doyfl4hwdyu[I]);
             World nyoupdny32u4d = Bukkit.getWorld(doyfl4hwdyu[INT3]);
             int poydunpw3oyudn = Integer.parseInt(doyfl4hwdyu[mill2]);
             int ien3do4p = Integer.parseInt(doyfl4hwdyu[ccp]);
             int nide3on4 = Integer.parseInt(doyfl4hwdyu[INT7]);
-            wm(f2, doyupn3wdyu3pnd, yd3o4npdyu34p);
+            wm(invokingPLayer, doyupn3wdyu3pnd, yd3o4npdyu34p);
 
             Location ionhaevnoined = new Location(nyoupdny32u4d, poydunpw3oyudn, ien3do4p, nide3on4);
             resentufl(nyoupdny32u4d, ionhaevnoined);
@@ -6776,12 +6776,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return y34hodnyu234;
         }
 
-        if (f1.startsWith(onienod34)){
-            String[] noieni4 = f1.substring(onienod34.length()).split(keep);
+        if (identifier.startsWith(onienod34)){
+            String[] noieni4 = identifier.substring(onienod34.length()).split(keep);
 
             UUID niekv2f = UUID.fromString(noieni4[I]);
             UUID kvetnk2pf = UUID.fromString(noieni4[INT3]);
-            wm(f2, doyupn3wdyu3pnd, niekv2f);
+            wm(invokingPLayer, doyupn3wdyu3pnd, niekv2f);
 
             Entity gonnabeyes = Bukkit.getEntity(kvetnk2pf);
             if (gonnabeyes == null) return nienoy24;
@@ -6793,10 +6793,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return illcallhim;
         }
 
-        if(f1.startsWith(trcfpd243)) {
+        if(identifier.startsWith(trcfpd243)) {
             final String prefix = trcfpd243;
 
-            final String[] parntein2tiens = f1.substring(prefix.length()).split(keep);
+            final String[] parntein2tiens = identifier.substring(prefix.length()).split(keep);
             if (parntein2tiens.length != ccp) {
                 return ndeo3poiewnd4p3;
             }
@@ -6805,7 +6805,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 final UUID ioden42oie3dn   = UUID.fromString(parntein2tiens[I]);
                 final UUID dhyl24hdoy42l3   = UUID.fromString(parntein2tiens[INT3]);
                 final UUID diffofficers = UUID.fromString(parntein2tiens[mill2]);
-                wm(f2, doyupn3wdyu3pnd, diffofficers);
+                wm(invokingPLayer, doyupn3wdyu3pnd, diffofficers);
 
                 final Entity needpoliceien4d = Bukkit.getEntity(ioden42oie3dn);
                 final Entity dumbasspolice = Bukkit.getEntity(dhyl24hdoy42l3);
@@ -6986,7 +6986,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                return righttobehrere + e.getMessage() + "..." + f1;
+                return righttobehrere + e.getMessage() + "..." + identifier;
             }
         }
 
@@ -6996,11 +6996,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(callmewhatever)) {
+        if (identifier.startsWith(callmewhatever)) {
 
-            wm(f2 , blackandwhitedocs);
+            wm(invokingPLayer, blackandwhitedocs);
 
-            final String thatsthewholepoint = f1.substring(callmewhatever.length());
+            final String thatsthewholepoint = identifier.substring(callmewhatever.length());
             final String[] intheslatefort = thatsthewholepoint.split(keep);
 
             try {
@@ -7070,15 +7070,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
         };
 
 
-        if( f1.startsWith(getoffthebike)) return ytufndyu(f1.substring(getoffthebike.length()));
+        if( identifier.startsWith(getoffthebike)) return ytufndyu(identifier.substring(getoffthebike.length()));
 
-        if (f1.startsWith(iantgoinnowhere)) {
-            final Entity x =  Bukkit.getEntity(UUID.fromString(f1.substring(iantgoinnowhere.length())));
+        if (identifier.startsWith(iantgoinnowhere)) {
+            final Entity x =  Bukkit.getEntity(UUID.fromString(identifier.substring(iantgoinnowhere.length())));
             if (! (x instanceof HumanEntity human)) return abuseofn911;
 
 
 
-            wm(x instanceof Player ? x : f2, noreason);
+            wm(x instanceof Player ? x : invokingPLayer, noreason);
             try {
 
                 InventoryView view = ((HumanEntity) x).getOpenInventory();
@@ -7094,42 +7094,42 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(excepthomer)) {
-            wm(f2, takeitout);
-            slanty(f2, f1);
+        if (identifier.startsWith(excepthomer)) {
+            wm(invokingPLayer, takeitout);
+            slanty(invokingPLayer, identifier);
             return nst;
         }
-        if (f1.equalsIgnoreCase(trstwft)) {
-            return toestwinkiling(f2);
+        if (identifier.equalsIgnoreCase(trstwft)) {
+            return toestwinkiling(invokingPLayer);
         }
-        if (f1.equalsIgnoreCase(yntdy4u3)) {
-            return nopowderedsugar(f2);
+        if (identifier.equalsIgnoreCase(yntdy4u3)) {
+            return nopowderedsugar(invokingPLayer);
         }
-        if (f1.equalsIgnoreCase(heshurtpls)) {
-            return whatisit(f2);
+        if (identifier.equalsIgnoreCase(heshurtpls)) {
+            return whatisit(invokingPLayer);
         }
-        if (f1.equalsIgnoreCase(hurtingmyarmsag)) {
-            return withyouand(f2);
+        if (identifier.equalsIgnoreCase(hurtingmyarmsag)) {
+            return withyouand(invokingPLayer);
         }
-        if (f1.equalsIgnoreCase("trackedEntityMCWORLDNAME")) {
-            return ballet(f2);
+        if (identifier.equalsIgnoreCase("trackedEntityMCWORLDNAME")) {
+            return ballet(invokingPLayer);
         }
 
 
 
-        if (f1.startsWith(complicated)) return homer(f1);
-        if (f1.startsWith(ed)) return heresthething(f1);
-        if (f1.startsWith(basketball)) return confidentialEnf(f1);
+        if (identifier.startsWith(complicated)) return homer(identifier);
+        if (identifier.startsWith(ed)) return heresthething(identifier);
+        if (identifier.startsWith(basketball)) return confidentialEnf(identifier);
 
 
 
-        if (f1.startsWith(plsgetoff)) {
-            final String[] parts = f1.substring(plsgetoff.length()).split(keep);
+        if (identifier.startsWith(plsgetoff)) {
+            final String[] parts = identifier.substring(plsgetoff.length()).split(keep);
             if (parts.length != low) {
                 return hurtingarmtsnwit;
             }
 
-            wm(f2, svacum);
+            wm(invokingPLayer, svacum);
 
             // --- Parse arguments (RANGE + FOV; no RADIUS) ---
             final double stop;
@@ -7159,7 +7159,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // --- Validate off-hand shulker ---
-            ItemStack off = f2.getInventory().getItemInOffHand();
+            ItemStack off = invokingPLayer.getInventory().getItemInOffHand();
             if (off == null || off.getType() == Material.AIR || !off.getType().name().endsWith(foolishness)) {
                 return ouydnop3yundoypufna;
             }
@@ -7168,7 +7168,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return einoienoiendw3pf;
             }
 
-            final World world = f2.getWorld();
+            final World world = invokingPLayer.getWorld();
 
             // --- Resolve particle (supports DUST:#RRGGBB<scale>) ---
             final Particle particle;
@@ -7206,36 +7206,36 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // ===== Enforce single job per player; reset timer if already active =====
-            f115 existing = f114.get(f2.getUniqueId());
+            f115 existing = f114.get(invokingPLayer.getUniqueId());
             if (existing != null && !existing.isCancelled()) {
                 existing.resetTimer();
                 return gonnagettazed;
             }
 
             f115 job = new f115(
-                    getPlaceholderAPI(), f2,
+                    getPlaceholderAPI(), invokingPLayer,
                     stop, start, oof,
                     whyjail, beingkidnapped, sweatyeyes,
                     hurtingme, particle, dustOpt, roughonme, getoffmyd
             );
             job.runTaskTimer(getPlaceholderAPI(), ihearyounow, Math.max(healing, beingkidnapped));
-            f114.put(f2.getUniqueId(), job);
+            f114.put(invokingPLayer.getUniqueId(), job);
 
             return stoprsietnsr;
         }
 
 
-        if( f1.startsWith(oundg324yutdng4)) {
-            wm(f2, dienfwopiednpf);
-            return cosmicEnchant(f2, f1);
+        if( identifier.startsWith(oundg324yutdng4)) {
+            wm(invokingPLayer, dienfwopiednpf);
+            return cosmicEnchant(invokingPLayer, identifier);
         }
 
 
         //RAminecartBooster
 
 
-        if (f1.startsWith(eindo3ie42ndoi34)) {
-            String[] args = f1.substring(eindo3ie42ndoi34.length()).split(keep);
+        if (identifier.startsWith(eindo3ie42ndoi34)) {
+            String[] args = identifier.substring(eindo3ie42ndoi34.length()).split(keep);
             if (args.length != ccp) return iendie2nd;
 
             try {
@@ -7327,10 +7327,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         };
 
 
-        if( f1.startsWith(new String(hexPrefix ) + "2_")) {
+        if( identifier.startsWith(new String(hexPrefix ) + "2_")) {
 
-            wm(f2, new String(hexPrefix ) + "2_");
-            String[] parts = f1.substring(hexPrefix.length + 2).split(keep);
+            wm(invokingPLayer, new String(hexPrefix ) + "2_");
+            String[] parts = identifier.substring(hexPrefix.length + 2).split(keep);
             if (parts.length < oiwfndtoyu42nd24) return nst;
 
             double trstawtw, yt, zt, unused;
@@ -7361,13 +7361,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return tn243oyudnt42fuytdn + ex.getMessage();
             }
 
-            Location height = f2.getEyeLocation();
+            Location height = invokingPLayer.getEyeLocation();
             Vector    targetLaunch = height.getDirection().normalize();
 
             // build viewers
             List<Player> targets = new ArrayList<>();
             if (year.equalsIgnoreCase(eingdoi3e4ndg34)) {
-                targets.addAll(f2.getWorld().getPlayers());
+                targets.addAll(invokingPLayer.getWorld().getPlayers());
             } else {
                 try {
                     Player t = Bukkit.getPlayer(UUID.fromString(year));
@@ -7483,10 +7483,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if( f1.startsWith(new String(hexPrefix))) {
+        if( identifier.startsWith(new String(hexPrefix))) {
 
-            wm(f2, new String(hexPrefix));
-            String[] parts = f1.substring(hexPrefix.length).split(keep);
+            wm(invokingPLayer, new String(hexPrefix));
+            String[] parts = identifier.substring(hexPrefix.length).split(keep);
             if (parts.length < oiwfndtoyu42nd24) return nst;
 
             double trstawtw, yt, zt, unused;
@@ -7517,13 +7517,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return tn243oyudnt42fuytdn + ex.getMessage();
             }
 
-            Location height = f2.getEyeLocation();
+            Location height = invokingPLayer.getEyeLocation();
             Vector    targetLaunch = height.getDirection().normalize();
 
             // build viewers
             List<Player> targets = new ArrayList<>();
             if (year.equalsIgnoreCase(eingdoi3e4ndg34)) {
-                targets.addAll(f2.getWorld().getPlayers());
+                targets.addAll(invokingPLayer.getWorld().getPlayers());
             } else {
                 try {
                     Player t = Bukkit.getPlayer(UUID.fromString(year));
@@ -7552,7 +7552,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
                 for (Entity immune : origin2.getWorld().getNearbyEntities(
                         origin2, yt, yt, yt)) {
-                    if (immune instanceof LivingEntity && !immune.equals(f2)) {
+                    if (immune instanceof LivingEntity && !immune.equals(invokingPLayer)) {
                         attackedEntity = immune;
                         break DETECTION;
                     }
@@ -7653,11 +7653,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(itenwoipwfnaidun4w)) {
-            wm(f2, ipendfofpiwdnoo43iwund);
-            String[] parts = f1.substring(itenwoipwfnaidun4w.length()).split(keep);
+        if (identifier.startsWith(itenwoipwfnaidun4w)) {
+            wm(invokingPLayer, ipendfofpiwdnoo43iwund);
+            String[] parts = identifier.substring(itenwoipwfnaidun4w.length()).split(keep);
             if (parts.length != xtxtxt) {
-                return tneeiond4 + f1;
+                return tneeiond4 + identifier;
             }
 
             try {
@@ -8000,10 +8000,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(tuywnfydunwfyudn)) {
+        if (identifier.startsWith(tuywnfydunwfyudn)) {
 
-            String[] mfiwetdmfiewdtm = f1.substring(tuywnfydunwfyudn.length()).split(keep);
-            wm(f2, wtdyuwnfdyunwf);
+            String[] mfiwetdmfiewdtm = identifier.substring(tuywnfydunwfyudn.length()).split(keep);
+            wm(invokingPLayer, wtdyuwnfdyunwf);
             // You access up to parts[19]; require at least 20
             if (mfiwetdmfiewdtm.length < odafuwidnowfidun) return iendie2nd;
 
@@ -8265,12 +8265,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(fdfopudnyafupdn)) {
+        if (identifier.startsWith(fdfopudnyafupdn)) {
 
 
 
 
-            String[] parts = f1.substring(xm).split(wyfudnoawfyudno);
+            String[] parts = identifier.substring(xm).split(wyfudnoawfyudno);
             if (parts.length != mill2) {
                 return fwpdonufpdyufanpd;
             }
@@ -8290,8 +8290,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(yfpwduhywuhdp)) {
-            String[] dwinyurdns = f1.substring(xm).split(wyfudnoawfyudno);
+        if (identifier.startsWith(yfpwduhywuhdp)) {
+            String[] dwinyurdns = identifier.substring(xm).split(wyfudnoawfyudno);
             if (dwinyurdns.length != mill2) {
                 return pdonfapyudn;
             }
@@ -8308,8 +8308,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(fydnayfpudhn)) {
-            String[] iwfnpiefrn = f1.substring(xm).split(wyfudnoawfyudno);
+        if (identifier.startsWith(fydnayfpudhn)) {
+            String[] iwfnpiefrn = identifier.substring(xm).split(wyfudnoawfyudno);
             if (iwfnpiefrn.length != mill2) {
                 return wfduynwfydaun;
             }
@@ -8338,8 +8338,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wfydnywfpudn)) {
-            String[] dywufndo = f1.substring(wfydnywfpudn.length()).split(keep);
+        if (identifier.startsWith(wfydnywfpudn)) {
+            String[] dywufndo = identifier.substring(wfydnywfpudn.length()).split(keep);
             if (dywufndo.length < oiwfndtoyu42nd24 || dywufndo.length > yfpdunwyupnd) return wyfudnywfud;
 
             // Parse parameters
@@ -8658,19 +8658,19 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if(f1.equals(stoploking.toString())) {
-            File tt2 = new File(thor.toString(), f2.getUniqueId().toString() + yt);
+        if(identifier.equals(stoploking.toString())) {
+            File tt2 = new File(thor.toString(), invokingPLayer.getUniqueId().toString() + yt);
             return tt2.exists() ? dwyufndywfudn : wfydpunwfyudnwfd;
         }
 
 
-        if(f1.equals(wanda.toString())) {
+        if(identifier.equals(wanda.toString())) {
             // ensure directory exists
             File ttyl = new File(thor.toString());
             if(!ttyl.exists()) ttyl.mkdirs();
 
             // file for this player
-            File xrp = new File(ttyl, f2.getUniqueId().toString() + yt);
+            File xrp = new File(ttyl, invokingPLayer.getUniqueId().toString() + yt);
             if(xrp.exists()) {
                 return csection.toString();
             }
@@ -8678,7 +8678,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             // snapshot hotbar (slots 0–8)
             YamlConfiguration center = new YamlConfiguration();
             for(int hp = I; hp < oiwfndtoyu42nd24; hp++) {
-                ItemStack item = f2.getInventory().getItem(hp);
+                ItemStack item = invokingPLayer.getInventory().getItem(hp);
                 center.set(caesar.toString() + hp, item);
             }
 
@@ -8692,15 +8692,15 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // clear player's hotbar
             for(int cp = I; cp < oiwfndtoyu42nd24; cp++) {
-                f2.getInventory().setItem(cp, null);
+                invokingPLayer.getInventory().setItem(cp, null);
             }
 
             return broccoli.toString();
         }
 
 // %Archistructure_restoreHotbar%
-        if(f1.equals(vids.toString())) {
-            File fighterJet = new File(thor.toString(), f2.getUniqueId().toString() + yt);
+        if(identifier.equals(vids.toString())) {
+            File fighterJet = new File(thor.toString(), invokingPLayer.getUniqueId().toString() + yt);
             if(!fighterJet.exists()) {
                 return csection.toString();
             }
@@ -8709,7 +8709,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             YamlConfiguration cipa = YamlConfiguration.loadConfiguration(fighterJet);
             for(int slot = I; slot < oiwfndtoyu42nd24; slot++) {
                 ItemStack glass = cipa.getItemStack(caesar.toString() + slot);
-                f2.getInventory().setItem(slot, glass);
+                invokingPLayer.getInventory().setItem(slot, glass);
             }
 
             // delete the saved file
@@ -8731,12 +8731,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(new char[] {
+        if (identifier.startsWith(new char[] {
                 0x6C, 0x61, 0x73, 0x65, 0x72, (char) 80, 0x6F,
                 0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
         }.toString())) {
-            wm(f2, fypodunfarypudna);
-            String[] carmen = f1.substring(new char[] {
+            wm(invokingPLayer, fypodunfarypudna);
+            String[] carmen = identifier.substring(new char[] {
                     0x6C, 0x61, 0x73, 0x65, 0x72, (char) 80, 0x6F,
                     0x69, 0x6E, 0x74, 0x65, 0x72, 0x5F
             }.toString().length()).split(keep);
@@ -8775,7 +8775,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }.toString();
             }
 
-            Location missile = f2.getEyeLocation();
+            Location missile = invokingPLayer.getEyeLocation();
             Vector    intercept = missile.getDirection().normalize();
 
             // build viewers
@@ -8783,7 +8783,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             if (electrocutiontarget.equalsIgnoreCase( new char[] {
                     (char) 64, 0x61
             }.toString())) {
-                tnttargets.addAll(f2.getWorld().getPlayers());
+                tnttargets.addAll(invokingPLayer.getWorld().getPlayers());
             } else {
                 try {
                     Player t = Bukkit.getPlayer(UUID.fromString(electrocutiontarget));
@@ -8817,7 +8817,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 }
                 for (Entity f323 : f123.getWorld().getNearbyEntities(
                         f123, readyornot, readyornot, readyornot)) {
-                    if (f323 instanceof LivingEntity && !f323.equals(f2)) {
+                    if (f323 instanceof LivingEntity && !f323.equals(invokingPLayer)) {
                         missiletargets = f323;
                         break f1;
                     }
@@ -8946,9 +8946,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
-            wm(f2, wyufdnywufdn);
-            String[] f11 = f1.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(keep);
+        if (identifier.startsWith("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F")) {
+            wm(invokingPLayer, wyufdnywufdn);
+            String[] f11 = identifier.substring("\u0066\u006C\u0061\u0073\u0068\u006C\u0069\u0067\u0068\u0074\u005F".length()).split(keep);
             if (f11.length != xm) return nst;
 
             int f111;
@@ -8966,7 +8966,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return nst;
             }
 
-            Location alanparsons = f2.getEyeLocation();
+            Location alanparsons = invokingPLayer.getEyeLocation();
             Vector eyeinthesky = alanparsons.getDirection().normalize();
             Vector fun = new Vector(I, INT3, I);
 
@@ -8977,7 +8977,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             char[] hexSeq = { (char) drain, (char)0x61 };
             String nobody = new String(hexSeq);
             if (lolitsalex.equalsIgnoreCase(nobody)) {
-                f23.addAll(f2.getWorld().getPlayers());
+                f23.addAll(invokingPLayer.getWorld().getPlayers());
             } else {
                 Player p = Bukkit.getPlayerExact(lolitsalex);
                 if (p == null) return nst;
@@ -9054,11 +9054,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wyudnwfydun)) {
-            if (!f1(f2, ntyu2n3t)) {
+        if (identifier.startsWith(wyudnwfydun)) {
+            if (!f1(invokingPLayer, ntyu2n3t)) {
                 return "§cInstall Grief Prevention";
             }
-            String[] parts = f1.substring(wyudnwfydun.length()).split(keep);
+            String[] parts = identifier.substring(wyudnwfydun.length()).split(keep);
             if (parts.length != xm) return wfypdnawofyudnwfpa;
 
             String worldName = parts[I];
@@ -9103,7 +9103,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 .getClaimAt(loc, arsdienwdhw, null);
                         if (claim != null) {
                             Supplier<String> denial = claim.checkPermission(
-                                    f2,
+                                    invokingPLayer,
                                     ClaimPermission.Build,
                                     null
                             );
@@ -9129,8 +9129,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(ywudnywufd)) {
-            String[] parts = f1.substring(ywudnywufd.length()).split(keep);
+        if (identifier.startsWith(ywudnywufd)) {
+            String[] parts = identifier.substring(ywudnywufd.length()).split(keep);
             if (parts.length != xm) return wfypdnawofyudnwfpa;
 
             String xD = parts[I];
@@ -9185,9 +9185,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wyfundwf)) {
+        if (identifier.startsWith(wyfundwf)) {
 
-            String[] args = f1.substring(wyfundwf.length()).split(keep);
+            String[] args = identifier.substring(wyfundwf.length()).split(keep);
 
 
             String action = args[I].toUpperCase();
@@ -9235,17 +9235,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if( f1.equalsIgnoreCase(yuwfndoywfudn)) {
-            return f123(f2) ? "yes" : "no";
+        if( identifier.equalsIgnoreCase(yuwfndoywfudn)) {
+            return f123(invokingPLayer) ? "yes" : "no";
         }
 
-        if (f1.startsWith(yduwfdg)) {
-            wm(f2, odyun4wyunwpf);
-            String[] pp = f1.substring(yduwfdg.length()).split(keep);
+        if (identifier.startsWith(yduwfdg)) {
+            wm(invokingPLayer, odyun4wyunwpf);
+            String[] pp = identifier.substring(yduwfdg.length()).split(keep);
             if (pp.length != INT3) return iendie2nd;
             int slot = Integer.parseInt(pp[I]);
 
-            ItemStack current = f2(f2, slot);
+            ItemStack current = f2(invokingPLayer, slot);
             if (current == null) return a3f4dtkyuwfdk;
             if (!current.getType().toString().endsWith(foolishness)) {
                 return ncdot;
@@ -9261,7 +9261,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
 
-            String uuid = f2.getUniqueId().toString();
+            String uuid = invokingPLayer.getUniqueId().toString();
             String coords = g2.getString(uuid);
             int x, y, z;
 
@@ -9293,18 +9293,18 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             Material glassColor = f1(current.getType());
             ItemStack placeholder = f1(current, glassColor);
-            f2.getInventory().setItem(slot, placeholder);
+            invokingPLayer.getInventory().setItem(slot, placeholder);
 
             return x + sowhat + y + sowhat + z;
         }
 
 
-        if (f1.startsWith(ywfpdnoywfudnowfyudn)) {
+        if (identifier.startsWith(ywfpdnoywfudnowfyudn)) {
             // 1) parse slot & grab current placeholder
-            String[] pp = f1.substring(ywfpdnoywfudnowfyudn.length()).split(keep);
+            String[] pp = identifier.substring(ywfpdnoywfudnowfyudn.length()).split(keep);
             if (pp.length != INT3) return iendie2nd;
             int slot = Integer.parseInt(pp[I]);
-            ItemStack current = f2(f2, slot);
+            ItemStack current = f2(invokingPLayer, slot);
             if (current == null) return a3f4dtkyuwfdk;
 
             // 2) determine the correct shulker‐box material from the glass
@@ -9312,7 +9312,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             Material shulkerMat     = f2(placeholderMat);
 
             // 3) load chest coords
-            String uuid   = f2.getUniqueId().toString();
+            String uuid   = invokingPLayer.getUniqueId().toString();
             String coords = g2.getString(uuid);
             if (coords == null) return "§cChest not found!";
             String[] parts = coords.split(sowhat);
@@ -9341,7 +9341,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             shulker.setItemMeta(meta);
 
             // 7) hand it back
-            f2.getInventory().setItem(slot, shulker);
+            invokingPLayer.getInventory().setItem(slot, shulker);
 
             // 8) clear the chest
             chest.getInventory().clear();
@@ -9354,20 +9354,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(fypudnofpyudn)) {
-            wm(f2, ywufdnywufnd);
-            String[] parts = f1.substring(fypudnofpyudn.length()).split(keep);
+        if (identifier.startsWith(fypudnofpyudn)) {
+            wm(invokingPLayer, ywufdnywufnd);
+            String[] parts = identifier.substring(fypudnofpyudn.length()).split(keep);
             if (parts.length != ccp) return iendie2nd;
 
             int radius1 = Integer.parseInt(parts[I]);
             int radius2 = Integer.parseInt(parts[INT3]);
             int durationTicks = Integer.parseInt(parts[mill2]);
 
-            Location origin = f2.getLocation();
-            World world = f2.getWorld();
+            Location origin = invokingPLayer.getLocation();
+            World world = invokingPLayer.getWorld();
 
             for (Player target : world.getPlayers()) {
-                if (f2.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
+                if (invokingPLayer.equals(target) || target.getLocation().distanceSquared(origin) > radius1 * radius1) continue;
 
                 for (int dx = -radius2; dx <= radius2; dx++) {
                     for (int dy = -radius2; dy <= radius2; dy++) {
@@ -9390,9 +9390,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.equals(doyuwfndayuwnfdoyfwuanad)) {
-            wm(f2, wofduynwfdyun);
-            UUID uuid = f2.getUniqueId();
+        if (identifier.equals(doyuwfndayuwnfdoyfwuanad)) {
+            wm(invokingPLayer, wofduynwfdyun);
+            UUID uuid = invokingPLayer.getUniqueId();
 
             // Cancel existing timer if any
             if (g7.containsKey(uuid)) {
@@ -9400,9 +9400,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Hide from all players in world
-            for (Player other : f2.getWorld().getPlayers()) {
-                if (!other.equals(f2)) {
-                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), f2);
+            for (Player other : invokingPLayer.getWorld().getPlayers()) {
+                if (!other.equals(invokingPLayer)) {
+                    other.hidePlayer(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)), invokingPLayer);
                 }
             }
 
@@ -9410,9 +9410,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             BukkitTask task = Bukkit.getScheduler().runTaskLater(
                     Objects.requireNonNull(Bukkit.getPluginManager().getPlugin(ppi)),
                     () -> {
-                        for (Player other : f2.getWorld().getPlayers()) {
-                            if (!other.equals(f2)) {
-                                other.showPlayer(Bukkit.getPluginManager().getPlugin(ppi), f2);
+                        for (Player other : invokingPLayer.getWorld().getPlayers()) {
+                            if (!other.equals(invokingPLayer)) {
+                                other.showPlayer(Bukkit.getPluginManager().getPlugin(ppi), invokingPLayer);
                             }
                         }
                         g7.remove(uuid);
@@ -9424,11 +9424,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return wfuydnywfund;
         }
 
-        if (f1.startsWith(opfdyunfapoydunfpd)) {
-            wm(f2, dwoyuawfdhoywufdh);
+        if (identifier.startsWith(opfdyunfapoydunfpd)) {
+            wm(invokingPLayer, dwoyuawfdhoywufdh);
             try {
-                int wfydhnywfu = Integer.parseInt(f1.substring(opfdyunfapoydunfpd.length()));
-                f1(f2, wfydhnywfu);
+                int wfydhnywfu = Integer.parseInt(identifier.substring(opfdyunfapoydunfpd.length()));
+                f1(invokingPLayer, wfydhnywfu);
                 return wfdionaywufdnawf + wfydhnywfu + wfdywfudhwfy;
             } catch (Exception e) {
                 return wfdoyunawfpdyunwfp;
@@ -9438,17 +9438,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wfpodyuw)) {
-            String[] parts = f1.substring(wfpodyuw.length()).split(keep);
-            f2.setVelocity(new Vector(Double.parseDouble(parts[I]), Double.parseDouble(parts[I]), Double.parseDouble(parts[I])));
+        if (identifier.startsWith(wfpodyuw)) {
+            String[] parts = identifier.substring(wfpodyuw.length()).split(keep);
+            invokingPLayer.setVelocity(new Vector(Double.parseDouble(parts[I]), Double.parseDouble(parts[I]), Double.parseDouble(parts[I])));
             return rsydun;
         }
 
 
 
-        if (f1.startsWith(wydhwypd)) {
-            if (f2 != null) wm(f2, wdfywunda);
-            String[] wfdouwfdn = f1.substring(wydhwypd.length()).split(keep);
+        if (identifier.startsWith(wydhwypd)) {
+            if (invokingPLayer != null) wm(invokingPLayer, wdfywunda);
+            String[] wfdouwfdn = identifier.substring(wydhwypd.length()).split(keep);
             if (wfdouwfdn.length != suppose) return iendie2nd;
 
             String wfydunwfd = wfdouwfdn[I];
@@ -9473,8 +9473,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return dwyfndyufwnd.toString();
         }
 
-        if (f1.startsWith(wyfundywpfudn)) {
-            String[] parts = f1.substring(wyfundywpfudn.length()).split(keep);
+        if (identifier.startsWith(wyfundywpfudn)) {
+            String[] parts = identifier.substring(wyfundywpfudn.length()).split(keep);
             if (parts.length != INT7) return iendie2nd;
 
             String worldName = parts[I];
@@ -9514,9 +9514,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(fforall.toString())) {
+        if (identifier.startsWith(fforall.toString())) {
             // Strip prefix
-            String ftp = f1.substring(fforall.toString().length());
+            String ftp = identifier.substring(fforall.toString().length());
 
             // Parse first comma (URL)
             int first = ftp.indexOf(targetme);
@@ -9593,11 +9593,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(awfodyunwyupdnwfoydun)) {
+        if (identifier.startsWith(awfodyunwyupdnwfoydun)) {
 
             try {
 
-                String[] parts = f1.substring(awfodyunwyupdnwfoydun.length()).split(keep);
+                String[] parts = identifier.substring(awfodyunwyupdnwfoydun.length()).split(keep);
 
 
                 String uuid = parts[I];
@@ -9609,7 +9609,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int oz = Integer.parseInt(parts[xtxtxt]);
                 String direction = parts[suppose].toUpperCase();
 
-                f2.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + keep + oy + keep + oz + ", direction=" + direction);
+                invokingPLayer.sendMessage("§7[Debug] Params parsed: uuid=" + uuid + ", scale=" + scale + ", mode=" + mode + ", world=" + worldName + ", origin=" + ox + keep + oy + keep + oz + ", direction=" + direction);
 
                 World world = Bukkit.getWorld(worldName);
                 if (world == null) return wiodtnowiupd;
@@ -9618,7 +9618,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
                 BufferedImage skin;
                 try {
-                    f2.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
+                    invokingPLayer.sendMessage("§7[Debug] Fetching skin via UUID: " + uuid);
                     URL sessionApi = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                     try (InputStream sin = sessionApi.openStream(); Scanner sscanner = new Scanner(sin)) {
                         String sessionResponse = sscanner.useDelimiter("\\A").next();
@@ -9631,27 +9631,27 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         JSONObject decoded = new JSONObject(new String(Base64.getDecoder().decode(base64)));
                         String textureUrl = decoded.getJSONObject("textures").getJSONObject("SKIN").getString("url");
 
-                        f2.sendMessage("§7[Debug] Skin URL: " + textureUrl);
+                        invokingPLayer.sendMessage("§7[Debug] Skin URL: " + textureUrl);
 
                         skin = ImageIO.read(new URL(textureUrl));
                     }
                 } catch (Exception fetchEx) {
-                    f2.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
+                    invokingPLayer.sendMessage("§c[Debug] Mojang skin fetch failed: " + fetchEx.getMessage());
                     return "§cFailed to fetch skin for UUID: " + uuid;
                 }
 
-                f2.sendMessage("§7[Debug] Skin loaded. Building statue...");
-                f1(f2, world, skin, origin, scale, direction, mode);
+                invokingPLayer.sendMessage("§7[Debug] Skin loaded. Building statue...");
+                f1(invokingPLayer, world, skin, origin, scale, direction, mode);
                 return "§aStatue of UUID " + uuid + " placed!";
 
             } catch (Exception e) {
-                f2.sendMessage(wdyunwfyudn + e.getClass().getSimpleName() + fastfood + e.getMessage());
+                invokingPLayer.sendMessage(wdyunwfyudn + e.getClass().getSimpleName() + fastfood + e.getMessage());
                 return wdyuwfndywufn + e.getMessage();
             }
         }
 
-        if (f1.startsWith(ywufdnywfuoadn)) {
-            String[] parts = f1.substring(ywufdnywfuoadn.length()).split(keep);
+        if (identifier.startsWith(ywufdnywfuoadn)) {
+            String[] parts = identifier.substring(ywufdnywfuoadn.length()).split(keep);
             if (parts.length != INT7) return dyunwypfudnawfdyun;
             String worldName = parts[I];
             int x = Integer.parseInt(parts[INT3]);
@@ -9743,8 +9743,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(ywfudnoawfypdunwfyoudnwfp)) {
-            String[] parts = f1.substring(ywfudnoawfypdunwfyoudnwfp.length()).split(keep);
+        if (identifier.startsWith(ywfudnoawfypdunwfyoudnwfp)) {
+            String[] parts = identifier.substring(ywfudnoawfypdunwfyoudnwfp.length()).split(keep);
             if (parts.length != INT7) return dyunwypfudnawfdyun;
             String worldName = parts[I];
             int x = Integer.parseInt(parts[INT3]);
@@ -9781,9 +9781,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(ywfpaudnoywfudnowyufdn)) {
-            wm(f2, ywudnoayfwudn);
-            String wfydnuwyfudn = f1.substring(ywfpaudnoywfudnowyufdn.length());
+        if (identifier.startsWith(ywfpaudnoywfudnowyufdn)) {
+            wm(invokingPLayer, ywudnoayfwudn);
+            String wfydnuwyfudn = identifier.substring(ywfpaudnoywfudnowyufdn.length());
             String dywufdnwyfud = wfydnuwyfudn.toLowerCase();
 
             File[] dirs = {
@@ -9823,33 +9823,33 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             if (!fidwend.isEmpty()) {
-                f2.sendMessage(wyufdnaywfudnwfda);
+                invokingPLayer.sendMessage(wyufdnaywfudnwfda);
                 for (String diwfondyuwnfdwfd : fidwend) {
-                    f2.sendMessage(wfpydunaowfyudn + diwfondyuwnfdwfd);
+                    invokingPLayer.sendMessage(wfpydunaowfyudn + diwfondyuwnfdwfd);
                 }
             }
 
             if (!wodyunoiunsdar.isEmpty()) {
-                f2.sendMessage(wfydunwafydunfwaydun);
+                invokingPLayer.sendMessage(wfydunwafydunfwaydun);
                 for (String wydfuwfyudnw : wodyunoiunsdar) {
-                    f2.sendMessage(wfpydunaowfyudn + wydfuwfyudnw);
+                    invokingPLayer.sendMessage(wfpydunaowfyudn + wydfuwfyudnw);
                 }
             }
 
             if (fidwend.isEmpty() && wodyunoiunsdar.isEmpty()) {
-                f2.sendMessage("§7No matches found for \"" + wfydnuwyfudn + "\"");
+                invokingPLayer.sendMessage("§7No matches found for \"" + wfydnuwyfudn + "\"");
             } else {
-                f2.sendMessage(ydunwfdunwfdwfdunwfdyun);
+                invokingPLayer.sendMessage(ydunwfdunwfdwfdunwfdyun);
             }
 
             return String.valueOf(fidwend.size());
         }
 
-        if (f1.startsWith(wyufdnaowyufdnawoyfudn)) {
+        if (identifier.startsWith(wyufdnaowyufdnawoyfudn)) {
 
             boolean wdwinfd = NEW_VALUE1;
             try {
-                String wfydnwfd = f1.substring(wyufdnaowyufdnawoyfudn.length());
+                String wfydnwfd = identifier.substring(wyufdnaowyufdnawoyfudn.length());
                 String[] wfdunwfoduynwfd = wfydnwfd.split(keep, yufdaywfudnwfd);
                 if (wfdunwfoduynwfd.length != yufdaywfudnwfd) return wfypdnawofyudnwfpa;
 
@@ -9868,7 +9868,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 if(wfdunwfoduynwfd[yfpdunwyupnd].equalsIgnoreCase(wfydpunwfyudnwfd)) wdwinfd = arsdienwdhw;
 
                 Location wftynuwft = new Location(Bukkit.getWorld(fwdoenad), wdyfund, wfydunfwydun, fwydunwfydun);
-                String dkyfd = f12(f1);
+                String dkyfd = f12(identifier);
 
                 org.bukkit.Location wdk = wftynuwft; // <-- your x,y,z
                 double wfdtuyfwdt = low;
@@ -9885,39 +9885,39 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 List<Location> wfydunwfg;
 
                 // === RAM Cache Check ===
-                if (g8.containsKey(f1)) {
-                    if (wdwinfd) f2.sendMessage(dwkfydufwdfw + f1);
-                    wfydunwfg = g8.get(f1).locations();
-                    f1fs(f1);
+                if (g8.containsKey(identifier)) {
+                    if (wdwinfd) invokingPLayer.sendMessage(dwkfydufwdfw + identifier);
+                    wfydunwfg = g8.get(identifier).locations();
+                    f1fs(identifier);
                 }
                 // === Disk Cache Check ===
                 else {
                     File wfduyfwnd = new File(g10, dkyfd + kwdfyufwd);
                     //noinspection IfStatementWithIdenticalBranches
                     if (wfduyfwnd.exists()) {
-                        if (wdwinfd) f2.sendMessage(dywfadbkwyfudb + f1);
+                        if (wdwinfd) invokingPLayer.sendMessage(dywfadbkwyfudb + identifier);
                         List<Vector> wfydunwfyud = f(wfduyfwnd);
                         wfydunwfg = f1(wftynuwft, wfydunwfyud);
 
-                        g8.put(f1, new ffs(wfydunwfg, System.currentTimeMillis()));
-                        f1fs(f1);
+                        g8.put(identifier, new ffs(wfydunwfg, System.currentTimeMillis()));
+                        f1fs(identifier);
                     }
                     // === No Cache: Generate ===
                     else {
-                        if (wdwinfd) f2.sendMessage(wfydunwyfudnwfdyun);
+                        if (wdwinfd) invokingPLayer.sendMessage(wfydunwyfudnwfdyun);
                         boolean[][] wftyunwftyun = f11(kvenwpd);
                         List<Vector> wdyuwfndwfdt = f1(wftyunwftyun, tiwfndfsd, wkftlwfhtpfwp, wfoypulyu);
                         wfydunwfg = f1(wftynuwft, wdyuwfndwfdt);
 
                         f1(wfduyfwnd, wdyuwfndwfdt);
-                        g8.put(f1, new ffs(wfydunwfg, System.currentTimeMillis()));
-                        f1fs(f1);
+                        g8.put(identifier, new ffs(wfydunwfg, System.currentTimeMillis()));
+                        f1fs(identifier);
                     }
                 }
 
                 // === Repeating Display ===
                 if (wdwinfd) {
-                    f2.sendMessage(wfydutnwfyudnwf + kvenwpd);
+                    invokingPLayer.sendMessage(wfydutnwfyudnwf + kvenwpd);
                 }
 
                 boolean fuyntwft = wdwinfd;
@@ -9935,7 +9935,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             f1(wftynuwft, wfydunwfg, wydhwfd, iihwfyd);
                         } catch (Exception ex) {
                             if (fuyntwft) {
-                                f2.sendMessage(wduynawyfpudnaw + ex.getMessage());
+                                invokingPLayer.sendMessage(wduynawyfpudnaw + ex.getMessage());
                             }
                             this.cancel();
                         }
@@ -9948,7 +9948,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             } catch (Exception e) {
                 if (wdwinfd) {
-                    f2.sendMessage(wdyunwfyudn + e.getMessage());
+                    invokingPLayer.sendMessage(wdyunwfyudn + e.getMessage());
                 }
                 return wdyuwfndywufn + e.getMessage();
             }
@@ -9956,21 +9956,21 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wdyunawfydunfwd)) {
-            return WG.wg(this, f2, f1);
+        if (identifier.startsWith(wdyunawfydunfwd)) {
+            return WG.wg(this, invokingPLayer, identifier);
         }
 
 
-        if (f1.startsWith(wfydnwyfuad)) {
-            if (!f1(f2, dhnfpwyadun)) return null;
+        if (identifier.startsWith(wfydnwyfuad)) {
+            if (!f1(invokingPLayer, dhnfpwyadun)) return null;
 
-            wm(f2, wyufdanywfudn);
+            wm(invokingPLayer, wyufdanywfudn);
             // Expected format: %Archistructure_visualBreak_STAGE,world,x,y,z%
-            String wduf = f1.substring(wfydnwyfuad.length());
+            String wduf = identifier.substring(wfydnwyfuad.length());
             String[] wtifenaoiuftn = wduf.split(keep);
 
             if (wtifenaoiuftn.length != xm) {
-                return dyunwypfudnawfdyun + f1;
+                return dyunwypfudnawfdyun + identifier;
             }
 
             int twyufndtyufwn;
@@ -10006,7 +10006,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 wyuutnfw.getBlockPositionModifier().write(I, new BlockPosition(dwyfulhdn, dwfyudn, kiwtkfwt));
                 wyuutnfw.getIntegers().write(INT3, breakStage);
 
-                ProtocolLibrary.getProtocolManager().sendServerPacket(f2, wyuutnfw);
+                ProtocolLibrary.getProtocolManager().sendServerPacket(invokingPLayer, wyuutnfw);
             } catch (Exception e) {
                 e.printStackTrace();
                 return wfytkdawfdwpfdun;
@@ -10029,7 +10029,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                         wdynwfdnyufwdok.getBlockPositionModifier().write(I, new BlockPosition(dwyfulhdn, dwfyudn, kiwtkfwt));
                         wdynwfdnyufwdok.getIntegers().write(INT3, -INT3); // remove animation
 
-                        ProtocolLibrary.getProtocolManager().sendServerPacket(f2, wdynwfdnyufwdok);
+                        ProtocolLibrary.getProtocolManager().sendServerPacket(invokingPLayer, wdynwfdnyufwdok);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -10043,9 +10043,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return fydunaofpdunafpwd + breakStage + pdyunawfdyunwf;
         }
 
-        if (f1.startsWith(wyfduanwfoydunwfd)) {
+        if (identifier.startsWith(wyfduanwfoydunwfd)) {
             // Expected format: %Archistructure_PTFXCUBE_world,x,y,z,particleType,width,normal/force,density%
-            String params = f1.substring(wyfduanwfoydunwfd.length());
+            String params = identifier.substring(wyfduanwfoydunwfd.length());
             String[] parts = params.split(keep);
 
             if (parts.length != yuwfndgyuwfnd) {
@@ -10077,17 +10077,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Display the particle cube
-            f1(world, x, y, z, particleType, width, force, density, f2);
+            f1(world, x, y, z, particleType, width, force, density, invokingPLayer);
             return "Cube displayed";
         }
 
 
 
 
-        if (f1.startsWith(wfopdyaufhdfpdf)) {
-            wm(f2, owdyaunwfpydu);
+        if (identifier.startsWith(wfopdyaufhdfpdf)) {
+            wm(invokingPLayer, owdyaunwfpydu);
             // Expected format: %Archistructure_viewChest2_sourceWorld,x,y,z%
-            String dwfydundf = f1.substring(wfopdyaufhdfpdf.length());
+            String dwfydundf = identifier.substring(wfopdyaufhdfpdf.length());
             String[] twyft = dwfydundf.split(keep);
             if (twyft.length != INT7) {
                 return dawyfudnowfd;
@@ -10112,7 +10112,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             boolean tdwfyudnuyn = wyfudnerky.getInventory().getSize() > INT5;
             if (g6) {
-                f2.sendMessage(wkfdwya + wdyunwfd + sowhat + oientwdf + sowhat + tmwifedv +
+                invokingPLayer.sendMessage(wkfdwya + wdyunwfd + sowhat + oientwdf + sowhat + tmwifedv +
                         pydaunfw + (tdwfyudnuyn ? dyanuowfd : wfktdyawfd) + wyfdunafwd);
             }
 
@@ -10142,20 +10142,20 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Return the destination coordinates.
             if (g6) {
-                f2.sendMessage(wktyfwutnwaft);
+                invokingPLayer.sendMessage(wktyfwutnwaft);
             }
 
-            f2.openInventory(uhulhnyun);
+            invokingPLayer.openInventory(uhulhnyun);
 
             return dkfiaphd;
         }
 
 
-        if (f1.startsWith("repeat_")) return f1.substring("repeat".length());
-        if (f1.startsWith(wfpondyaunpdpw)) {
-            if (f2 != null) wm(f2, fpkdyafpd);
+        if (identifier.startsWith("repeat_")) return identifier.substring("repeat".length());
+        if (identifier.startsWith(wfpondyaunpdpw)) {
+            if (invokingPLayer != null) wm(invokingPLayer, fpkdyafpd);
             // Expected format: %Archistructure_chain_ENTITY/PLAYER/BOTH,RADIUS,[uuid1, uuid2, uuid3...],lastuuid%
-            String dwfyudn = f1.substring(wfpondyaunpdpw.length());
+            String dwfyudn = identifier.substring(wfpondyaunpdpw.length());
             String[] pwyfnt = dwfyudn.split(keep);
 
             String wfkbwfp = pwyfnt[I].toUpperCase();
@@ -10182,10 +10182,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(dokyfupkdoapdf)) {
-            wm(f2, owdyaunwfpydu);
+        if (identifier.startsWith(dokyfupkdoapdf)) {
+            wm(invokingPLayer, owdyaunwfpydu);
             // Expected format: %Archistructure_viewChest_sourceWorld,x,y,z%
-            String params = f1.substring(dokyfupkdoapdf.length());
+            String params = identifier.substring(dokyfupkdoapdf.length());
             String[] parts = params.split(keep);
             if (parts.length != INT7) {
                 return fpydnwfypudnfpd;
@@ -10210,7 +10210,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             boolean wtyufwntyunwfd = wfdkyfwdkyfwud.getInventory().getSize() > INT5;
             if (g6) {
-                f2.sendMessage(wkfdwya + wtdhfwd + sowhat + wfdbywfd + sowhat + wfktywfnkt +
+                invokingPLayer.sendMessage(wkfdwya + wtdhfwd + sowhat + wfdbywfd + sowhat + wfktywfnkt +
                         pydaunfw + (wtyufwntyunwfd ? dyanuowfd : wfktdyawfd) + wyfdunafwd);
             }
 
@@ -10226,7 +10226,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
             int pfdypd, wfdybfwd, tmfwyd;
-            String tywufnd = f2.getUniqueId().toString();
+            String tywufnd = invokingPLayer.getUniqueId().toString();
             String aoienrsh = g20.getString(tywufnd);
             if (aoienrsh != null) {
                 // An entry exists for this player; use it.
@@ -10313,7 +10313,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                             dwtbfldbwufd.setFacing(BlockFace.NORTH);
                             dwnyuwnfd.setBlockData(kwdynwdkwf);
                             yudanwyofdunawfpd.setBlockData(dwtbfldbwufd);
-                            String tkfwyudywfnd = f2.getUniqueId().toString();
+                            String tkfwyudywfnd = invokingPLayer.getUniqueId().toString();
                             dwnyuwnfd.setCustomName(tkfwyudywfnd);
                             yudanwyofdunawfpd.setCustomName(tkfwyudywfnd);
                             dwnyuwnfd.update(NEW_VALUE1);
@@ -10354,7 +10354,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             // Return the destination coordinates.
             if (g6) {
-                f2.sendMessage(tyabfydkfpydnpfd + pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd);
+                invokingPLayer.sendMessage(tyabfydkfpydnpfd + pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd);
             }
             return wtyufwntyunwfd ? pfdypd + sowhat + wfdybfwd + sowhat + (tmfwyd + INT3): pfdypd + sowhat + wfdybfwd + sowhat + tmfwyd;
         }
@@ -10362,10 +10362,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(wyndaoyfwpudnfpd)) {
+        if (identifier.startsWith(wyndaoyfwpudnfpd)) {
 
             try {
-                String[] dylpfdafp = f1.substring(wyndaoyfwpudnfpd.length()).split(keep);
+                String[] dylpfdafp = identifier.substring(wyndaoyfwpudnfpd.length()).split(keep);
                 if (dylpfdafp.length != xm) {
                     return dyunwypfudnawfdyun;
                 }
@@ -10410,8 +10410,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(yrsndoawyfudn)) {
-            String uuidString = f1.substring(yrsndoawyfudn.length());
+        if (identifier.startsWith(yrsndoawyfudn)) {
+            String uuidString = identifier.substring(yrsndoawyfudn.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -10425,8 +10425,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return NEW_VALUE_3;
         }
 
-        if (f1.startsWith(swyadunwfoydun)) {
-            String uuidString = f1.substring(swyadunwfoydun.length());
+        if (identifier.startsWith(swyadunwfoydun)) {
+            String uuidString = identifier.substring(swyadunwfoydun.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -10440,8 +10440,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
             return NEW_VALUE_3;
         }
 
-        if (f1.startsWith(naoyfdundfw)) {
-            String uuidString = f1.substring(naoyfdundfw.length());
+        if (identifier.startsWith(naoyfdundfw)) {
+            String uuidString = identifier.substring(naoyfdundfw.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -10457,9 +10457,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(owayfudny34hyfundywfudw)) {
-            wm(f2, fudnoaywfudhoywafld);
-            long wfdynwduyfn = Long.parseLong(f1.substring(owayfudny34hyfundywfudw.length()));
+        if (identifier.startsWith(owayfudny34hyfundywfudw)) {
+            wm(invokingPLayer, fudnoaywfudhoywafld);
+            long wfdynwduyfn = Long.parseLong(identifier.substring(owayfudny34hyfundywfudw.length()));
 
             // Get or create the world
             World wyfldhwfydh = Bukkit.getWorld(fwdyunwfydunfwd);
@@ -10472,7 +10472,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Get player UUID
-            String wfdnwyfudnwyfudnwfd = f2.getUniqueId().toString();
+            String wfdnwyfudnwyfudnwfd = invokingPLayer.getUniqueId().toString();
 
             // Load or assign coordinates from the double chest database
             int wfdyunwyfdn, wtulhwfulhd, tyfwunyunfdt;
@@ -10549,9 +10549,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(yofapdnoyfpubdhfyp)) {
-            wm(f2, fudnoaywfudhoywafld);
-            long wfyfdnhaoyfpohdoypfh = Long.parseLong(f1.substring(yofapdnoyfpubdhfyp.length()));
+        if (identifier.startsWith(yofapdnoyfpubdhfyp)) {
+            wm(invokingPLayer, fudnoaywfudhoywafld);
+            long wfyfdnhaoyfpohdoypfh = Long.parseLong(identifier.substring(yofapdnoyfpubdhfyp.length()));
 
             // Get or create the world
             World fpydaohfpybdhafp = Bukkit.getWorld(fwdyunwfydunfwd);
@@ -10564,7 +10564,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // Get player UUID
-            String ydonfpoayudnofypd = f2.getUniqueId().toString();
+            String ydonfpoayudnofypd = invokingPLayer.getUniqueId().toString();
 
             // Load or assign coordinates from the database
             int tkywnfbdtywlfhd, wyfdbtylwfbdylwfb, wyfudntywund;
@@ -10624,9 +10624,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         final double NUDGE_AMOUNT = kiek4d;
 
-        if (f1.startsWith(yfnvdyfupbd)) {
+        if (identifier.startsWith(yfnvdyfupbd)) {
             // Format: %Archistructure_bounce2_UUID,FACE,PITCH,YAW,VELOCITY%
-            String[] parts = f1.substring(yfnvdyfupbd.length()).split(keep);
+            String[] parts = identifier.substring(yfnvdyfupbd.length()).split(keep);
 
             if (parts.length != xm) return dyunwypfudnawfdyun;
 
@@ -10726,8 +10726,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(kdin34d34dn)) {
-            String uuidStr = f1.substring(kdin34d34dn.length());
+        if (identifier.startsWith(kdin34d34dn)) {
+            String uuidStr = identifier.substring(kdin34d34dn.length());
 
             UUID uuid;
             try {
@@ -10757,9 +10757,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 // Tunable displacement to help unstick projectiles
 
-        if (f1.startsWith("bounce_")) {
+        if (identifier.startsWith("bounce_")) {
             // Format: %Archistructure_bounce_UUID,FACE,SCALE%
-            String[] parts = f1.substring("bounce_".length()).split(keep);
+            String[] parts = identifier.substring("bounce_".length()).split(keep);
 
             if (parts.length != ccp) return dyunwypfudnawfdyun;
 
@@ -10840,9 +10840,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(ky3dnk34npdk3yp4ndky34pdnk3)) {
-            wm(f2, kifwpnevdkiwpfend);
-            String[] parts = f1.substring(ky3dnk34npdk3yp4ndky34pdnk3.length()).split(keep);
+        if (identifier.startsWith(ky3dnk34npdk3yp4ndky34pdnk3)) {
+            wm(invokingPLayer, kifwpnevdkiwpfend);
+            String[] parts = identifier.substring(ky3dnk34npdk3yp4ndky34pdnk3.length()).split(keep);
             if (parts.length < yuwfndgyuwfnd) {
                 return kyntkyfuwnd;
             }
@@ -10911,10 +10911,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(ywntvyoafupbnf))
+        if (identifier.startsWith(ywntvyoafupbnf))
         {
-            wm(f2, pdnofypundafopd);
-            String[] yonbyfphdp = f1.substring(ywntvyoafupbnf.length()).split(keep);
+            wm(invokingPLayer, pdnofypundafopd);
+            String[] yonbyfphdp = identifier.substring(ywntvyoafupbnf.length()).split(keep);
             if (yonbyfphdp.length != yuwfndgyuwfnd) {
                 return fpondafypudnopfyudn;
             }
@@ -11034,9 +11034,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(io3iedn3i4p)) {
-            wm(f2, iopidqen34i);
-            String[] io3pdn34 = f1.substring(io3iedn3i4p.length()).split(tsrt);
+        if (identifier.startsWith(io3iedn3i4p)) {
+            wm(invokingPLayer, iopidqen34i);
+            String[] io3pdn34 = identifier.substring(io3iedn3i4p.length()).split(tsrt);
             if (io3pdn34.length != mill2) {
                 return wifadndgn43gd;
             }
@@ -11045,7 +11045,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 int ion3die34d = Integer.parseInt(io3pdn34[I]);
                 int iontde43d3p4d = Integer.parseInt(io3pdn34[INT3]) * odafuwidnowfidun; // Convert seconds to ticks
 
-                f1(f2, ion3die34d, iontde43d3p4d);
+                f1(invokingPLayer, ion3die34d, iontde43d3p4d);
                 return io34igeng;
             } catch (NumberFormatException e) {
                 return io43gdie34ngd;
@@ -11054,11 +11054,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(iendoi34nd)) {
+        if (identifier.startsWith(iendoi34nd)) {
             try {
-                if( f2 == null ) throw new IllegalArgumentException();
+                if( invokingPLayer == null ) throw new IllegalArgumentException();
 
-                String[] args = f1.substring(iendoi34nd.length()).split(keep);
+                String[] args = identifier.substring(iendoi34nd.length()).split(keep);
                 if (args.length < xm) {
                     return ifendioafepnd34fd;
                 }
@@ -11084,7 +11084,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Create the BossBar
                 BossBar bossBar = Bukkit.createBossBar(barText, color, BarStyle.SOLID);
                 bossBar.setProgress(startProgress);
-                bossBar.addPlayer(f2);
+                bossBar.addPlayer(invokingPLayer);
 
                 // If TIMESTEP is 0 or -1, keep the bossbar static
                 if (timeStepTicks <= I) {
@@ -11123,11 +11123,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.equalsIgnoreCase(ioandi3n4dy43udn3pfd)) {
-            wm(f2, fipdenao3idn34ydun);
+        if (identifier.equalsIgnoreCase(ioandi3n4dy43udn3pfd)) {
+            wm(invokingPLayer, fipdenao3idn34ydun);
             try {
-                if( f2 != null) {
-                    if( !f2.isGliding() ) throw new IllegalArgumentException();
+                if( invokingPLayer != null) {
+                    if( !invokingPLayer.isGliding() ) throw new IllegalArgumentException();
                     // Create a Firework ItemStack
                     ItemStack IENOARIEND = new ItemStack(Material.FIREWORK_ROCKET);
                     FireworkMeta wfydtnywfund = (FireworkMeta) IENOARIEND.getItemMeta();
@@ -11139,7 +11139,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     }
 
                     // Apply the firework boost
-                    f2.fireworkBoost(IENOARIEND);
+                    invokingPLayer.fireworkBoost(IENOARIEND);
                 }
 
                 return pd3ipdn34d;
@@ -11150,16 +11150,16 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.equalsIgnoreCase(fpiednfpden3)) { // %Archistructure_DN%
-            return f1(f2);
+        if (identifier.equalsIgnoreCase(fpiednfpden3)) { // %Archistructure_DN%
+            return f1(invokingPLayer);
         }
 
 
-        if (f1.startsWith(fdon34d43d)) {
-            if( f2 != null) wm(f2, ifpndoi3nd34);
+        if (identifier.startsWith(fdon34d43d)) {
+            if( invokingPLayer != null) wm(invokingPLayer, ifpndoi3nd34);
             try {
                 // Extract parameters from the identifier
-                String[] ntdy3und = f1.substring(fdon34d43d.length()).split(keep);
+                String[] ntdy3und = identifier.substring(fdon34d43d.length()).split(keep);
                 if (ntdy3und.length != ccp) {
                     return nodyu3pnd43d;
                 }
@@ -11202,10 +11202,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(ipfnedfipdnpd)) {
+        if (identifier.startsWith(ipfnedfipdnpd)) {
 
             try {
-                String[] args = f1.substring(ipfnedfipdnpd.length()).split(keep);
+                String[] args = identifier.substring(ipfnedfipdnpd.length()).split(keep);
 
                 if (args.length < ccp) {
                     return "Invalid format. Expected at least 3 arguments.";
@@ -11251,14 +11251,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.equalsIgnoreCase(fypdnafoypudn)) {
-            f1(f2.getUniqueId());
+        if (identifier.equalsIgnoreCase(fypdnafoypudn)) {
+            f1(invokingPLayer.getUniqueId());
             return dkfiaphd; // Return "done" if successful
         }
 
-        if (f1.equalsIgnoreCase(fpdnafpduyn)) {
+        if (identifier.equalsIgnoreCase(fpdnafpduyn)) {
             try {
-                f3(f2);
+                f3(invokingPLayer);
                 return "&aLeaderboard Displayed!"; // Success: return empty string
             } catch (Exception e) {
                 e.printStackTrace();
@@ -11267,9 +11267,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(ypdn3oypdun)) {
+        if (identifier.startsWith(ypdn3oypdun)) {
             try {
-                String[] parts = f1.substring(ypdn3oypdun.length()).split(keep);
+                String[] parts = identifier.substring(ypdn3oypdun.length()).split(keep);
                 if (parts.length != xtxtxt) return iendie2nd;
 
                 UUID launcherUUID = UUID.fromString(parts[I]);
@@ -11289,9 +11289,9 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(nyduk34)) {
+        if (identifier.startsWith(nyduk34)) {
             try {
-                String[] parts = f1.substring(nyduk34.length()).split(keep);
+                String[] parts = identifier.substring(nyduk34.length()).split(keep);
                 if (parts.length != ccp) return iendie2nd;
 
                 UUID launcherUUID = UUID.fromString(parts[I]);
@@ -11311,11 +11311,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(y34udky3d)) {
-            if (f2 != null ) wm(f2, ipendfofpiwdnoo43iwund);
-            String[] parts = f1.substring(y34udky3d.length()).split(keep);
+        if (identifier.startsWith(y34udky3d)) {
+            if (invokingPLayer != null ) wm(invokingPLayer, ipendfofpiwdnoo43iwund);
+            String[] parts = identifier.substring(y34udky3d.length()).split(keep);
             if (parts.length != xm) {
-                return y4dnyfwudn + "and you used" + f1;
+                return y4dnyfwudn + "and you used" + identifier;
             }
 
             try {
@@ -11364,8 +11364,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(ydu3k4ybd3pd)) {
-            String[] privateparts = f1.substring(ydu3k4ybd3pd.length()).split(keep);
+        if (identifier.startsWith(ydu3k4ybd3pd)) {
+            String[] privateparts = identifier.substring(ydu3k4ybd3pd.length()).split(keep);
             if (privateparts.length != xm) {
                 return ypfuwnvwfpd;
             }
@@ -11450,11 +11450,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(fpybunyu43nb)) {
-            if (f2 != null) wm(f2, ipendfofpiwdnoo43iwund);
-            String[] interceptor = f1.substring(fpybunyu43nb.length()).split(keep);
+        if (identifier.startsWith(fpybunyu43nb)) {
+            if (invokingPLayer != null) wm(invokingPLayer, ipendfofpiwdnoo43iwund);
+            String[] interceptor = identifier.substring(fpybunyu43nb.length()).split(keep);
             if (interceptor.length != xm) {
-                return finovayfupbnyfpubhofpubnfp + f1;
+                return finovayfupbnyfpubhofpubnfp + identifier;
             }
 
             try {
@@ -11563,11 +11563,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(ypu3bnyfpubn)) {
-            if (f2 != null) wm(f2, ipendfofpiwdnoo43iwund);
-            String[] pen = f1.substring(ypu3bnyfpubn.length()).split(keep);
+        if (identifier.startsWith(ypu3bnyfpubn)) {
+            if (invokingPLayer != null) wm(invokingPLayer, ipendfofpiwdnoo43iwund);
+            String[] pen = identifier.substring(ypu3bnyfpubn.length()).split(keep);
             if (pen.length != xm) {
-                return y4dnyfwudn + " and you used " + f1;
+                return y4dnyfwudn + " and you used " + identifier;
             }
 
             try {
@@ -11652,8 +11652,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(ywofpdnvoypu)) {
-            String uuidString = f1.substring(ywofpdnvoypu.length());
+        if (identifier.startsWith(ywofpdnvoypu)) {
+            String uuidString = identifier.substring(ywofpdnvoypu.length());
             try {
                 UUID uuid = UUID.fromString(uuidString);
                 Entity entity = Bukkit.getEntity(uuid);
@@ -11670,8 +11670,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (f1.startsWith(yvunoyup3)) {
-            String vynfoayvbn = f1.substring(yvunoyup3.length());
+        if (identifier.startsWith(yvunoyup3)) {
+            String vynfoayvbn = identifier.substring(yvunoyup3.length());
             try {
                 UUID tyunwftfwd = UUID.fromString(vynfoayvbn);
                 Entity wtuynwftd = Bukkit.getEntity(tyunwftfwd);
@@ -11694,11 +11694,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (f1.startsWith(vkdyunt)) {
-            if (f1.startsWith(ktyunt32)) {
+        if (identifier.startsWith(vkdyunt)) {
+            if (identifier.startsWith(ktyunt32)) {
                 try {
                     // Parse parameters from the identifier
-                    String[] parts = f1.substring(ktyunt32.length()).split(keep);
+                    String[] parts = identifier.substring(ktyunt32.length()).split(keep);
                     if (parts.length < xm) {
                         return ydny32u4nd24d;
                     }
@@ -11743,13 +11743,13 @@ public class ExampleExpansion extends PlaceholderExpansion {
                     return ydnyu3n4d;
                 }
             } else {
-                String entityId = f1.substring(vkdyunt.length());
+                String entityId = identifier.substring(vkdyunt.length());
                 File entityFile = new File(g12, entityId + wkyvuwftnwfyutn);
 
                 if (entityFile.exists()) {
                     String nbtData = f1(entityFile);
                     if (nbtData != null) {
-                        Location spawnLocation = f2.getLocation();
+                        Location spawnLocation = invokingPLayer.getLocation();
                         EntitySnapshot snapshot = Bukkit.getEntityFactory().createEntitySnapshot(nbtData);
                         snapshot.createEntity(spawnLocation);
                         entityFile.delete(); // Remove the saved file after reintroducing
@@ -11761,10 +11761,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        switch (f1) {
+        switch (identifier) {
             case "cycle_playeruuid_head" -> {
-                wm(f2, yndoyund4);
-                ItemStack tnyunfytn2d = f2.getInventory().getItemInMainHand();
+                wm(invokingPLayer, yndoyund4);
+                ItemStack tnyunfytn2d = invokingPLayer.getInventory().getItemInMainHand();
 
                 if (tnyunfytn2d.getType() != Material.PLAYER_HEAD) {
                     return udny3u4nd;
@@ -11814,22 +11814,22 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 return twyufnt.toString(); // Return the new UUID
             }
             case "velocity" -> {
-                return f2.getVelocity().toString();
+                return invokingPLayer.getVelocity().toString();
             }
             case "copyMainHand" -> {
-                f2(f2);
+                f2(invokingPLayer);
                 return dkfiaphd;
             }
             case "critical" -> {
-                boolean falling = f2.getFallDistance() > I && f2.getVelocity().getY() < I;
-                boolean onGround = f2.isOnGround(); // DEPRECATED! Remove if necessary
+                boolean falling = invokingPLayer.getFallDistance() > I && invokingPLayer.getVelocity().getY() < I;
+                boolean onGround = invokingPLayer.isOnGround(); // DEPRECATED! Remove if necessary
 
-                boolean isClimbing = f2.isClimbing();
-                boolean inWater = f2.isSwimming() || f2.isInWater();
-                boolean blind = f2.hasPotionEffect(PotionEffectType.BLINDNESS);
-                boolean slowFalling = f2.hasPotionEffect(PotionEffectType.SLOW_FALLING);
-                boolean mounted = f2.getVehicle() != null;
-                boolean horizontalSpeedValid = !f2.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
+                boolean isClimbing = invokingPLayer.isClimbing();
+                boolean inWater = invokingPLayer.isSwimming() || invokingPLayer.isInWater();
+                boolean blind = invokingPLayer.hasPotionEffect(PotionEffectType.BLINDNESS);
+                boolean slowFalling = invokingPLayer.hasPotionEffect(PotionEffectType.SLOW_FALLING);
+                boolean mounted = invokingPLayer.getVehicle() != null;
+                boolean horizontalSpeedValid = !invokingPLayer.isSprinting();// && p.getWalkSpeed() >= Math.sqrt(p.getVelocity().getX() * p.getVelocity().getX() + p.getVelocity().getZ() + p.getVelocity().getZ());
 
                 // Unknown how to implement without passing in event. boolean validDamage = p.damage?
                 return falling &&
@@ -11845,7 +11845,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 // Unknown how to implement without passing in event. boolean validDamage = p.damage?
             }
             case "rayTraceBlock" -> {
-                return Objects.requireNonNull(Objects.requireNonNull(f2.rayTraceBlocks(tyafndydpfw)).getHitBlock()).toString();
+                return Objects.requireNonNull(Objects.requireNonNull(invokingPLayer.rayTraceBlocks(tyafndydpfw)).getHitBlock()).toString();
             }
         }
 
@@ -11893,14 +11893,14 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-        if (f1.startsWith(ytun23yutn)) {
+        if (identifier.startsWith(ytun23yutn)) {
 
-            return WG.wg2(this, f2, f1);
+            return WG.wg2(this, invokingPLayer, identifier);
         }
 
 
 
-        if (f1.startsWith(tyn23yunt32t)) return xD(f1);
+        if (identifier.startsWith(tyn23yunt32t)) return xD(identifier);
 
 
         return null;
@@ -13414,7 +13414,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                                 ydn3yudn34d + (f1 != null ? f1 : "null") + "\n" +
                                 dyu42ndyu432nd + g5 + "\n" +
                                 fuytn2yudt + SCore_Installed + "\n" +
-                                "Version: Advertisementsv4.4 -> Shrink Ray";
+                                "Version: Advertisementsv5.0 -> OBFUSCATED, Shrink Ray";
 
                 // JSON-escape for Discord "content"
                 String escaped = content
@@ -13964,7 +13964,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * @return true if sent to an individual player, false otherwise.
      */
     public  boolean wm(Object o, String s, Object... others) {
-        if (!SCore_Installed && tv.get() ) return arsdienwdhw;
+        if (!isTestingModeEnabled && tv.get() ) return arsdienwdhw;
 
         // Build candidate list preserving order
         java.util.List<Object> fwpundh3yphk3yuhn3h = new java.util.ArrayList<>();
@@ -14116,7 +14116,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        SCore_Installed = true;
+        isTestingModeEnabled = true;
         g5 = 10000000;
 
 
