@@ -19,8 +19,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import net.luckperms.api.model.user.User;
-import net.luckperms.api.node.Node;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.attribute.Attribute;
@@ -5564,26 +5562,6 @@ public class ExampleExpansion2 {
         return target != null ? "&6&lYou have eliminated " + target.getName() : "&6&lYou have eliminated " + entity.getName();
     }
 
-    /**
-     * Processes item folder permissions and assigns "ei.item.<filename>" for each found file.
-     */
-    protected static void processItemFolderPermissions(User user, List<String> itemFolderPermissions) {
-        Set<String> totalPerms = new HashSet<>();
-        String basePath = "plugins/ExecutableItems/items/";
-
-        for (String itemFolderPath : itemFolderPermissions) {
-            File folder = new File(basePath + itemFolderPath);
-            if (folder.exists() && folder.isDirectory()) {
-                findYamlFiles(folder, totalPerms);
-            }
-        }
-
-        // Assign new item permissions
-        totalPerms.forEach(itemName -> {
-            Node node = Node.builder("ei.item." + itemName).value(true).build();
-            user.data().add(node);
-        });
-    }
 
     /**
      * Recursively finds .yml files, extracts names (excluding .yml), and adds them to totalPerms.
