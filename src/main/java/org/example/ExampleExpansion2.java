@@ -692,6 +692,119 @@ public class ExampleExpansion2 {
             return "failed";
         }
     }
+// %Archistructure_manaBossbar_SIMPLE_MANA,MANA_REGEN,MANA_CAP,DURATION%
+
+    private static final java.util.Map<java.util.UUID, org.bukkit.boss.BossBar> MANA_BARS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.boss.BossBar>();
+    private static final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> MANA_BAR_REMOVE =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.scheduler.BukkitTask>();
+
+    protected static @org.jetbrains.annotations.NotNull String manaBossbarSimpleParse(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+
+            final String PREFIX = "manaBossbar_SIMPLE_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+            String[] args = raw.split(",", -1);
+            if (args.length < 4) return "failed";
+
+            // Allow placeholders like %score_variables_Mana% to be passed in
+            String manaS  = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, args[0]).trim();
+            String regenS = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, args[1]).trim();
+            String capS   = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, args[2]).trim();
+            String durS   = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, args[3]).trim();
+
+            double mana  = Double.parseDouble(manaS);
+            double regen = Double.parseDouble(regenS);
+            double cap   = Double.parseDouble(capS);
+            int durationTicks = Integer.parseInt(durS);
+            if (durationTicks < 1) durationTicks = 1;
+
+            final java.util.UUID pid = p.getUniqueId();
+
+            // If cap is invalid, remove bar if present
+            if (cap <= 0.0) {
+                removeManaBarSimple(pid);
+                return "none";
+            }
+
+            double filled = (mana + regen) / cap;
+            if (filled < 0.0) filled = 0.0;
+            if (filled > 1.0) filled = 1.0;
+
+            String title = "§dMana: " + fmtSimple(mana) + "/" + fmtSimple(cap);
+
+            // Create/update one bossbar per player
+            org.bukkit.boss.BossBar bar = MANA_BARS.get(pid);
+            if (bar == null) {
+                bar = org.bukkit.Bukkit.createBossBar(title, org.bukkit.boss.BarColor.PURPLE, org.bukkit.boss.BarStyle.SOLID);
+                bar.addPlayer(p);
+                MANA_BARS.put(pid, bar);
+            } else {
+                if (!bar.getPlayers().contains(p)) bar.addPlayer(p);
+                bar.setTitle(title);
+            }
+
+            bar.setProgress(filled);
+
+            // Reset removal timer (so repeated calls extend duration)
+            org.bukkit.scheduler.BukkitTask old = MANA_BAR_REMOVE.remove(pid);
+            if (old != null) old.cancel();
+
+            final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                    org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                    "PlaceholderAPI plugin ref missing"
+            );
+
+            org.bukkit.scheduler.BukkitTask rm = org.bukkit.Bukkit.getScheduler().runTaskLater(
+                    plugin,
+                    new Runnable() {
+                        @Override public void run() {
+                            removeManaBarSimple(pid);
+                        }
+                    },
+                    durationTicks
+            );
+            MANA_BAR_REMOVE.put(pid, rm);
+
+            return "shown";
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    private static void removeManaBarSimple(java.util.UUID pid) {
+        org.bukkit.scheduler.BukkitTask t = MANA_BAR_REMOVE.remove(pid);
+        if (t != null) t.cancel();
+
+        org.bukkit.boss.BossBar bar = MANA_BARS.remove(pid);
+        if (bar != null) {
+            try { bar.removeAll(); } catch (Throwable ignored) {}
+        }
+    }
+
+    private static String fmtSimple(double v) {
+        if (Math.abs(v - Math.rint(v)) < 1.0e-9) return String.valueOf((long) Math.rint(v));
+        return String.format(java.util.Locale.ROOT, "%.1f", v);
+    }
+
+
+
+    private static double clamp01(double v) {
+        if (v < 0.0) return 0.0;
+        if (v > 1.0) return 1.0;
+        return v;
+    }
+
+    private static String fmt(double v) {
+        if (Math.abs(v - Math.rint(v)) < 1.0e-9) return String.valueOf((long) Math.rint(v));
+        return String.format(java.util.Locale.ROOT, "%.1f", v);
+    }
 
 
     protected static @NotNull String getString25(ExampleExpansion exampleExpansion, Player p, @NotNull String identifier) {
@@ -6073,6 +6186,270 @@ public class ExampleExpansion2 {
             displayLine(viewers, particle, start, end, density, force, center, radiusSq);
         }
     }
+
+
+
+
+
+
+    private static final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> MANA_AUTO_TASKS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.scheduler.BukkitTask>();
+
+    private static final java.util.Map<java.util.UUID, org.bukkit.boss.BossBar> MANA_AUTO_BARS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.boss.BossBar>();
+
+    // counts how many consecutive "full" iterations we've observed
+// we cancel/remove when this reaches 4 (first full + 3 more)
+    private static final java.util.Map<java.util.UUID, Integer> MANA_AUTO_FULL_COUNT =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, Integer>();
+
+    // call this from your onRequest(...) when identifier == "manaBossbarAuto"
+    protected static @org.jetbrains.annotations.NotNull String manaBossbarAutoParse(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+            if (!"manaBossbarAuto".equalsIgnoreCase(identifier)) return "failed";
+
+            final java.util.UUID pid = p.getUniqueId();
+
+            // If a task already exists for this player, IGNORE this parse
+            if (MANA_AUTO_TASKS.containsKey(pid)) {
+                return "running";
+            }
+
+            final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                    org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                    "PlaceholderAPI plugin ref missing"
+            );
+
+            // Clean any leftover keyed bossbar from prior reload (if API supports keyed bossbars)
+            removeKeyedManaBossBarIfPresent(plugin, pid);
+
+            // Create task
+            org.bukkit.scheduler.BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
+                @Override public void run() {
+                    org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(pid);
+                    if (pl == null || !pl.isOnline()) {
+                        stopManaBossbarAuto(plugin, pid);
+                        return;
+                    }
+
+                    // Resolve placeholders using brace-nested resolver
+                    // (You can change these placeholder names if your vars differ)
+                    String manaS  = resolveBraceNested(pl, "{score_variables_Mana}");
+                    String regenS = resolveBraceNested(pl, "{score_variables_ManaRegen}");
+                    String capS   = resolveBraceNested(pl, "{score_variables_ManaCap}");
+
+                    double mana  = parseDoubleSafe(manaS, 0.0);
+                    double regen = parseDoubleSafe(regenS, 0.0);
+                    double cap   = parseDoubleSafe(capS, 0.0);
+
+                    if (cap <= 0.0) {
+                        // invalid cap: remove & stop
+                        stopManaBossbarAuto(plugin, pid);
+                        return;
+                    }
+
+                    double filled = (mana + regen) / cap;
+                    if (filled < 0.0) filled = 0.0;
+                    if (filled > 1.0) filled = 1.0;
+
+                    // Get or create bossbar (keyed if possible)
+                    org.bukkit.boss.BossBar bar = MANA_AUTO_BARS.get(pid);
+                    if (bar == null) {
+                        bar = getOrCreateKeyedManaBossBar(plugin, pid);
+                        MANA_AUTO_BARS.put(pid, bar);
+                    }
+
+                    // Ensure player is attached
+                    if (!bar.getPlayers().contains(pl)) bar.addPlayer(pl);
+
+                    // Update title + progress
+                    bar.setColor(org.bukkit.boss.BarColor.PURPLE);
+                    bar.setStyle(org.bukkit.boss.BarStyle.SOLID);
+                    bar.setTitle("§dMana: " + fmtSimple(mana) + "/" + fmtSimple(cap));
+                    bar.setProgress(filled);
+
+                    // Full logic: first time we hit full, allow 3 more iterations, then stop
+                    if (filled >= 0.999999) {
+                        Integer c = MANA_AUTO_FULL_COUNT.get(pid);
+                        if (c == null) c = Integer.valueOf(0);
+                        c = Integer.valueOf(c.intValue() + 1);
+                        MANA_AUTO_FULL_COUNT.put(pid, c);
+
+                        if (c.intValue() >= 4) { // first full + 3 more
+                            stopManaBossbarAuto(plugin, pid);
+                            return;
+                        }
+                    } else {
+                        // reset if not full
+                        MANA_AUTO_FULL_COUNT.put(pid, Integer.valueOf(0));
+                    }
+                }
+            }.runTaskTimer(plugin, 0L, 40L);
+
+            MANA_AUTO_TASKS.put(pid, task);
+            MANA_AUTO_FULL_COUNT.put(pid, Integer.valueOf(0));
+
+            return "started";
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    // =====================
+// Brace-nested placeholder resolver (adapted from your parseNested code)
+// Example input: "{score_variables_Mana}" or "Mana: {score_variables_Mana}/{score_variables_ManaCap}"
+// =====================
+    static @org.jetbrains.annotations.NotNull String resolveBraceNested(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String text
+    ) {
+        try {
+            String identifier = text;
+
+            while (identifier.contains("{") && identifier.contains("}")) {
+                int start = identifier.indexOf("{");
+                int end = identifier.indexOf("}", start);
+
+                if (start < end) {
+                    String nestedPlaceholder = identifier.substring(start + 1, end);
+                    String resolvedNested = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, "%" + nestedPlaceholder + "%");
+
+                    if (resolvedNested != null && !resolvedNested.equalsIgnoreCase("%" + nestedPlaceholder + "%")) {
+                        identifier = identifier.substring(0, start) + resolvedNested + identifier.substring(end + 1);
+                    } else {
+                        // unresolved -> remove to avoid loops
+                        identifier = identifier.substring(0, start) + identifier.substring(end + 1);
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            return identifier;
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    // =====================
+// Bossbar creation/removal (keyed if possible)
+// =====================
+    private static org.bukkit.NamespacedKey manaKey(org.bukkit.plugin.Plugin plugin, java.util.UUID pid) {
+        String s = pid.toString().replace("-", "").toLowerCase(java.util.Locale.ROOT);
+        return new org.bukkit.NamespacedKey(plugin, "mana_" + s);
+    }
+
+    private static void removeKeyedManaBossBarIfPresent(org.bukkit.plugin.Plugin plugin, java.util.UUID pid) {
+        try {
+            org.bukkit.NamespacedKey key = manaKey(plugin, pid);
+
+            // Bukkit.getBossBar(NamespacedKey)
+            java.lang.reflect.Method get = org.bukkit.Bukkit.class.getMethod("getBossBar", org.bukkit.NamespacedKey.class);
+            Object existing = get.invoke(null, key);
+            if (existing instanceof org.bukkit.boss.BossBar) {
+                try { ((org.bukkit.boss.BossBar) existing).removeAll(); } catch (Throwable ignored) {}
+            }
+
+            // Bukkit.removeBossBar(NamespacedKey) (if available)
+            try {
+                java.lang.reflect.Method rm = org.bukkit.Bukkit.class.getMethod("removeBossBar", org.bukkit.NamespacedKey.class);
+                rm.invoke(null, key);
+            } catch (Throwable ignored) {
+                // older APIs may not have removeBossBar
+            }
+        } catch (Throwable ignored) {
+            // keyed bossbars not supported; nothing to remove
+        }
+    }
+
+    private static org.bukkit.boss.BossBar getOrCreateKeyedManaBossBar(org.bukkit.plugin.Plugin plugin, java.util.UUID pid) {
+        org.bukkit.NamespacedKey key = null;
+
+        try {
+            key = manaKey(plugin, pid);
+
+            // Try getBossBar first
+            java.lang.reflect.Method get = org.bukkit.Bukkit.class.getMethod("getBossBar", org.bukkit.NamespacedKey.class);
+            Object existing = get.invoke(null, key);
+            if (existing instanceof org.bukkit.boss.BossBar) {
+                return (org.bukkit.boss.BossBar) existing;
+            }
+
+            // Try createBossBar(NamespacedKey, String, BarColor, BarStyle, BarFlag...)
+            try {
+                java.lang.reflect.Method create = org.bukkit.Bukkit.class.getMethod(
+                        "createBossBar",
+                        org.bukkit.NamespacedKey.class,
+                        java.lang.String.class,
+                        org.bukkit.boss.BarColor.class,
+                        org.bukkit.boss.BarStyle.class,
+                        org.bukkit.boss.BarFlag[].class
+                );
+
+                Object barObj = create.invoke(
+                        null,
+                        key,
+                        "§dMana",
+                        org.bukkit.boss.BarColor.PURPLE,
+                        org.bukkit.boss.BarStyle.SOLID,
+                        new org.bukkit.boss.BarFlag[0]
+                );
+
+                if (barObj instanceof org.bukkit.boss.BossBar) {
+                    return (org.bukkit.boss.BossBar) barObj;
+                }
+            } catch (Throwable ignored) {
+                // fall through
+            }
+        } catch (Throwable ignored) {
+            // fall through
+        }
+
+        // Fallback (unkeyed bossbar)
+        return org.bukkit.Bukkit.createBossBar("§dMana", org.bukkit.boss.BarColor.PURPLE, org.bukkit.boss.BarStyle.SOLID);
+    }
+
+    // =====================
+// Stop/cleanup
+// =====================
+    private static void stopManaBossbarAuto(org.bukkit.plugin.Plugin plugin, java.util.UUID pid) {
+        // cancel task
+        org.bukkit.scheduler.BukkitTask t = MANA_AUTO_TASKS.remove(pid);
+        if (t != null) {
+            try { t.cancel(); } catch (Throwable ignored) {}
+        }
+
+        // remove bossbar (map-held)
+        org.bukkit.boss.BossBar bar = MANA_AUTO_BARS.remove(pid);
+        if (bar != null) {
+            try { bar.removeAll(); } catch (Throwable ignored) {}
+        }
+
+        // remove keyed bossbar too (if supported)
+        removeKeyedManaBossBarIfPresent(plugin, pid);
+
+        // reset full counter
+        MANA_AUTO_FULL_COUNT.remove(pid);
+    }
+
+    // =====================
+// Helpers
+// =====================
+    private static double parseDoubleSafe(String s, double def) {
+        try {
+            if (s == null) return def;
+            String t = s.trim();
+            if (t.isEmpty()) return def;
+            return Double.parseDouble(t);
+        } catch (Throwable ignored) {
+            return def;
+        }
+    }
+
 
     protected static Location interpolate(Location start, Location end, double t) {
         double x = start.getX() + (end.getX() - start.getX()) * t;

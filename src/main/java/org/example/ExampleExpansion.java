@@ -95,21 +95,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    private static boolean isBaseValidTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
-        if (e == null) return false;
-        if (!e.isValid() || e.isDead()) return false;
-        if (!e.getWorld().equals(pl.getWorld())) return false;
-        if (!(e instanceof org.bukkit.entity.LivingEntity)) return false;
-        if (isLockoutActive(pl.getUniqueId(), e.getUniqueId())) return false;
+    
 
-        // Still must respect mode rules even during grace
-        return isAllowedByMode(st.mode, e);
-    }
-
-    private static boolean canSeeTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
-        // “See” means your existing FOV + LOS rules
-        return inFov(pl, e, st.fovDeg) && hasAllowedLineOfSight(pl, e, st.passThruBlocks);
-    }
 
     private static final java.util.concurrent.ConcurrentHashMap<String, java.util.Set<java.util.UUID>> ACTIVE_MISSILES_MULTI =
             new java.util.concurrent.ConcurrentHashMap<>();
@@ -118,95 +105,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private enum StingerMode { PLAYERS, HOSTILES, ENTITIES, ALL }
 
-    private static final class StingerLockState {
-        int graceUntilTick = 0; // 0 = not in grace
-
-        final UUID playerId;
-
-        // doppler state
-        float dopplerPitch = 0f;
-        int   lastBeepTick = 0;
-
-        // Config (updated on each placeholder parse)
-        volatile StingerMode mode = StingerMode.ALL;
-        volatile int intervalTicks = 5;
-        volatile int nIntervals = 4;
-        volatile double range = 64.0;
-        volatile boolean passThruBlocks = true;
-        volatile boolean doppler = true;
-        volatile double fovDeg = 45.0;
-
-        // Expiry (pings update this)
-        volatile long expiresAtTick = 0;
-
-        // Runtime
-        volatile UUID currentTargetId = null;
-        volatile UUID lastFullLockId = null;
-
-        // Queue of "switched targets"
-        final java.util.ArrayDeque<UUID> switchedQueue = new java.util.ArrayDeque<>();
-        final int maxQueue = 16;
-
-        // Lock progress
-        int progressTicks = 0;          // 0..60 for 3 seconds
-        boolean fullyLocked = false;
-
-        // Sound scheduling
-        int localTick = 0;              // increments each LOCK task tick
-        int nextBeepAtLocalTick = 0;
-
-        // Reveal-glow bookkeeping
-        UUID lastRevealTargetPlayerId = null;
-        boolean revealOn = false;
-        int nextRevealAtLocalTick = 0; // <--- ADD (refresh glow every few ticks)
-
-        // For “lock lost” gray line
-        org.bukkit.Location lastTargetLoc = null;
-
-        StingerLockState(UUID playerId) { this.playerId = playerId; }
-
-        // ---- NEW ----
-        private void resetLockAndDoppler() {
-            progressTicks = 0;
-            fullyLocked = false;
-
-            dopplerPitch = 0f;
-            lastBeepTick = localTick;
-            nextBeepAtLocalTick = localTick; // allow immediate beep on new target
-        }
-
-        /** Use this instead of assigning currentTargetId directly. */
-        void setTarget(org.bukkit.entity.Entity e) {
-            if (e == null) return;
-            UUID nid = e.getUniqueId();
-
-            if (java.util.Objects.equals(currentTargetId, nid)) {
-                // keep lastTargetLoc fresh, but DO NOT reset ramp
-                lastTargetLoc = e.getLocation().clone();
-                return;
-            }
-
-            currentTargetId = nid;
-            lastTargetLoc = e.getLocation().clone();
-            resetLockAndDoppler();
-        }
-
-        /** Use this instead of "currentTargetId = null". */
-        void clearTarget(org.bukkit.Location lastKnown) {
-            graceUntilTick = 0;
-
-            if (lastKnown != null) lastTargetLoc = lastKnown.clone();
-            currentTargetId = null;
-            resetLockAndDoppler();
-        }
-
-        void pushSwitched(UUID id) {
-            if (id == null) return;
-            if (switchedQueue.contains(id)) return;
-            switchedQueue.addLast(id);
-            while (switchedQueue.size() > maxQueue) switchedQueue.pollFirst();
-        }
-    }
 
 
     private static final java.util.concurrent.ConcurrentHashMap<UUID, StingerLockState> STINGER_LOCKS = new java.util.concurrent.ConcurrentHashMap<>();
@@ -937,24 +835,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     protected final File g13;
 
 
-    private static java.util.Set<org.bukkit.Material> initPassThrough() {
-        java.util.EnumSet<org.bukkit.Material> s = java.util.EnumSet.of(
-                Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS, Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH, Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP// ...
-        );
-        
-
-        // Strongly recommended: include the other air variants explicitly
-        s.add(org.bukkit.Material.CAVE_AIR);
-        s.add(org.bukkit.Material.VOID_AIR);
-
-        // Future-proof hook (won’t crash compile): add by string if/when you want later
-        // addIfExists(s, "SOME_NEW_BLOCK");
-
-        // Runtime safety-net: if any are solid, drop them.
-        s.removeIf(m -> m == null || m.isSolid());
-
-        return java.util.Collections.unmodifiableSet(s);
-    }
 
     private static void addIfExists(java.util.Set<org.bukkit.Material> set, String name) {
         org.bukkit.Material m = org.bukkit.Material.matchMaterial(name);
@@ -1476,75 +1356,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
-    // AOE SONIC_BOOM damage (copy of your area hit behavior with V4 rules)
-// - center: explosion/impact location
-// - radius: e.g. 5.0 (your proximity radius)
-// - caller: projectile or thing that caused it (used as damager for non-players)
-// - launcherUUID: player who fired it (used as damager for players)
-    // AOE SONIC_BOOM damage (V4 rules) with "always damage target if provided" semantics.
-// - caller: projectile or source entity (used as damager for NON-players)
-// - launcherUUID: player who fired it (used as damager for PLAYERS)
-// - center/radius: AOE center and radius
-// - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
-    private static void triggerPlayerHitEventV4_2_AOE(
-            @org.jetbrains.annotations.Nullable UUID launcherUUID,
-            @org.jetbrains.annotations.NotNull Location center,
-            double radius,
-            @org.jetbrains.annotations.Nullable Entity target) {
-
-
-        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
-
-        // Helper to resolve a launcher name for command args
-        final String launcherName = (launcher != null)
-                ? launcher.getName()
-                : (launcherUUID != null
-                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
-                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
-                : launcherUUID.toString())
-                : "unknown");
-
-        // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
-        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
-
-        // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
-        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
-            if (tgt instanceof Player) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + tgt.getName());
-            } else {
-                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + tgt.getUniqueId().toString() + " " + tgt.getType());
-            }
-            damaged.add(tgt.getUniqueId());
-        }
-
-        // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
-        final World world = center.getWorld();
-        if (world == null) return;
-        final double r2 = radius * radius;
-
-        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
-            if (!(e instanceof LivingEntity le)) continue;
-            if (!le.isValid() || le.isDead()) continue;
-            if (damaged.contains(e.getUniqueId())) continue; // skip target if it was already hit
-            if (e.getLocation().distanceSquared(center) > r2) continue;
-            final org.bukkit.damage.DamageSource.Builder dsb =
-                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
-
-            if (le instanceof Player) {
- 
-
-                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + le.getName());
-            } else {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + le.getUniqueId().toString() + " " + le.getType());
-            }
-        }
-    }
-
-
     public static void ParticleCenterToCenter(UUID launcherUUID, UUID targetUUID) {
         final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
         if (plugin == null) return;
@@ -1694,6 +1505,241 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     // Helper Methods Helpers
+
+
+
+
+
+
+
+
+
+    // - DURATION (ticks) is required
+// - PLAYERUUID optional (blank => infer from placeholder player p)
+// - TARGETUUID optional (blank => infer last-locked target for PLAYERUUID)
+    private static @org.jetbrains.annotations.NotNull String
+    onStingerLockoutOnFire(org.bukkit.entity.Player p, String argsRaw) {
+        try {
+            final String[] a = argsRaw.split("`", -1);
+            if (a.length < 1) return "badargs";
+
+            // 1) duration
+            final int durationTicks = parseIntSafe(a[0], 200, 0, 20_000);
+
+            // 2) shooter (optional)
+            java.util.UUID shooterId;
+            if (a.length >= 2 && a[1] != null && !a[1].trim().isEmpty()) {
+                shooterId = java.util.UUID.fromString(a[1].trim());
+            } else {
+                if (p == null) return "badargs";
+                shooterId = p.getUniqueId();
+            }
+
+            // 3) target (optional)
+            java.util.UUID targetId = null;
+
+            if (a.length >= 3 && a[2] != null && !a[2].trim().isEmpty()) {
+                targetId = java.util.UUID.fromString(a[2].trim());
+            } else {
+                // Prefer live current target if lock task still running
+                StingerLockState st = STINGER_LOCKS.get(shooterId);
+                if (st != null && st.currentTargetId != null) {
+                    targetId = st.currentTargetId;
+                }
+
+                // Prefer "last locked target" map if you have it
+                if (targetId == null) {
+                    targetId = STINGER_LAST_FULL_LOCK.get(shooterId);
+                }
+            }
+
+            if (targetId == null) return "none";
+
+            // Optional: validate entity exists right now (you can remove this if you want lockout even if offline)
+            org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(targetId);
+            if (tgt == null) return "none";
+
+            addLockoutTicks(shooterId, targetId, durationTicks);
+            return "ok";
+        } catch (Exception ignored) {
+            return "error";
+        }
+    }
+
+    @SafeVarargs
+    private static org.bukkit.entity.Entity firstOrNull(java.util.List<org.bukkit.entity.Entity>... lists) {
+        for (java.util.List<org.bukkit.entity.Entity> l : lists) if (l != null && !l.isEmpty()) return l.get(0);
+        return null;
+    }
+
+
+    private static boolean isBaseValidTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
+        if (e == null) return false;
+        if (!e.isValid() || e.isDead()) return false;
+        if (!e.getWorld().equals(pl.getWorld())) return false;
+        if (!(e instanceof org.bukkit.entity.LivingEntity)) return false;
+        if (isLockoutActive(pl.getUniqueId(), e.getUniqueId())) return false;
+
+        // Still must respect mode rules even during grace
+        return isAllowedByMode(st.mode, e);
+    }
+
+    private static boolean canSeeTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
+        // “See” means your existing FOV + LOS rules
+        return inFov(pl, e, st.fovDeg) && hasAllowedLineOfSight(pl, e, st.passThruBlocks);
+    }
+
+    private static org.bukkit.scoreboard.Team getTeam(org.bukkit.entity.Player p) {
+        try {
+            org.bukkit.scoreboard.Scoreboard sb = p.getScoreboard();
+            if (sb == null) return null;
+            return sb.getEntryTeam(p.getName());
+        } catch (Throwable ignored) { return null; }
+    }
+
+    protected static void spawnParticle(Location loc, Particle particle, Particle.DustOptions dustOpts) {
+        for (Player viewer : loc.getWorld().getPlayers()) {
+            if (particle == Particle.DUST && dustOpts != null) {
+                viewer.spawnParticle(particle, loc, 1, 0, 0, 0, 0, dustOpts);
+            } else {
+                viewer.spawnParticle(particle, loc, 1, 0, 0, 0, 0);
+            }
+        }
+    }
+    private static java.util.Set<org.bukkit.Material> initPassThrough() {
+        java.util.EnumSet<org.bukkit.Material> s = java.util.EnumSet.of(
+                Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS, Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH, Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP// ...
+        );
+
+
+        // Strongly recommended: include the other air variants explicitly
+        s.add(org.bukkit.Material.CAVE_AIR);
+        s.add(org.bukkit.Material.VOID_AIR);
+
+        // Future-proof hook (won’t crash compile): add by string if/when you want later
+        // addIfExists(s, "SOME_NEW_BLOCK");
+
+        // Runtime safety-net: if any are solid, drop them.
+        s.removeIf(m -> m == null || m.isSolid());
+
+        return java.util.Collections.unmodifiableSet(s);
+    }
+
+    static Vector safeNorm(Vector v) {
+        double len = v.length();
+        if (len < 1e-9) return new Vector(0, 0, 0);
+        return v.multiply(1.0 / len);
+    }
+
+    // missile -> target mapping (what you asked)
+
+
+    // launcher -> prelaunch line task (ONLY ONE at a time)
+
+    // missile -> missile line task (ONE PER MISSILE)
+
+    // missile -> target mapping (explicitly requested)
+
+    // Optional: persist last full lock even after cleanup()
+
+
+
+    private static final class StingerLockState {
+
+        int graceTicks = 20;   // configurable; default 20 (1 second)
+        int graceUntilTick = 0; // runtime state
+        final UUID playerId;
+
+        // doppler state
+        float dopplerPitch = 0f;
+        int   lastBeepTick = 0;
+
+        // Config (updated on each placeholder parse)
+        volatile StingerMode mode = StingerMode.ALL;
+        volatile int intervalTicks = 5;
+        volatile int nIntervals = 4;
+        volatile double range = 64.0;
+        volatile boolean passThruBlocks = true;
+        volatile boolean doppler = true;
+        volatile double fovDeg = 45.0;
+
+        // Expiry (pings update this)
+        volatile long expiresAtTick = 0;
+
+        // Runtime
+        volatile UUID currentTargetId = null;
+        volatile UUID lastFullLockId = null;
+
+        // Queue of "switched targets"
+        final java.util.ArrayDeque<UUID> switchedQueue = new java.util.ArrayDeque<>();
+        final int maxQueue = 16;
+
+        // Lock progress
+        int progressTicks = 0;          // 0..60 for 3 seconds
+        boolean fullyLocked = false;
+
+        // Sound scheduling
+        int localTick = 0;              // increments each LOCK task tick
+        int nextBeepAtLocalTick = 0;
+
+        // Reveal-glow bookkeeping
+        UUID lastRevealTargetId = null; // was lastRevealTargetPlayerId
+        boolean revealOn = false;
+        int nextRevealAtLocalTick = 0; // <--- ADD (refresh glow every few ticks)
+
+        // For “lock lost” gray line
+        org.bukkit.Location lastTargetLoc = null;
+
+        StingerLockState(UUID playerId) { this.playerId = playerId; }
+
+        // ---- NEW ----
+        private void resetLockAndDoppler() {
+            progressTicks = 0;
+            fullyLocked = false;
+
+            dopplerPitch = 0f;
+            lastBeepTick = localTick;
+            nextBeepAtLocalTick = localTick; // allow immediate beep on new target
+        }
+
+        /** Use this instead of assigning currentTargetId directly. */
+        void setTarget(org.bukkit.entity.Entity e) {
+            if (e == null) return;
+            UUID nid = e.getUniqueId();
+
+            if (java.util.Objects.equals(currentTargetId, nid)) {
+                // keep lastTargetLoc fresh, but DO NOT reset ramp
+                lastTargetLoc = e.getLocation().clone();
+                return;
+            }
+
+            currentTargetId = nid;
+            lastTargetLoc = e.getLocation().clone();
+            resetLockAndDoppler();
+        }
+
+        /** Use this instead of "currentTargetId = null". */
+        void clearTarget(org.bukkit.Location lastKnown) {
+            graceUntilTick = 0;
+            lastRevealTargetId = null;
+            revealOn = false;
+            nextRevealAtLocalTick = 0;
+
+
+            if (lastKnown != null) lastTargetLoc = lastKnown.clone();
+            currentTargetId = null;
+            resetLockAndDoppler();
+        }
+
+        void pushSwitched(UUID id) {
+            if (id == null) return;
+            if (switchedQueue.contains(id)) return;
+            switchedQueue.addLast(id);
+            while (switchedQueue.size() > maxQueue) switchedQueue.pollFirst();
+        }
+    }
+
+
 
     private static @org.jetbrains.annotations.NotNull String onTrackV4A2(
             org.bukkit.entity.Player p,
@@ -1918,6 +1964,1204 @@ public class ExampleExpansion extends PlaceholderExpansion {
         if (t2 != null) t2.cancel();
         TRACKV4A2_MISSILE_TO_TARGET.remove(missileUUID);
     }
+
+
+
+
+
+
+
+
+
+    private static @org.jetbrains.annotations.NotNull String onStingerLockParse(
+            org.bukkit.entity.Player p,
+            String argsRaw
+    ) {
+        // argsRaw: MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV
+        final String[] a = argsRaw.split("`", -1);
+        if (a.length < 8) {
+            return "§cUsage: %Archistructure_stingerLock_MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV`GRACETICKS%";
+        }
+
+        StingerMode mode;
+        try { mode = StingerMode.valueOf(a[0].trim().toUpperCase(java.util.Locale.ROOT)); }
+        catch (Exception e) { mode = StingerMode.ALL; }
+
+        int interval = parseIntSafe(a[1], 5, 1, 40);
+        int nIntervals = parseIntSafe(a[2], 4, 1, 40);
+        double range = parseDoubleSafe(a[3], 64.0, 1.0, 256.0);
+        boolean passThru = parseBoolSafe(a[4], true);
+        boolean doppler = parseBoolSafe(a[5], true);
+        double fov = parseDoubleSafe(a[6], 45.0, 5.0, 180.0);
+        int graceTicks = parseIntSafe(a[7], 20, 0, 200);
+
+        final UUID pid = p.getUniqueId();
+        final StingerLockState st = STINGER_LOCKS.computeIfAbsent(pid, StingerLockState::new);
+
+        // Update config for the running LOCK task to pick up immediately
+        st.mode = mode;
+        st.intervalTicks = interval;
+        st.nIntervals = nIntervals;
+        st.range = range;
+        st.passThruBlocks = passThru;
+        st.doppler = doppler;
+        st.fovDeg = fov;
+        st.graceTicks = graceTicks;
+
+        // Ensure lock task exists
+        ensureLockTaskRunning(p);
+
+        // Restart reset queue (this is the thing you clarified)
+        restartResetQueue(p, interval, nIntervals);
+
+        // Return: locked name/type or Not Locked
+        if (st.fullyLocked && st.currentTargetId != null) {
+            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
+            if (e instanceof org.bukkit.entity.Player tp) return "§c" + tp.getName();
+            if (e != null) return e.getType().name();
+        }
+        if( st.currentTargetId != null ) return "§6Locking...";
+        return "§aNone";
+    }
+
+   
+
+
+    private static void ensureRevealTarget(org.bukkit.entity.Player shooter, StingerLockState st, org.bukkit.entity.Entity target) {
+        // Refresh every 5 ticks (same cadence you used)
+        if (st.localTick < st.nextRevealAtLocalTick) return;
+        st.nextRevealAtLocalTick = st.localTick + 5;
+
+        if (target == null || !target.isValid() || target.isDead()) {
+            removeRevealIfAny(shooter, st);
+            return;
+        }
+
+        UUID tid = target.getUniqueId();
+
+        // If target changed: unglow previous reveal first
+        if (st.revealOn && st.lastRevealTargetId != null && !st.lastRevealTargetId.equals(tid)) {
+            org.bukkit.entity.Entity old = org.bukkit.Bukkit.getEntity(st.lastRevealTargetId);
+            if (old != null && shooter != null && shooter.isOnline()) {
+                // Shooter stops seeing old target glow
+                tyounwfydtuhk2foypbdvhp2y3ldb2(shooter, old, false);
+
+                // Back-compat cleanup: if old code made mutual reveal (old target saw shooter glow)
+                if (old instanceof org.bukkit.entity.Player oldPlayer) {
+                    tyounwfydtuhk2foypbdvhp2y3ldb2(oldPlayer, shooter, false);
+                }
+            }
+        }
+
+        // Shooter sees CURRENT target glowing (works for players AND entities)
+        tyounwfydtuhk2foypbdvhp2y3ldb2(shooter, target, true);
+
+        st.lastRevealTargetId = tid;
+        st.revealOn = true;
+    }
+
+
+    private static void ensureMutualReveal(org.bukkit.entity.Player shooter, StingerLockState st, org.bukkit.entity.Player target) {
+        // Refresh every 5 ticks (tweak to 7 if you want)
+        if (st.localTick < st.nextRevealAtLocalTick) return;
+        st.nextRevealAtLocalTick = st.localTick + 5;
+
+        // If target changed, remove old reveal first
+        if (st.revealOn && st.lastRevealTargetId != null && !st.lastRevealTargetId.equals(target.getUniqueId())) {
+            removeRevealIfAny(shooter, st);
+        }
+
+        // Target sees shooter glowing (lock reveal)
+        tyounwfydtuhk2foypbdvhp2y3ldb2(target, shooter, true);
+
+        // Shooter sees target glowing (your lock highlight)
+        tyounwfydtuhk2foypbdvhp2y3ldb2(shooter, target, true);
+
+        st.lastRevealTargetId = target.getUniqueId();
+        st.revealOn = true;
+    }
+// ===============================
+// Tasks
+// ===============================
+
+    private static void ensureLockTaskRunning(org.bukkit.entity.Player p) {
+        final UUID pid = p.getUniqueId();
+        if (STINGER_LOCK_TASKS.containsKey(pid)) return;
+
+        final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+
+        org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            final StingerLockState st = STINGER_LOCKS.get(pid);
+            final org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(pid);
+
+            if (st == null || pl == null || !pl.isOnline()) {
+                cleanup(pid);
+                return;
+            }
+
+            st.localTick++;
+
+            // Expiry: if no reset pings happened recently, expire
+            if (st.expiresAtTick > 0 && st.localTick > st.expiresAtTick) {
+                cleanup(pid);
+                return;
+            }
+
+            // Every tick: use current FOV (direction) + drive lock timer
+            final boolean doScan = (st.intervalTicks <= 1) || (st.localTick % st.intervalTicks == 0);
+
+            // ===============================
+            // Scan / reacquire gate (interval)
+            // ===============================
+            if (doScan) {
+                boolean allowReacquire = true;
+
+                final UUID cur = st.currentTargetId;
+                final org.bukkit.entity.Entity curEnt = (cur != null) ? org.bukkit.Bukkit.getEntity(cur) : null;
+
+                if (curEnt != null) {
+                    // Hard invalid -> clear immediately (death/world/type/etc.)
+                    if (!isBaseValidTargetFor(pl, st, curEnt)) {
+                        st.lastTargetLoc = curEnt.getLocation().clone();
+                        clearLock(pl, st, true);
+                    } else {
+                        // Soft invalid -> visibility failed (FOV/LOS)
+                        final boolean visible = canSeeTargetFor(pl, st, curEnt);
+
+                        if (!visible) {
+                            st.lastTargetLoc = curEnt.getLocation().clone();
+
+                            if (st.fullyLocked) {
+                                // Start grace window if not already running
+                                if (st.graceUntilTick <= 0) st.graceUntilTick = st.localTick + st.graceTicks;
+
+                                // During grace: keep target AND don't reacquire someone else
+                                if (st.localTick <= st.graceUntilTick) {
+                                    allowReacquire = false;
+                                } else {
+                                    // Grace expired -> lose lock
+                                    clearLock(pl, st, true);
+                                }
+                            } else {
+                                // Not fully locked yet -> strict
+                                clearLock(pl, st, true);
+                            }
+                        } else {
+                            // Visible again -> reset grace so you can "look away for 1s" again later
+                            st.graceUntilTick = 0;
+                        }
+                    }
+                }
+
+                if (allowReacquire && st.currentTargetId == null) {
+                    final org.bukkit.entity.Entity next = pickTarget(pl, st);
+                    if (next != null) st.setTarget(next); // resets progress + dopplerPitch + beep schedule
+                }
+            }
+
+            // ===============================
+            // Render + sound + completion (every tick)
+            // ===============================
+            if (st.currentTargetId == null) {
+                // no target: if we had reveal on, remove it
+                removeRevealIfAny(pl, st);
+                return;
+            }
+
+            final org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(st.currentTargetId);
+
+            // Hard invalid -> clear immediately
+            if (!isBaseValidTargetFor(pl, st, tgt)) {
+                if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
+                drawLostLineOnce(pl, st);
+                clearLock(pl, st, true);
+                return;
+            }
+
+            // Visibility check (soft invalid)
+            final boolean visible = canSeeTargetFor(pl, st, tgt);
+            boolean inGrace = false;
+
+
+
+            if (!visible) {
+                if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
+
+                if (st.fullyLocked) {
+                    if (st.graceUntilTick <= 0) st.graceUntilTick = st.localTick + st.graceTicks;
+
+                    inGrace = (st.localTick <= st.graceUntilTick);
+                    if (!inGrace) {
+                        drawLostLineOnce(pl, st);
+                        clearLock(pl, st, true);
+                        return;
+                    }
+                    // IMPORTANT: do NOT return here — keep drawing line + doppler while inGrace
+                } else {
+                    drawLostLineOnce(pl, st);
+                    clearLock(pl, st, true);
+                    return;
+                }
+            } else {
+                // Visible again: reset grace so they get a fresh 1s next time
+                if (st.graceUntilTick > 0) st.graceUntilTick = 0;
+            }
+
+
+            // Reveal glow does NOT require full lock (as long as we have a base-valid target)
+            // NOTE: This will keep the mutual glow even during grace (looking away). If you don't want that,
+            // gate it behind "visible" instead of base-valid.
+            ensureRevealTarget(pl, st, tgt);
+
+
+            // Progress toward full lock (3 seconds = 60 ticks)
+            if (!st.fullyLocked) {
+                st.progressTicks++;
+                if (st.progressTicks >= 60) {
+                    st.progressTicks = 60;
+                    st.fullyLocked = true;
+
+                    // remember last full lock
+                    st.lastFullLockId = st.currentTargetId;
+                    if (st.currentTargetId != null) {
+                        STINGER_LAST_FULL_LOCK.put(st.playerId, st.currentTargetId);
+                        STINGER_LAST_FULL_LOCK_PERSIST.put(pl.getUniqueId(), st.currentTargetId);
+                    }
+
+                    // (Your reveal bookkeeping already handled by ensureMutualReveal)
+                }
+            } else {
+                // Already locked: keep reveal bookkeeping sane (optional; your ensureMutualReveal handles refresh)
+                // No-op.
+            }
+
+            // Particle line to viewer only (still runs during grace)
+            drawLockLine(pl, tgt, st, inGrace);
+
+            // Doppler sound (still runs during grace)
+            if (st.doppler) maybePlayDoppler(pl, st, inGrace);
+
+            // If you want any special “grace mode” visuals, you can use `inGrace` here.
+            // Example: drawLostLineOnce(pl, st); or adjust drawLockLine color if inGrace.
+            // (Leaving it as-is per your request.)
+        }, 0L, 1L);
+
+        STINGER_LOCK_TASKS.put(pid, task);
+    }
+
+
+// ===============================
+// Targeting rules
+// ===============================
+
+    private static org.bukkit.entity.Entity pickTarget(org.bukkit.entity.Player pl, StingerLockState st) {
+
+
+        final org.bukkit.Location eye = pl.getEyeLocation();
+        final org.bukkit.World w = eye.getWorld();
+        if (w == null) return null;
+
+        final double r = st.range;
+        final java.util.Collection<org.bukkit.entity.Entity> near =
+                w.getNearbyEntities(eye, r, r, r, e -> e instanceof org.bukkit.entity.LivingEntity && e.isValid() && !e.isDead());
+
+        final org.bukkit.scoreboard.Team myTeam = getTeam(pl);
+
+        java.util.List<org.bukkit.entity.Entity> nonTeamPlayers = new java.util.ArrayList<>();
+        java.util.List<org.bukkit.entity.Entity> players = new java.util.ArrayList<>();
+        java.util.List<org.bukkit.entity.Entity> hostiles = new java.util.ArrayList<>();
+        java.util.List<org.bukkit.entity.Entity> passives = new java.util.ArrayList<>();
+
+        for (org.bukkit.entity.Entity e : near) {
+            if (isLockoutActive(pl.getUniqueId(), e.getUniqueId())) continue;
+
+
+            if (e.getUniqueId().equals(pl.getUniqueId())) continue;
+            if (!isAllowedByMode(st.mode, e)) continue;
+            if (!inFov(pl, e, st.fovDeg)) continue;
+            if (!hasAllowedLineOfSight(pl, e, st.passThruBlocks)) continue;
+
+            // ignore queue unless we must reuse
+            if (st.switchedQueue.contains(e.getUniqueId())) continue;
+
+            if (e instanceof org.bukkit.entity.Player pe) {
+                if (myTeam != null) {
+                    org.bukkit.scoreboard.Team his = getTeam(pe);
+                    if (his == null || !his.equals(myTeam)) nonTeamPlayers.add(e);
+                    else players.add(e);
+                } else {
+                    // “NO-TEAM => skip the non-team bucket”
+                    players.add(e);
+                }
+            } else if (isHostile(e)) hostiles.add(e);
+            else passives.add(e);
+        }
+
+        org.bukkit.entity.Entity chosen =
+                firstOrNull(nonTeamPlayers, players, hostiles, passives);
+
+        // If all candidates were in the switchedQueue, pop one and allow it
+        if (chosen == null) {
+            UUID freed = st.switchedQueue.pollFirst();
+            if (freed != null) {
+                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(freed);
+                if (e != null && isAllowedByMode(st.mode, e) && inFov(pl, e, st.fovDeg) && hasAllowedLineOfSight(pl, e, st.passThruBlocks)) {
+                    chosen = e;
+                }
+            }
+        }
+
+        return chosen;
+    }
+
+
+    private static boolean isAllowedByMode(StingerMode mode, org.bukkit.entity.Entity e) {
+        switch (mode) {
+            case PLAYERS:  return e instanceof org.bukkit.entity.Player;
+            case HOSTILES: return !(e instanceof org.bukkit.entity.Player) && isHostile(e);
+            case ENTITIES:     return !(e instanceof org.bukkit.entity.Player);
+            case ALL:          return true;
+        }
+        return true;
+    }
+
+    private static boolean isHostile(org.bukkit.entity.Entity e) {
+        return (e instanceof org.bukkit.entity.Monster)
+                || (e instanceof org.bukkit.entity.Slime)
+                || (e instanceof org.bukkit.entity.Phantom)
+                || (e instanceof org.bukkit.entity.Shulker);
+    }
+
+    private static boolean inFov(org.bukkit.entity.Player pl, org.bukkit.entity.Entity e, double fovDeg) {
+        final org.bukkit.Location eye = pl.getEyeLocation();
+        final org.bukkit.util.Vector dir = eye.getDirection().normalize();
+
+        org.bukkit.Location t = e.getLocation().clone();
+        try { t.add(0, e.getHeight() * 0.5, 0); } catch (Throwable ignored) {}
+
+        final org.bukkit.util.Vector to = t.toVector().subtract(eye.toVector()).normalize();
+        double dot = dir.dot(to);
+        dot = Math.max(-1.0, Math.min(1.0, dot));
+        double ang = Math.toDegrees(Math.acos(dot));
+        return ang <= (fovDeg * 0.5);
+    }
+
+
+    private static boolean isPassThrough(org.bukkit.Material m) {
+        if (isAirLike(m)) return true;
+        // allow many non-solid/passables
+        if (!m.isSolid()) return true;
+
+        // explicitly allow some common “passable but weird” blocks if needed
+        return m == org.bukkit.Material.WATER
+                || m == org.bukkit.Material.BUBBLE_COLUMN
+                || m == org.bukkit.Material.COBWEB
+                || m == org.bukkit.Material.STRING;
+    }
+
+    private static boolean isAirLike(org.bukkit.Material m) {
+        return m == org.bukkit.Material.AIR || m == org.bukkit.Material.CAVE_AIR || m == org.bukkit.Material.VOID_AIR;
+    }
+
+// ===============================
+// Visual/audio
+// ===============================
+
+    private static void drawLockLine(org.bukkit.entity.Player viewer, org.bukkit.entity.Entity tgt, StingerLockState st, boolean inGrace) {
+        org.bukkit.Location a = viewer.getLocation().add(0, viewer.getHeight() / 2, 0);
+        org.bukkit.Location b = tgt.getLocation().clone();
+        try { b.add(0, tgt.getHeight() * 0.5, 0); } catch (Throwable ignored) {}
+
+        org.bukkit.util.Vector ab = b.toVector().subtract(a.toVector());
+        double len = ab.length();
+        if (len < 0.001) return;
+
+        int maxParticles = 25; // your spec
+        int n = Math.max(2, Math.min(maxParticles, (int) Math.ceil(len * 3)));
+        org.bukkit.util.Vector step = ab.multiply(1.0 / (n - 1));
+
+        // Color:
+        org.bukkit.Color c;
+        float size = 0.45f;
+
+        if (st.fullyLocked) {
+            if (inGrace) {
+                c = org.bukkit.Color.fromRGB(160, 160, 160); // gray while in grace
+            } else {
+                c = org.bukkit.Color.fromRGB(0, 255, 255);   // aqua when locked + visible
+            }
+        } else {
+            double t = Math.max(0.0, Math.min(1.0, st.progressTicks / 60.0));
+            int r = (int) Math.round(0 + (255 - 0) * t);
+            int g = (int) Math.round(255 + (0 - 255) * t);
+            c = org.bukkit.Color.fromRGB(clamp255(r), clamp255(g), 0);
+        }
+
+        org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(c, size);
+
+        org.bukkit.Location cur = a.clone();
+        for (int i = 0; i < n; i++) {
+            viewer.spawnParticle(org.bukkit.Particle.DUST, cur, 1, 0, 0, 0, 0.0, dust);
+            cur.add(step);
+        }
+    }
+
+    private static void drawLostLineOnce(org.bukkit.entity.Player viewer, StingerLockState st) {
+        if (st.lastTargetLoc == null) return;
+        org.bukkit.Location a = viewer.getEyeLocation().clone();
+        org.bukkit.Location b = st.lastTargetLoc.clone();
+
+        org.bukkit.util.Vector ab = b.toVector().subtract(a.toVector());
+        double len = ab.length();
+        if (len < 0.001) return;
+
+        int n = Math.max(2, Math.min(25, (int) Math.ceil(len * 3)));
+        org.bukkit.util.Vector step = ab.multiply(1.0 / (n - 1));
+
+        org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(160,160,160), 0.45f);
+        org.bukkit.Location cur = a.clone();
+        for (int i = 0; i < n; i++) {
+            viewer.spawnParticle(org.bukkit.Particle.DUST, cur, 1, 0, 0, 0, 0.0, dust);
+            cur.add(step);
+        }
+    }
+
+    private static void maybePlayDoppler(Player viewer, StingerLockState st, boolean inGrace) {
+        final int REQUIRED_LOCK_TICKS = 60; // 3s
+        final boolean locked = st.progressTicks >= REQUIRED_LOCK_TICKS;
+
+        // Beep period: ramps faster over time, but NEVER reaches 2-tick spam unless locked
+        double t = Math.max(0.0, Math.min(1.0, st.progressTicks / (double) REQUIRED_LOCK_TICKS));
+
+        int period;
+        if (locked) {
+            period = 2;
+        } else {
+            // 8 -> 4 ticks linearly
+            period = (int) Math.round(8 + (3 - 8) * t);
+            period = Math.max(3, Math.min(8, period));
+        }
+
+
+        if (st.localTick < st.nextBeepAtLocalTick) return;
+        st.nextBeepAtLocalTick = st.localTick + period;
+
+        // --- Pitch ramp (time-based) ---
+        // This is your "threshold" (2 - x). Pick a smaller preMax = slower climb.
+        final float preMax = 1.6f; // <- tweak: 1.4 slower, 1.7 faster
+        final float pitchPerTick = preMax / REQUIRED_LOCK_TICKS; // linear ramp over 3s
+        final float maxLock = 2.0f;
+
+        final float gracePitch = preMax + (maxLock - preMax) * 0.5f; // half-step toward max
+
+        int dt = st.localTick - st.lastBeepTick;
+        if (dt < 0) dt = 0;
+        st.lastBeepTick = st.localTick;
+
+        if (!locked) {
+            st.dopplerPitch = Math.min(preMax, st.dopplerPitch + pitchPerTick * dt);
+        } else {
+            // hard step ONLY when actually locked
+            st.dopplerPitch = inGrace ? gracePitch : maxLock;
+        }
+
+        viewer.playSound(viewer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, st.dopplerPitch);
+    }
+
+    private static void clearLock(org.bukkit.entity.Player shooter, StingerLockState st, boolean removeReveal) {
+        // capture last loc before we drop the id
+        org.bukkit.Location lastLoc = st.lastTargetLoc;
+        if (st.currentTargetId != null) {
+            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
+            if (e != null) lastLoc = e.getLocation().clone();
+        }
+
+        // IMPORTANT: remove glow BEFORE st.clearTarget wipes ids
+        if (removeReveal) removeRevealIfAny(shooter, st);
+
+        // reset target + lock progress + doppler + grace
+        st.clearTarget(lastLoc);
+    }
+
+    private static void removeRevealIfAny(org.bukkit.entity.Player shooter, StingerLockState st) {
+        if (shooter == null || !shooter.isOnline()) {
+            st.revealOn = false;
+            st.lastRevealTargetId = null;
+            return;
+        }
+
+        if (st.revealOn && st.lastRevealTargetId != null) {
+            org.bukkit.entity.Entity old = org.bukkit.Bukkit.getEntity(st.lastRevealTargetId);
+            if (old != null) {
+                // Shooter stops seeing old target glow
+                tyounwfydtuhk2foypbdvhp2y3ldb2(shooter, old, false);
+
+                // Back-compat cleanup: if old code made mutual reveal (old target saw shooter glow)
+                if (old instanceof org.bukkit.entity.Player oldPlayer) {
+                    tyounwfydtuhk2foypbdvhp2y3ldb2(oldPlayer, shooter, false);
+                }
+            }
+        }
+
+        st.revealOn = false;
+        st.lastRevealTargetId = null;
+    }
+
+
+
+    /**
+     * Makes {@code target} glow ONLY for {@code viewer} (client-side).
+     * Call again with glowing=false to remove.
+     */
+    public static void tyounwfydtuhk2foypbdvhp2y3ldb2(Player dy2fuhdyufhd, Entity kt2thhwsthfhwd, boolean kyunhyunoyuno) {
+        ProtocolManager otyu2nfotyuhfwyvh = ProtocolLibrary.getProtocolManager();
+        byte toyu2nfyutnwyfuth = 0x40;
+        PacketContainer tnoy2untdoyu2fhdk = otyu2nfotyuhfwyvh.createPacket(PacketType.Play.Server.ENTITY_METADATA);
+        tnoy2untdoyu2fhdk.getIntegers().write(0, kt2thhwsthfhwd.getEntityId());
+
+        // Read current entity flags so we don't clobber other bits (sneaking, invis, etc.)
+        WrappedDataWatcher toynuwoyk2yfdlvbf = WrappedDataWatcher.getEntityWatcher(kt2thhwsthfhwd);
+        Object tmoy2funtyufhsrbyvuhp3 = toynuwoyk2yfdlvbf.getObject(0); // index 0 = flags byte
+        byte tn2oyfudnto2yfubdoy2lwfhd = (tmoy2funtyufhsrbyvuhp3 instanceof Byte) ? (Byte) tmoy2funtyufhsrbyvuhp3 : 0;
+
+        tn2oyfudnto2yfubdoy2lwfhd = kyunhyunoyuno ? (byte) (tn2oyfudnto2yfubdoy2lwfhd | toyu2nfyutnwyfuth) : (byte) (tn2oyfudnto2yfubdoy2lwfhd & ~toyu2nfyutnwyfuth);
+
+        // Only send index 0 (flags) to the viewer
+        WrappedDataWatcher t2ontyunyurndyroshv = new WrappedDataWatcher();
+        t2ontyunyurndyroshv.setObject(0, WrappedDataWatcher.Registry.get(Byte.class), tn2oyfudnto2yfubdoy2lwfhd, true);
+
+        // 1.19.3+ uses WrappedDataValue list (DataValueCollection) instead of Watchables
+        if (MinecraftVersion.getCurrentVersion().isAtLeast(new MinecraftVersion("1.19.3"))) {
+            List<WrappedDataValue> toyun2yofutnyruslbhv = new ArrayList<>();
+            for (WrappedWatchableObject oty2unftylb2fyldhvwr : t2ontyunyurndyroshv.getWatchableObjects()) {
+                if (oty2unftylb2fyldhvwr == null) continue;
+                WrappedDataWatcher.WrappedDataWatcherObject touyn2yfudhntowybvdoylpf = oty2unftylb2fyldhvwr.getWatcherObject();
+                toyun2yofutnyruslbhv.add(new WrappedDataValue(touyn2yfudhntowybvdoylpf.getIndex(), touyn2yfudhntowybvdoylpf.getSerializer(), oty2unftylb2fyldhvwr.getRawValue()));
+            }
+            tnoy2untdoyu2fhdk.getDataValueCollectionModifier().write(0, toyun2yofutnyruslbhv);
+        } else {
+            tnoy2untdoyu2fhdk.getWatchableCollectionModifier().write(0, t2ontyunyurndyroshv.getWatchableObjects());
+        }
+
+        otyu2nfotyuhfwyvh.sendServerPacket(dy2fuhdyufhd, tnoy2untdoyu2fhdk);
+    }
+
+    private static void cleanup(UUID pid) {
+        // cancel reset queue
+        org.bukkit.scheduler.BukkitTask q = STINGER_RESET_QUEUES.remove(pid);
+        if (q != null) q.cancel();
+
+        // cancel lock task
+        org.bukkit.scheduler.BukkitTask t = STINGER_LOCK_TASKS.remove(pid);
+        if (t != null) t.cancel();
+
+        // remove state (also remove glow if needed)
+        StingerLockState st = STINGER_LOCKS.remove(pid);
+        org.bukkit.entity.Player shooter = org.bukkit.Bukkit.getPlayer(pid);
+        if (st != null && shooter != null) {
+            removeRevealIfAny(shooter, st);
+        }
+    }
+
+    private static final java.util.concurrent.ConcurrentHashMap<String, Long> STINGER_LOCKOUT_UNTIL_MS =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static String lockoutKey(java.util.UUID shooter, java.util.UUID target) {
+        return shooter.toString() + "|" + target.toString();
+    }
+
+    private static boolean isLockoutActive(java.util.UUID shooter, java.util.UUID target) {
+        Long until = STINGER_LOCKOUT_UNTIL_MS.get(lockoutKey(shooter, target));
+        return until != null && until > System.currentTimeMillis();
+    }
+
+    private static void addLockoutTicks(java.util.UUID shooter, java.util.UUID target, int ticks) {
+        if (ticks <= 0) return;
+        long ms = System.currentTimeMillis() + (long) ticks * 50L;
+        STINGER_LOCKOUT_UNTIL_MS.put(lockoutKey(shooter, target), ms);
+    }
+
+
+    private static int parseIntSafe(String s, int def, int min, int max) {
+        try {
+            int v = Integer.parseInt(s.trim());
+            return Math.max(min, Math.min(max, v));
+        } catch (Exception e) { return def; }
+    }
+    private static double parseDoubleSafe(String s, double def, double min, double max) {
+        try {
+            double v = Double.parseDouble(s.trim());
+            return Math.max(min, Math.min(max, v));
+        } catch (Exception e) { return def; }
+    }
+    private static boolean parseBoolSafe(String s, boolean def) {
+        if (s == null) return def;
+        String v = s.trim().toLowerCase(java.util.Locale.ROOT);
+        if (v.equals("true") || v.equals("1") || v.equals("yes")) return true;
+        if (v.equals("false") || v.equals("0") || v.equals("no")) return false;
+        return def;
+    }
+    private static int clamp255(int v) { return Math.max(0, Math.min(255, v)); }
+
+
+
+    // AOE SONIC_BOOM damage (copy of your area hit behavior with V4 rules)
+// - center: explosion/impact location
+// - radius: e.g. 5.0 (your proximity radius)
+// - caller: projectile or thing that caused it (used as damager for non-players)
+// - launcherUUID: player who fired it (used as damager for players)
+    // AOE SONIC_BOOM damage (V4 rules) with "always damage target if provided" semantics.
+// - caller: projectile or source entity (used as damager for NON-players)
+// - launcherUUID: player who fired it (used as damager for PLAYERS)
+// - center/radius: AOE center and radius
+// - target: if not null and living, ALWAYS damaged (any world / any distance), then AOE applies to others
+    private static void triggerPlayerHitEventV4_2_AOE(
+            @org.jetbrains.annotations.Nullable UUID launcherUUID,
+            @org.jetbrains.annotations.NotNull Location center,
+            double radius,
+            @org.jetbrains.annotations.Nullable Entity target) {
+
+
+        final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
+
+        // Helper to resolve a launcher name for command args
+        final String launcherName = (launcher != null)
+                ? launcher.getName()
+                : (launcherUUID != null
+                ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
+                ? Bukkit.getOfflinePlayer(launcherUUID).getName()
+                : launcherUUID.toString())
+                : "unknown");
+
+        // Track already-damaged entities to avoid double hits (e.g., target also in AOE)
+        final java.util.HashSet<UUID> damaged = new java.util.HashSet<>();
+
+        // 1) ALWAYS damage the explicit target first (if provided and is a LivingEntity), regardless of world/position
+        if (target instanceof LivingEntity tgt && target.isValid() && !target.isDead()) {
+            if (tgt instanceof Player) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + tgt.getName());
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + tgt.getUniqueId().toString() + " " + tgt.getType());
+            }
+            damaged.add(tgt.getUniqueId());
+        }
+
+        // 2) AOE for everyone else near the center (same-world), excluding already-damaged target
+        final World world = center.getWorld();
+        if (world == null) return;
+        final double r2 = radius * radius;
+
+        for (Entity e : world.getNearbyEntities(center, radius, radius, radius)) {
+            if (!(e instanceof LivingEntity le)) continue;
+            if (!le.isValid() || le.isDead()) continue;
+            if (damaged.contains(e.getUniqueId())) continue; // skip target if it was already hit
+            if (e.getLocation().distanceSquared(center) > r2) continue;
+            final org.bukkit.damage.DamageSource.Builder dsb =
+                    org.bukkit.damage.DamageSource.builder(org.bukkit.damage.DamageType.SONIC_BOOM);
+
+            if (le instanceof Player) {
+
+
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82Hit player:" + launcherName + " " + le.getName());
+            } else {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger trigger:Stinger82HitE player:" + launcherName + " " + le.getUniqueId().toString() + " " + le.getType());
+            }
+        }
+    }
+    protected static void spawnCustomFireworkExplosion2(World world, Location location) {
+        Firework firework = world.spawn(location, Firework.class);
+        FireworkMeta meta = firework.getFireworkMeta();
+
+        // Large Ball Effect: Yellow, Orange, Gray with sparkles
+        FireworkEffect largeBallEffect = FireworkEffect.builder()
+                .with(FireworkEffect.Type.BALL_LARGE)
+                .withColor(Color.fromRGB(211, 211, 211), Color.AQUA, Color.fromRGB(57,68,188))
+                .withFlicker()
+                .build();
+
+        // Small Ball Effect: Red
+        FireworkEffect smallBallEffect = FireworkEffect.builder()
+                .with(FireworkEffect.Type.BALL)
+                .withColor( Color.WHITE)
+                .build();
+
+        // Add both effects
+        meta.addEffect(largeBallEffect);
+        meta.addEffect(smallBallEffect);
+        meta.setPower(1);
+
+        firework.setFireworkMeta(meta);
+
+        // Detonate instantly
+        Bukkit.getScheduler().runTaskLater(Objects.requireNonNull(Bukkit.getPluginManager().getPlugin("PlaceholderAPI")), firework::detonate, 1L);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    // end stinger
+
+    private enum ShrinkHitType { AIR, BLOCK, LIVING, PLAYER }
+
+    private static final class ShrinkHit {
+        final ShrinkHitType type;
+        final org.bukkit.Location end;            // where the beam stops (hitpos/center/end)
+        final org.bukkit.block.Block hitBlock;    // only for BLOCK
+        final org.bukkit.entity.Entity hitEntity; // only for LIVING/PLAYER
+
+        ShrinkHit(ShrinkHitType type, org.bukkit.Location end, org.bukkit.block.Block b, org.bukkit.entity.Entity e) {
+            this.type = type;
+            this.end = end;
+            this.hitBlock = b;
+            this.hitEntity = e;
+        }
+    }
+
+    private void stopShrinkRay(java.util.UUID shooterId) {
+        org.bukkit.scheduler.BukkitTask t = shrinkRayTasks.remove(shooterId);
+        if (t != null) t.cancel();
+    }
+
+    private final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> shrinkRayTasks =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private String startShrinkRay(org.bukkit.entity.Player shooter, double range, int durationTicks, int intervalTicks) {
+        if (shooter == null || !shooter.isOnline()) return "none";
+        if (range <= 0) return "none";
+        if (durationTicks <= 0) durationTicks = 1;
+        if (intervalTicks < 1) intervalTicks = 1;
+
+        // stop any existing ray for this shooter
+        stopShrinkRay(shooter.getUniqueId());
+
+        // compute FIRST hit now (for return value)
+        ShrinkHit first = computeShrinkHit(shooter, range);
+
+        // schedule the effect + trigger spam for DURATION/INTERVAL
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int runs = (int) Math.ceil(durationTicks / (double) intervalTicks);
+        final int[] remaining = new int[]{ runs };
+
+        final java.util.UUID sid = shooter.getUniqueId();
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Player p = org.bukkit.Bukkit.getPlayer(sid);
+            if (p == null || !p.isOnline()) {
+                if (holder[0] != null) holder[0].cancel();
+                shrinkRayTasks.remove(sid);
+                return;
+            }
+
+            ShrinkHit hit = computeShrinkHit(p, range);
+
+            // Beam line effect (always)
+            org.bukkit.Location eye = p.getLocation().add(0, p.getHeight() / 2 , 0);
+            org.bukkit.World w = eye.getWorld();
+            if (w != null && hit.end != null && hit.end.getWorld() != null && w.equals(hit.end.getWorld())) {
+                spawnLineAndClouds(w, eye, hit.end);
+            }
+
+            // Stop-at-hit extra visuals + trigger
+            if (hit.type == ShrinkHitType.PLAYER) {
+                // stop at entity, do BALL + lines
+                runParticleBall(hit.hitEntity.getUniqueId());
+
+                // trigger (every interval), payload = player name
+                String payload = ((org.bukkit.entity.Player) hit.hitEntity).getName();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitPLAYER " + payload + " " + System.currentTimeMillis());
+
+            } else if (hit.type == ShrinkHitType.LIVING) {
+                // stop at entity, do BALL + lines
+                runParticleBall(hit.hitEntity.getUniqueId());
+
+                // trigger (every interval), payload = uuid
+                String payload = hit.hitEntity.getUniqueId().toString();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitLIVINGENTITY " + payload+ " " + System.currentTimeMillis());
+
+            } else if (hit.type == ShrinkHitType.BLOCK) {
+                // block in the way: JUST the lines (no ball), implied radius 0.5
+                runParticleLinesOnlyAt(hit.end, 0.5, null);
+
+                // trigger (every interval), payload = world,x,y,z (single token)
+                org.bukkit.block.Block b = hit.hitBlock;
+                String payload = b.getWorld().getName() + "," + b.getX() + "," + b.getY() + "," + b.getZ();
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "ei run-custom-trigger player:" + p.getName() + " trigger:ShrinkRayHitBLOCK " + payload+ " " + System.currentTimeMillis());
+
+            } else {
+                // AIR: JUST the lines, implied radius 0.25 (no trigger)
+                runParticleLinesOnlyAt(hit.end, 0.25, p); // optional vibration-to-player
+            }
+
+            remaining[0]--;
+            if (remaining[0] <= 0) {
+                if (holder[0] != null) holder[0].cancel();
+                shrinkRayTasks.remove(sid);
+            }
+        }, 0L, intervalTicks);
+
+        shrinkRayTasks.put(sid, holder[0]);
+
+        // Return value (based on FIRST hit right now)
+        if (first.type == ShrinkHitType.AIR) return "none";
+        if (first.type == ShrinkHitType.BLOCK) {
+            org.bukkit.block.Block b = first.hitBlock;
+            return b.getWorld().getName() + " " + b.getX() + " " + b.getY() + " " + b.getZ();
+        }
+        if (first.type == ShrinkHitType.PLAYER) {
+            return ((org.bukkit.entity.Player) first.hitEntity).getName();
+        }
+        // LIVING
+        return first.hitEntity.getUniqueId().toString();
+    }
+
+
+    private ShrinkHit computeShrinkHit(org.bukkit.entity.Player p, double range) {
+        org.bukkit.Location eye = p.getEyeLocation();
+        org.bukkit.World w = eye.getWorld();
+        if (w == null) {
+            return new ShrinkHit(ShrinkHitType.AIR, eye, null, null);
+        }
+
+        org.bukkit.util.Vector dir = eye.getDirection().normalize();
+
+        // Find nearest BLOCK hit first
+        org.bukkit.util.RayTraceResult blockHit = null;
+        try {
+            blockHit = w.rayTraceBlocks(eye, dir, range, org.bukkit.FluidCollisionMode.NEVER, true);
+        } catch (Throwable ignored) {}
+
+        double maxEntityDist = range;
+        if (blockHit != null && blockHit.getHitPosition() != null) {
+            maxEntityDist = Math.max(0.0, blockHit.getHitPosition().clone().subtract(eye.toVector()).length() - 0.01);
+        }
+
+        // Now find ENTITY hit, but only up to before the block
+        org.bukkit.util.RayTraceResult entHit = null;
+        try {
+            entHit = w.rayTraceEntities(eye, dir, maxEntityDist, e ->
+                    e != null && e.isValid() && !e.isDead() && e != p && (e instanceof org.bukkit.entity.LivingEntity));
+        } catch (Throwable ignored) {}
+
+        if (entHit != null && entHit.getHitEntity() != null) {
+            org.bukkit.entity.Entity e = entHit.getHitEntity();
+            org.bukkit.Location end = getEntityCenter(e);
+
+            if (e instanceof org.bukkit.entity.Player) {
+                return new ShrinkHit(ShrinkHitType.PLAYER, end, null, e);
+            }
+            return new ShrinkHit(ShrinkHitType.LIVING, end, null, e);
+        }
+
+        if (blockHit != null && blockHit.getHitBlock() != null) {
+            org.bukkit.block.Block b = blockHit.getHitBlock();
+            org.bukkit.Location end;
+            if (blockHit.getHitPosition() != null) {
+                org.bukkit.util.Vector v = blockHit.getHitPosition();
+                end = new org.bukkit.Location(w, v.getX(), v.getY(), v.getZ());
+            } else {
+                end = b.getLocation().add(0.5, 0.5, 0.5);
+            }
+            return new ShrinkHit(ShrinkHitType.BLOCK, end, b, null);
+        }
+
+        // AIR
+        org.bukkit.Location end = eye.clone().add(dir.multiply(range));
+        return new ShrinkHit(ShrinkHitType.AIR, end, null, null);
+    }
+    private void runParticleLinesOnlyAt(org.bukkit.Location center, double radius, org.bukkit.entity.Entity vibrationTargetOrNull) {
+        if (center == null || center.getWorld() == null) return;
+        org.bukkit.World w = center.getWorld();
+
+        // Pick 5 random directions ONCE
+        final org.bukkit.util.Vector[] dirs = new org.bukkit.util.Vector[5];
+        for (int i = 0; i < dirs.length; i++) dirs[i] = randomUnitVector();
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int totalTicks = 3;
+        final int[] tick = new int[]{0};
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (tick[0] >= totalTicks) { holder[0].cancel(); return; }
+
+            double frac = (totalTicks <= 1) ? 1.0 : (tick[0] / (double) (totalTicks - 1)); // 0 -> 1
+            double dist = (2.0 - frac) * radius; // 2R down to R
+
+            for (org.bukkit.util.Vector d : dirs) {
+                org.bukkit.Location p = center.clone().add(d.getX() * dist, d.getY() * dist, d.getZ() * dist);
+
+
+                // Optional vibration
+                if (vibrationTargetOrNull != null) {
+                    try {
+                        final double VIB_DIST = 5.0;
+
+// start point is always 5 blocks from the target center, along the same beam direction
+                        org.bukkit.Location vibStart = center.clone().add(d.getX() * VIB_DIST, d.getY() * VIB_DIST, d.getZ() * VIB_DIST);
+
+                        org.bukkit.Vibration vib = new org.bukkit.Vibration(
+                                vibStart,
+                                new org.bukkit.Vibration.Destination.EntityDestination(vibrationTargetOrNull),
+                                7
+                        );
+                        w.spawnParticle(org.bukkit.Particle.VIBRATION, vibStart, 1, 0, 0, 0, 0, vib);
+                    } catch (Throwable ignored) {}
+                }
+            }
+
+            tick[0]++;
+        }, 0L, 1L);
+    }
+
+
+
+    private void runParticleBall(UUID targetId) {
+        org.bukkit.entity.Entity target = org.bukkit.Bukkit.getEntity(targetId);
+        if (target == null || !target.isValid() || target.isDead()) return;
+
+        org.bukkit.World w = target.getWorld();
+        if (w == null) return;
+
+        // === BALL instantly ===
+        org.bukkit.Location center = getEntityCenter(target);
+        double r = getSphereRadius(target);
+
+        // 20 randomized particles around the sphere surface
+        for (int i = 0; i < 20; i++) {
+            org.bukkit.util.Vector dir = randomUnitVector();
+            org.bukkit.Location at = center.clone().add(dir.getX() * r, dir.getY() * r, dir.getZ() * r);
+
+            int pick = RNG.nextInt(4);
+            switch (pick) {
+                case 0 -> w.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, at, 1, 0, 0, 0, 0);
+                case 1 -> w.spawnParticle(org.bukkit.Particle.WITCH,         at, 1, 0, 0, 0, 0);
+                default -> w.spawnParticle(org.bukkit.Particle.ELECTRIC_SPARK, at, 1, 0, 0, 0, 0);
+            }
+        }
+
+        // === 7 ticks of 5 "lines" moving from 2R -> R ===
+        // Pick 5 random directions ONCE so they look like distinct beams
+        final org.bukkit.util.Vector[] dirs = new org.bukkit.util.Vector[5];
+        for (int i = 0; i < dirs.length; i++) dirs[i] = randomUnitVector();
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int totalTicks = 3;
+        final int[] tick = new int[]{0};
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Entity t = org.bukkit.Bukkit.getEntity(targetId);
+            if (t == null || !t.isValid() || t.isDead()) { holder[0].cancel(); return; }
+
+            org.bukkit.World ww = t.getWorld();
+            if (ww == null) { holder[0].cancel(); return; }
+
+            // Recompute center + radius each tick (accounts for movement + size modifiers)
+            org.bukkit.Location c = getEntityCenter(t);
+            double radius = getSphereRadius(t);
+
+            // 0..6 inclusive
+            int iTick = tick[0];
+            double frac = (totalTicks <= 1) ? 1.0 : (iTick / (double) (totalTicks - 1)); // 0 -> 1
+            double dist = (2.0 - frac) * radius; // 2R down to R
+
+            for (org.bukkit.util.Vector d : dirs) {
+                org.bukkit.Location p = c.clone().add(d.getX() * dist, d.getY() * dist, d.getZ() * dist);
+
+                // "one particle per tick" position, but with multiple particle TYPES at that spot:
+                ww.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, p, 1, 0, 0, 0, 0);
+
+                // Vibration particle aimed at the target entity
+                try {
+                    final double VIB_DIST = 5.0;
+
+// start point is always 5 blocks from the target center, along the same beam direction
+                    org.bukkit.Location vibStart = c.clone().add(d.getX() * VIB_DIST, d.getY() * VIB_DIST, d.getZ() * VIB_DIST);
+
+                    org.bukkit.Vibration vib = new org.bukkit.Vibration(
+                            vibStart,
+                            new org.bukkit.Vibration.Destination.EntityDestination(t),
+                            7
+                    );
+                    ww.spawnParticle(org.bukkit.Particle.VIBRATION, vibStart, 1, 0, 0, 0, 0, vib);
+
+                } catch (Throwable ignored) {
+                    // If VIBRATION isn't available on a server build, just skip it
+                }
+            }
+
+            tick[0]++;
+            if (tick[0] >= totalTicks) holder[0].cancel();
+        }, 0L, 1L);
+    }
+
+
+    private double getSphereRadius(org.bukkit.entity.Entity e) {
+        // Sphere radius based on live dimensions (accounts for scaling/size modifiers)
+        double base = Math.max(e.getWidth(), e.getHeight()) / 2.0;
+        // slight padding so it reads clearly
+        return Math.max(0.35, base * 1.10);
+    }
+
+    private org.bukkit.util.Vector randomUnitVector() {
+        // uniform on sphere
+        double z = (RNG.nextDouble() * 2.0) - 1.0;      // [-1,1]
+        double t = RNG.nextDouble() * (Math.PI * 2.0);  // [0,2pi)
+        double r = Math.sqrt(Math.max(0.0, 1.0 - z*z));
+        return new org.bukkit.util.Vector(r * Math.cos(t), z, r * Math.sin(t));
+    }
+
+    private void startParticleLine(UUID sourceId, UUID targetId, int ticksTotal, int ticksInterval) {
+        if (ticksTotal <= 0) return;
+        if (ticksInterval < 1) ticksInterval = 1;
+
+        org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        final int runs = (int) Math.ceil(ticksTotal / (double) ticksInterval);
+        final int[] remaining = new int[]{ runs };
+
+        final org.bukkit.scheduler.BukkitTask[] holder = new org.bukkit.scheduler.BukkitTask[1];
+
+        holder[0] = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            org.bukkit.entity.Entity src = org.bukkit.Bukkit.getEntity(sourceId);
+            org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(targetId);
+
+            if (src == null || tgt == null || !src.isValid() || !tgt.isValid() || src.isDead() || tgt.isDead()) {
+                remaining[0] = 0;
+            } else {
+                org.bukkit.World w = src.getWorld();
+                if (w == null || tgt.getWorld() == null || !w.equals(tgt.getWorld())) {
+                    remaining[0] = 0;
+                } else {
+                    org.bukkit.Location a = getEntityCenter(src);
+                    org.bukkit.Location b = getEntityCenter(tgt);
+                    spawnLineAndClouds(w, a, b);
+
+                    remaining[0]--;
+                }
+            }
+
+            if (remaining[0] <= 0) {
+                if (holder[0] != null) holder[0].cancel();
+            }
+        }, 0L, ticksInterval);
+    }
+
+
+    /** Spawns ENCHANTED_HIT line (2 per block) + random cloud every 1 block within 0.5 delta. */
+    private void spawnLineAndClouds(org.bukkit.World w, org.bukkit.Location a, org.bukkit.Location b) {
+        org.bukkit.util.Vector av = a.toVector();
+        org.bukkit.util.Vector bv = b.toVector();
+        org.bukkit.util.Vector diff = bv.clone().subtract(av);
+
+        double len = diff.length();
+        if (len < 0.0001) return;
+
+        org.bukkit.util.Vector dir = diff.clone().multiply(1.0 / len);
+
+        // 2 particles per block => step = 0.5
+        double step = 1;
+
+        // Line particles
+        for (double d = 0.0; d <= len; d += step) {
+            org.bukkit.util.Vector p = av.clone().add(dir.clone().multiply(d));
+            w.spawnParticle(org.bukkit.Particle.ENCHANTED_HIT,
+                    p.getX(), p.getY(), p.getZ(),
+                    1, 0, 0, 0, 0);
+        }
+
+        // Cloud particles: every 1 block
+        int blocks = (int) Math.floor(len);
+        for (int i = 0; i <= blocks; i++) {
+            org.bukkit.util.Vector base = av.clone().add(dir.clone().multiply(i));
+
+            org.bukkit.util.Vector off = randomOffsetInSphere(0.5);
+            org.bukkit.util.Vector at = base.clone().add(off);
+
+            int pick = RNG.nextInt(3);
+            if (pick == 0) {
+                // white -> aqua dust transition, size 0.5
+                // Requires modern Spigot (Particle.DustTransition + DUST_COLOR_TRANSITION)
+                org.bukkit.Particle.DustTransition dt =
+                        new org.bukkit.Particle.DustTransition(
+                                org.bukkit.Color.fromRGB(255, 255, 255),
+                                org.bukkit.Color.fromRGB(0, 255, 255),
+                                0.5f
+                        );
+                w.spawnParticle(org.bukkit.Particle.DUST_COLOR_TRANSITION,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0, dt);
+            } else if (pick == 1) {
+                w.spawnParticle(org.bukkit.Particle.ELECTRIC_SPARK,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0);
+            } else {
+                w.spawnParticle(org.bukkit.Particle.GLOW,
+                        at.getX(), at.getY(), at.getZ(),
+                        1, 0, 0, 0, 0);
+            }
+        }
+    }
+
+    private org.bukkit.Location getEntityCenter(org.bukkit.entity.Entity e) {
+        org.bukkit.Location l = e.getLocation().clone();
+        // “center” approximation: half height above feet
+        double y = (e instanceof org.bukkit.entity.LivingEntity)
+                ? ((org.bukkit.entity.LivingEntity) e).getHeight() / 2.0
+                : 0.5; // fallback
+        l.add(0, y, 0);
+        return l;
+    }
+
+    /** Uniform-ish random point inside radius sphere */
+    private org.bukkit.util.Vector randomOffsetInSphere(double radius) {
+        while (true) {
+            double x = (RNG.nextDouble() * 2 - 1) * radius;
+            double y = (RNG.nextDouble() * 2 - 1) * radius;
+            double z = (RNG.nextDouble() * 2 - 1) * radius;
+            if ((x*x + y*y + z*z) <= radius*radius) {
+                return new org.bukkit.util.Vector(x, y, z);
+            }
+        }
+    }    private static final java.util.Random RNG = new java.util.Random();
+
+
+
+
     
     
     private static void disableStingerAllFor(UUID pid) {
@@ -2121,54 +3365,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // That map is for missile particle pass-off (trackv4 / ParticleCenterToCenter), not lock mode.
     }
 
-    private static @org.jetbrains.annotations.NotNull String onStingerLockParse(
-            org.bukkit.entity.Player p,
-            String argsRaw
-    ) {
-        // argsRaw: MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV
-        final String[] a = argsRaw.split("`", -1);
-        if (a.length < 7) {
-            return "§cUsage: %Archistructure_stingerLock_MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV%";
-        }
-
-        StingerMode mode;
-        try { mode = StingerMode.valueOf(a[0].trim().toUpperCase(java.util.Locale.ROOT)); }
-        catch (Exception e) { mode = StingerMode.ALL; }
-
-        int interval = parseIntSafe(a[1], 5, 1, 40);
-        int nIntervals = parseIntSafe(a[2], 4, 1, 40);
-        double range = parseDoubleSafe(a[3], 64.0, 1.0, 256.0);
-        boolean passThru = parseBoolSafe(a[4], true);
-        boolean doppler = parseBoolSafe(a[5], true);
-        double fov = parseDoubleSafe(a[6], 45.0, 5.0, 180.0);
-
-        final UUID pid = p.getUniqueId();
-        final StingerLockState st = STINGER_LOCKS.computeIfAbsent(pid, StingerLockState::new);
-
-        // Update config for the running LOCK task to pick up immediately
-        st.mode = mode;
-        st.intervalTicks = interval;
-        st.nIntervals = nIntervals;
-        st.range = range;
-        st.passThruBlocks = passThru;
-        st.doppler = doppler;
-        st.fovDeg = fov;
-
-        // Ensure lock task exists
-        ensureLockTaskRunning(p);
-
-        // Restart reset queue (this is the thing you clarified)
-        restartResetQueue(p, interval, nIntervals);
-
-        // Return: locked name/type or Not Locked
-        if (st.fullyLocked && st.currentTargetId != null) {
-            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
-            if (e instanceof org.bukkit.entity.Player tp) return "§c" + tp.getName();
-            if (e != null) return e.getType().name();
-        }
-        if( st.currentTargetId != null ) return "§6Locking...";
-        return "§aNot Locked";
-    }
+    
 
     private static @org.jetbrains.annotations.NotNull String onStingerChangeLock(org.bukkit.entity.Player p) {
         StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
@@ -2184,186 +3381,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return "ok";
     }
 
-    private static void ensureMutualReveal(org.bukkit.entity.Player shooter, StingerLockState st, org.bukkit.entity.Player target) {
-        // Refresh every 5 ticks (tweak to 7 if you want)
-        if (st.localTick < st.nextRevealAtLocalTick) return;
-        st.nextRevealAtLocalTick = st.localTick + 5;
-
-        // If target changed, remove old reveal first
-        if (st.revealOn && st.lastRevealTargetPlayerId != null && !st.lastRevealTargetPlayerId.equals(target.getUniqueId())) {
-            removeRevealIfAny(shooter, st);
-        }
-
-        // Target sees shooter glowing (lock reveal)
-        tyounwfydtuhk2foypbdvhp2y3ldb(target, shooter, true);
-
-        // Shooter sees target glowing (your lock highlight)
-        tyounwfydtuhk2foypbdvhp2y3ldb(shooter, target, true);
-
-        st.lastRevealTargetPlayerId = target.getUniqueId();
-        st.revealOn = true;
-    }
 // ===============================
 // Tasks
 // ===============================
 
-    private static void ensureLockTaskRunning(org.bukkit.entity.Player p) {
-        final UUID pid = p.getUniqueId();
-        if (STINGER_LOCK_TASKS.containsKey(pid)) return;
-
-        final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
-                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
-                "PlaceholderAPI plugin ref missing"
-        );
-
-        org.bukkit.scheduler.BukkitTask task = org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            StingerLockState st = STINGER_LOCKS.get(pid);
-            org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(pid);
-
-            if (st == null || pl == null || !pl.isOnline()) {
-                cleanup(pid);
-                return;
-            }
-
-            st.localTick++;
-
-            // Expiry: if no reset pings happened recently, expire
-            if (st.expiresAtTick > 0 && st.localTick > st.expiresAtTick) {
-                // expire quietly
-                cleanup(pid);
-                return;
-            }
-
-            // Every tick: use current FOV (direction) + drive lock timer
-            final boolean doScan = (st.intervalTicks <= 1) || (st.localTick % st.intervalTicks == 0);
-
-            if (doScan) {
-                // Validate existing target LOS/FOV, else reacquire
-                UUID cur = st.currentTargetId;
-
-                org.bukkit.entity.Entity curEnt = (cur != null) ? org.bukkit.Bukkit.getEntity(cur) : null;
-                if (!isValidTargetFor(pl, st, curEnt)) {
-                    if (curEnt != null) st.lastTargetLoc = curEnt.getLocation().clone();
-                    clearLock(pl, st, true); // we'll update clearLock below to call st.clearTarget(...)
-                    // reacquire below
-                }
-
-                if (st.currentTargetId == null) {
-                    org.bukkit.entity.Entity next = pickTarget(pl, st);
-                    if (next != null) {
-                        st.setTarget(next); // resets progress + dopplerPitch + beep schedule
-                    }
-                }
-
-            }
-
-            // Render + sound + completion
-            if (st.currentTargetId != null) {
-
-                final int LOCK_GRACE_TICKS = 20; // 1 second
-
-                org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(st.currentTargetId);
-
-// 1) Hard invalid → clear immediately
-                if (!isBaseValidTargetFor(pl, st, tgt)) {
-                    if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
-                    drawLostLineOnce(pl, st);
-                    clearLock(pl, st, true);
-                    return;
-                }
-
-// 2) Base valid, but maybe not visible
-                final boolean visible = canSeeTargetFor(pl, st, tgt);
-
-                if (!visible) {
-                    if (tgt != null) st.lastTargetLoc = tgt.getLocation().clone();
-
-                    // Only apply grace after FULL lock
-                    if (st.fullyLocked) {
-                        // Start grace if not already started
-                        if (st.graceUntilTick <= 0) {
-                            st.graceUntilTick = st.localTick + LOCK_GRACE_TICKS;
-                        }
-
-                        // Still within grace: KEEP LOCK (do not clear)
-                        if (st.localTick <= st.graceUntilTick) {
-                            // optional: show the gray lost line occasionally while in grace
-                            // drawLostLineOnce(pl, st);  // or throttle with a tick gate if you want
-                            return; // keep currentTargetId intact
-                        }
-
-                        // Grace expired → clear
-                        drawLostLineOnce(pl, st);
-                        clearLock(pl, st, true);
-                        return;
-                    }
-
-                    // Not fully locked yet → strict behavior (same as before)
-                    drawLostLineOnce(pl, st);
-                    clearLock(pl, st, true);
-                    return;
-                }
-
-// 3) Visible again → cancel grace so player can “look away for 1s” again later
-                if (st.graceUntilTick > 0) st.graceUntilTick = 0;
-
-                // Reveal glow does NOT require full lock (as long as we currently have a valid target)
-                if (tgt instanceof org.bukkit.entity.Player lockedPlayer) {
-                    ensureMutualReveal(pl, st, lockedPlayer);
-                } else {
-                    // If we were previously revealing a player but now target isn't a player
-                    removeRevealIfAny(pl, st);
-                }
-                
-
-                // progress toward full lock (3 seconds = 60 ticks)
-                if (!st.fullyLocked) {
-                    st.progressTicks++;
-                    if (st.progressTicks >= 60) {
-                        st.progressTicks = 60;
-                        st.fullyLocked = true;
-
-                        // remember last full lock
-                        st.lastFullLockId = st.currentTargetId;
-                        if (st.currentTargetId != null) {
-                            STINGER_LAST_FULL_LOCK.put(st.playerId, st.currentTargetId);
-                            STINGER_LAST_FULL_LOCK_PERSIST.put(pl.getUniqueId(), st.currentTargetId);
-                        }
-
-                        // apply reveal glow: locked PLAYER sees shooter glowing
-                        if (tgt instanceof org.bukkit.entity.Player lockedPlayer) {
-                            // viewer = lockedPlayer, target = shooter (pl)
-                            // Your helper: tyounwfydtuhk2foypbdvhp2y3ldb(viewer, target, glowing)
-
-                            st.lastRevealTargetPlayerId = lockedPlayer.getUniqueId();
-                            st.revealOn = true;
-                        }
-                    }
-                } else {
-                    // keep reveal active “as long as target is locked”
-                    if (tgt instanceof org.bukkit.entity.Player lockedPlayer) {
-                        if (!lockedPlayer.getUniqueId().equals(st.lastRevealTargetPlayerId) || !st.revealOn) {
-
-                            st.lastRevealTargetPlayerId = lockedPlayer.getUniqueId();
-                            st.revealOn = true;
-                        }
-                    }
-                }
-
-                // particle line to viewer only
-                drawLockLine(pl, tgt, st);
-
-                // doppler sound (viewer only)
-                if (st.doppler) maybePlayDoppler(pl, st);
-            } else {
-                // no target: if we had reveal on, remove it
-                removeRevealIfAny(pl, st);
-            }
-
-        }, 0L, 1L);
-
-        STINGER_LOCK_TASKS.put(pid, task);
-    }
+    
 
     private static void restartResetQueue(org.bukkit.entity.Player p, int intervalTicks, int nIntervals) {
         final UUID pid = p.getUniqueId();
@@ -2400,65 +3422,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // Targeting rules
 // ===============================
 
-    private static org.bukkit.entity.Entity pickTarget(org.bukkit.entity.Player pl, StingerLockState st) {
-        
-        
-        final org.bukkit.Location eye = pl.getEyeLocation();
-        final org.bukkit.World w = eye.getWorld();
-        if (w == null) return null;
-
-        final double r = st.range;
-        final java.util.Collection<org.bukkit.entity.Entity> near =
-                w.getNearbyEntities(eye, r, r, r, e -> e instanceof org.bukkit.entity.LivingEntity && e.isValid() && !e.isDead());
-
-        final org.bukkit.scoreboard.Team myTeam = getTeam(pl);
-
-        java.util.List<org.bukkit.entity.Entity> nonTeamPlayers = new java.util.ArrayList<>();
-        java.util.List<org.bukkit.entity.Entity> players = new java.util.ArrayList<>();
-        java.util.List<org.bukkit.entity.Entity> hostiles = new java.util.ArrayList<>();
-        java.util.List<org.bukkit.entity.Entity> passives = new java.util.ArrayList<>();
-
-        for (org.bukkit.entity.Entity e : near) {
-            if (isLockoutActive(pl.getUniqueId(), e.getUniqueId())) continue;
-
-
-            if (e.getUniqueId().equals(pl.getUniqueId())) continue;
-            if (!isAllowedByMode(st.mode, e)) continue;
-            if (!inFov(pl, e, st.fovDeg)) continue;
-            if (!hasAllowedLineOfSight(pl, e, st.passThruBlocks)) continue;
-
-            // ignore queue unless we must reuse
-            if (st.switchedQueue.contains(e.getUniqueId())) continue;
-
-            if (e instanceof org.bukkit.entity.Player pe) {
-                if (myTeam != null) {
-                    org.bukkit.scoreboard.Team his = getTeam(pe);
-                    if (his == null || !his.equals(myTeam)) nonTeamPlayers.add(e);
-                    else players.add(e);
-                } else {
-                    // “NO-TEAM => skip the non-team bucket”
-                    players.add(e);
-                }
-            } else if (isHostile(e)) hostiles.add(e);
-            else passives.add(e);
-        }
-
-        org.bukkit.entity.Entity chosen =
-                firstOrNull(nonTeamPlayers, players, hostiles, passives);
-
-        // If all candidates were in the switchedQueue, pop one and allow it
-        if (chosen == null) {
-            UUID freed = st.switchedQueue.pollFirst();
-            if (freed != null) {
-                org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(freed);
-                if (e != null && isAllowedByMode(st.mode, e) && inFov(pl, e, st.fovDeg) && hasAllowedLineOfSight(pl, e, st.passThruBlocks)) {
-                    chosen = e;
-                }
-            }
-        }
-
-        return chosen;
-    }
 
     private static boolean isValidTargetFor(org.bukkit.entity.Player pl, StingerLockState st, org.bukkit.entity.Entity e) {
         if (e == null) return false;
@@ -2473,36 +3436,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return hasAllowedLineOfSight(pl, e, st.passThruBlocks);
     }
 
-    private static boolean isAllowedByMode(StingerMode mode, org.bukkit.entity.Entity e) {
-        switch (mode) {
-            case PLAYERS:  return e instanceof org.bukkit.entity.Player;
-            case HOSTILES: return !(e instanceof org.bukkit.entity.Player) && isHostile(e);
-            case ENTITIES:     return !(e instanceof org.bukkit.entity.Player);
-            case ALL:          return true;
-        }
-        return true;
-    }
-
-    private static boolean isHostile(org.bukkit.entity.Entity e) {
-        return (e instanceof org.bukkit.entity.Monster)
-                || (e instanceof org.bukkit.entity.Slime)
-                || (e instanceof org.bukkit.entity.Phantom)
-                || (e instanceof org.bukkit.entity.Shulker);
-    }
-
-    private static boolean inFov(org.bukkit.entity.Player pl, org.bukkit.entity.Entity e, double fovDeg) {
-        final org.bukkit.Location eye = pl.getEyeLocation();
-        final org.bukkit.util.Vector dir = eye.getDirection().normalize();
-
-        org.bukkit.Location t = e.getLocation().clone();
-        try { t.add(0, e.getHeight() * 0.5, 0); } catch (Throwable ignored) {}
-
-        final org.bukkit.util.Vector to = t.toVector().subtract(eye.toVector()).normalize();
-        double dot = dir.dot(to);
-        dot = Math.max(-1.0, Math.min(1.0, dot));
-        double ang = Math.toDegrees(Math.acos(dot));
-        return ang <= (fovDeg * 0.5);
-    }
 
     private static boolean hasAllowedLineOfSight(org.bukkit.entity.Player pl, org.bukkit.entity.Entity e, boolean passThru) {
         org.bukkit.Location eye = pl.getEyeLocation();
@@ -2536,21 +3469,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         return isPassThrough(m);
     }
 
-    private static boolean isPassThrough(org.bukkit.Material m) {
-        if (isAirLike(m)) return true;
-        // allow many non-solid/passables
-        if (!m.isSolid()) return true;
 
-        // explicitly allow some common “passable but weird” blocks if needed
-        return m == org.bukkit.Material.WATER
-                || m == org.bukkit.Material.BUBBLE_COLUMN
-                || m == org.bukkit.Material.COBWEB
-                || m == org.bukkit.Material.STRING;
-    }
-
-    private static boolean isAirLike(org.bukkit.Material m) {
-        return m == org.bukkit.Material.AIR || m == org.bukkit.Material.CAVE_AIR || m == org.bukkit.Material.VOID_AIR;
-    }
 
 // ===============================
 // Visual/audio
@@ -2591,25 +3510,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
     }
 
-    private static void drawLostLineOnce(org.bukkit.entity.Player viewer, StingerLockState st) {
-        if (st.lastTargetLoc == null) return;
-        org.bukkit.Location a = viewer.getEyeLocation().clone();
-        org.bukkit.Location b = st.lastTargetLoc.clone();
-
-        org.bukkit.util.Vector ab = b.toVector().subtract(a.toVector());
-        double len = ab.length();
-        if (len < 0.001) return;
-
-        int n = Math.max(2, Math.min(25, (int) Math.ceil(len * 3)));
-        org.bukkit.util.Vector step = ab.multiply(1.0 / (n - 1));
-
-        org.bukkit.Particle.DustOptions dust = new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(160,160,160), 0.45f);
-        org.bukkit.Location cur = a.clone();
-        for (int i = 0; i < n; i++) {
-            viewer.spawnParticle(org.bukkit.Particle.DUST, cur, 1, 0, 0, 0, 0.0, dust);
-            cur.add(step);
-        }
-    }
 
     private static void maybePlayDoppler(Player viewer, StingerLockState st) {
         final int REQUIRED_LOCK_TICKS = 60; // 3s
@@ -2650,104 +3550,12 @@ public class ExampleExpansion extends PlaceholderExpansion {
         viewer.playSound(viewer.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, st.dopplerPitch);
     }
 
-    private static void clearLock(org.bukkit.entity.Player shooter, StingerLockState st, boolean removeReveal) {
-        // capture last loc before we drop the id
-        org.bukkit.Location lastLoc = st.lastTargetLoc;
-        if (st.currentTargetId != null) {
-            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
-            if (e != null) lastLoc = e.getLocation().clone();
-        }
-
-        // reset target + lock progress + doppler (THIS fixes the pitch carryover)
-        st.clearTarget(lastLoc);
-
-        if (removeReveal) removeRevealIfAny(shooter, st);
-    }
 
 
-    private static void removeRevealIfAny(org.bukkit.entity.Player shooter, StingerLockState st) {
-        if (st.revealOn && st.lastRevealTargetPlayerId != null) {
-            org.bukkit.entity.Player viewer = org.bukkit.Bukkit.getPlayer(st.lastRevealTargetPlayerId);
-            if (viewer != null && viewer.isOnline()) {
-                tyounwfydtuhk2foypbdvhp2y3ldb(viewer, shooter, false);
-                tyounwfydtuhk2foypbdvhp2y3ldb(shooter, viewer, false);
-
-            }
-        }
-        st.revealOn = false;
-        st.lastRevealTargetPlayerId = null;
-    }
-
-    private static void cleanup(UUID pid) {
-        // cancel reset queue
-        org.bukkit.scheduler.BukkitTask q = STINGER_RESET_QUEUES.remove(pid);
-        if (q != null) q.cancel();
-
-        // cancel lock task
-        org.bukkit.scheduler.BukkitTask t = STINGER_LOCK_TASKS.remove(pid);
-        if (t != null) t.cancel();
-
-        // remove state (also remove glow if needed)
-        StingerLockState st = STINGER_LOCKS.remove(pid);
-        org.bukkit.entity.Player shooter = org.bukkit.Bukkit.getPlayer(pid);
-        if (st != null && shooter != null) {
-            removeRevealIfAny(shooter, st);
-        }
-    }
-
-    private static final java.util.concurrent.ConcurrentHashMap<String, Long> STINGER_LOCKOUT_UNTIL_MS =
-            new java.util.concurrent.ConcurrentHashMap<>();
-
-    private static String lockoutKey(java.util.UUID shooter, java.util.UUID target) {
-        return shooter.toString() + "|" + target.toString();
-    }
-
-    private static boolean isLockoutActive(java.util.UUID shooter, java.util.UUID target) {
-        Long until = STINGER_LOCKOUT_UNTIL_MS.get(lockoutKey(shooter, target));
-        return until != null && until > System.currentTimeMillis();
-    }
-
-    private static void addLockoutTicks(java.util.UUID shooter, java.util.UUID target, int ticks) {
-        if (ticks <= 0) return;
-        long ms = System.currentTimeMillis() + (long) ticks * 50L;
-        STINGER_LOCKOUT_UNTIL_MS.put(lockoutKey(shooter, target), ms);
-    }
 
 
-    private static int parseIntSafe(String s, int def, int min, int max) {
-        try {
-            int v = Integer.parseInt(s.trim());
-            return Math.max(min, Math.min(max, v));
-        } catch (Exception e) { return def; }
-    }
-    private static double parseDoubleSafe(String s, double def, double min, double max) {
-        try {
-            double v = Double.parseDouble(s.trim());
-            return Math.max(min, Math.min(max, v));
-        } catch (Exception e) { return def; }
-    }
-    private static boolean parseBoolSafe(String s, boolean def) {
-        if (s == null) return def;
-        String v = s.trim().toLowerCase(java.util.Locale.ROOT);
-        if (v.equals("true") || v.equals("1") || v.equals("yes")) return true;
-        if (v.equals("false") || v.equals("0") || v.equals("no")) return false;
-        return def;
-    }
-    private static int clamp255(int v) { return Math.max(0, Math.min(255, v)); }
 
-    @SafeVarargs
-    private static org.bukkit.entity.Entity firstOrNull(java.util.List<org.bukkit.entity.Entity>... lists) {
-        for (java.util.List<org.bukkit.entity.Entity> l : lists) if (l != null && !l.isEmpty()) return l.get(0);
-        return null;
-    }
 
-    private static org.bukkit.scoreboard.Team getTeam(org.bukkit.entity.Player p) {
-        try {
-            org.bukkit.scoreboard.Scoreboard sb = p.getScoreboard();
-            if (sb == null) return null;
-            return sb.getEntryTeam(p.getName());
-        } catch (Throwable ignored) { return null; }
-    }
 
     private void tkoy2udy24und(
             Player tyunotyunwfytun,
@@ -3645,59 +4453,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 : p.getInventory().getItemInMainHand();
     }
 
-    // %Archistructure_stingerLockoutOnFire_DURATION`PLAYERUUID`TARGETUUID%
-// - DURATION (ticks) is required
-// - PLAYERUUID optional (blank => infer from placeholder player p)
-// - TARGETUUID optional (blank => infer last-locked target for PLAYERUUID)
-    private static @org.jetbrains.annotations.NotNull String
-    onStingerLockoutOnFire(org.bukkit.entity.Player p, String argsRaw) {
-        try {
-            final String[] a = argsRaw.split("`", -1);
-            if (a.length < 1) return "badargs";
-
-            // 1) duration
-            final int durationTicks = parseIntSafe(a[0], 200, 0, 20_000);
-
-            // 2) shooter (optional)
-            java.util.UUID shooterId;
-            if (a.length >= 2 && a[1] != null && !a[1].trim().isEmpty()) {
-                shooterId = java.util.UUID.fromString(a[1].trim());
-            } else {
-                if (p == null) return "badargs";
-                shooterId = p.getUniqueId();
-            }
-
-            // 3) target (optional)
-            java.util.UUID targetId = null;
-
-            if (a.length >= 3 && a[2] != null && !a[2].trim().isEmpty()) {
-                targetId = java.util.UUID.fromString(a[2].trim());
-            } else {
-                // Prefer live current target if lock task still running
-                StingerLockState st = STINGER_LOCKS.get(shooterId);
-                if (st != null && st.currentTargetId != null) {
-                    targetId = st.currentTargetId;
-                }
-
-                // Prefer "last locked target" map if you have it
-                if (targetId == null) {
-                    targetId = STINGER_LAST_FULL_LOCK.get(shooterId);
-                }
-            }
-
-            if (targetId == null) return "none";
-
-            // Optional: validate entity exists right now (you can remove this if you want lockout even if offline)
-            org.bukkit.entity.Entity tgt = org.bukkit.Bukkit.getEntity(targetId);
-            if (tgt == null) return "none";
-
-            addLockoutTicks(shooterId, targetId, durationTicks);
-            return "ok";
-        } catch (Exception ignored) {
-            return "error";
-        }
-    }
-
 
 
     @SuppressWarnings({"ConstantValue"})
@@ -3714,6 +4469,163 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        if (identifier.startsWith("trackImpact5_")){
+            String[] parts = identifier.substring("trackImpact5_".length()).split(",");
+
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            World world = Bukkit.getWorld(parts[1]);
+            int x = Integer.parseInt(parts[2]);
+            int y = Integer.parseInt(parts[3]);
+            int z = Integer.parseInt(parts[4]);
+
+            Location location = new Location(world, x, y, z);
+            spawnCustomFireworkExplosion2(world, location);
+            triggerPlayerHitEventV4_2_AOE( launcherUUID, location, 5, null);
+
+            return "§6Impact triggered.";
+        }
+
+
+        if (identifier.startsWith("trackImpact6_")){
+
+            String[] parts = identifier.substring("trackImpact6_".length()).split(",");
+
+            UUID launcherUUID = UUID.fromString(parts[0]);
+            UUID targetUUID = UUID.fromString(parts[1]);
+
+            Entity target = Bukkit.getEntity(targetUUID);
+            if (target == null) return "§cTarget not found";
+
+            Location location = target.getLocation();
+            spawnCustomFireworkExplosion2(target.getWorld(), location);
+            triggerPlayerHitEventV4_2_AOE(launcherUUID, location, 5, target);
+
+            return "§eTarget explosion triggered.";
+        }
+
+
+
+
+
+        if (identifier.startsWith("trackv4-a.2_")) {
+
+            return onTrackV4A2(p, identifier.substring("trackv4-a.2_".length()));
+        }
+        if (identifier.startsWith("stingerLockoutOnFire_")) {
+
+            return onStingerLockoutOnFire(p, identifier.substring("stingerLockoutOnFire_".length()));
+        }
+
+
+
+
+        if (identifier.equalsIgnoreCase("disableStinger")) {
+            disableStingerAllFor(p.getUniqueId());
+            return "ok";
+        }
+
+        // %Archistructure_stingerLock_MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV%
+        if (identifier.startsWith("stingerLock_")) {
+
+            return onStingerLockParse(p, identifier.substring("stingerLock_".length()));
+        }
+
+        if (identifier.equalsIgnoreCase("getStingerTarget")) {
+
+            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
+            return (st != null && st.currentTargetId != null) ? st.currentTargetId.toString() : "none";
+        }
+
+        if (identifier.equalsIgnoreCase("getStingerTargetType")) {
+
+            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
+            if (st == null || st.currentTargetId == null) return "none";
+            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
+            if (e == null) return "none";
+            return (e instanceof org.bukkit.entity.Player) ? "player" : "entity";
+        }
+
+        if (identifier.equalsIgnoreCase("stingerIsLocked")) {
+
+            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
+            return (st != null && st.fullyLocked) ? "true" : "false";
+        }
+
+        if (identifier.equalsIgnoreCase("stingerLastFullLock")) {
+
+            java.util.UUID last = STINGER_LAST_FULL_LOCK.get(p.getUniqueId());
+            return (last != null) ? last.toString() : "none";
+        }
+
+        if (identifier.equalsIgnoreCase("stingerLastFullLock2")) {
+
+            java.util.UUID last = STINGER_LAST_FULL_LOCK.get(p.getUniqueId());
+
+            return (last != null) ? Bukkit.getPlayer(last).getName() : "none";
+        }
+
+        if (identifier.equalsIgnoreCase("stingerChangeLock")) {
+
+            return onStingerChangeLock(p);
+        }
+        
+        
+        
+        
+        
+        if (identifier.startsWith("manaBossbarAuto")) ExampleExpansion2.manaBossbarAutoParse(p, identifier);
+        if (identifier.startsWith("shrinkRayBall_")) {
+
+            try {
+                UUID targetId = UUID.fromString(identifier.substring("shrinkRayBall_".length()).trim());
+                runParticleBall(targetId);
+                return "ok";
+            } catch (Exception ignored) {
+                return "x";
+            }
+        }
+
+        if (identifier.startsWith("shrinkRayParticle_")) {
+
+            // params example: particleLine_SOURCE`TARGET`TICKSTOTAL`TICKSINTERVAL
+            String raw = identifier.substring("shrinkRayParticle_".length());
+            String[] parts = raw.split("`");
+            if (parts.length < 4) return "x";
+
+            try {
+                UUID sourceId = UUID.fromString(parts[0].trim());
+                UUID targetId = UUID.fromString(parts[1].trim());
+                int ticksTotal = Integer.parseInt(parts[2].trim());
+                int ticksInterval = Integer.parseInt(parts[3].trim());
+
+                startParticleLine(sourceId, targetId, ticksTotal, ticksInterval);
+                return "ok";
+            } catch (Exception ignored) {
+                return "x";
+            }
+
+        }
+
+        if (identifier.startsWith("shrinkRay_")) {
+            // shrinkRay_RANGE`DURATION`INTERVAL
+            String raw = identifier.substring("shrinkRay_".length());
+            String[] parts = raw.split("`");
+            if (parts.length < 3) return "none";
+
+            try {
+                double range = Double.parseDouble(parts[0].trim());
+                int duration = Integer.parseInt(parts[1].trim());
+                int interval = Integer.parseInt(parts[2].trim());
+
+                // Start task (beam follows view angle) and also compute initial return value
+                return startShrinkRay(p, range, duration, interval);
+            } catch (Throwable ignored) {
+                return "none";
+            }
+        }
+
+
+
 
         if (identifier.startsWith("trackImpact5_")){
             String[] parts = identifier.substring("trackImpact5_".length()).split(",");
@@ -3751,59 +4663,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         
-        if (identifier.startsWith("trackv4-a.2_")) {
-            return onTrackV4A2(p, identifier.substring("trackv4-a.2_".length()));
-        }
-        if (identifier.startsWith("stingerLockoutOnFire_")) {
-            return onStingerLockoutOnFire(p, identifier.substring("stingerLockoutOnFire_".length()));
-        }
-
-
-
-
-        if (identifier.equalsIgnoreCase("disableStinger")) {
-            disableStingerAllFor(p.getUniqueId());
-            return "ok";
-        }
-        
-        // %Archistructure_stingerLock_MODE`INTERVAL`#INTERVALS`RANGE`PASSTHRU`DOPPLER`FOV%
-        if (identifier.startsWith("stingerLock_")) {
-            return onStingerLockParse(p, identifier.substring("stingerLock_".length()));
-        }
-
-        if (identifier.equalsIgnoreCase("getStingerTarget")) {
-            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
-            return (st != null && st.currentTargetId != null) ? st.currentTargetId.toString() : "none";
-        }
-
-        if (identifier.equalsIgnoreCase("getStingerTargetType")) {
-            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
-            if (st == null || st.currentTargetId == null) return "none";
-            org.bukkit.entity.Entity e = org.bukkit.Bukkit.getEntity(st.currentTargetId);
-            if (e == null) return "none";
-            return (e instanceof org.bukkit.entity.Player) ? "player" : "entity";
-        }
-
-        if (identifier.equalsIgnoreCase("stingerIsLocked")) {
-            StingerLockState st = STINGER_LOCKS.get(p.getUniqueId());
-            return (st != null && st.fullyLocked) ? "true" : "false";
-        }
-
-        if (identifier.equalsIgnoreCase("stingerLastFullLock")) {
-            java.util.UUID last = STINGER_LAST_FULL_LOCK.get(p.getUniqueId());
-            return (last != null) ? last.toString() : "none";
-        }
-
-        if (identifier.equalsIgnoreCase("stingerLastFullLock2")) {
-            java.util.UUID last = STINGER_LAST_FULL_LOCK.get(p.getUniqueId());
-            
-            return (last != null) ? Bukkit.getPlayer(last).getName() : "none";
-        }
-
-        if (identifier.equalsIgnoreCase("stingerChangeLock")) {
-            return onStingerChangeLock(p);
-        }
-        
+       
 
         // %Archistructure_checkEI_PLAYERUUID`SLOT%
 // Returns the ExecutableItems ei-id for the item in that slot (or "none" if not an EI item).
@@ -3813,7 +4673,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 //   - integer index (0..40)                         -> PlayerInventory#getItem(index)
         if (identifier.startsWith("checkEI_")) {
             final String args = identifier.substring("checkEI_".length());
-            final String[] parts = args.split("`", -1);
+            final String[] parts = args.contains("`") ? args.split("`", -1) : args.split(",", -1);
 
             if (parts.length < 1 || parts[0].isEmpty()) return "none";
 
@@ -6809,7 +7669,7 @@ if (identifier.equals("version")) {
                 return isBackpackUi ? "false" : "true";
             
         }
-
+if (identifier.startsWith("manaBossbar_SIMPLE_")) return ExampleExpansion2.manaBossbarSimpleParse(p, identifier);
 
         if (identifier.startsWith("cosmicEnchant_"))  return cosmicEnchant(p, identifier);
         if (identifier.startsWith("spawnFakeEntity_")) return fakeEntitySpawn(identifier);
