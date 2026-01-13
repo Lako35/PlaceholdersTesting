@@ -16279,7 +16279,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
         // xxx trial
-        isTestingModeEnabled = true;
+        isTestingModeEnabled = false;
         g5 = 10000000;
 
 
