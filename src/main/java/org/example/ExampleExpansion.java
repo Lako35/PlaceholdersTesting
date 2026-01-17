@@ -4,10 +4,7 @@ import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.ShulkerBox;
+import org.bukkit.block.*;
 import org.bukkit.block.data.*;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
@@ -45,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1267,8 +1265,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
 
-        // Helper to resolve a launcher name for command args
-        final String launcherName = (launcher != null)
+         final String launcherName = (launcher != null)
                 ? launcher.getName()
                 : (launcherUUID != null
                 ? (Bukkit.getOfflinePlayer(launcherUUID).getName() != null
@@ -1507,8 +1504,1577 @@ public class ExampleExpansion extends PlaceholderExpansion {
     // Helper Methods Helpers
 
 
+    protected static @org.jetbrains.annotations.NotNull String onLinearIntFinalStep(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            final String PREFIX = "linearIntFinalStep_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length()).trim();
+            String[] a = raw.split(",", -1);
+            if (a.length < 4) return "failed";
+
+            // Allow placeholders as inputs
+            if (p != null) {
+                a[0] = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[0]).trim();
+                a[1] = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[1]).trim();
+                a[2] = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[2]).trim();
+                a[3] = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[3]).trim();
+            }
+
+            double currentD = Double.parseDouble(a[0].trim());
+            double start = Double.parseDouble(a[1].trim());
+            double end   = Double.parseDouble(a[2].trim());
+            String mode  = a[3].trim().toUpperCase(java.util.Locale.ROOT);
+
+            int current = (int) Math.round(currentD);
+
+            double value;
+            if (current <= 50) {
+                value = start;
+            } else if (current >= 100) {
+                value = end;
+            } else {
+                // 51..99
+                double frac = ((current - 50) / 50.0) * 0.70; // <= 0.686 at 99, but we want exactly 0.70 at 99
+                // Force exact 0.70 at 99 as requested
+                if (current >= 99) frac = 0.70;
+
+                value = start + (end - start) * frac;
+            }
+
+            if (mode.equals("DOUBLE")) {
+                // Keep it readable; adjust decimals if you want
+                return String.format(java.util.Locale.ROOT, "%.3f", value);
+            }
+
+            // Default INT
+            return String.valueOf((int) Math.round(value));
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+    
+        protected static @org.jetbrains.annotations.NotNull String onPowerGradient(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            final String PREFIX = "powerGradient_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length()).trim();
+
+            // Allow passing nested placeholders as the "number"
+            if (p != null) {
+                raw = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, raw).trim();
+            }
+
+            // Parse number (allow "42" or "42.0")
+            int value;
+            try {
+                double d = Double.parseDouble(raw);
+                value = (int) Math.round(d);
+            } catch (Throwable ignored) {
+                return "failed";
+            }
+
+            // Clamp for color mapping
+            int n = value;
+            if (n < 0) n = 0;
+            if (n > 100) n = 100;
+
+            int r, g, b;
+
+            if (n >= 100) {
+                // Hard step at 100: FULL RED
+                r = 255; g = 0; b = 0;
+            } else if (n <= 60) {
+                // 0..60: green -> yellow (increase red)
+                double t = n / 60.0;           // 0..1
+                r = lerpInt(0, 255, t);
+                g = 255;
+                b = 0;
+            } else {
+                // 61..99: yellow -> orange -> orange-red
+                // Keep red 255; lower green down to 0x55 at 99 so 99->100 is a noticeable jump
+                double t = (n - 60) / 39.0;    // 0..1  (60..99)
+                r = 255;
+                g = lerpInt(255, 0x55, t);
+                b = 0;
+            }
+
+            String color = sectionXHex(r, g, b);
+
+            // Return colored number (format like: §x§R§R§G§G§B§BNUMBER)
+            return color + "§l" + value;
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    
+
+    // Encodes as: §x§0§0§F§F§0§0
+    private static String sectionXHex(int r, int g, int b) {
+        r = clamp255(r); g = clamp255(g); b = clamp255(b);
+        String hex = String.format(java.util.Locale.ROOT, "%02X%02X%02X", r, g, b);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("§x");
+        for (int i = 0; i < 6; i++) {
+            sb.append("§").append(hex.charAt(i));
+        }
+        return sb.toString();
+    }
+
+// %Archistructure_barPctBlastFurnace_<barPctArgs...>,WORLD,X,Y,Z%
+//
+// Example:
+// %Archistructure_barPctBlastFurnace_BAR|PERCENTAGE,%score_variables_Mana%,%score_variables_ManaCap%,world,0,64,0%
+//
+// This reuses onBarPct(...) by calling it with "barPct_" + <barPctArgs...>
+// ===============================================
+// %Archistructure_anarchistructureSMPRecharger_WORLD,X,Y,Z%
+//
+// Key = hash(world,x,y,z)
+// Value = player UUID (last caller wins)
+// Only ONE entry per key: if key exists, replace player UUID, DO NOT reset task.
+// Task checks every 20 ticks (1 second):
+//  - Player is still viewing that exact block inventory -> otherwise cancel + remove bossbar
+//  - Block still exists at location (BLAST_FURNACE) -> otherwise cancel + remove bossbar
+//  - Then performs the recharge logic + updates a BLUE (aqua-ish) bossbar for that player
+//
+// Bossbar removed on player change, inventory close, block missing, offline, task end.
+// Upon "already max usage", keep parsing for 3 more iterations then cancel + remove bossbar.
+// NO lambdas.
+// ===============================================
+private enum RechargeStage {
+    // Step 0 (init mini-steps)
+    INIT0, INIT1, INIT2, INIT3, READY,
+
+    // Step 1/2
+    MIL_Y, MIL_R,
+
+    // Step 3/4
+    BAT_Y, BAT_R,
+
+    // Step 5/6
+    FUEL_Y, FUEL_R,
+
+    // Step 7/8
+    OUT_Y, OUT_R,
+
+    // Step 9 (mini-steps)
+    RECH_Y, RECH_D1, RECH_D2, RECH_D3,
+
+    // Step 10 (craft)
+    COMPLETE
+}
+    private static final java.util.Map<String, RechargerEntry> SMP_RECHARGERS =
+            new java.util.concurrent.ConcurrentHashMap<String, RechargerEntry>();
+
+    private static final class RechargerEntry {
+        final String keyHash;
+        final org.bukkit.Location loc;
+        volatile java.util.UUID playerId;              // current assigned player (last parse wins)
+        volatile java.util.UUID lastBossbarPlayerId;   // last player attached to bossbar
+        volatile org.bukkit.scheduler.BukkitTask task;
+        volatile org.bukkit.boss.BossBar bossBar;
+        volatile int maxedCount;
+        volatile boolean pendingCharge;
+        
+
+        volatile RechargeStage stage;
+        volatile boolean initDone;      // step 0 completed flag (do not replay on failures)
+        volatile String cachedEiId;     // from input executableitems:ei-id (for messages)
+        volatile String cachedMaxStr;   // from input score:score-militarybatterymax (string)
+        volatile int cachedMaxInt;      // parsed
 
 
+
+        RechargerEntry(String keyHash, org.bukkit.Location loc, java.util.UUID playerId) {
+            this.keyHash = keyHash;
+            this.loc = loc;
+            this.playerId = playerId;
+            this.lastBossbarPlayerId = null;
+            this.task = null;
+            this.bossBar = null;
+            this.maxedCount = 0;
+            this.pendingCharge = false;
+            this.stage = RechargeStage.INIT0;
+            this.initDone = false;
+            this.cachedEiId = null;
+            this.cachedMaxStr = null;
+            this.cachedMaxInt = 0;
+
+
+        }
+
+
+        
+
+    }
+
+    private static void resetForOpenSwapOrCraft(RechargerEntry e) {
+        if (e == null) return;
+        e.stage = RechargeStage.INIT0;
+        e.initDone = false;
+        e.cachedEiId = null;
+        e.cachedMaxStr = null;
+        e.cachedMaxInt = 0;
+        e.pendingCharge = false;
+        e.maxedCount = 0;
+    }
+
+    private static void regressToMilitaryPrompt(RechargerEntry e) {
+        if (e == null) return;
+        e.stage = RechargeStage.MIL_Y;
+        e.cachedEiId = null;
+        e.cachedMaxStr = null;
+        e.cachedMaxInt = 0;
+    }
+    
+    protected static @org.jetbrains.annotations.NotNull String onAnarchistructureSMPRecharger(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+
+            final String PREFIX = "anarchistructureSMPRecharger_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+            String[] a = raw.split(",", -1);
+            if (a.length < 4) return "failed";
+
+            String worldName = a[0].trim();
+            int x = Integer.parseInt(a[1].trim());
+            int y = Integer.parseInt(a[2].trim());
+            int z = Integer.parseInt(a[3].trim());
+
+            org.bukkit.World w = org.bukkit.Bukkit.getWorld(worldName);
+            if (w == null) return "failed";
+
+            org.bukkit.Location loc = new org.bukkit.Location(w, x, y, z);
+            String keyHash = hashWorldXYZ(worldName, x, y, z);
+
+            RechargerEntry entry = SMP_RECHARGERS.get(keyHash);
+            if (entry == null) {
+                entry = new RechargerEntry(keyHash, loc, p.getUniqueId());
+                SMP_RECHARGERS.put(keyHash, entry);
+
+                // Start the task ONLY once per key
+                startRechargerTask(entry);
+            } else {
+                // Replace player value ONLY, do not reset task
+                java.util.UUID old = entry.playerId;
+                entry.playerId = p.getUniqueId();
+
+                // Bossbar should go away on player change
+                if (old != null && !old.equals(entry.playerId)) {
+                    detachAndRemoveBossbar(entry);
+                    resetForOpenSwapOrCraft(entry); // <-- NEW: swap triggers init
+
+                }
+            }
+
+            return "ok";
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    private static void startRechargerTask(final RechargerEntry entry) {
+        final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        removeKeyedRechargerBossBarIfPresent(plugin, entry.keyHash);
+
+        org.bukkit.scheduler.BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
+            @Override public void run() {
+                RechargerEntry live = SMP_RECHARGERS.get(entry.keyHash);
+                if (live == null) { cancelSelf(entry); return; }
+
+                java.util.UUID pid = live.playerId;
+                if (pid == null) { stopRecharger(entry, "No player assigned."); return; }
+
+                org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(pid);
+                if (pl == null || !pl.isOnline()) { stopRecharger(entry, "Player offline."); return; }
+
+                if (live.lastBossbarPlayerId != null && !live.lastBossbarPlayerId.equals(pid)) {
+                    detachAndRemoveBossbar(live);
+                    resetForOpenSwapOrCraft(live);
+                }
+
+                if (!isPlayerViewingBlockInventory(pl, live.loc)) {
+                    stopRecharger(entry, "Inventory closed / not viewing target.");
+                    return;
+                }
+
+                ensureRechargerBossbar(plugin, live, pl);
+
+                // Step 0 prerequisite: block exists
+                org.bukkit.block.Block b = live.loc.getWorld().getBlockAt(live.loc.getBlockX(), live.loc.getBlockY(), live.loc.getBlockZ());
+                if (b == null || b.getType() != org.bukkit.Material.BLAST_FURNACE) {
+                    updateBar(live, pl, "Initializing", 0.0, org.bukkit.boss.BarColor.YELLOW);
+                    stopRecharger(entry, "Blast furnace missing.");
+                    return;
+                }
+
+                // Live open container
+                org.bukkit.inventory.FurnaceInventory inv = getOpenFurnaceInventory(pl, live.loc);
+                if (inv == null) {
+                    updateBar(live, pl, "Initializing", 0.0, org.bukkit.boss.BarColor.YELLOW);
+                    stopRecharger(entry, "Not viewing furnace inventory.");
+                    return;
+                }
+
+                // Keys
+                org.bukkit.NamespacedKey kCat   = nsKey("score", "score-anarchistructuresmpcategory");
+                org.bukkit.NamespacedKey kUsage = nsKey("score", "usage");
+                org.bukkit.NamespacedKey kMax   = nsKey("score", "score-militarybatterymax");
+                org.bukkit.NamespacedKey kEiId  = nsKey("executableitems", "ei-id");
+
+                // Total "big steps": 5/6 is near-full; last step is recharge mini-steps to full.
+                final double TOTAL = 6.0;
+
+                // If init is done, never go back to step 0 from failures
+                if (live.initDone) {
+                    // If we are still sitting in INIT states for any reason, jump to step 1 prompt
+                    if (live.stage == RechargeStage.INIT0 || live.stage == RechargeStage.INIT1
+                            || live.stage == RechargeStage.INIT2 || live.stage == RechargeStage.INIT3
+                            || live.stage == RechargeStage.READY) {
+                        live.stage = RechargeStage.MIL_Y;
+                    }
+                }
+
+                // Hard regression rule: if military source disappears at ANY later stage, go to MIL_Y
+                // (This ensures: removing source item at step 3-9 returns to step 1 prompt)
+                if (live.initDone) {
+                    if (live.stage != RechargeStage.INIT0 && live.stage != RechargeStage.INIT1
+                            && live.stage != RechargeStage.INIT2 && live.stage != RechargeStage.INIT3
+                            && live.stage != RechargeStage.READY
+                            && live.stage != RechargeStage.MIL_Y && live.stage != RechargeStage.MIL_R) {
+
+                        org.bukkit.inventory.ItemStack srcNow = inv.getSmelting();
+                        boolean isMil = hasPdcString(srcNow, kCat, "Military");
+                        if (!isMil) {
+                            live.stage = RechargeStage.MIL_Y;
+                        }
+                    }
+                }
+
+                // --- FSM ---
+                switch (live.stage) {
+
+                    // =========================
+                    // 0) Init mini-steps (within first big step)
+                    // =========================
+                    case INIT0:
+                        updateBar(live, pl, "Initializing", (0.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.INIT1;
+                        return;
+
+                    case INIT1:
+                        updateBar(live, pl, "Initializing.", (0.25 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.INIT2;
+                        return;
+
+                    case INIT2:
+                        updateBar(live, pl, "Initializing..", (0.50 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.INIT3;
+                        return;
+
+                    case INIT3:
+                        updateBar(live, pl, "Initializing...", (0.75 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.READY;
+                        return;
+
+                    case READY:
+                        // One full big step completed
+                        updateBar(live, pl, "§bRecharger ready", (1.0 / TOTAL), org.bukkit.boss.BarColor.BLUE);
+                        live.initDone = true;
+                        live.stage = RechargeStage.MIL_Y;
+                        return;
+
+                    // =========================
+                    // 1/2) Military check
+                    // =========================
+                    case MIL_Y:
+                        // second full step
+                        updateBar(live, pl, "Checking for Military Item", (2.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.MIL_R;
+                        return;
+
+                    case MIL_R: {
+                        org.bukkit.inventory.ItemStack input = inv.getSmelting();
+                        boolean inputMilitary = hasPdcString(input, kCat, "Military");
+
+                        String maxStr = inputMilitary ? readPdcString(input, kMax) : null;
+                        Integer maxV = (maxStr != null) ? parseIntFromString(maxStr) : null;
+
+                        if (!inputMilitary || maxStr == null || maxV == null || maxV.intValue() <= 0) {
+                            updateBar(live, pl, "This is not a Military Item", (2.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.cachedEiId = null;
+                            live.cachedMaxStr = null;
+                            live.cachedMaxInt = 0;
+                            live.stage = RechargeStage.MIL_Y; // red -> yellow
+                            return;
+                        }
+
+                        live.cachedMaxStr = maxStr.trim();
+                        live.cachedMaxInt = maxV.intValue();
+
+                        String ei = readPdcString(input, kEiId);
+                        live.cachedEiId = (ei != null && !ei.trim().isEmpty()) ? ei.trim() : input.getType().name();
+
+                        updateBar(live, pl, "Military Item Found", (2.0 / TOTAL), org.bukkit.boss.BarColor.BLUE);
+                        live.stage = RechargeStage.BAT_Y; // blue -> yellow next check
+                        return;
+                    }
+
+                    // =========================
+                    // 3/4) Battery check (usage vs max)
+                    // =========================
+                    case BAT_Y:
+                        updateBar(live, pl, "Checking Military Item Battery", (3.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.BAT_R;
+                        return;
+
+                    case BAT_R: {
+                        org.bukkit.inventory.ItemStack input = inv.getSmelting();
+                        if (!hasPdcString(input, kCat, "Military")) {
+                            updateBar(live, pl, "No Military Item Detected", (2.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            regressToMilitaryPrompt(live);
+                            return;
+                        }
+
+                        String maxStr = readPdcString(input, kMax);
+                        Integer maxV = (maxStr != null) ? parseIntFromString(maxStr) : null;
+                        if (maxStr == null || maxV == null || maxV.intValue() <= 0) {
+                            updateBar(live, pl, "No Military Item Detected", (2.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            regressToMilitaryPrompt(live);
+                            return;
+                        }
+
+                        Integer usage = readPdcInt(input, kUsage);
+                        int u = (usage == null) ? 0 : usage.intValue();
+                        int m = maxV.intValue();
+
+                        // Keep cache current
+                        live.cachedMaxStr = maxStr.trim();
+                        live.cachedMaxInt = m;
+
+                        if (u >= m) {
+                            updateBar(live, pl, "Battery is already full", (3.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.BAT_Y; // red -> yellow (re-check)
+                            return;
+                        }
+
+                        updateBar(live, pl, "Battery Check Complete - Charge Required", (3.0 / TOTAL), org.bukkit.boss.BarColor.BLUE);
+                        live.stage = RechargeStage.FUEL_Y;
+                        return;
+                    }
+
+                    // =========================
+                    // 5/6) Field battery check
+                    // =========================
+                    case FUEL_Y:
+                        updateBar(live, pl, "Checking for Field Battery", (4.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.FUEL_R;
+                        return;
+
+                    case FUEL_R: {
+                        org.bukkit.inventory.ItemStack fuel = inv.getFuel();
+                        if (fuel == null || fuel.getType() == org.bukkit.Material.AIR) {
+                            updateBar(live, pl, "No field battery detected", (4.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.FUEL_Y;
+                            return;
+                        }
+
+                        if (!hasPdcString(fuel, kEiId, "FieldBattery")) {
+                            updateBar(live, pl, "NOT A FIELD BATTERY!", (4.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.FUEL_Y;
+                            return;
+                        }
+
+                        updateBar(live, pl, "Field Battery Detected!", (4.0 / TOTAL), org.bukkit.boss.BarColor.BLUE);
+                        live.stage = RechargeStage.OUT_Y;
+                        return;
+                    }
+
+                    // =========================
+                    // 7/8) Output check
+                    // =========================
+                    case OUT_Y:
+                        updateBar(live, pl, "Checking output slot...", (5.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.OUT_R;
+                        return;
+
+                    case OUT_R: {
+                        org.bukkit.inventory.ItemStack out = inv.getResult();
+                        if (out != null && out.getType() != org.bukkit.Material.AIR && out.getAmount() > 0) {
+                            updateBar(live, pl, "PLEASE CLEAR OUTPUT SLOT", (5.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.OUT_Y;
+                            return;
+                        }
+
+                        updateBar(live, pl, "Output slot clear", (5.0 / TOTAL), org.bukkit.boss.BarColor.BLUE);
+                        live.stage = RechargeStage.RECH_Y;
+                        return;
+                    }
+
+                    // =========================
+                    // 9) Recharging ministeps (one big step spread over dots)
+                    // =========================
+                    case RECH_Y: {
+                        String ei = (live.cachedEiId != null) ? live.cachedEiId : "Item";
+                        updateBar(live, pl, "Recharging (" + ei + ")...", (5.0 / TOTAL), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.RECH_D1;
+                        return;
+                    }
+                    case RECH_D1:
+                        updateBar(live, pl, "Recharging.", (5.0 / TOTAL) + (1.0 / TOTAL) * (1.0 / 4.0), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.RECH_D2;
+                        return;
+
+                    case RECH_D2:
+                        updateBar(live, pl, "Recharging..", (5.0 / TOTAL) + (1.0 / TOTAL) * (2.0 / 4.0), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.RECH_D3;
+                        return;
+
+                    case RECH_D3:
+                        updateBar(live, pl, "Recharging...", (5.0 / TOTAL) + (1.0 / TOTAL) * (3.0 / 4.0), org.bukkit.boss.BarColor.YELLOW);
+                        live.stage = RechargeStage.COMPLETE;
+                        return;
+
+                    // =========================
+                    // 10) Craft + restart init next tick
+                    // =========================
+                    case COMPLETE: {
+                        // Revalidate quickly (if anything changed, regress appropriately)
+                        org.bukkit.inventory.ItemStack input = inv.getSmelting();
+                        if (!hasPdcString(input, kCat, "Military")) {
+                            updateBar(live, pl, "No Military Item Detected", (2.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.MIL_Y;
+                            return;
+                        }
+
+                        org.bukkit.inventory.ItemStack fuel = inv.getFuel();
+                        if (fuel == null || fuel.getType() == org.bukkit.Material.AIR) {
+                            updateBar(live, pl, "No field battery detected", (4.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.FUEL_Y;
+                            return;
+                        }
+                        if (!hasPdcString(fuel, kEiId, "FieldBattery")) {
+                            updateBar(live, pl, "NOT A FIELD BATTERY!", (4.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.FUEL_Y;
+                            return;
+                        }
+
+                        org.bukkit.inventory.ItemStack out = inv.getResult();
+                        if (out != null && out.getType() != org.bukkit.Material.AIR && out.getAmount() > 0) {
+                            updateBar(live, pl, "PLEASE CLEAR OUTPUT SLOT", (5.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.OUT_Y;
+                            return;
+                        }
+
+                        String maxStr = readPdcString(input, kMax);
+                        Integer maxV = (maxStr != null) ? parseIntFromString(maxStr) : null;
+                        if (maxStr == null || maxV == null || maxV.intValue() <= 0) {
+                            updateBar(live, pl, "No Military Item Detected", (2.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.MIL_Y;
+                            return;
+                        }
+
+                        // Battery still needs charge?
+                        Integer usage = readPdcInt(input, kUsage);
+                        int u = (usage == null) ? 0 : usage.intValue();
+                        int m = maxV.intValue();
+                        if (u >= m) {
+                            updateBar(live, pl, "Battery is already full", (3.0 / TOTAL), org.bukkit.boss.BarColor.RED);
+                            live.stage = RechargeStage.BAT_Y;
+                            return;
+                        }
+
+                        // Build product
+                        org.bukkit.inventory.ItemStack product = input.clone();
+                        product.setAmount(1);
+
+                        // usage is INT (your #6 was correct)
+                        setPdcInt(product, kUsage, m);
+
+                        // consume 1 input + 1 fuel (slot-index, live container)
+                        consumeOneBySlot(inv, 0);
+                        consumeOneBySlot(inv, 1);
+
+                        // output
+                        inv.setItem(2, product);
+                        pl.updateInventory();
+
+                        String ei = readPdcString(product, kEiId);
+                        if (ei == null || ei.trim().isEmpty()) ei = input.getType().name();
+
+                        updateBar(live, pl, "§bRecharged " + ei + " §bto §f" + maxStr.trim(), 1.00, org.bukkit.boss.BarColor.BLUE);
+
+                        // Restart at step 0 next iteration (craft completion triggers init)
+                        resetForOpenSwapOrCraft(live);
+                        return;
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+
+        entry.task = task;
+    }
+
+
+    private static void performRechargerOutput(String keyHash) {
+        RechargerEntry live = SMP_RECHARGERS.get(keyHash);
+        if (live == null) return;
+
+        java.util.UUID pid = live.playerId;
+        org.bukkit.entity.Player pl = (pid != null) ? org.bukkit.Bukkit.getPlayer(pid) : null;
+
+        try {
+            if (pid == null) {
+                dbg(pl, "DELAYED: pid null -> clearing pendingCharge");
+                live.pendingCharge = false;
+                return;
+            }
+
+            if (pl == null || !pl.isOnline()) {
+                dbg(pl, "DELAYED: player offline -> stopping task");
+                stopRecharger(live, "Player offline (delayed).");
+                return;
+            }
+
+            dbg(pl, "DELAYED: running output step...");
+
+            if (!isPlayerViewingBlockInventory(pl, live.loc)) {
+                dbg(pl, "DELAYED FAIL: player not viewing target inventory -> stop");
+                stopRecharger(live, "Inventory closed (delayed).");
+                return;
+            }
+
+            // Block must still exist
+            org.bukkit.block.Block b = live.loc.getWorld().getBlockAt(live.loc.getBlockX(), live.loc.getBlockY(), live.loc.getBlockZ());
+            if (b == null || b.getType() != org.bukkit.Material.BLAST_FURNACE) {
+                dbg(pl, "DELAYED FAIL: blast furnace missing -> stop");
+                stopRecharger(live, "Blast furnace missing (delayed).");
+                return;
+            }
+
+            // LIVE container
+            org.bukkit.inventory.FurnaceInventory inv = getOpenFurnaceInventory(pl, live.loc);
+            if (inv == null) {
+                dbg(pl, "DELAYED FAIL: could not get open FurnaceInventory -> stop");
+                stopRecharger(live, "Not viewing furnace inventory (delayed).");
+                return;
+            }
+
+            // Output must still be empty
+            org.bukkit.inventory.ItemStack out = inv.getResult();
+            if (out != null && out.getType() != org.bukkit.Material.AIR && out.getAmount() > 0) {
+                dbg(pl, "DELAYED FAIL: output slot not empty (" + out.getType() + " x" + out.getAmount() + ")");
+                updateBar(live, pl, "§bRecharger: Output changed, retry", 0.75);
+                live.pendingCharge = false;
+                return;
+            }
+
+            // Re-check input + fuel
+            org.bukkit.inventory.ItemStack input = inv.getSmelting();
+            if (!hasPdcString(input, nsKey("score", "score-anarchistructuresmpcategory"), "Military")) {
+                dbg(pl, "DELAYED FAIL: input not Military");
+                updateBar(live, pl, "§bRecharger: Input changed, retry", 0.25);
+                live.pendingCharge = false;
+                return;
+            }
+
+            org.bukkit.inventory.ItemStack fuel = inv.getFuel();
+            if (!hasPdcString(fuel, nsKey("executableitems", "ei-id"), "FieldBattery")) {
+                dbg(pl, "DELAYED FAIL: fuel not FieldBattery");
+                updateBar(live, pl, "§bRecharger: Fuel changed, retry", 0.50);
+                live.pendingCharge = false;
+                return;
+            }
+
+            org.bukkit.NamespacedKey kUsage = nsKey("score", "usage");
+            org.bukkit.NamespacedKey kMax   = nsKey("score", "score-militarybatterymax");
+
+            String maxStr = readPdcString(input, kMax);
+            if (maxStr == null) {
+                dbg(pl, "DELAYED FAIL: max missing/invalid (raw=null)");
+                updateBar(live, pl, "§bRecharger: Missing max, retry", 0.25);
+                live.pendingCharge = false;
+                return;
+            }
+
+            maxStr = maxStr.trim();
+            Integer maxV = parseIntFromString(maxStr);
+            if (maxV == null || maxV.intValue() <= 0) {
+                dbg(pl, "DELAYED FAIL: max missing/invalid (raw='" + maxStr + "')");
+                updateBar(live, pl, "§bRecharger: Missing max, retry", 0.25);
+                live.pendingCharge = false;
+                return;
+            }
+
+// Snapshot BEFORE consuming
+            org.bukkit.inventory.ItemStack product = input.clone();
+            product.setAmount(1);
+
+// IMPORTANT: set usage to the SAME STRING value as score-militarybatterymax
+            setPdcInt(product, kUsage, Integer.valueOf(maxStr));
+
+            // Consume 1 input + 1 fuel using raw slots
+            consumeOneBySlot(inv, 0);
+            consumeOneBySlot(inv, 1);
+
+            // Set output by raw slot
+            inv.setItem(2, product);
+
+            // Optional client refresh
+            pl.updateInventory();
+
+            org.bukkit.inventory.ItemStack inAfter  = inv.getItem(0);
+            org.bukkit.inventory.ItemStack fuAfter  = inv.getItem(1);
+            org.bukkit.inventory.ItemStack outAfter = inv.getItem(2);
+
+            dbg(pl, "AFTER: input=" + stackStr(inAfter) + " fuel=" + stackStr(fuAfter) + " out=" + stackStr(outAfter));
+
+            updateBar(live, pl, "§bRecharger: Charged §f(" + maxV + ")", 1.00);
+            live.maxedCount = 0;
+            live.pendingCharge = false;
+
+            dbg(pl, "DELAYED: SUCCESS");
+        } catch (Throwable t) {
+            dbg(pl, "DELAYED EXCEPTION: " + t.getClass().getSimpleName() + " " + String.valueOf(t.getMessage()));
+            live.pendingCharge = false;
+        }
+    }
+
+
+
+    private static String stackStr(org.bukkit.inventory.ItemStack it) {
+        if (it == null) return "null";
+        if (it.getType() == org.bukkit.Material.AIR) return "AIR";
+        return it.getType().name() + " x" + it.getAmount();
+    }
+
+    private static void consumeOneBySlot(org.bukkit.inventory.FurnaceInventory inv, int slot) {
+        org.bukkit.inventory.ItemStack it = inv.getItem(slot);
+        if (it == null || it.getType() == org.bukkit.Material.AIR) return;
+
+        int amt = it.getAmount();
+        if (amt <= 1) {
+            inv.setItem(slot, new org.bukkit.inventory.ItemStack(org.bukkit.Material.AIR));
+        } else {
+            it.setAmount(amt - 1);
+            inv.setItem(slot, it);
+        }
+    }
+
+    
+    private static boolean SMP_RECHARGER_DEBUG = false;
+
+    private static void dbg(org.bukkit.entity.Player p, String msg) {
+        if (!SMP_RECHARGER_DEBUG) return;
+        if (p != null && p.isOnline()) p.sendMessage("§8[§bRecharger§8] §7" + msg);
+    }
+
+    private static String readPdcString(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return null;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return null;
+
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return null;
+
+            String v = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            if (v == null) return null;
+            v = v.trim();
+            if (v.isEmpty()) return null;
+            return v;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static void setPdcString(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key, String value) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return;
+
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return;
+
+            pdc.set(key, org.bukkit.persistence.PersistentDataType.STRING, value);
+            it.setItemMeta(meta);
+        } catch (Throwable ignored) {}
+    }
+
+    private static Integer parseIntFromString(String s) {
+        try {
+            if (s == null) return null;
+            String t = s.trim();
+            if (t.isEmpty()) return null;
+            double d = Double.parseDouble(t);
+            return Integer.valueOf((int) Math.round(d));
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static org.bukkit.inventory.FurnaceInventory getOpenFurnaceInventory(org.bukkit.entity.Player pl, org.bukkit.Location loc) {
+        try {
+            if (pl == null || !pl.isOnline()) return null;
+            if (loc == null || loc.getWorld() == null) return null;
+
+            // Must be viewing that exact block
+            if (!isPlayerViewingBlockInventory(pl, loc)) return null;
+
+            org.bukkit.inventory.InventoryView view = pl.getOpenInventory();
+            if (view == null) return null;
+
+            org.bukkit.inventory.Inventory top = view.getTopInventory();
+            if (top == null) return null;
+
+            if (!(top instanceof org.bukkit.inventory.FurnaceInventory)) return null;
+            return (org.bukkit.inventory.FurnaceInventory) top;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }   
+
+    private static Integer readPdcIntFromStringOnly(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return null;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return null;
+
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return null;
+
+            String vs = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            if (vs == null) return null;
+
+            vs = vs.trim();
+            if (vs.isEmpty()) return null;
+
+            // allow "100" or "100.0" etc.
+            double d = Double.parseDouble(vs);
+            return Integer.valueOf((int) Math.round(d));
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+    private static void ensureRechargerBossbar(org.bukkit.plugin.Plugin plugin, RechargerEntry entry, org.bukkit.entity.Player pl) {
+        org.bukkit.boss.BossBar bar = entry.bossBar;
+
+        if (bar == null) {
+            bar = getOrCreateKeyedRechargerBossBar(plugin, entry.keyHash);
+            entry.bossBar = bar;
+        }
+
+        if (!bar.getPlayers().contains(pl)) {
+            java.util.List<org.bukkit.entity.Player> players = new java.util.ArrayList<org.bukkit.entity.Player>(bar.getPlayers());
+            for (int i = 0; i < players.size(); i++) {
+                try { bar.removePlayer(players.get(i)); } catch (Throwable ignored) {}
+            }
+            try { bar.addPlayer(pl); } catch (Throwable ignored) {}
+        }
+
+        entry.lastBossbarPlayerId = pl.getUniqueId();
+        bar.setStyle(org.bukkit.boss.BarStyle.SOLID);
+    }
+
+
+    private static void updateBar(RechargerEntry entry, org.bukkit.entity.Player pl, String title, double progress, org.bukkit.boss.BarColor color) {
+        if (entry == null) return;
+        org.bukkit.boss.BossBar bar = entry.bossBar;
+        if (bar == null) return;
+
+        if (pl != null && pl.isOnline()) {
+            if (!bar.getPlayers().contains(pl)) {
+                try { bar.addPlayer(pl); } catch (Throwable ignored) {}
+            }
+            entry.lastBossbarPlayerId = pl.getUniqueId();
+        }
+
+        try { bar.setColor(color); } catch (Throwable ignored) {}
+        try { bar.setTitle(title); } catch (Throwable ignored) {}
+        try { bar.setProgress(clamp01(progress)); } catch (Throwable ignored) {}
+    }
+
+
+    private static void updateBar(RechargerEntry entry, org.bukkit.entity.Player pl, String title, double progress) {
+        if (entry == null) return;
+        org.bukkit.boss.BossBar bar = entry.bossBar;
+        if (bar == null) return;
+
+        // Player might have changed between ensure + update
+        if (pl != null && pl.isOnline()) {
+            if (!bar.getPlayers().contains(pl)) {
+                try { bar.addPlayer(pl); } catch (Throwable ignored) {}
+            }
+            entry.lastBossbarPlayerId = pl.getUniqueId();
+        }
+
+        try { bar.setTitle(title); } catch (Throwable ignored) {}
+        try { bar.setProgress(clamp01(progress)); } catch (Throwable ignored) {}
+    }
+
+    private static void detachAndRemoveBossbar(RechargerEntry entry) {
+
+        if (entry == null) return;
+        entry.pendingCharge = false;
+
+        org.bukkit.boss.BossBar bar = entry.bossBar;
+        if (bar != null) {
+            try { bar.removeAll(); } catch (Throwable ignored) {}
+        }
+        entry.bossBar = null;
+        entry.lastBossbarPlayerId = null;
+        entry.maxedCount = 0;
+    }
+
+// =======================================================
+// Stop / cleanup
+// =======================================================
+
+    private static void stopRecharger(RechargerEntry entry, String reason) {
+        // remove from map (ends task)
+        SMP_RECHARGERS.remove(entry.keyHash);
+
+        // cancel task + remove bossbar
+        cancelSelf(entry);
+    }
+
+    private static void cancelSelf(RechargerEntry entry) {
+        if (entry == null) return;
+
+        org.bukkit.scheduler.BukkitTask t = entry.task;
+        entry.task = null;
+        if (t != null) {
+            try { t.cancel(); } catch (Throwable ignored) {}
+        }
+
+        // remove bossbar (both map-held and keyed)
+        org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        detachAndRemoveBossbar(entry);
+        if (plugin != null) removeKeyedRechargerBossBarIfPresent(plugin, entry.keyHash);
+    }
+
+// =======================================================
+// Inventory / location checks
+// =======================================================
+
+    private static boolean isPlayerViewingBlockInventory(org.bukkit.entity.Player p, org.bukkit.Location loc) {
+        try {
+            org.bukkit.inventory.InventoryView view = p.getOpenInventory();
+            if (view == null) return false;
+
+            org.bukkit.inventory.Inventory top = view.getTopInventory();
+            if (top == null) return false;
+
+            // Prefer holder location
+            org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+            if (holder instanceof org.bukkit.block.BlockState) {
+                org.bukkit.Location hl = ((org.bukkit.block.BlockState) holder).getLocation();
+                return sameBlock(hl, loc);
+            }
+
+            // Some APIs provide Inventory#getLocation
+            try {
+                java.lang.reflect.Method m = top.getClass().getMethod("getLocation");
+                Object got = m.invoke(top);
+                if (got instanceof org.bukkit.Location) {
+                    return sameBlock((org.bukkit.Location) got, loc);
+                }
+            } catch (Throwable ignored) {}
+
+            return false;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static boolean sameBlock(org.bukkit.Location a, org.bukkit.Location b) {
+        if (a == null || b == null) return false;
+        if (a.getWorld() == null || b.getWorld() == null) return false;
+        if (!a.getWorld().equals(b.getWorld())) return false;
+        return a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY()
+                && a.getBlockZ() == b.getBlockZ();
+    }
+
+// =======================================================
+// Furnace slot operations
+// =======================================================
+
+    private static void decrementOne(org.bukkit.inventory.FurnaceInventory inv, boolean smeltingSlot) {
+        if (inv == null) return;
+        org.bukkit.inventory.ItemStack it = smeltingSlot ? inv.getSmelting() : inv.getFuel();
+        if (it == null || it.getType() == org.bukkit.Material.AIR) return;
+
+        int amt = it.getAmount();
+        if (amt <= 1) {
+            if (smeltingSlot) inv.setSmelting(null);
+            else inv.setFuel(null);
+        } else {
+            it.setAmount(amt - 1);
+            if (smeltingSlot) inv.setSmelting(it);
+            else inv.setFuel(it);
+        }
+    }
+
+
+    private static org.bukkit.NamespacedKey nsKey(String namespace, String key) {
+        try {
+            // Works on modern Spigot; safe fallback below
+            org.bukkit.NamespacedKey k = org.bukkit.NamespacedKey.fromString(namespace + ":" + key);
+            if (k != null) return k;
+        } catch (Throwable ignored) {}
+        org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (plugin != null) return new org.bukkit.NamespacedKey(plugin, namespace + "_" + key);
+        // last resort (should not happen)
+        return new org.bukkit.NamespacedKey("minecraft", (namespace + "_" + key).toLowerCase(java.util.Locale.ROOT));
+    }
+
+    private static boolean hasPdcString(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key, String expected) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return false;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return false;
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return false;
+
+            String v = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            if (v == null) return false;
+            return v.equalsIgnoreCase(expected);
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static Integer readPdcInt(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return null;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return null;
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return null;
+
+            Integer vi = pdc.get(key, org.bukkit.persistence.PersistentDataType.INTEGER);
+            if (vi != null) return vi;
+
+            String vs = pdc.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+            if (vs != null) {
+                vs = vs.trim();
+                if (!vs.isEmpty()) return Integer.valueOf((int) Math.round(Double.parseDouble(vs)));
+            }
+
+            Double vd = pdc.get(key, org.bukkit.persistence.PersistentDataType.DOUBLE);
+            if (vd != null) return Integer.valueOf((int) Math.round(vd.doubleValue()));
+
+            return null;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static void setPdcInt(org.bukkit.inventory.ItemStack it, org.bukkit.NamespacedKey key, int value) {
+        try {
+            if (it == null || it.getType() == org.bukkit.Material.AIR) return;
+            org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+            if (meta == null) return;
+            org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            if (pdc == null) return;
+
+            pdc.set(key, org.bukkit.persistence.PersistentDataType.INTEGER, Integer.valueOf(value));
+            it.setItemMeta(meta);
+        } catch (Throwable ignored) {}
+    }
+
+// =======================================================
+// Bossbar keyed creation/removal (unique per location hash)
+// =======================================================
+
+    private static org.bukkit.NamespacedKey rechargerKey(org.bukkit.plugin.Plugin plugin, String keyHash) {
+        String shortHash = keyHash;
+        if (shortHash.length() > 16) shortHash = shortHash.substring(0, 16);
+        return new org.bukkit.NamespacedKey(plugin, "smprecharger_" + shortHash);
+    }
+
+    private static void removeKeyedRechargerBossBarIfPresent(org.bukkit.plugin.Plugin plugin, String keyHash) {
+        try {
+            org.bukkit.NamespacedKey key = rechargerKey(plugin, keyHash);
+
+            java.lang.reflect.Method get = org.bukkit.Bukkit.class.getMethod("getBossBar", org.bukkit.NamespacedKey.class);
+            Object existing = get.invoke(null, key);
+            if (existing instanceof org.bukkit.boss.BossBar) {
+                try { ((org.bukkit.boss.BossBar) existing).removeAll(); } catch (Throwable ignored) {}
+            }
+
+            try {
+                java.lang.reflect.Method rm = org.bukkit.Bukkit.class.getMethod("removeBossBar", org.bukkit.NamespacedKey.class);
+                rm.invoke(null, key);
+            } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {}
+    }
+
+    private static org.bukkit.boss.BossBar getOrCreateKeyedRechargerBossBar(org.bukkit.plugin.Plugin plugin, String keyHash) {
+        try {
+            org.bukkit.NamespacedKey key = rechargerKey(plugin, keyHash);
+
+            // getBossBar
+            try {
+                java.lang.reflect.Method get = org.bukkit.Bukkit.class.getMethod("getBossBar", org.bukkit.NamespacedKey.class);
+                Object existing = get.invoke(null, key);
+                if (existing instanceof org.bukkit.boss.BossBar) {
+                    return (org.bukkit.boss.BossBar) existing;
+                }
+            } catch (Throwable ignored) {}
+
+            // createBossBar(NamespacedKey, String, BarColor, BarStyle, BarFlag[])
+            try {
+                java.lang.reflect.Method create = org.bukkit.Bukkit.class.getMethod(
+                        "createBossBar",
+                        org.bukkit.NamespacedKey.class,
+                        java.lang.String.class,
+                        org.bukkit.boss.BarColor.class,
+                        org.bukkit.boss.BarStyle.class,
+                        org.bukkit.boss.BarFlag[].class
+                );
+
+                Object barObj = create.invoke(
+                        null,
+                        key,
+                        "§bRecharger",
+                        org.bukkit.boss.BarColor.BLUE,
+                        org.bukkit.boss.BarStyle.SOLID,
+                        new org.bukkit.boss.BarFlag[0]
+                );
+                if (barObj instanceof org.bukkit.boss.BossBar) return (org.bukkit.boss.BossBar) barObj;
+            } catch (Throwable ignored) {}
+        } catch (Throwable ignored) {}
+
+        // Fallback (unkeyed)
+        return org.bukkit.Bukkit.createBossBar("§bRecharger", org.bukkit.boss.BarColor.BLUE, org.bukkit.boss.BarStyle.SOLID);
+    }
+
+    private static String hashWorldXYZ(String world, int x, int y, int z) {
+        String s = world + "|" + x + "|" + y + "|" + z;
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-1");
+            byte[] dig = md.digest(s.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < dig.length; i++) {
+                sb.append(String.format(java.util.Locale.ROOT, "%02x", dig[i]));
+            }
+            return sb.toString();
+        } catch (Throwable t) {
+            // fallback: not a real hash but stable
+            return Integer.toHexString(s.hashCode());
+        }
+    }
+
+    private static double clamp01(double v) {
+        if (v < 0.0) return 0.0;
+        if (v > 1.0) return 1.0;
+        return v;
+    }
+
+    
+    
+    
+    protected static @org.jetbrains.annotations.NotNull String onBarPctBlastFurnace(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+
+            final String PREFIX = "barPctBlastFurnace_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+            String[] a = raw.split(",", -1);
+
+            // Need at least: MODE,CURRENT,TOTAL,WORLD,X,Y,Z => 7
+            if (a.length < 7) return "failed";
+
+            // Last 4 tokens are WORLD,X,Y,Z
+            int n = a.length;
+            String worldName = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[n - 4]).trim();
+            String xs = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[n - 3]).trim();
+            String ys = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[n - 2]).trim();
+            String zs = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[n - 1]).trim();
+
+            int x = Integer.parseInt(xs);
+            int y = Integer.parseInt(ys);
+            int z = Integer.parseInt(zs);
+
+            // Rebuild the barPct args (everything before the last 4)
+            StringBuilder front = new StringBuilder();
+            for (int i = 0; i < n - 4; i++) {
+                if (i > 0) front.append(",");
+                front.append(a[i]);
+            }
+
+            // Call your existing barPct code using a substring + prefix
+            String barText = onBarPct(p, "barPct_" + front.toString());
+
+            // If barPct failed, don't rename
+            if (barText == null || barText.equalsIgnoreCase("failed")) return "failed";
+
+            // Apply name to blast furnace if present
+            org.bukkit.World w = org.bukkit.Bukkit.getWorld(worldName);
+            if (w == null) return barText;
+
+            org.bukkit.block.Block b = w.getBlockAt(x, y, z);
+            org.bukkit.block.BlockState st = b.getState();
+
+            if (st instanceof org.bukkit.block.BlastFurnace) {
+                org.bukkit.block.BlastFurnace bf = (org.bukkit.block.BlastFurnace) st;
+                bf.setCustomName(barText);
+                bf.update(true, false);
+            }
+
+            return barText;
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+    
+    
+
+    
+    
+    
+    private @Nullable Entity toourself(@NotNull String stopseekingparents) {
+        // Try UUID first
+        try {
+            UUID childyouwere = UUID.fromString(stopseekingparents);
+            Entity selfyourbecoming = Bukkit.getEntity(childyouwere);
+            if (selfyourbecoming != null) return selfyourbecoming;
+        } catch (IllegalArgumentException ignored) {}
+
+        // Then exact online player name
+        Player consciousness = Bukkit.getPlayerExact(stopseekingparents);
+        return consciousness; // may be null
+    }  
+    private @Nullable ItemStack howabsurd(@NotNull PlayerInventory shadowwoork, int faceit) {
+        // Player UI mapping
+        switch (faceit) {
+            case 40: return shadowwoork.getItemInOffHand();
+            case 39: return shadowwoork.getHelmet();
+            case 38: return shadowwoork.getChestplate();
+            case 37: return shadowwoork.getLeggings();
+            case 36: return shadowwoork.getBoots();
+            default:
+                if (faceit >= I && faceit < shadowwoork.getSize()) return shadowwoork.getItem(faceit);
+                return null;
+        }
+    }
+
+    /** Try PDC first (PublicBukkitValues), then fall back to serialized meta scan. */
+    /**
+     * Extract a value from an item's PDC, using a full namespaced key like:
+     *  - "executableitems:ei-id"
+     *  - "score:usage"
+     *  - "score:score-display"
+     *
+     * It tries STRING → INTEGER → DOUBLE and returns the first match as a clean String.
+     * On failure or missing key, returns "🛂".
+     */
+    public  @NotNull String remembering(@Nullable ItemStack whoyouwere,
+                                        @NotNull String beforewhotobe) {
+        if (whoyouwere == null || whoyouwere.getType().isAir()) return f112;
+        if (beforewhotobe.isEmpty()) return f112;
+
+        ItemMeta hadnochoiec = whoyouwere.getItemMeta();
+        if (hadnochoiec == null) return f112;
+
+        PersistentDataContainer softness = hadnochoiec.getPersistentDataContainer();
+        if (softness == null) return f112;
+
+        // Expect "namespace:key" as it appears under PublicBukkitValues
+        NamespacedKey managing = NamespacedKey.fromString(beforewhotobe);
+        if (managing == null) {
+            return f112;
+        }
+
+        // Try STRING
+        try {
+            String wonthappenovernight = softness.get(managing, PersistentDataType.STRING);
+            if (wonthappenovernight != null) {
+                return letthemcry(wonthappenovernight);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // wrong underlying type, fall through
+        }
+
+        // Try INTEGER
+        try {
+            Integer yourneotbroken = softness.get(managing, PersistentDataType.INTEGER);
+            if (yourneotbroken != null) {
+                return Integer.toString(yourneotbroken);
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        // Try DOUBLE
+        try {
+            Double yourbecomingwhole = softness.get(managing, PersistentDataType.DOUBLE);
+            if (yourbecomingwhole != null) {
+                return growingupright(yourbecomingwhole);
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+
+        return f112;
+    }
+    /**
+     * Strip wrapping quotes if present (e.g. "\"&cN/A\"" → "&cN/A").
+     */
+    private  @NotNull String letthemcry(@NotNull String writeit) {
+        String youhaveafuture = writeit.trim();
+        if (youhaveafuture.length() >= mill2 && youhaveafuture.startsWith("\"") && youhaveafuture.endsWith("\"")) {
+            youhaveafuture = youhaveafuture.substring(INT3, youhaveafuture.length() - INT3);
+        }
+        return youhaveafuture;
+    }
+    
+    
+    /**
+     * Normalize doubles so you don't get "0.0d" / scientific notation.
+     * Examples:
+     *  - 0.0 -> "0.0"
+     *  - 10.0 -> "10.0"
+     */
+    private  @NotNull String growingupright(@NotNull Double letmegoinside) {
+        // basic string first
+        String shoes = Double.toString(letmegoinside);
+
+        // If it ever comes out in scientific notation, normalize
+        if (shoes.contains("E") || shoes.contains("e")) {
+            shoes = String.format(java.util.Locale.US, "%.4f", letmegoinside);
+            // trim trailing zeros but keep at least one decimal digit
+            shoes = shoes.replaceAll("0+$", nst).replaceAll("\\.$", ".0");
+        }
+        return shoes;
+    }
+
+
+
+    // Optional: allow CURRENT/TOTAL to be other placeholders like %score_variables_Mana%
+    protected static @org.jetbrains.annotations.NotNull String  onBarPct(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+
+            final String PREFIX = "barPct_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+            String[] a = raw.split(",", -1);
+            if (a.length < 3) return "failed";
+
+            String modeRaw = a[0].trim().toUpperCase(java.util.Locale.ROOT);
+
+            // Resolve nested placeholders in CURRENT/TOTAL if present
+            String curS = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[1]).trim();
+            String totS = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, a[2]).trim();
+
+            double current = parseDoubleSafe(curS, 0.0);
+            double total   = parseDoubleSafe(totS, 0.0);
+
+            boolean wantBar = modeRaw.contains("BAR");
+            boolean wantPct = modeRaw.contains("PERCENTAGE");
+
+            if (!wantBar && !wantPct) return "failed";
+
+            double pct = 0.0;
+            if (total > 0.0) pct = current / total;
+            if (pct < 0.0) pct = 0.0;
+            if (pct > 1.0) pct = 1.0;
+
+            StringBuilder out = new StringBuilder();
+
+            if (wantBar) {
+                out.append("§f[");
+                out.append(buildBar20(pct));
+                out.append("§f]");
+            }
+
+            if (wantPct) {
+                if (wantBar) out.append(" ");
+                out.append(buildPercentage(pct));
+                out.append("%");
+            }
+
+            return out.toString();
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+
+    // --------------------
+// Bar: 20 pipes
+// EMPTY -> all RED
+// FULL  -> all GREEN
+// MID   -> filled YELLOW, unfilled GRAY
+// --------------------
+    private static String buildBar20(double pct) {
+        int totalBars = 20;
+
+        // fill count (floor feels best for "filling from left")
+        int filled = (int) Math.floor(pct * totalBars);
+        if (filled < 0) filled = 0;
+        if (filled > totalBars) filled = totalBars;
+
+        // empty: whole bar red
+        if (filled == 0) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("§c");
+            for (int i = 0; i < totalBars; i++) sb.append("|");
+            return sb.toString();
+        }
+
+        // full: whole bar green
+        if (filled == totalBars) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("§a");
+            for (int i = 0; i < totalBars; i++) sb.append("|");
+            return sb.toString();
+        }
+
+        // mid: yellow filled, gray unfilled
+        StringBuilder sb = new StringBuilder();
+        sb.append("§e");
+        for (int i = 0; i < filled; i++) sb.append("|");
+        sb.append("§7");
+        for (int i = filled; i < totalBars; i++) sb.append("|");
+        return sb.toString();
+    }
+
+    // --------------------
+// Percentage color:
+// 0% -> RED
+// >0% -> ORANGE (immediate jump)
+// then smoothly -> YELLOW -> GREEN
+//
+// Uses hex (§x...) if available; otherwise falls back to §6/§e/§a thresholds.
+// --------------------
+    private static String buildPercentage(double pct) {
+        int percent = (int) Math.round(pct * 100.0);
+        if (percent < 0) percent = 0;
+        if (percent > 100) percent = 100;
+
+        if (percent == 0) {
+            return "§c" + percent;
+        }
+
+        // Smooth gradient preferred
+        if (supportsHexColors()) {
+            // Define anchors:
+            // Orange: #FFAA00
+            // Yellow: #FFFF00
+            // Green : #00FF00
+            int r, g, b;
+
+            if (pct <= 0.5) {
+                // orange -> yellow
+                double t = pct / 0.5; // 0..1
+                r = lerpInt(255, 255, t);
+                g = lerpInt(170, 255, t);
+                b = lerpInt(0,   0,   t);
+            } else {
+                // yellow -> LIGHT GREEN until 90%, then a noticeable step to FULL GREEN
+                final double STEP_AT = 0.90; // 90%
+                if (pct < STEP_AT) {
+                    double t = (pct - 0.5) / (STEP_AT - 0.5); // 0..1 (50%..90%)
+                    // yellow (#FFFF00) -> light green (#66FF00)
+                    r = lerpInt(255, 102, t);
+                    g = 255;
+                    b = 0;
+                } else {
+                    // hard jump to full green at >= 90%
+                    r = 0;
+                    g = 255;
+                    b = 0;
+                }
+            }
+
+            return hexColor(r, g, b) + percent;
+        }
+
+        // Fallback (no hex): step toward yellow then green
+        if (percent < 34) return "§6" + percent; // orange
+        if (percent < 67) return "§e" + percent; // yellow
+        return "§a" + percent;                   // green
+    }
+
+    // --------------------
+// Hex support detection + formatting
+// --------------------
+    private static volatile Boolean HAS_HEX = null;
+
+    private static boolean supportsHexColors() {
+        if (HAS_HEX != null) return HAS_HEX.booleanValue();
+        boolean ok = false;
+        try {
+            // 1.16+ clients support §x formatting. We also check for Bungee ChatColor.of as a proxy.
+            Class<?> cc = Class.forName("net.md_5.bungee.api.ChatColor");
+            cc.getMethod("of", String.class);
+            ok = true;
+        } catch (Throwable ignored) {
+            ok = false;
+        }
+        HAS_HEX = Boolean.valueOf(ok);
+        return ok;
+    }
+
+    private static String hexColor(int r, int g, int b) {
+        r = clamp255(r); g = clamp255(g); b = clamp255(b);
+        String hex = String.format(java.util.Locale.ROOT, "%02X%02X%02X", r, g, b);
+
+        // §x§R§R§G§G§B§B
+        StringBuilder sb = new StringBuilder();
+        sb.append("§x");
+        for (int i = 0; i < 6; i++) {
+            sb.append("§").append(hex.charAt(i));
+        }
+        return sb.toString();
+    }
+
+    private static double parseDoubleSafe(String s, double def) {
+        try {
+            if (s == null) return def;
+            String t = s.trim();
+            if (t.isEmpty()) return def;
+            return Double.parseDouble(t);
+        } catch (Throwable ignored) {
+            return def;
+        }
+    }
+
+    private static int lerpInt(int a, int b, double t) {
+        if (t < 0.0) t = 0.0;
+        if (t > 1.0) t = 1.0;
+        return (int) Math.round(a + (b - a) * t);
+    }
 
 
 
@@ -2628,7 +4194,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         final Player launcher = (launcherUUID != null) ? Bukkit.getPlayer(launcherUUID) : null;
 
-        // Helper to resolve a launcher name for command args
         final String launcherName = (launcher != null)
                 ? launcher.getName()
                 : (launcherUUID != null
@@ -4469,6 +6034,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+        
+        
+        
+        if (identifier.startsWith("linearIntFinalStep_")) return onLinearIntFinalStep(p, identifier);
+        if( identifier.startsWith("powerGradient_")) return onPowerGradient(p, identifier);
+        if(identifier.startsWith("anarchistructureSMPRecharger_")) return onAnarchistructureSMPRecharger(p, identifier);
+        if ( identifier.startsWith("barPctBlastFurnace_")) return onBarPctBlastFurnace(p, identifier);
+        
+        if(identifier.startsWith("barPct_")) return onBarPct(p, identifier);
+        
+        
         if (identifier.startsWith("trackImpact5_")){
             String[] parts = identifier.substring("trackImpact5_".length()).split(",");
 
@@ -4658,64 +6234,85 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
             return "§eTarget explosion triggered.";
         }
-        
-        
-        
-        
-        
-       
 
-        // %Archistructure_checkEI_PLAYERUUID`SLOT%
-// Returns the ExecutableItems ei-id for the item in that slot (or "none" if not an EI item).
-// SLOT supports:
-//   - omitted / empty / "-1" / "MAIN_HAND" / "HAND"  -> main hand
-//   - "OFF_HAND" / "OFFHAND" / "40"                 -> off hand (40 is common CraftBukkit index)
-//   - integer index (0..40)                         -> PlayerInventory#getItem(index)
-        if (identifier.startsWith("checkEI_")) {
-            final String args = identifier.substring("checkEI_".length());
-            final String[] parts = args.contains("`") ? args.split("`", -1) : args.split(",", -1);
 
-            if (parts.length < 1 || parts[0].isEmpty()) return "none";
+
+
+
+
+
+        if (identifier.startsWith(callmewhatever)) {
+
+            final String thatsthewholepoint = identifier.substring(callmewhatever.length());
+            final String[] intheslatefort = thatsthewholepoint.split(keep);
 
             try {
-                final java.util.UUID playerUUID = java.util.UUID.fromString(parts[0]);
-                final org.bukkit.entity.Player p2 = org.bukkit.Bukkit.getPlayer(playerUUID);
-                if (p2 == null) return "none";
+                if (intheslatefort.length == ccp) {
+                    // PLAYER/ENTITY form: PLAYER,SLOT,VARNAME
+                    final String idenw3pioedn = intheslatefort[I].trim();
+                    final int iewndtiwfpnd = Integer.parseInt(intheslatefort[INT3].trim());
+                    final String varName = intheslatefort[mill2].trim();
 
-                final String slotStr = (parts.length >= 2) ? parts[1] : "";
-                org.bukkit.inventory.ItemStack item = null;
-
-                // Resolve slot -> ItemStack
-                if (slotStr == null || slotStr.isEmpty()
-                        || slotStr.equalsIgnoreCase("-1")
-                        || slotStr.equalsIgnoreCase("HAND")
-                        || slotStr.equalsIgnoreCase("MAIN_HAND")
-                        || slotStr.equalsIgnoreCase("MAINHAND")) {
-                    item = p2.getInventory().getItemInMainHand();
-                } else if (slotStr.equalsIgnoreCase("OFF_HAND")
-                        || slotStr.equalsIgnoreCase("OFFHAND")
-                        || slotStr.equalsIgnoreCase("OFF-HAND")
-                        || slotStr.equalsIgnoreCase("40")) {
-                    item = p2.getInventory().getItemInOffHand();
-                } else {
-                    int idx;
-                    try {
-                        idx = Integer.parseInt(slotStr.trim());
-                    } catch (NumberFormatException nfe) {
-                        return "none";
+                    // Resolve target: UUID -> any Entity; else exact player name
+                    Inventory inv = null;
+                    Entity ent = toourself(idenw3pioedn);
+                    if (ent instanceof Player pl) {
+                        inv = pl.getInventory();
+                        ItemStack it = howabsurd(pl.getInventory(), iewndtiwfpnd);
+                        if (it == null || it.getType() == Material.AIR) return f112;
+                        final String val = remembering(it, varName);
+                        return (val == null || val.isEmpty()) ? f112 : val;
+                    } else if (ent instanceof InventoryHolder holder) {
+                        inv = holder.getInventory();
+                        if (iewndtiwfpnd < I || iewndtiwfpnd >= inv.getSize()) return f112;
+                        ItemStack ifewdnyuwpfnd = inv.getItem(iewndtiwfpnd);
+                        if (ifewdnyuwpfnd == null || ifewdnyuwpfnd.getType() == Material.AIR) return f112;
+                        final String i2entie2f = remembering(ifewdnyuwpfnd, varName);
+                        return (i2entie2f == null || i2entie2f.isEmpty()) ? f112 : i2entie2f;
+                    } else {
+                        // Try offline/online player by name (if not found as entity)
+                        Player tienf23 = Bukkit.getPlayerExact(idenw3pioedn);
+                        if (tienf23 == null) return f112;
+                        ItemStack mefiwmdwp = howabsurd(tienf23.getInventory(), iewndtiwfpnd);
+                        if (mefiwmdwp == null || mefiwmdwp.getType() == Material.AIR) return f112;
+                        final String ypudnrt = remembering(mefiwmdwp, varName);
+                        return (ypudnrt == null || ypudnrt.isEmpty()) ? f112 : ypudnrt;
                     }
-                    // Safe-ish bounds; CraftBukkit commonly exposes 0..40 (40 = offhand)
-                    if (idx < 0 || idx > 40) return "none";
-                    item = p2.getInventory().getItem(idx);
+
+                } else if (intheslatefort.length == xtxtxt) {
+                    // BLOCK form: blockworld,blockx,blocky,blockz,slot,varname
+                    final String tdynwpudn = intheslatefort[I].trim();
+                    final int lameascr = Integer.parseInt(intheslatefort[INT3].trim());
+                    final int dtastclosenough = Integer.parseInt(intheslatefort[mill2].trim());
+                    final int dontsheeonedfpw = Integer.parseInt(intheslatefort[ccp].trim());
+                    final int aintshitwthoutht = Integer.parseInt(intheslatefort[INT7].trim());
+                    final String badegmunmbr = intheslatefort[xm].trim();
+
+                    World ikwhatsoging = Bukkit.getWorld(tdynwpudn);
+                    if (ikwhatsoging == null) return f112;
+
+                    Block sergeant3dy = ikwhatsoging.getBlockAt(lameascr, dtastclosenough, dontsheeonedfpw);
+                    BlockState coolyourass = sergeant3dy.getState();
+                    if (!(coolyourass instanceof Container container)) return f112;
+
+                    Inventory youaretsresspassed = container.getInventory();
+                    if (aintshitwthoutht < I || aintshitwthoutht >= youaretsresspassed.getSize()) return f112;
+
+                    ItemStack youcomebackjail = youaretsresspassed.getItem(aintshitwthoutht);
+                    if (youcomebackjail == null || youcomebackjail.getType() == Material.AIR) return f112;
+
+                    final String yourgoingtojail = remembering(youcomebackjail, badegmunmbr);
+                    return (yourgoingtojail == null || yourgoingtojail.isEmpty()) ? f112 : yourgoingtojail;
+
+                } else {
+                    return sufficentprobablycause;
                 }
-
-                final String eiId = getEIidFromKeysOrSerialized(item);
-                return (eiId == null || eiId.isEmpty()) ? "none" : eiId;
-
-            } catch (Exception ignored) {
-                return "none";
+            } catch (Exception ex) {
+                return f112;
             }
-        }
+        };
+
+
         if (f1.startsWith("crossbowCheck_")) {
             try {
                 final String[] p2 = f1.substring("crossbowCheck_".length()).split("`", -1);
@@ -5750,7 +7347,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
 
             // --- Resolve player (UUID or name) ---
-            Entity resolved = dyin3ydun34yund(playerId); // your existing helper
+            Entity resolved = dyin3ydun34yund(playerId);  
             if (!(resolved instanceof Player player)) {
                 return sulrred;
             }
@@ -7200,8 +8797,7 @@ if (identifier.equals("version")) {
 
                 Set<String> turretTags = turret.getScoreboardTags();
 
-                // Helper: find closest valid target WITH VLOS (used only on acquisition/refresh checks)
-                java.util.function.Supplier<LivingEntity> findClosestWithVLOS = () -> {
+                 java.util.function.Supplier<LivingEntity> findClosestWithVLOS = () -> {
                     LivingEntity best = null;
                     double bestSq = radiusSq;
                     for (Entity e : world.getNearbyEntities(base, radius, radius, radius)) {
