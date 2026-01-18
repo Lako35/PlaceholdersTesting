@@ -1640,55 +1640,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private final File ld = new File("plugins/Archistructures");
     private final File lf = new File(ld, "config.yml");
 
-    /**
-     * This method should always return true unless we
-     * have a dependency we need to make sure is on the server
-     * for our placeholders to work!
-     * This expansion does not require a dependency so we will always return true
-     */
-    @Override
-    public boolean canRegister() {
-        return NEW_VALUE1;
-    }
-
-    /**
-     * The name of the person who created this expansion should go here
-     */
-    @Override
-    public @NotNull String getAuthor() {
-        return "Archistructure";
-    }
-
-    /**
-     * The placeholder identifier should go here
-     * This is what tells PlaceholderAPI to call our opener method to obtain
-     * a value if a placeholder starts with our identifier.
-     * This must be unique and can not contain % or _
-     */
-    @Override
-    public @NotNull String getIdentifier() {
-        return "Archistructure";
-    }
-
-
-    /**
-     * This is the version of this expansion
-     */
-    @Override
-    public @NotNull String getVersion() {
-        return "1.0.0";
-    }
-
-    /**
-     * if an expansion requires another plugin as a dependency, the proper name of the dependency should
-     * go here. Set this to null if your placeholders do not require another plugin be installed on the server
-     * for them to work
-     */
-    @Override
-    @SuppressWarnings({"Overridden", "UnstableApiUsage", "deprecation"})
-    public String getPlugin() {
-        return null;
-    }
 
     protected void f1(UUID x) {
         if (!g22.containsKey(x)) {
@@ -4157,6 +4108,506 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     
     // Helper Methods // Helpers // 
+    private static boolean TIMERLOOP_DEBUG = true;          // flip true to enable
+    private static boolean TIMERLOOP_DEBUG_VERBOSE = false;  // flip true for per-slot / per-line spam
+    private static final java.util.Map<java.util.UUID, org.bukkit.inventory.Inventory> TIMERLOOP_TARGET_TOP =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.inventory.Inventory>();
+
+    
+    // Rate-limit noisy messages per player
+    private static final java.util.Map<java.util.UUID, Long> TIMERLOOP_DEBUG_LAST_MS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, Long>();
+
+    private static void tdbg(org.bukkit.entity.Player p, String msg) {
+        if (!TIMERLOOP_DEBUG) return;
+        if (p != null && p.isOnline()) p.sendMessage("§8[§bTimerLoop§8] §7" + msg);
+    }
+
+    private static void tdbgRate(org.bukkit.entity.Player p, long minMs, String msg) {
+        if (!TIMERLOOP_DEBUG) return;
+        if (p == null || !p.isOnline()) return;
+
+        long now = System.currentTimeMillis();
+        Long last = TIMERLOOP_DEBUG_LAST_MS.get(p.getUniqueId());
+        if (last == null) last = Long.valueOf(0L);
+
+        if (now - last.longValue() < minMs) return;
+
+        TIMERLOOP_DEBUG_LAST_MS.put(p.getUniqueId(), Long.valueOf(now));
+        p.sendMessage("§8[§bTimerLoop§8] §7" + msg);
+    }
+
+    private static String locStr(org.bukkit.Location l) {
+        if (l == null || l.getWorld() == null) return "null";
+        return l.getWorld().getName() + " " + l.getBlockX() + " " + l.getBlockY() + " " + l.getBlockZ();
+    }
+
+    private static String invInfo(org.bukkit.inventory.Inventory inv) {
+        if (inv == null) return "null";
+        String type = "UNKNOWN";
+        try { type = inv.getType().name(); } catch (Throwable ignored) {}
+        String holder = "null";
+        try { holder = (inv.getHolder() == null) ? "null" : inv.getHolder().getClass().getSimpleName(); } catch (Throwable ignored) {}
+        return type + " holder=" + holder + " size=" + inv.getSize();
+    }
+    
+    
+
+
+    private static boolean isPlayerViewingBlockInventory(org.bukkit.entity.Player p, org.bukkit.Location loc) {
+        try {
+            org.bukkit.inventory.InventoryView view = p.getOpenInventory();
+            if (view == null) return false;
+
+            org.bukkit.inventory.Inventory top = view.getTopInventory();
+            if (top == null) return false;
+
+            // Prefer holder location
+            org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+            if (holder instanceof org.bukkit.block.BlockState) {
+                org.bukkit.Location hl = ((org.bukkit.block.BlockState) holder).getLocation();
+                return sameBlock(hl, loc);
+            }
+
+            // Some APIs provide Inventory#getLocation
+            try {
+                java.lang.reflect.Method m = top.getClass().getMethod("getLocation");
+                Object got = m.invoke(top);
+                if (got instanceof org.bukkit.Location) {
+                    return sameBlock((org.bukkit.Location) got, loc);
+                }
+            } catch (Throwable ignored) {}
+
+            return false;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static boolean sameBlock(org.bukkit.Location a, org.bukkit.Location b) {
+        if (a == null || b == null) return false;
+        if (a.getWorld() == null || b.getWorld() == null) return false;
+        if (!a.getWorld().equals(b.getWorld())) return false;
+        return a.getBlockX() == b.getBlockX()
+                && a.getBlockY() == b.getBlockY()
+                && a.getBlockZ() == b.getBlockZ();
+    }
+
+    // ========================================
+// 1) UPDATED onTimerLoop (IGNORE COORDS)
+// ========================================
+    protected static @org.jetbrains.annotations.NotNull String onTimerLoop(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            if (p == null || !p.isOnline()) return "none";
+
+            if (!(identifier.startsWith("timerLoop,") || identifier.startsWith("timerLoop_"))) return "failed";
+
+            org.bukkit.inventory.InventoryView view = p.getOpenInventory();
+            if (view == null || view.getTopInventory() == null) {
+                tdbg(p, "Parse: openInventory/topInventory null (must be in a container UI).");
+                return "none";
+            }
+
+            org.bukkit.inventory.Inventory top = view.getTopInventory();
+            TIMERLOOP_TARGET_TOP.put(p.getUniqueId(), top);
+
+            // Best-effort: also store block location for per-container throttle key
+            org.bukkit.Location loc = getOpenTopInventoryLocation(p); // may be null
+            TIMERLOOP_TARGET_LOC.put(p.getUniqueId(), loc);
+
+            tdbg(p, "Parse OK -> top=" + invInfo(top) + " loc=" + locStr(loc));
+
+            if (!TIMERLOOP_TASKS.containsKey(p.getUniqueId())) {
+                tdbg(p, "Starting task for player.");
+                startTimerLoopTask(p.getUniqueId());
+            } else {
+                tdbg(p, "Task already running; updated target only.");
+            }
+
+            return "ok";
+        } catch (Throwable t) {
+            tdbg(p, "Parse EXCEPTION: " + t.getClass().getSimpleName() + " " + String.valueOf(t.getMessage()));
+            return "failed";
+        }
+    }
+    private static org.bukkit.Location getOpenTopInventoryLocation(org.bukkit.entity.Player p) {
+        try {
+            org.bukkit.inventory.InventoryView view = p.getOpenInventory();
+            if (view == null) {
+                tdbg(p, "getOpenTopInventoryLocation: view=null");
+                return null;
+            }
+
+            org.bukkit.inventory.Inventory top = view.getTopInventory();
+            if (top == null) {
+                tdbg(p, "getOpenTopInventoryLocation: top=null");
+                return null;
+            }
+
+            if (TIMERLOOP_DEBUG_VERBOSE) {
+                tdbg(p, "getOpenTopInventoryLocation: top=" + invInfo(top));
+            }
+
+            // Prefer holder location
+            org.bukkit.inventory.InventoryHolder holder = top.getHolder();
+            if (holder instanceof org.bukkit.block.BlockState) {
+                org.bukkit.Location l = ((org.bukkit.block.BlockState) holder).getLocation();
+                if (TIMERLOOP_DEBUG_VERBOSE) tdbg(p, "Resolved via holder BlockState -> " + locStr(l));
+                return l;
+            }
+
+            // Some APIs provide Inventory#getLocation
+            try {
+                java.lang.reflect.Method m = top.getClass().getMethod("getLocation");
+                Object got = m.invoke(top);
+                if (got instanceof org.bukkit.Location) {
+                    org.bukkit.Location l = (org.bukkit.Location) got;
+                    if (TIMERLOOP_DEBUG_VERBOSE) tdbg(p, "Resolved via Inventory#getLocation -> " + locStr(l));
+                    return l;
+                }
+            } catch (Throwable ignored) {
+                if (TIMERLOOP_DEBUG_VERBOSE) tdbg(p, "Inventory#getLocation not available.");
+            }
+
+            tdbg(p, "getOpenTopInventoryLocation: no block location available for this inventory type.");
+            return null;
+        } catch (Throwable ex) {
+            tdbg(p, "getOpenTopInventoryLocation EXCEPTION: " + ex.getClass().getSimpleName() + " " + String.valueOf(ex.getMessage()));
+            return null;
+        }
+    }
+
+
+    // ========================================
+// 2) UPDATED startTimerLoopTask (DO-WHILE by top inventory object)
+// ========================================
+    private static void startTimerLoopTask(final java.util.UUID pid) {
+        final org.bukkit.plugin.Plugin plugin = java.util.Objects.requireNonNull(
+                org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI"),
+                "PlaceholderAPI plugin ref missing"
+        );
+
+        org.bukkit.scheduler.BukkitTask task = new org.bukkit.scheduler.BukkitRunnable() {
+            private boolean firstTick = true;
+
+            @Override public void run() {
+                org.bukkit.entity.Player pl = org.bukkit.Bukkit.getPlayer(pid);
+                if (pl == null || !pl.isOnline()) {
+                    stopTimerLoopTask(pid);
+                    return;
+                }
+
+                // Give the UI 1 tick to settle
+                if (firstTick) {
+                    firstTick = false;
+                    if (TIMERLOOP_DEBUG) tdbg(pl, "First tick grace: delaying view check 1 tick");
+                    return;
+                }
+
+                org.bukkit.inventory.Inventory expectedTop = TIMERLOOP_TARGET_TOP.get(pid);
+                org.bukkit.inventory.InventoryView curView = pl.getOpenInventory();
+                org.bukkit.inventory.Inventory curTop = (curView != null) ? curView.getTopInventory() : null;
+
+                // DO-WHILE: stop if they closed or switched to a different top inventory
+                if (expectedTop == null || curTop == null || curTop != expectedTop) {
+                    if (TIMERLOOP_DEBUG) tdbg(pl, "Task stop: top inventory changed/closed. expected=" + invInfo(expectedTop) + " cur=" + invInfo(curTop));
+                    stopTimerLoopTask(pid);
+                    return;
+                }
+
+                // Throttle key: prefer block loc if available, else fallback to identityHash of inventory object
+                org.bukkit.Location loc = TIMERLOOP_TARGET_LOC.get(pid);
+                String ckey = (loc != null && loc.getWorld() != null)
+                        ? containerKey(loc)
+                        : ("NOLOC|" + System.identityHashCode(expectedTop));
+
+                long now = System.currentTimeMillis();
+                Long last = TIMERLOOP_CONTAINER_LAST_MS.get(ckey);
+                if (last == null) last = Long.valueOf(0L);
+
+                if (now - last.longValue() < 30_000L) {
+                    return;
+                }
+                TIMERLOOP_CONTAINER_LAST_MS.put(ckey, Long.valueOf(now));
+
+                // Use LIVE open container (we already verified curTop == expectedTop)
+                org.bukkit.inventory.Inventory top = curTop;
+
+                // Scan slots for PDC score:score-archistructuretimer (string expiry ms)
+                org.bukkit.NamespacedKey kTimer = nsKey("score", "score-archistructuretimer");
+
+                int size = top.getSize();
+                int foundTimers = 0;
+                int updatedLore = 0;
+                int removed = 0;
+
+                for (int i = 0; i < size; i++) {
+                    org.bukkit.inventory.ItemStack it = top.getItem(i);
+                    if (it == null || it.getType() == org.bukkit.Material.AIR) continue;
+
+                    org.bukkit.inventory.meta.ItemMeta meta = it.getItemMeta();
+                    if (meta == null) continue;
+
+                    org.bukkit.persistence.PersistentDataContainer pdc = meta.getPersistentDataContainer();
+                    if (pdc == null) continue;
+
+                    String ts;
+                    try { ts = pdc.get(kTimer, org.bukkit.persistence.PersistentDataType.STRING); }
+                    catch (Throwable ignored) { ts = null; }
+
+                    if (ts == null) continue;
+                    ts = ts.trim();
+                    if (ts.isEmpty()) continue;
+
+                    foundTimers++;
+
+                    long expiry;
+                    try { expiry = Long.parseLong(ts); }
+                    catch (Throwable ignored) { continue; }
+
+                    if (now >= expiry) {
+                        top.setItem(i, new org.bukkit.inventory.ItemStack(org.bukkit.Material.AIR));
+                        removed++;
+                        continue;
+                    }
+
+                    long remainingMs = expiry - now;
+                    long dd = remainingMs / 86_400_000L;
+                    long hh = (remainingMs % 86_400_000L) / 3_600_000L;
+                    long mm = (remainingMs % 3_600_000L) / 60_000L;
+
+                    java.util.List<String> lore = meta.getLore();
+                    if (lore == null || lore.isEmpty()) continue;
+
+                    boolean updated = false;
+                    for (int li = 0; li < lore.size(); li++) {
+                        String line = lore.get(li);
+                        if (line == null) continue;
+
+                        String newLine = tryUpdateTimerLoreLine(line, dd, hh, mm);
+                        if (newLine != null) {
+                            lore.set(li, newLine);
+                            updated = true;
+                            break;
+                        }
+                    }
+
+                    if (updated) {
+                        meta.setLore(lore);
+                        it.setItemMeta(meta);
+                        top.setItem(i, it);
+                        updatedLore++;
+                    }
+                }
+
+                if (TIMERLOOP_DEBUG) {
+                    tdbg(pl, "Scan done key=" + ckey + " timers=" + foundTimers + " updated=" + updatedLore + " removed=" + removed + " top=" + invInfo(top));
+                }
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+
+        TIMERLOOP_TASKS.put(pid, task);
+    }
+
+
+    private static void stopTimerLoopTask(java.util.UUID pid) {
+        org.bukkit.scheduler.BukkitTask t = TIMERLOOP_TASKS.remove(pid);
+        if (t != null) {
+            try { t.cancel(); } catch (Throwable ignored) {}
+        }
+        TIMERLOOP_TARGET_LOC.remove(pid);
+        TIMERLOOP_TARGET_TOP.remove(pid);
+    }
+
+    private static String tryUpdateTimerLoreLine(String line, long dd, long hh, long mm) {
+        // Prefer strict match: must contain "time left" once colors removed
+        String stripped;
+        try { stripped = org.bukkit.ChatColor.stripColor(line); }
+        catch (Throwable ignored) { stripped = line; }
+
+        boolean looksLikeTimer = false;
+        if (stripped != null) {
+            String low = stripped.toLowerCase(java.util.Locale.ROOT);
+            if (low.contains("time left")) looksLikeTimer = true;
+        }
+
+        // Also allow fallback match if it has all three units
+        if (!looksLikeTimer) {
+            if (line.indexOf('d') >= 0 && line.indexOf('h') >= 0 && line.indexOf('m') >= 0) looksLikeTimer = true;
+        }
+        if (!looksLikeTimer) return null;
+
+        // Require digits before d/h/m
+        if (!hasDigitsBeforeSuffix(line, 'd')) return null;
+        if (!hasDigitsBeforeSuffix(line, 'h')) return null;
+        if (!hasDigitsBeforeSuffix(line, 'm')) return null;
+
+        String out = line;
+
+        // Replace first number before d, then h, then m
+        out = replaceFirstDigitsBeforeSuffix(out, 'd', String.valueOf(dd));
+        out = replaceFirstDigitsBeforeSuffix(out, 'h', pad2(hh));
+        out = replaceFirstDigitsBeforeSuffix(out, 'm', pad2(mm));
+
+        return out;
+    }
+
+    private static String tryUpdateTimerLoreLineDebug(org.bukkit.entity.Player pl, int slot, String line, long dd, long hh, long mm) {
+        if (!TIMERLOOP_DEBUG_VERBOSE) {
+            return tryUpdateTimerLoreLine(line, dd, hh, mm);
+        }
+
+        String stripped;
+        try { stripped = org.bukkit.ChatColor.stripColor(line); }
+        catch (Throwable ignored) { stripped = line; }
+
+        if (stripped == null) stripped = "";
+        String low = stripped.toLowerCase(java.util.Locale.ROOT);
+
+        boolean looksLikeTimer = low.contains("time left")
+                || (line.indexOf('d') >= 0 && line.indexOf('h') >= 0 && line.indexOf('m') >= 0);
+
+        if (!looksLikeTimer) {
+            // Don’t spam every line; only mention the first time per slot if you want—keeping it simple:
+            return null;
+        }
+
+        if (!hasDigitsBeforeSuffix(line, 'd')) { tdbg(pl, "Slot " + slot + ": lore looks timer-ish but no digits before 'd'"); return null; }
+        if (!hasDigitsBeforeSuffix(line, 'h')) { tdbg(pl, "Slot " + slot + ": lore looks timer-ish but no digits before 'h'"); return null; }
+        if (!hasDigitsBeforeSuffix(line, 'm')) { tdbg(pl, "Slot " + slot + ": lore looks timer-ish but no digits before 'm'"); return null; }
+
+        return tryUpdateTimerLoreLine(line, dd, hh, mm);
+    }
+
+
+    private static boolean hasDigitsBeforeSuffix(String s, char suffix) {
+        if (s == null) return false;
+        for (int i = 0; i < s.length() - 1; i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {
+                // scan forward to end of digit run
+                int j = i;
+                while (j < s.length() && Character.isDigit(s.charAt(j))) j++;
+                if (j < s.length() && s.charAt(j) == suffix) return true;
+                i = j;
+            }
+        }
+        return false;
+    }
+
+    private static String replaceFirstDigitsBeforeSuffix(String s, char suffix, String replacement) {
+        if (s == null) return null;
+
+        for (int i = 0; i < s.length() - 1; i++) {
+            if (!Character.isDigit(s.charAt(i))) continue;
+
+            int start = i;
+            int end = i;
+            while (end < s.length() && Character.isDigit(s.charAt(end))) end++;
+
+            if (end < s.length() && s.charAt(end) == suffix) {
+                return s.substring(0, start) + replacement + s.substring(end);
+            }
+            i = end;
+        }
+        return s;
+    }
+
+    private static String pad2(long v) {
+        if (v < 0) v = 0;
+        if (v < 10) return "0" + v;
+        return String.valueOf(v);
+    }
+    private static String containerKey(org.bukkit.Location loc) {
+        return loc.getWorld().getName() + "|" + loc.getBlockX() + "|" + loc.getBlockY() + "|" + loc.getBlockZ();
+    }
+
+    private static void pruneOldContainerTimestamps(long nowMs) {
+        // Remove entries not touched in 6 hours
+        long cutoff = nowMs - 6L * 60L * 60L * 1000L;
+        for (java.util.Map.Entry<String, Long> e : new java.util.HashSet<java.util.Map.Entry<String, Long>>(TIMERLOOP_CONTAINER_LAST_MS.entrySet())) {
+            Long v = e.getValue();
+            if (v == null) continue;
+            if (v.longValue() < cutoff) TIMERLOOP_CONTAINER_LAST_MS.remove(e.getKey());
+        }
+    }
+    protected static @org.jetbrains.annotations.NotNull String onConvertToTimeleft(
+            org.bukkit.entity.Player p,
+            @org.jetbrains.annotations.NotNull String identifier
+    ) {
+        try {
+            final String PREFIX = "convertToTimeleft_";
+            if (!identifier.startsWith(PREFIX)) return "failed";
+
+            String raw = identifier.substring(PREFIX.length());
+
+            // Split on FIRST comma only (template may contain commas)
+            int idx = raw.indexOf(',');
+            if (idx < 0) return "failed";
+
+            String tsRaw = raw.substring(0, idx).trim();
+            String template = raw.substring(idx + 1); // keep formatting as-is
+
+            // Resolve placeholders inside both
+            if (p != null) {
+                tsRaw = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, tsRaw).trim();
+                template = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(p, template);
+            }
+
+            long expiry;
+            try {
+                expiry = Long.parseLong(tsRaw);
+            } catch (Throwable ignored) {
+                return "failed";
+            }
+
+            long now = System.currentTimeMillis();
+            long remaining = expiry - now;
+            if (remaining < 0) remaining = 0;
+
+            long dd = remaining / 86_400_000L;
+            long hh = (remaining % 86_400_000L) / 3_600_000L;
+            long mm = (remaining % 3_600_000L) / 60_000L;
+
+            // Replace only the backtick tokens (exact match), preserving all color codes/formatting
+            String out = template;
+            out = out.replace("`DD`", String.valueOf(dd));
+            out = out.replace("`HH`", pad2(hh));
+            out = out.replace("`MM`", pad2(mm));
+
+            return out;
+        } catch (Throwable t) {
+            return "failed";
+        }
+    }
+    private static org.bukkit.NamespacedKey nsKey(String namespace, String key) {
+        try {
+            org.bukkit.NamespacedKey k = org.bukkit.NamespacedKey.fromString(namespace + ":" + key);
+            if (k != null) return k;
+        } catch (Throwable ignored) {}
+
+        org.bukkit.plugin.Plugin plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
+        if (plugin != null) return new org.bukkit.NamespacedKey(plugin, namespace + "_" + key);
+
+        return new org.bukkit.NamespacedKey("minecraft", (namespace + "_" + key).toLowerCase(java.util.Locale.ROOT));
+    }
+
+    // ===============================
+// TimerLoop (per-player) + per-container throttling
+// ===============================
+    private static final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> TIMERLOOP_TASKS =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.scheduler.BukkitTask>();
+
+    private static final java.util.Map<java.util.UUID, org.bukkit.Location> TIMERLOOP_TARGET_LOC =
+            new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.Location>();
+
+    // containerKey -> lastRunMillis (throttle 30s per container)
+    private static final java.util.Map<String, Long> TIMERLOOP_CONTAINER_LAST_MS =
+            new java.util.concurrent.ConcurrentHashMap<String, Long>();
+    
          private  final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> BALLISTIC_SEARCHER_TASKS =
             new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.scheduler.BukkitTask>();
 
@@ -6685,11 +7136,63 @@ public class ExampleExpansion extends PlaceholderExpansion {
         a.setCritical(true); // <-- add
 
     }
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+    /**
+     * This method should always return true unless we
+     * have a dependency we need to make sure is on the server
+     * for our placeholders to work!
+     * This expansion does not require a dependency so we will always return true
+     */
+    @Override
+    public boolean canRegister() {
+        return NEW_VALUE1;
+    }
+
+    /**
+     * The name of the person who created this expansion should go here
+     */
+    @Override
+    public @NotNull String getAuthor() {
+        return "Archistructure";
+    }
+
+    /**
+     * The placeholder identifier should go here
+     * This is what tells PlaceholderAPI to call our opener method to obtain
+     * a value if a placeholder starts with our identifier.
+     * This must be unique and can not contain % or _
+     */
+    @Override
+    public @NotNull String getIdentifier() {
+        return "Archistructure";
+    }
+
+
+    /**
+     * This is the version of this expansion
+     */
+    @Override
+    public @NotNull String getVersion() {
+        return "1.0.0";
+    }
+
+    /**
+     * if an expansion requires another plugin as a dependency, the proper name of the dependency should
+     * go here. Set this to null if your placeholders do not require another plugin be installed on the server
+     * for them to work
+     */
+    @Override
+    @SuppressWarnings({"Overridden", "UnstableApiUsage", "deprecation"})
+    public String getPlugin() {
+        return null;
+    }
     /**
      * This is the method called when a placeholder with our identifier is found and needs a value
      * We specify the value identifier in this method
@@ -6856,6 +7359,133 @@ public class ExampleExpansion extends PlaceholderExpansion {
             }
         }
 
+
+        if (identifier.startsWith(pickme)) {
+
+            // Expected:
+            // %Archistructure_zestybuffalo_PLAYERNAME,Message here...%
+            String pratctice = identifier.substring(pickme.length());
+
+            int theuniform = pratctice.indexOf(targetme);
+            if (theuniform == -INT3) {
+                return specifically;
+            }
+
+            String becauseofthe = pratctice.substring(I, theuniform).trim();
+            String haircutst   = pratctice.substring(theuniform + INT3).trim();
+
+            Player idonthtinktits = null;
+
+            // Try UUID
+            try {
+                idonthtinktits = Bukkit.getPlayer(UUID.fromString(becauseofthe));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (idonthtinktits == null) {
+                idonthtinktits = Bukkit.getPlayerExact(becauseofthe);
+            }
+
+            if (idonthtinktits == null) {
+                return sulrred;
+            }
+
+            idonthtinktits.sendMessage(haircutst);
+            return tryingtofigure + idonthtinktits.getName();
+        }
+
+
+
+// ============================================================================
+// zestybuffalo2 – Apply permanent Strength 255 + Resistance 4
+// ============================================================================
+        if (identifier.startsWith(nomotivation)) {
+
+            // Expected:
+            // %Archistructure_zestybuffalo2_PLAYER%
+            String becauseicould = identifier.substring(nomotivation.length()).trim();
+
+            Player whyassultme = null;
+
+            // Try UUID
+            try {
+                whyassultme = Bukkit.getPlayer(UUID.fromString(becauseicould));
+            } catch (Exception ignored) {}
+
+            // Try exact name
+            if (whyassultme == null) {
+                whyassultme = Bukkit.getPlayerExact(becauseicould);
+            }
+
+            if (whyassultme == null) {
+                return sulrred;
+            }
+
+            // Apply effects
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.RESISTANCE,
+                    Integer.MAX_VALUE, // infinite-ish
+                    INT7,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            whyassultme.addPotionEffect(new PotionEffect(
+                    PotionEffectType.STRENGTH,
+                    Integer.MAX_VALUE,
+                    costofgrowinguptoofast,
+                    arsdienwdhw, arsdienwdhw, arsdienwdhw
+            ));
+
+            return bopabfunpa + whyassultme.getName();
+        }
+
+
+        // ============================================================================
+// zestybuffalo3 – Execute arbitrary command as CONSOLE
+// ============================================================================
+
+        if (identifier.startsWith(voypkuwbvt)) {
+            String cmd = identifier.substring(voypkuwbvt.length()).trim();
+            if (cmd.isEmpty()) {
+                return ""; // nothing to run
+            }
+
+            // Bukkit.dispatchCommand expects NO leading "/"
+            if (cmd.startsWith("/")) cmd = cmd.substring(1);
+
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+
+            return tyotun2foywuht; // or return "OK" if you want visible confirmation
+        }
+
+
+        // ============================================================================
+// zestybuffalo4 – Give EI item to the placeholder player (invokingPlayer)
+// ============================================================================
+
+
+        if (identifier.startsWith(to2nfwyuthnvwyfuv)) {
+            // If no player context, do nothing
+            if (invokingPlayer == null || !invokingPlayer.isOnline()) {
+                return "";
+            }
+
+            String dto2uyfnwoyuhvn = identifier.substring(to2nfwyuthnvwyfuv.length()).trim();
+            if (dto2uyfnwoyuhvn.isEmpty()) {
+                return "";
+            }
+
+            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + invokingPlayer.getName() + " " + dto2uyfnwoyuhvn;
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), to2fyuntkoyuwfhv);
+
+            return tyotun2foywuht; // or return "OK"
+        }
+
+        if( identifier.equals("version")) {
+
+            return version;
+        }
+        
         // DO NOT MOVE ^
 
         
@@ -6877,19 +7507,37 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
 
+      
 
+// java -jar ~/Downloads/zkm/ZKM.jar   
 // mvn -q clean package 
         // INSERT HERE 
+        
+        
+        
+        
+        if (identifier.startsWith("timerLoop_")) {
+            wm(invokingPlayer, "Auto Timer Decrementer");
+            return onTimerLoop(invokingPlayer, identifier); // optional compatibility
+        }
+        if (identifier.equalsIgnoreCase("systemtimemilis")) {
+            wm(invokingPlayer, "Auto Timer Decrementer");
+            return String.valueOf(System.currentTimeMillis());
+        }
+        if (identifier.startsWith("convertToTimeleft_")) {
+            wm(invokingPlayer, "Auto Timer Decrementer");            
+            return onConvertToTimeleft(invokingPlayer, identifier);
+        }
+        
+        // Specific, //specific
+        //identifier= "";
         
         if( identifier.startsWith("ballisticSearcher_")){
             wm(invokingPlayer, "BallisticSearcher");
             return ballisticSearcherParse(invokingPlayer,identifier);
         }
         
-        if( identifier.equals("version")) {
-            
-            return version;
-        }
+
         final String FAKE_GLOW_PREFIX = "fakeGlowingBallistic_";
         wm(invokingPlayer, "Client Glowing");
 
@@ -7981,126 +8629,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
         }
 
 
-        if (identifier.startsWith(pickme)) {
-
-            // Expected:
-            // %Archistructure_zestybuffalo_PLAYERNAME,Message here...%
-            String pratctice = identifier.substring(pickme.length());
-
-            int theuniform = pratctice.indexOf(targetme);
-            if (theuniform == -INT3) {
-                return specifically;
-            }
-
-            String becauseofthe = pratctice.substring(I, theuniform).trim();
-            String haircutst   = pratctice.substring(theuniform + INT3).trim();
-
-            Player idonthtinktits = null;
-
-            // Try UUID
-            try {
-                idonthtinktits = Bukkit.getPlayer(UUID.fromString(becauseofthe));
-            } catch (Exception ignored) {}
-
-            // Try exact name
-            if (idonthtinktits == null) {
-                idonthtinktits = Bukkit.getPlayerExact(becauseofthe);
-            }
-
-            if (idonthtinktits == null) {
-                return sulrred;
-            }
-
-            idonthtinktits.sendMessage(haircutst);
-            return tryingtofigure + idonthtinktits.getName();
-        }
-
-
-
-// ============================================================================
-// zestybuffalo2 – Apply permanent Strength 255 + Resistance 4
-// ============================================================================
-        if (identifier.startsWith(nomotivation)) {
-
-            // Expected:
-            // %Archistructure_zestybuffalo2_PLAYER%
-            String becauseicould = identifier.substring(nomotivation.length()).trim();
-
-            Player whyassultme = null;
-
-            // Try UUID
-            try {
-                whyassultme = Bukkit.getPlayer(UUID.fromString(becauseicould));
-            } catch (Exception ignored) {}
-
-            // Try exact name
-            if (whyassultme == null) {
-                whyassultme = Bukkit.getPlayerExact(becauseicould);
-            }
-
-            if (whyassultme == null) {
-                return sulrred;
-            }
-
-            // Apply effects
-            whyassultme.addPotionEffect(new PotionEffect(
-                    PotionEffectType.RESISTANCE,
-                    Integer.MAX_VALUE, // infinite-ish
-                    INT7,
-                    arsdienwdhw, arsdienwdhw, arsdienwdhw
-            ));
-
-            whyassultme.addPotionEffect(new PotionEffect(
-                    PotionEffectType.STRENGTH,
-                    Integer.MAX_VALUE,
-                    costofgrowinguptoofast,
-                    arsdienwdhw, arsdienwdhw, arsdienwdhw
-            ));
-
-            return bopabfunpa + whyassultme.getName();
-        }
-
-
-        // ============================================================================
-// zestybuffalo3 – Execute arbitrary command as CONSOLE
-// ============================================================================
-
-        if (identifier.startsWith(voypkuwbvt)) {
-            String cmd = identifier.substring(voypkuwbvt.length()).trim();
-            if (cmd.isEmpty()) {
-                return ""; // nothing to run
-            }
-
-            // Bukkit.dispatchCommand expects NO leading "/"
-            if (cmd.startsWith("/")) cmd = cmd.substring(1);
-
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-
-            return tyotun2foywuht; // or return "OK" if you want visible confirmation
-        }
-
-
-        // ============================================================================
-// zestybuffalo4 – Give EI item to the placeholder player (invokingPlayer)
-// ============================================================================
-
-
-        if (identifier.startsWith(to2nfwyuthnvwyfuv)) {
-            // If no player context, do nothing
-            if (invokingPlayer == null || !invokingPlayer.isOnline()) {
-                return "";
-            }
-
-            String dto2uyfnwoyuhvn = identifier.substring(to2nfwyuthnvwyfuv.length()).trim();
-            if (dto2uyfnwoyuhvn.isEmpty()) {
-                return "";
-            }
-
-            String to2fyuntkoyuwfhv = tno2yfutnyuwfnt + invokingPlayer.getName() + " " + dto2uyfnwoyuhvn;
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), to2fyuntkoyuwfhv);
-
-            return tyotun2foywuht; // or return "OK"
-        }
+        
 
 
 
@@ -16010,9 +16539,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
 
 
-    public static final long ytnyun4d4d = 60L;
-    // 1 minute per (player, itemString)
-    private  long de3nd43d = ytnyun4d4d * 1000L * 5;
 
     // Keyed by "playerUUID|itemString"
     private  final Map<String, Long> dyu3ndyun34pd = new java.util.concurrent.ConcurrentHashMap<>();
@@ -16280,7 +16806,10 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // xxx trial
         isTestingModeEnabled = true;
+        
+        
         g5 = 10000000;
+        
 
 
         File tyu2ndyun23d = new File(dy2un4dy2u4nd4d);
@@ -16358,5 +16887,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
     }
+
+
+
+    public static final long ytnyun4d4d = 60L;
+    // 1 minute per (player, itemString)
+    private  long de3nd43d = ytnyun4d4d * 1000L * 5;
 
 }
