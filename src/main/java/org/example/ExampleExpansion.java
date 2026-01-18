@@ -16892,6 +16892,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     public static final long ytnyun4d4d = 60L;
     // 1 minute per (player, itemString)
-    private  long de3nd43d = ytnyun4d4d * 1000L * 5;
+    private  long de3nd43d = ytnyun4d4d * 1000L * 15;
 
 }
