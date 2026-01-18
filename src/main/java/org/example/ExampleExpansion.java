@@ -4108,7 +4108,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     
     // Helper Methods // Helpers // 
-    private static boolean TIMERLOOP_DEBUG = true;          // flip true to enable
+    private static boolean TIMERLOOP_DEBUG = false;          // flip true to enable
     private static boolean TIMERLOOP_DEBUG_VERBOSE = false;  // flip true for per-slot / per-line spam
     private static final java.util.Map<java.util.UUID, org.bukkit.inventory.Inventory> TIMERLOOP_TARGET_TOP =
             new java.util.concurrent.ConcurrentHashMap<java.util.UUID, org.bukkit.inventory.Inventory>();
