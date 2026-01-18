@@ -7508,7 +7508,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
 
       
+/*
+1. update version
+2. Code
+3. Check TRIAL
+4. Maven Package
+5. Obfuscate
+6. upload to YT and announce in share items
+7. Update packs
 
+*/
+ 
 // java -jar ~/Downloads/zkm/ZKM.jar   
 // mvn -q clean package 
         // INSERT HERE 
