@@ -129,7 +129,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
     
-    public static final String version = "Version: Advertisementsv5.4 -> §kO§f, Shrink Ray, Stinger8.2, BallisticStingerGlowing, Version, BallisticTracker";
+    public static final String version = "Version: Advertisementsv5.5 -> §kO§f, Decrementation in Chests and Slam Test";
     // Globals
     
     
