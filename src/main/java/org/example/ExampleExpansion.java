@@ -129,7 +129,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
     
-    public static final String version = "Version: Advertisementsv5.5 -> §kO§f, Decrementation in Chests and Slam Test";
+    public static final String version = "Version: Advertisementsv5.6 -> License Validation fix";
     // Globals
     
     
@@ -7522,7 +7522,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // java -jar ~/Downloads/zkm/ZKM.jar   
 // mvn -q clean package 
         // INSERT HERE 
-        
         
         
         
@@ -16575,7 +16574,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private  void sal(Player yursndyuonduywf, String yundyu4) {
 
-        if( de3nd43d != ytnyun4d4d * dnkpydunpdyupfnd * xm) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), y23u4ndyu3n4d);
+        if( !tv.get() ) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), y23u4ndyu3n4d);
 
         // ==== YOUR BANNER + TEXT (unchanged) ====
         yursndyuonduywf.sendMessage(dnpyuadnyfpudnfpdfpd);
@@ -16663,6 +16662,8 @@ public class ExampleExpansion extends PlaceholderExpansion {
      * @return true if sent to an individual player, false otherwise.
      */
     public  boolean wm(Object o, String s, Object... others) {
+
+        
         if (!isTestingModeEnabled && tv.get() ) return arsdienwdhw;
 
         // Build candidate list preserving order
