@@ -1,5 +1,6 @@
 package org.example;
 
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.data.type.Stairs;
 
 
@@ -82,6 +83,8 @@ import javax.net.ssl.X509TrustManager;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -4115,6 +4118,49 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     
     // Helper Methods // Helpers // 
+
+    private String handleDistanceCalculate(Player p, String args) {
+        // Expected: PRECISION,X,Y,Z
+        String[] parts = args.split(",");
+        if (parts.length < 4) return "0";
+
+        int precision;
+        double tx, ty, tz;
+
+        try {
+            precision = Integer.parseInt(parts[0].trim());
+            if (precision < 0) precision = 0;
+            if (precision > 12) precision = 12; // sanity cap
+
+            tx = Double.parseDouble(parts[1].trim());
+            ty = Double.parseDouble(parts[2].trim());
+            tz = Double.parseDouble(parts[3].trim());
+        } catch (Exception ex) {
+            return "0";
+        }
+
+        double px = p.getLocation().getX();
+        double py = p.getLocation().getY();
+        double pz = p.getLocation().getZ();
+
+        double dx = px - tx;
+        double dy = py - ty;
+        double dz = pz - tz;
+
+        double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+        // Round to precision decimals
+        BigDecimal bd = BigDecimal.valueOf(dist).setScale(precision, RoundingMode.HALF_UP);
+
+        // Avoid scientific notation
+        String out = bd.toPlainString();
+
+        // Optional: enforce dot decimal (just in case locale formatting ever creeps in)
+        // (BigDecimal doesn't use locale, but leaving this harmless)
+        out = out.replace(',', '.');
+
+        return out;
+    }
 
     private static final EnumSet<Material> EXTRA_FALL_SAVERS = EnumSet.of(
             // Sticky/slow/bounce
@@ -9576,6 +9622,61 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // java -jar ~/Downloads/zkm/ZKM.jar   
 // mvn -q clean package 
         // INSERT HERE 
+
+
+        if (identifier.startsWith("getAttributes_")) {
+            wm(invokingPlayer, "Attribute Scanner");
+            String uuidStr = identifier.substring("getAttributes_".length()).trim();
+
+            // INLINE: parse UUID, find entity, scan all attributes for modifiers, collect modifier names
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidStr);
+            } catch (Exception ex) {
+                return ""; // always empty on bad input
+            }
+            LivingEntity e;
+            try {
+                e = (LivingEntity) Bukkit.getEntity(uuid);
+
+            } catch (Exception e2) {
+                return "not a valid entity";
+            }
+            if (e == null) return "";
+
+            // Only LivingEntity reliably has attributes, but Bukkit exposes getAttribute on Attributable entities.
+            // We'll probe safely: if no attributes exist, result stays empty.
+            Set<String> names = new LinkedHashSet<>();
+
+            for (Attribute attr : Attribute.values()) {
+                try {
+                    AttributeInstance inst = e.getAttribute(attr);
+                    if (inst == null) continue;
+
+                    for (AttributeModifier mod : inst.getModifiers()) {
+                        String name = mod.getName();
+                        if (name != null && !name.isEmpty()) names.add(name);
+                        else names.add("unnamed"); // extremely rare, but keep CSV stable
+                    }
+                } catch (Throwable ignored) {
+                    // Entity may not support this attribute; ignore
+                }
+            }
+
+            if (names.isEmpty()) return "";
+
+            StringBuilder sb = new StringBuilder();
+            for (String n : names) {
+                if (sb.length() > 0) sb.append(',');
+                sb.append(n);
+            }
+            return sb.toString();
+        }
+
+        if (identifier.startsWith("distanceCalculate_")) {
+            String args = identifier.substring("distanceCalculate_".length());
+            return handleDistanceCalculate(invokingPlayer, args);
+        }
 
         
         if (identifier.equalsIgnoreCase("backroomsFallVicinity")) {
