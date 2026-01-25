@@ -1,5 +1,6 @@
 package org.example;
 
+import org.bukkit.block.data.type.Stairs;
 
 
 
@@ -13,12 +14,16 @@ import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Container;
 import org.bukkit.block.data.*;
+import org.bukkit.block.data.type.Door;
+import org.bukkit.block.data.type.Ladder;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Damageable;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -26,6 +31,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scoreboard.Scoreboard;
@@ -100,6 +106,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -129,10 +136,11 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
     
-    public static final String version = "Version: Advertisementsv5.6 -> License Validation fix";
+    public static final String version = "Version: Advertisementsv5.7 -> License Validation fix THEN backrooms";
     // Globals
-    
-    
+
+    private final AtomicBoolean backroomsGenerating = new AtomicBoolean(false);
+    private final Plugin plugin = Bukkit.getPluginManager().getPlugin("PlaceholderAPI");
 
     private static final java.util.Map<java.util.UUID, org.bukkit.scheduler.BukkitTask> FAKE_GLOW_TASKS = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.Map<java.util.UUID, java.util.Set<java.util.UUID>> FAKE_GLOW_ACTIVE = new java.util.concurrent.ConcurrentHashMap<>();
@@ -1741,7 +1749,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // Success message
         return t != null ? yhe + t.getName() : yhe + tt.getName();
     }
-
 
 
 
@@ -4108,6 +4115,2053 @@ public class ExampleExpansion extends PlaceholderExpansion {
     
     
     // Helper Methods // Helpers // 
+
+    private static final EnumSet<Material> EXTRA_FALL_SAVERS = EnumSet.of(
+            // Sticky/slow/bounce
+            Material.COBWEB,
+            Material.HONEY_BLOCK,
+            Material.SLIME_BLOCK,
+            Material.SWEET_BERRY_BUSH,
+            Material.POWDER_SNOW,
+            Material.HAY_BLOCK, // reduces fall damage
+
+            // Vines / climbables not always covered by Tag.CLIMBABLE depending on version
+            Material.VINE,
+            Material.LADDER,
+            Material.SCAFFOLDING,
+            Material.TWISTING_VINES,
+            Material.TWISTING_VINES_PLANT,
+            Material.WEEPING_VINES,
+            Material.WEEPING_VINES_PLANT,
+            Material.CAVE_VINES,
+            Material.CAVE_VINES_PLANT,
+
+            // Cauldrons that can “catch” you visually / physically depending on mechanics
+            Material.WATER_CAULDRON,
+            Material.LAVA_CAULDRON,
+            Material.POWDER_SNOW_CAULDRON,
+
+            // Bubble column is effectively “water behavior”
+            Material.BUBBLE_COLUMN
+    );
+
+    private void hideFallSavingBlocksClientSide(Player p, int radius) {
+        World w = p.getWorld();
+        Location base = p.getLocation();
+        int bx = base.getBlockX();
+        int by = base.getBlockY();
+        int bz = base.getBlockZ();
+
+        int r2 = radius * radius;
+        BlockData air = Material.AIR.createBlockData();
+
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dy = -radius; dy <= radius; dy++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+
+                    // radius (sphere-ish). If you want a cube, delete this check.
+                    if ((dx * dx + dy * dy + dz * dz) > r2) continue;
+
+                    Block b = w.getBlockAt(bx + dx, by + dy, bz + dz);
+                    Material t = b.getType();
+
+                    if (shouldClientHideForFall(t, b)) {
+                        p.sendBlockChange(b.getLocation(), air);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean shouldClientHideForFall(Material t, Block b) {
+        // Liquids (water/lava) + anything the server considers liquid
+        if (b.isLiquid()) return true;
+
+        // Most climbables on modern versions
+        try {
+            if (Tag.CLIMBABLE.isTagged(t)) return true;
+        } catch (Throwable ignored) {
+            // Tag.CLIMBABLE not present on some APIs; ignore and rely on explicit list
+        }
+
+        // Extra known “fall savers / slow fall / climb / catch”
+        if (EXTRA_FALL_SAVERS.contains(t)) return true;
+
+        // Waterlogged blocks can contain water that might visually imply a clutch spot
+        try {
+            BlockData data = b.getBlockData();
+            if (data instanceof org.bukkit.block.data.Waterlogged wl && wl.isWaterlogged()) return true;
+        } catch (Throwable ignored) {}
+
+        // Seagrass/kelp/etc are already handled by b.isLiquid() due to water, but you can force-hide them too if desired:
+        // if (t == Material.SEAGRASS || t == Material.TALL_SEAGRASS || t == Material.KELP || t == Material.KELP_PLANT) return true;
+
+        return false;
+    }
+    public final class VoidChunkGenerator extends ChunkGenerator {
+        @Override
+        public ChunkData generateChunkData(World world, Random random, int chunkX, int chunkZ, BiomeGrid biome) {
+            // Completely empty chunk (all air). Your later block placement builds everything.
+            ChunkData data = createChunkData(world);
+
+            // Optional: set a biome so clients don't freak out (not required)
+            // for (int x = 0; x < 16; x++) for (int z = 0; z < 16; z++) biome.setBiome(x, z, org.bukkit.block.Biome.THE_VOID);
+
+            return data;
+        }
+    }
+    
+    private boolean isAtMost4dp(Player p, String raw) {
+        String s = resolveBracePlaceholder(p, raw).trim();
+        if (s.isEmpty()) return false;
+
+        double x;
+        try {
+            x = Math.abs(Double.parseDouble(s));
+        } catch (Exception ex) {
+            return false;
+        }
+
+        // "At most 4 decimals" in value means x is a multiple of 0.0001.
+        final double EPS = 1e-9;
+        double v4 = x * 10000.0;
+        return Math.abs(v4 - Math.round(v4)) < EPS;
+    }
+
+
+    private boolean is4dpValue(Player p, String raw) {
+        String s = resolveBracePlaceholder(p, raw).trim();
+        if (s.isEmpty()) return false;
+
+        double x;
+        try {
+            x = Math.abs(Double.parseDouble(s));
+        } catch (Exception ex) {
+            return false;
+        }
+
+        // Use floor-integer test at 4dp, but NOT at 3dp.
+        // EPS avoids floating error (e.g., 1.2345*10000 becomes 12344.999999999).
+        final double EPS = 1e-9;
+
+        double v4 = x * 10000.0;
+        double v3 = x * 1000.0;
+
+        boolean isInt4 = Math.abs(v4 - Math.floor(v4)) < EPS;
+        boolean isInt3 = Math.abs(v3 - Math.floor(v3)) < EPS;
+
+        return isInt4 && !isInt3;
+    }
+
+    // If raw is wrapped like {player_y_long}, resolve it as %player_y_long%.
+    private String resolveBracePlaceholder(Player p, String raw) {
+        String a = raw.trim();
+        if (a.startsWith("{") && a.endsWith("}") && a.length() >= 3) {
+            String inner = a.substring(1, a.length() - 1).trim();
+            if (inner.isEmpty()) return "";
+            return PlaceholderAPI.setPlaceholders(p, "%" + inner + "%");
+        }
+        return a;
+    }
+    // backrooms
+
+    // -------------------------
+    // MAIN ENTRY
+    // -------------------------
+
+    private String handleGenerateBackrooms(Player p, String argStr) {
+        final String PREFIX = "§8[§6Backrooms§8] §7";
+        final long t0 = System.currentTimeMillis();
+
+        // Verbose banner
+        p.sendMessage(PREFIX + "§8================================================");
+        p.sendMessage(PREFIX + "§aBackrooms generation invoked.");
+        p.sendMessage(PREFIX + "§7Args: §f" + argStr);
+        p.sendMessage(PREFIX + "§7Invoker: §f" + p.getName() + " §8(" + p.getUniqueId() + ")");
+        p.sendMessage(PREFIX + "§7Server: §f" + Bukkit.getName() + " §7" + Bukkit.getVersion());
+        p.sendMessage(PREFIX + "§7WorldContainer: §f" + Bukkit.getWorldContainer().getAbsolutePath());
+
+        // Check if world already exists (loaded OR folder exists) -> FAIL
+        World existing = Bukkit.getWorld("archibackrooms");
+        File worldDir = new File(Bukkit.getWorldContainer(), "archibackrooms");
+        p.sendMessage(PREFIX + "§7Precheck: loadedWorld=" + (existing != null)
+                + " folderExists=" + worldDir.exists()
+                + " folderPath=§f" + worldDir.getAbsolutePath());
+
+        if (existing != null || worldDir.exists()) {
+            p.sendMessage(PREFIX + "§cWorld 'archibackrooms' already exists. Refusing to generate.");
+            p.sendMessage(PREFIX + "§8================================================");
+            return "§cBackrooms world already exists.";
+        }
+
+        if (!backroomsGenerating.compareAndSet(false, true)) {
+            p.sendMessage(PREFIX + "§eGeneration already in progress (atomic flag locked).");
+            p.sendMessage(PREFIX + "§8================================================");
+            return "§eBackrooms generation already in progress.";
+        }
+
+        BackroomsConfig cfg;
+        try {
+            p.sendMessage(PREFIX + "§7Parsing config…");
+            cfg = BackroomsConfig.parse(argStr);
+        } catch (IllegalArgumentException ex) {
+            backroomsGenerating.set(false);
+            p.sendMessage(PREFIX + "§cBad args: §f" + ex.getMessage());
+            p.sendMessage(PREFIX + "§8================================================");
+            return "§cBad args.";
+        }
+
+        // Basic sanity clamps (prevents accidental absurd values)
+        int origSize = cfg.size, origHeight = cfg.height, origLI = cfg.lightInterval;
+        cfg.size = Math.max(24, Math.min(cfg.size, 600));
+        cfg.height = Math.max(4, Math.min(cfg.height, 120));
+        cfg.lightInterval = Math.max(4, Math.min(cfg.lightInterval, 32));
+
+        p.sendMessage(PREFIX + "§aConfig OK.");
+        p.sendMessage(PREFIX + "§7SIZE=" + origSize + "→" + cfg.size
+                + " HEIGHT=" + origHeight + "→" + cfg.height
+                + " LIGHT_INTERVAL=" + origLI + "→" + cfg.lightInterval);
+
+        p.sendMessage(PREFIX + "§7Blocks:");
+        p.sendMessage(PREFIX + " §8- §7floor=§f" + cfg.floor + " §7underfloor=§f" + cfg.underfloor);
+        p.sendMessage(PREFIX + " §8- §7pillar=§f" + cfg.pillar);
+        p.sendMessage(PREFIX + " §8- §7light=§f" + cfg.light);
+        p.sendMessage(PREFIX + " §8- §7wall=§f" + cfg.wall);
+        p.sendMessage(PREFIX + " §8- §7ceiling=§f" + cfg.ceiling);
+        p.sendMessage(PREFIX + " §8- §7door(arg)=§f" + cfg.door);
+        p.sendMessage(PREFIX + " §8- §7table(arg)=§f" + cfg.table + " §7chair(arg)=§f" + cfg.chair + " §7tableFenceGate(arg)=§f" + cfg.tableFencegate);
+        p.sendMessage(PREFIX + "§8Note: Your table logic later forces OakFence + BrownCarpet + 2 OakStairs; fenceGate arg is still required but not placed.");
+
+        // Create world: superflat, NO structures
+        p.sendMessage(PREFIX + "§7Creating world 'archibackrooms' (superflat, no structures)…");
+        WorldCreator wc = new WorldCreator("archibackrooms");
+        wc.environment(World.Environment.NORMAL);
+        wc.generateStructures(false);
+
+// IMPORTANT: this is what makes it "nothing"
+        wc.generator(new VoidChunkGenerator());
+
+// You can remove wc.type(WorldType.FLAT); (it’s irrelevant once you set a generator)
+        World w = wc.createWorld();
+
+        if (w == null) {
+            backroomsGenerating.set(false);
+            p.sendMessage(PREFIX + "§cFailed to create world 'archibackrooms'.");
+            p.sendMessage(PREFIX + "§8================================================");
+            return "§cFailed to create world.";
+        }
+
+        p.sendMessage(PREFIX + "§aWorld created.");
+        p.sendMessage(PREFIX + "§7Name=§f" + w.getName()
+                + " §7UID=§f" + w.getUID()
+                + " §7MinY=§f" + w.getMinHeight()
+                + " §7MaxY=§f" + w.getMaxHeight());
+
+        p.sendMessage(PREFIX + "§7Applying world rules/settings…");
+        configureBackroomsWorld(w);
+
+        // Summarize settings
+        try {
+            p.sendMessage(PREFIX + "§7World snapshot: difficulty=§f" + w.getDifficulty()
+                    + " §7time=§f" + w.getTime()
+                    + " §7storm=§f" + w.hasStorm()
+                    + " §7thunder=§f" + w.isThundering());
+        } catch (Throwable ignored) {}
+
+        // Build layout plan with verbose debug callback
+        long seed = System.nanoTime() ^ (p.getUniqueId().getMostSignificantBits());
+        p.sendMessage(PREFIX + "§7Building layout plan… §8(seed=§7" + seed + "§8)");
+        long tPlan0 = System.currentTimeMillis();
+
+        Consumer<String> planDbg = (msg) -> p.sendMessage(PREFIX + msg);
+        OpenPlan plan = OpenPlan.build(cfg, new Random(seed), planDbg);
+
+        long tPlan1 = System.currentTimeMillis();
+
+        // Plan stats
+        int roomCount = plan.rooms.size();
+        int massiveCount = 0;
+        for (Room r : plan.rooms) if (r.massive) massiveCount++;
+
+        int openCells = 0;
+        for (boolean b : plan.open) if (b) openCells++;
+        int totalCells = plan.open.length;
+        double openPct = (totalCells == 0) ? 0.0 : (100.0 * openCells / (double) totalCells);
+
+        int minX = -cfg.size, maxX = cfg.size;
+        int minZ = -cfg.size, maxZ = cfg.size;
+        int minChunkX = Math.floorDiv(minX, 16), maxChunkX = Math.floorDiv(maxX, 16);
+        int minChunkZ = Math.floorDiv(minZ, 16), maxChunkZ = Math.floorDiv(maxZ, 16);
+        int chunkCount = (maxChunkX - minChunkX + 1) * (maxChunkZ - minChunkZ + 1);
+
+        p.sendMessage(PREFIX + "§aPlan built in §f" + (tPlan1 - tPlan0) + "ms");
+        p.sendMessage(PREFIX + "§7Rooms=§f" + roomCount + " §7Massive=§f" + massiveCount
+                + " §7OpenCells=§f" + openCells + "/" + totalCells + " §7(" + String.format(Locale.US, "%.1f", openPct) + "%)");
+        p.sendMessage(PREFIX + "§7Chunk range X=§f" + minChunkX + "§7..§f" + maxChunkX
+                + " §7Z=§f" + minChunkZ + "§7..§f" + maxChunkZ
+                + " §7(total chunks ~§f" + chunkCount + "§7)");
+        p.sendMessage(PREFIX + "§7Starting incremental generation job…");
+        p.sendMessage(PREFIX + "§8================================================");
+
+        // Kick off incremental chunk-based generation (prevents hard freezes)
+        new BackroomsGenJob(plugin, p, w, cfg, plan, PREFIX, () -> {
+            backroomsGenerating.set(false);
+            long dt = System.currentTimeMillis() - t0;
+            Player live = Bukkit.getPlayer(p.getUniqueId());
+            if (live != null) {
+                live.sendMessage(PREFIX + "§aGeneration finished + flag released. §7(total elapsed ~§f" + dt + "ms§7)");
+                live.sendMessage(PREFIX + "§8================================================");
+            }
+        }).runTaskTimer(plugin, 1L, 1L);
+
+        return "§aGenerating Backrooms…";
+    }
+
+    private void configureBackroomsWorld(World w) {
+        // World difficulty
+        w.setDifficulty(Difficulty.HARD);
+
+        // Weather/time fixed
+        w.setStorm(false);
+        w.setThundering(false);
+        w.setWeatherDuration(0);
+
+        // Spawn flags: no natural monsters/animals
+        w.setSpawnFlags(false, false);
+
+        // GameRules
+        setRule(w, GameRule.DO_DAYLIGHT_CYCLE, false);
+        setRule(w, GameRule.DO_WEATHER_CYCLE, false);
+        setRule(w, GameRule.DO_FIRE_TICK, false);
+        setRule(w, GameRule.FIRE_DAMAGE, false);
+        setRule(w, GameRule.KEEP_INVENTORY, false);
+        setRule(w, GameRule.DO_MOB_SPAWNING, false);
+        setRule(w, GameRule.MOB_GRIEFING, false);
+        setRule(w, GameRule.DISABLE_RAIDS, true);
+        setRule(w, GameRule.UNIVERSAL_ANGER, true);
+
+        // “TNT does nothing” (exists on modern versions; safe-guarded)
+        trySetRuleByName(w, "tntExplodes", false);
+
+        // Also helps “no patrols / traders”
+        trySetRuleByName(w, "doPatrolSpawning", false);
+        trySetRuleByName(w, "doTraderSpawning", false);
+
+        // Lock time to day
+        w.setTime(6000L);
+
+        // Spawn at origin (standing on y=0 floor, so use y=1 as “feet position”)
+        w.setSpawnLocation(new Location(w, 0.5, 1.0, 0.5));
+    }
+
+    private <T> void setRule(World w, GameRule<T> rule, T value) {
+        try { w.setGameRule(rule, value); } catch (Throwable ignored) {}
+    }
+
+    // Some gamerules vary by server build; allow “by name” without compile-time dependency.
+    private void trySetRuleByName(World w, String ruleName, boolean boolValue) {
+        try {
+            for (GameRule<?> r : GameRule.values()) {
+                if (r.getName().equalsIgnoreCase(ruleName)) {
+                    @SuppressWarnings("unchecked")
+                    GameRule<Boolean> br = (GameRule<Boolean>) r;
+                    w.setGameRule(br, boolValue);
+                    return;
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
+    // -------------------------
+    // Config + Plan
+    // -------------------------
+
+    private static final class BackroomsConfig {
+        int size;
+        int height;
+        int lightInterval;
+
+        Material floor = Material.YELLOW_WOOL;
+        Material underfloor = Material.WHITE_WOOL;
+        Material pillar = Material.SMOOTH_SANDSTONE;
+        Material light = Material.SEA_LANTERN;
+        Material wall = Material.YELLOW_TERRACOTTA;
+        Material ceiling = Material.SMOOTH_SANDSTONE;
+        Material door = Material.OAK_DOOR;
+
+        // “rare decor”
+        Material table = Material.OAK_FENCE;
+        Material chair = Material.OAK_STAIRS;
+        Material tableFencegate = Material.OAK_FENCE_GATE;
+
+        static BackroomsConfig parse(String argStr) {
+            // Expected: SIZE,HEIGHT,LIGHTINTERVAL, key:val, key:val, ...
+            String[] parts = argStr.split(",");
+            if (parts.length < 3) {
+                throw new IllegalArgumentException("Need at least SIZE,HEIGHT,LIGHTINTERVAL");
+            }
+
+            BackroomsConfig c = new BackroomsConfig();
+            c.size = parseInt(parts[0].trim(), "SIZE");
+            c.height = parseInt(parts[1].trim(), "HEIGHT");
+            c.lightInterval = parseInt(parts[2].trim(), "LIGHTINTERVAL");
+
+            for (int i = 3; i < parts.length; i++) {
+                String token = parts[i].trim();
+                if (token.isEmpty()) continue;
+                int colon = token.indexOf(':');
+                if (colon <= 0 || colon == token.length() - 1) continue;
+
+                String key = token.substring(0, colon).trim().toLowerCase(Locale.ROOT);
+                String val = token.substring(colon + 1).trim();
+                Material m = parseMaterial(val);
+
+                switch (key) {
+                    case "floor" -> c.floor = m;
+                    case "underfloor" -> c.underfloor = m;
+                    case "pillar" -> c.pillar = m;
+                    case "light" -> c.light = m;
+                    case "wall" -> c.wall = m;
+                    case "ceiling" -> c.ceiling = m;
+                    case "door" -> c.door = m;
+                    case "table" -> c.table = m;
+                    case "chair" -> c.chair = m;
+                    case "tablefencegate" -> c.tableFencegate = m;
+                }
+            }
+
+            // must be blocks
+            requireBlock(c.floor, "floor");
+            requireBlock(c.underfloor, "underfloor");
+            requireBlock(c.pillar, "pillar");
+            requireBlock(c.light, "light");
+            requireBlock(c.wall, "wall");
+            requireBlock(c.ceiling, "ceiling");
+            requireBlock(c.door, "door");
+            requireBlock(c.table, "table");
+            requireBlock(c.chair, "chair");
+            requireBlock(c.tableFencegate, "tableFenceGate");
+
+            return c;
+        }
+
+        private static int parseInt(String s, String name) {
+            try { return Integer.parseInt(s); }
+            catch (Exception e) { throw new IllegalArgumentException(name + " must be an integer"); }
+        }
+
+        private static void requireBlock(Material m, String name) {
+            if (m == null || !m.isBlock()) throw new IllegalArgumentException(name + " must be a block material");
+        }
+
+        private static Material parseMaterial(String raw) {
+            String v = raw.trim();
+            if (v.toLowerCase(Locale.ROOT).startsWith("minecraft:")) v = v.substring("minecraft:".length());
+            v = v.toUpperCase(Locale.ROOT);
+            Material m = Material.matchMaterial(v);
+            if (m == null) throw new IllegalArgumentException("Unknown material: " + raw);
+            return m;
+        }
+    }
+
+    private static final class Room {
+        final int minX, maxX, minZ, maxZ;
+        final boolean massive;
+        final int massiveCeilY; // only used if massive
+
+        Room(int minX, int maxX, int minZ, int maxZ, boolean massive, int massiveCeilY) {
+            this.minX = minX; this.maxX = maxX;
+            this.minZ = minZ; this.maxZ = maxZ;
+            this.massive = massive;
+            this.massiveCeilY = massiveCeilY;
+        }
+
+        int width() { return maxX - minX + 1; }
+        int depth() { return maxZ - minZ + 1; }
+
+        @Override public String toString() {
+            return (massive ? "MASSIVE" : "ROOM")
+                    + " x[" + minX + ".." + maxX + "] z[" + minZ + ".." + maxZ + "]"
+                    + " w=" + width() + " d=" + depth()
+                    + (massive ? (" ceilY~" + massiveCeilY) : "");
+        }
+    }
+
+    private static final class OpenPlan {
+
+        private static boolean isBigRoom(Room room) {
+            // "Big" but not "massive"
+            if (room.massive) return false;
+
+            int w = room.width();
+            int d = room.depth();
+
+            // Tune thresholds as you like
+            return (w >= 22 && d >= 22) || (w * d >= 700);
+        }
+
+        private static Room tryPlaceGuaranteedBigRoom(OpenPlan plan, BackroomsConfig cfg, Random r,
+                                                      int boundMin, int boundMax) {
+            // Big room dimensions (feel free to tune)
+            int tries = 400;
+            for (int t = 0; t < tries; t++) {
+                int w = randBetween(r, 22, 36);
+                int d = randBetween(r, 22, 36);
+
+                int cx = randBetween(r, boundMin, boundMax);
+                int cz = randBetween(r, boundMin, boundMax);
+
+                int minX = cx - w / 2;
+                int maxX = cx + w / 2;
+                int minZ = cz - d / 2;
+                int maxZ = cz + d / 2;
+
+                if (minX < boundMin || maxX > boundMax || minZ < boundMin || maxZ > boundMax) continue;
+
+                int buffer = 4; // keep it well-defined
+                if (!areaClear(plan, minX, maxX, minZ, maxZ, buffer)) continue;
+
+                Room big = new Room(minX, maxX, minZ, maxZ, false, cfg.height);
+                carveRoom(plan, big);
+                plan.rooms.add(big);
+                return big;
+            }
+
+            return null; // if we somehow can't fit one
+        }
+
+        
+        
+        final int size;
+        final int diam;         // 2*size + 1
+        final boolean[] open;   // open floor positions (x,z) => interior air
+        final List<Room> rooms;
+
+        OpenPlan(int size, boolean[] open, List<Room> rooms) {
+            this.size = size;
+            this.diam = 2 * size + 1;
+            this.open = open;
+            this.rooms = rooms;
+        }
+
+        boolean isOpen(int x, int z) {
+            if (x < -size || x > size || z < -size || z > size) return false;
+            int ix = x + size;
+            int iz = z + size;
+            return open[ix * diam + iz];
+        }
+
+        void setOpen(int x, int z) {
+            if (x < -size || x > size || z < -size || z > size) return;
+            int ix = x + size;
+            int iz = z + size;
+            open[ix * diam + iz] = true;
+        }
+
+        private static void carveStraightLanes(OpenPlan plan, Random r,
+                                               int minX, int maxX, int minZ, int maxZ,
+                                               int width) {
+            boolean horizontal = r.nextBoolean();
+
+            // Many long parallel lanes -> lots of straight walls
+            int laneCount = randBetween(r, 6, 16);
+            int spacing   = randBetween(r, 5, 11);
+
+            if (horizontal) {
+                int z0 = randBetween(r, minZ, maxZ);
+
+                for (int i = 0; i < laneCount; i++) {
+                    int z = z0 + i * spacing;
+                    if (z < minZ || z > maxZ) break;
+
+                    // Slightly varying endpoints so it's not a perfect grid
+                    int x1 = minX + randBetween(r, 0, 14);
+                    int x2 = maxX - randBetween(r, 0, 14);
+                    if (x2 <= x1) continue;
+
+                    carveCorridor(plan, x1, z, x2, z, width);
+
+                    // Occasional perpendicular stub to make it feel "backrooms-y" but still straight
+                    if (r.nextDouble() < 0.35) {
+                        int stubX = randBetween(r, x1, x2);
+                        int stubLen = randBetween(r, 10, 45);
+                        int z2 = z + (r.nextBoolean() ? stubLen : -stubLen);
+                        z2 = Math.max(minZ, Math.min(maxZ, z2));
+                        carveCorridor(plan, stubX, z, stubX, z2, width);
+                    }
+                }
+            } else {
+                int x0 = randBetween(r, minX, maxX);
+
+                for (int i = 0; i < laneCount; i++) {
+                    int x = x0 + i * spacing;
+                    if (x < minX || x > maxX) break;
+
+                    int z1 = minZ + randBetween(r, 0, 14);
+                    int z2 = maxZ - randBetween(r, 0, 14);
+                    if (z2 <= z1) continue;
+
+                    carveCorridor(plan, x, z1, x, z2, width);
+
+                    if (r.nextDouble() < 0.35) {
+                        int stubZ = randBetween(r, z1, z2);
+                        int stubLen = randBetween(r, 10, 45);
+                        int x2 = x + (r.nextBoolean() ? stubLen : -stubLen);
+                        x2 = Math.max(minX, Math.min(maxX, x2));
+                        carveCorridor(plan, x, stubZ, x2, stubZ, width);
+                    }
+                }
+            }
+        }
+
+
+        // Original signature preserved
+        static OpenPlan build(BackroomsConfig cfg, Random r) {
+            return build(cfg, r, null);
+        }
+
+        // Debuggable overload
+        // Drop-in replacement for your OpenPlan.build(cfg, r, dbg)
+// Fixes:
+// 1) Shadowed minBound/maxBound variables (renamed)
+// 2) Shadowed w/d variables (renamed)
+// 3) Uses distinct names for "district bounds" vs "room placement bounds"
+// 4) Removes the stray trailing "\" at the end
+// 5) Keeps your localized districts + offset wiggle connectors intact
+
+        static OpenPlan build(BackroomsConfig cfg, Random r, Consumer<String> dbg) {
+            int size = cfg.size;
+            int diam = 2 * size + 1;
+            boolean[] open = new boolean[diam * diam];
+            OpenPlan plan = new OpenPlan(size, open, new ArrayList<>());
+
+            // Bounds (keep away from outer 2-thick wall zone)
+            int boundMin = -size + 4;
+            int boundMax =  size - 4;
+
+            // --- 0) Seed a START ROOM around origin so spawn area is clearly a room ---
+            int startHalf = randBetween(r, 6, 11); // 13..23 wide room
+            Room start = new Room(-startHalf, startHalf, -startHalf, startHalf, false, cfg.height);
+            carveRoom(plan, start);
+            plan.rooms.add(start);
+
+            if (dbg != null) dbg.accept("§aPlan: start room at origin " + start);
+
+            // --- 1) Place rooms (rooms-first; with buffer so walls remain) ---
+            int attempts = Math.min(900, Math.max(220, (size * size) / 120)); // more rooms
+            int added = 1, addedMassive = 0, addedBig = 0, addedSmall = 1;
+            int rejectedOverlap = 0;
+
+            if (dbg != null) dbg.accept("§7Plan: room placement attempts=" + attempts);
+
+            for (int i = 0; i < attempts; i++) {
+                double roll = r.nextDouble();
+
+                boolean massive = roll < 0.008;              // slightly more massive than before (still rare)
+                boolean big = !massive && roll < 0.26;       // more big rooms
+
+                int roomW = massive ? randBetween(r, 30, 70)
+                        : big ? randBetween(r, 16, 34)
+                        : randBetween(r, 9, 18);
+
+                int roomD = massive ? randBetween(r, 30, 70)
+                        : big ? randBetween(r, 16, 34)
+                        : randBetween(r, 9, 18);
+
+                int cx = randBetween(r, boundMin, boundMax);
+                int cz = randBetween(r, boundMin, boundMax);
+
+                int minX = cx - roomW / 2;
+                int maxX = cx + roomW / 2;
+                int minZ = cz - roomD / 2;
+                int maxZ = cz + roomD / 2;
+
+                if (minX < boundMin || maxX > boundMax || minZ < boundMin || maxZ > boundMax) continue;
+
+                int buffer = massive ? 6 : big ? 4 : 3; // keep walls between rooms
+                if (!areaClear(plan, minX, maxX, minZ, maxZ, buffer)) {
+                    rejectedOverlap++;
+                    continue;
+                }
+
+                int massiveCeilY = massive ? (cfg.height + cfg.height + randBetween(r, 0, Math.max(1, cfg.height / 2))) : cfg.height;
+                Room room = new Room(minX, maxX, minZ, maxZ, massive, massiveCeilY);
+
+                carveRoom(plan, room);
+                plan.rooms.add(room);
+
+                added++;
+                if (massive) addedMassive++;
+                else if (big) addedBig++;
+                else addedSmall++;
+
+                if (dbg != null) {
+                    if (room.massive || added % 15 == 0) dbg.accept("§7Plan: added " + room + " (total=" + added + ")");
+                }
+            }
+
+            boolean hasBig = false;
+            for (Room rr : plan.rooms) {
+                if (isBigRoom(rr)) { hasBig = true; break; }
+            }
+
+            if (!hasBig) {
+                Room forcedBig = tryPlaceGuaranteedBigRoom(plan, cfg, r, boundMin, boundMax);
+                if (forcedBig != null) {
+                    added++;
+                    addedBig++; // count it as "big"
+                    if (dbg != null) dbg.accept("§aPlan: FORCED big room -> " + forcedBig);
+                } else {
+                    if (dbg != null) dbg.accept("§ePlan: could not force a big room (space too dense).");
+                }
+            }
+
+            if (dbg != null) {
+                dbg.accept("§aPlan: rooms placed=" + added + " (massive=" + addedMassive + " big=" + addedBig + " small=" + addedSmall + ")");
+                dbg.accept("§7Plan: rejectedOverlap=" + rejectedOverlap);
+            }
+
+            // --- 2) Connect rooms with MINIMAL corridors (tree-like), so rooms stay distinct ---
+            // Build a spanning tree: each room connects to the nearest already-connected room
+            int corridorsBuilt = 0;
+            List<Integer> connected = new ArrayList<>();
+            connected.add(0); // start room index
+
+            for (int idx = 1; idx < plan.rooms.size(); idx++) {
+                Room a = plan.rooms.get(idx);
+
+                int ax = (a.minX + a.maxX) / 2;
+                int az = (a.minZ + a.maxZ) / 2;
+
+                // find nearest connected room
+                int bestJ = 0;
+                int bestDist = Integer.MAX_VALUE;
+
+                for (int j : connected) {
+                    Room b = plan.rooms.get(j);
+                    int bx = (b.minX + b.maxX) / 2;
+                    int bz = (b.minZ + b.maxZ) / 2;
+
+                    int dist = Math.abs(ax - bx) + Math.abs(az - bz);
+                    if (dist < bestDist) { bestDist = dist; bestJ = j; }
+                }
+
+                Room b = plan.rooms.get(bestJ);
+                int bx = (b.minX + b.maxX) / 2;
+                int bz = (b.minZ + b.maxZ) / 2;
+
+                // corridor style mix (sometimes noticeably straight)
+                double style = r.nextDouble();
+                if (style < 0.38) {
+                    // straight L
+                    carveCorridor(plan, ax, az, bx, az, 3);
+                    carveCorridor(plan, bx, az, bx, bz, 3);
+                } else if (style < 0.85) {
+                    // offset elbow (still straight segments but less grid-aligned overall)
+                    carveOffsetElbow(plan, r, ax, az, bx, bz, 3, boundMin, boundMax);
+                } else {
+                    // occasional wiggle for backrooms chaos
+                    carveWiggleCorridor(plan, r, ax, az, bx, bz, 3);
+                }
+
+                corridorsBuilt++;
+                connected.add(idx);
+
+                // Rare extra loop connector (kept low!)
+                if (r.nextDouble() < 0.08 && connected.size() > 6) {
+                    int j2 = connected.get(r.nextInt(connected.size()));
+                    if (j2 != idx) {
+                        Room c = plan.rooms.get(j2);
+                        int cx = (c.minX + c.maxX) / 2;
+                        int cz = (c.minZ + c.maxZ) / 2;
+                        carveOffsetElbow(plan, r, ax, az, cx, cz, 3, boundMin, boundMax);
+                        corridorsBuilt++;
+                    }
+                }
+            }
+
+            if (dbg != null) dbg.accept("§aPlan: corridorsBuilt=" + corridorsBuilt + " (≈ one per room, not corridor-painting)");
+
+            if (dbg != null) dbg.accept("§7Plan complete.");
+            return plan;
+        }
+
+        private static void carveRoom(OpenPlan plan, Room room) {
+            for (int x = room.minX; x <= room.maxX; x++) {
+                for (int z = room.minZ; z <= room.maxZ; z++) {
+                    plan.setOpen(x, z);
+                }
+            }
+        }
+
+        private static boolean areaClear(OpenPlan plan, int minX, int maxX, int minZ, int maxZ, int buffer) {
+            for (int x = minX - buffer; x <= maxX + buffer; x++) {
+                for (int z = minZ - buffer; z <= maxZ + buffer; z++) {
+                    if (plan.isOpen(x, z)) return false;
+                }
+            }
+            return true;
+        }
+
+        private static void carveOffsetElbow(OpenPlan plan, Random r,
+                                             int x1, int z1, int x2, int z2,
+                                             int width, int boundMin, int boundMax) {
+            // One “jog” point introduces offset without turning into a corridor blob
+            int midX = (x1 + x2) / 2 + randBetween(r, -12, 12);
+            int midZ = (z1 + z2) / 2 + randBetween(r, -12, 12);
+
+            midX = Math.max(boundMin, Math.min(boundMax, midX));
+            midZ = Math.max(boundMin, Math.min(boundMax, midZ));
+
+            // 3–4 straight segments, still relatively corridor-light
+            carveCorridor(plan, x1, z1, midX, z1, width);
+            carveCorridor(plan, midX, z1, midX, midZ, width);
+            carveCorridor(plan, midX, midZ, x2, midZ, width);
+            carveCorridor(plan, x2, midZ, x2, z2, width);
+        }
+
+
+        // Inside OpenPlan
+        private static void carveStraightBurst(OpenPlan plan, Random r,
+                                               int minX, int maxX, int minZ, int maxZ,
+                                               int width) {
+            // One straight segment somewhere in the given bounds
+            int x = randBetween(r, minX, maxX);
+            int z = randBetween(r, minZ, maxZ);
+
+            boolean horizontal = r.nextBoolean(); // along X or along Z
+            int len = randBetween(r, 50, 220); // was short; make it LONG
+
+            if (horizontal) {
+                int x2 = x + (r.nextBoolean() ? len : -len);
+                x2 = Math.max(minX, Math.min(maxX, x2));
+                carveCorridor(plan, x, z, x2, z, width);
+            } else {
+                int z2 = z + (r.nextBoolean() ? len : -len);
+                z2 = Math.max(minZ, Math.min(maxZ, z2));
+                carveCorridor(plan, x, z, x, z2, width);
+            }
+        }
+
+        private static void carveDrunkWalkBounded(OpenPlan plan, Random r,
+                                                  int x, int z, int steps, int width,
+                                                  int minX, int maxX, int minZ, int maxZ) {
+            int half = width / 2;
+
+            BlockFace dir = switch (r.nextInt(4)) {
+                case 0 -> BlockFace.NORTH;
+                case 1 -> BlockFace.SOUTH;
+                case 2 -> BlockFace.EAST;
+                default -> BlockFace.WEST;
+            };
+
+            for (int i = 0; i < steps; i++) {
+                // carve blob
+                for (int dx = -half; dx <= half; dx++) {
+                    for (int dz = -half; dz <= half; dz++) {
+                        plan.setOpen(x + dx, z + dz);
+                    }
+                }
+
+                // turn sometimes
+                if (r.nextDouble() < 0.35) {
+                    dir = (dir == BlockFace.NORTH || dir == BlockFace.SOUTH)
+                            ? (r.nextBoolean() ? BlockFace.EAST : BlockFace.WEST)
+                            : (r.nextBoolean() ? BlockFace.NORTH : BlockFace.SOUTH);
+                }
+
+                int nx = x + dir.getModX();
+                int nz = z + dir.getModZ();
+
+                // keep it inside the district; if we'd leave, rotate direction and retry once
+                if (nx < minX || nx > maxX || nz < minZ || nz > maxZ) {
+                    dir = (dir == BlockFace.NORTH || dir == BlockFace.SOUTH)
+                            ? (r.nextBoolean() ? BlockFace.EAST : BlockFace.WEST)
+                            : (r.nextBoolean() ? BlockFace.NORTH : BlockFace.SOUTH);
+
+                    nx = x + dir.getModX();
+                    nz = z + dir.getModZ();
+
+                    if (nx < minX || nx > maxX || nz < minZ || nz > maxZ) continue;
+                }
+
+                x = nx; z = nz;
+            }
+        }
+        
+        
+        private static void carveDrunkWalk(OpenPlan plan, Random r, int x, int z, int steps, int width) {
+            int half = width / 2;
+
+            // start direction
+            BlockFace dir = switch (r.nextInt(4)) {
+                case 0 -> BlockFace.NORTH;
+                case 1 -> BlockFace.SOUTH;
+                case 2 -> BlockFace.EAST;
+                default -> BlockFace.WEST;
+            };
+
+            for (int i = 0; i < steps; i++) {
+                // carve a blob of corridor
+                for (int dx = -half; dx <= half; dx++) {
+                    for (int dz = -half; dz <= half; dz++) {
+                        plan.setOpen(x + dx, z + dz);
+                    }
+                }
+
+                // turn sometimes (this kills “grid streets”)
+                if (r.nextDouble() < 0.35) {
+                    dir = (dir == BlockFace.NORTH || dir == BlockFace.SOUTH)
+                            ? (r.nextBoolean() ? BlockFace.EAST : BlockFace.WEST)
+                            : (r.nextBoolean() ? BlockFace.NORTH : BlockFace.SOUTH);
+                }
+
+                // small lateral “jitter” sometimes to avoid perfectly axis-aligned lanes
+                if (r.nextDouble() < 0.15) {
+                    if (dir == BlockFace.NORTH || dir == BlockFace.SOUTH) x += (r.nextBoolean() ? 1 : -1);
+                    else z += (r.nextBoolean() ? 1 : -1);
+                }
+
+                x += dir.getModX();
+                z += dir.getModZ();
+            }
+        }
+
+
+        private static int randBetween(Random r, int lo, int hi) {
+            if (hi <= lo) return lo;
+            return lo + r.nextInt(hi - lo + 1);
+        }
+    }
+
+
+    
+    
+    
+    // -------------------------
+    // Incremental generator
+    // -------------------------
+    private static void carveCorridor(OpenPlan plan, int x1, int z1, int x2, int z2, int width) {
+        int half = width / 2;
+
+        if (x1 == x2) {
+            int x = x1;
+            int start = Math.min(z1, z2);
+            int end   = Math.max(z1, z2);
+
+            for (int z = start; z <= end; z++) {
+                for (int dx = -half; dx <= half; dx++) {
+                    plan.setOpen(x + dx, z);
+                }
+            }
+
+        } else if (z1 == z2) {
+            int z = z1;
+            int start = Math.min(x1, x2);
+            int end   = Math.max(x1, x2);
+
+            for (int x = start; x <= end; x++) {
+                for (int dz = -half; dz <= half; dz++) {
+                    plan.setOpen(x, z + dz);
+                }
+            }
+
+        } else {
+            // L-shape fallback: go horizontal then vertical
+            carveCorridor(plan, x1, z1, x2, z1, width);
+            carveCorridor(plan, x2, z1, x2, z2, width);
+        }
+    }
+    private static final class BackroomsGenJob extends BukkitRunnable {
+        private final Plugin plugin;
+        private final UUID invoker;
+        private final World w;
+        private final BackroomsConfig cfg;
+        private final OpenPlan plan;
+        private final String PREFIX;
+        private final Runnable onDone;
+
+        private enum Phase { BASE_CHUNKS, SHAFT, MASSIVE_ROOMS, LIGHTS, DECOR, EXIT, TELEPORT_AND_ENTITY, CLEANUP, DONE }
+        private Phase phase = Phase.BASE_CHUNKS;
+
+        private final int minX, maxX, minZ, maxZ;
+        private final int minChunkX, maxChunkX, minChunkZ, maxChunkZ;
+        private int curChunkX, curChunkZ;
+
+        // track force-loaded chunks to release later
+        private final LongHashSet forcedChunks = new LongHashSet();
+
+        private final Random r = new Random(System.nanoTime());
+
+        // Debug counters + throttle
+        private final long dbgStartMs = System.currentTimeMillis();
+        private long dbgLastSpamMs = 0L;
+        private int dbgChunksDone = 0;
+
+        private int dbgLightsPlaced = 0;
+        private int dbgPillarsPlaced = 0;
+        private int dbgWindowsCut = 0;
+        private int dbgLaddersPlaced = 0;
+        private int dbgTablesPlaced = 0;
+        private int dbgRedstoneClusters = 0;
+        private int dbgPitsTotal = 0;
+        private int dbgPitClusters = 0;
+
+        BackroomsGenJob(Plugin plugin, Player p, World w, BackroomsConfig cfg, OpenPlan plan, String PREFIX, Runnable onDone) {
+            this.plugin = plugin;
+            this.invoker = p.getUniqueId();
+            this.w = w;
+            this.cfg = cfg;
+            this.plan = plan;
+            this.PREFIX = PREFIX;
+            this.onDone = onDone;
+
+            this.minX = -cfg.size;
+            this.maxX = cfg.size;
+            this.minZ = -cfg.size;
+            this.maxZ = cfg.size;
+
+            this.minChunkX = Math.floorDiv(minX, 16);
+            this.maxChunkX = Math.floorDiv(maxX, 16);
+            this.minChunkZ = Math.floorDiv(minZ, 16);
+            this.maxChunkZ = Math.floorDiv(maxZ, 16);
+
+            this.curChunkX = minChunkX;
+            this.curChunkZ = minChunkZ;
+
+            dbg("§7Job created. Phase=BASE_CHUNKS");
+            dbg("§7Chunk bounds: X=" + minChunkX + ".." + maxChunkX + " Z=" + minChunkZ + ".." + maxChunkZ);
+            dbg("§7Rooms planned: §f" + plan.rooms.size());
+        }
+
+        private void dbg(String msg) {
+            Player live = Bukkit.getPlayer(invoker);
+            if (live != null) live.sendMessage(PREFIX + msg);
+        }
+
+        private void dbgSpammy(String msg, long minIntervalMs) {
+            long now = System.currentTimeMillis();
+            if (now - dbgLastSpamMs < minIntervalMs) return;
+            dbgLastSpamMs = now;
+            dbg(msg);
+        }
+
+        private final List<RectXZ> noPillarZones = new ArrayList<>();
+
+        private static final class RectXZ {
+            final int minX, maxX, minZ, maxZ;
+            RectXZ(int minX, int maxX, int minZ, int maxZ) {
+                this.minX = minX; this.maxX = maxX; this.minZ = minZ; this.maxZ = maxZ;
+            }
+            boolean contains(int x, int z) {
+                return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
+            }
+            @Override public String toString() {
+                return "RectXZ[x=" + minX + ".." + maxX + ", z=" + minZ + ".." + maxZ + "]";
+            }
+        }
+
+        private boolean isNoPillar(int x, int z) {
+            for (RectXZ r : noPillarZones) {
+                if (r.contains(x, z)) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void run() {
+            try {
+                switch (phase) {
+                    case BASE_CHUNKS -> doBaseChunks();
+                    case SHAFT -> { dbg("§7Phase -> SHAFT"); doShaft(); phase = Phase.MASSIVE_ROOMS; }
+                    case MASSIVE_ROOMS -> { dbg("§7Phase -> MASSIVE_ROOMS"); doMassiveRooms(); phase = Phase.LIGHTS; }
+                    case LIGHTS -> { dbg("§7Phase -> LIGHTS"); doLights(); phase = Phase.DECOR; }
+                    case DECOR -> { dbg("§7Phase -> DECOR"); doDecor(); phase = Phase.EXIT; }
+                    case EXIT -> { dbg("§7Phase -> EXIT"); doExitDoor(); phase = Phase.TELEPORT_AND_ENTITY; }
+                    case TELEPORT_AND_ENTITY -> { dbg("§7Phase -> TELEPORT_AND_ENTITY"); doTeleportAndEntity(); phase = Phase.CLEANUP; }
+                    case CLEANUP -> { dbg("§7Phase -> CLEANUP"); doCleanup(); phase = Phase.DONE; }
+                    case DONE -> finish();
+                }
+            } catch (Throwable t) {
+                Player live = Bukkit.getPlayer(invoker);
+                if (live != null) live.sendMessage(PREFIX + "§cGeneration crashed: §f" + t.getClass().getSimpleName() + ": " + t.getMessage());
+                finish();
+            }
+        }
+
+        private void doBaseChunks() {
+            // one chunk per tick (safe)
+            Chunk c = w.getChunkAt(curChunkX, curChunkZ);
+            c.load(true);
+            try { w.setChunkForceLoaded(curChunkX, curChunkZ, true); } catch (Throwable ignored) {}
+            forcedChunks.add(pack(curChunkX, curChunkZ));
+
+            int baseY = 0;
+            int underY = Math.max(w.getMinHeight(), -1);
+            int ceilY = Math.min(w.getMaxHeight() - 2, cfg.height);
+
+            int startX = curChunkX << 4;
+            int startZ = curChunkZ << 4;
+
+            for (int dx = 0; dx < 16; dx++) {
+                int x = startX + dx;
+                if (x < minX || x > maxX) continue;
+
+                for (int dz = 0; dz < 16; dz++) {
+                    int z = startZ + dz;
+                    if (z < minZ || z > maxZ) continue;
+
+                    // floor + underfloor
+                    setTypeNoPhysics(w, x, baseY, z, cfg.floor);
+                    if (underY <= -1) setTypeNoPhysics(w, x, -1, z, cfg.underfloor);
+
+                    // ceiling
+                    setTypeNoPhysics(w, x, ceilY, z, cfg.ceiling);
+
+                    // Outer walls thickness 2
+                    boolean boundary2 = (Math.abs(x) >= cfg.size - 1) || (Math.abs(z) >= cfg.size - 1);
+
+                    if (boundary2) {
+                        for (int y = baseY + 1; y < ceilY; y++) {
+                            setTypeNoPhysics(w, x, y, z, cfg.wall);
+                        }
+                    } else {
+                        boolean open = plan.isOpen(x, z);
+                        Material fill = open ? Material.AIR : cfg.wall;
+                        for (int y = baseY + 1; y < ceilY; y++) {
+                            setTypeNoPhysics(w, x, y, z, fill);
+                        }
+                    }
+                }
+            }
+
+            dbgChunksDone++;
+            int totalChunks = (maxChunkX - minChunkX + 1) * (maxChunkZ - minChunkZ + 1);
+            if (dbgChunksDone % 12 == 0) {
+                dbgSpammy("§7Base chunks: " + dbgChunksDone + "/" + totalChunks
+                        + " cur=(" + curChunkX + "," + curChunkZ + ")", 250L);
+            }
+
+            curChunkX++;
+            if (curChunkX > maxChunkX) {
+                curChunkX = minChunkX;
+                curChunkZ++;
+                if (curChunkZ > maxChunkZ) {
+                    dbg("§aBase structure complete.");
+                    phase = Phase.SHAFT;
+                }
+            }
+        }
+
+        private void doShaft() {
+            dbg("§7Building fall shaft (only above ceiling)…");
+
+            int ceilY = Math.min(w.getMaxHeight() - 2, cfg.height);
+            int topY  = w.getMaxHeight() - 1;
+
+            // Only affect blocks ABOVE the backrooms ceiling so it doesn't intrude into the hallway.
+            int startY = ceilY + 1;
+
+            // 5x5 outer ring walls, 3x3 interior shaft air
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    boolean inside = (Math.abs(x) <= 1 && Math.abs(z) <= 1);
+                    for (int y = startY; y < topY; y++) {
+                        setTypeNoPhysics(w, x, y, z, inside ? Material.AIR : cfg.wall);
+                    }
+                }
+            }
+
+            // Roof at sky limit (fully enclosed)
+            for (int x = -2; x <= 2; x++) {
+                for (int z = -2; z <= 2; z++) {
+                    setTypeNoPhysics(w, x, topY, z, cfg.wall);
+                }
+            }
+
+            // Cut hole through the backrooms ceiling to allow falling into the interior
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    setTypeNoPhysics(w, x, ceilY, z, Material.AIR);
+                }
+            }
+
+            dbg("§aShaft done. §7CeilY=" + ceilY + " topY=" + topY);
+        }
+
+        private void doMassiveRooms() {
+            dbg("§7Carving massive rooms (higher ceilings)…");
+
+            final int baseCeilY = Math.min(w.getMaxHeight() - 2, cfg.height);
+            int massiveSeen = 0;
+
+            for (Room room : plan.rooms) {
+                if (!room.massive) continue;
+                massiveSeen++;
+
+                final int massiveCeilY = Math.min(
+                        w.getMaxHeight() - 2,
+                        Math.max(baseCeilY + 6, room.massiveCeilY)
+                );
+
+                dbg("§6[MASSIVE#" + massiveSeen + "] §7Start " + room
+                        + " §7baseCeilY=" + baseCeilY + " massiveCeilY=" + massiveCeilY);
+
+                // 1) Raise the ceiling in the room volume
+                for (int x = room.minX; x <= room.maxX; x++) {
+                    for (int z = room.minZ; z <= room.maxZ; z++) {
+                        if (Math.abs(x) >= cfg.size - 1 || Math.abs(z) >= cfg.size - 1) continue;
+
+                        setTypeNoPhysics(w, x, baseCeilY, z, Material.AIR);
+                        for (int y = baseCeilY + 1; y < massiveCeilY; y++) {
+                            setTypeNoPhysics(w, x, y, z, Material.AIR);
+                        }
+                        setTypeNoPhysics(w, x, massiveCeilY, z, cfg.ceiling);
+                    }
+                }
+
+                // 2) Add upper wall ring to contain above the original ceiling
+                for (int y = baseCeilY + 1; y < massiveCeilY; y++) {
+                    for (int x = room.minX; x <= room.maxX; x++) {
+                        if (Math.abs(x) >= cfg.size - 1) continue;
+                        if (Math.abs(room.minZ) < cfg.size - 1) setTypeNoPhysics(w, x, y, room.minZ, cfg.wall);
+                        if (Math.abs(room.maxZ) < cfg.size - 1) setTypeNoPhysics(w, x, y, room.maxZ, cfg.wall);
+                    }
+                    for (int z = room.minZ; z <= room.maxZ; z++) {
+                        if (Math.abs(z) >= cfg.size - 1) continue;
+                        if (Math.abs(room.minX) < cfg.size - 1) setTypeNoPhysics(w, room.minX, y, z, cfg.wall);
+                        if (Math.abs(room.maxX) < cfg.size - 1) setTypeNoPhysics(w, room.maxX, y, z, cfg.wall);
+                    }
+                }
+
+                // 3) Guaranteed stairs + huge platform (room must be big enough)
+                if (baseCeilY < 4) {
+                    dbg("§e[MASSIVE#" + massiveSeen + "] Skipping stairs/platform: baseCeilY too low.");
+                    continue;
+                }
+                if (room.width() < 18 || room.depth() < 18) {
+                    dbg("§e[MASSIVE#" + massiveSeen + "] Skipping stairs/platform: room too small.");
+                    continue;
+                }
+
+                int stairWidth = randBetween(2, 4);
+                int margin = 6;
+
+                BlockFace dir = (room.width() >= room.depth())
+                        ? (r.nextBoolean() ? BlockFace.EAST : BlockFace.WEST)
+                        : (r.nextBoolean() ? BlockFace.SOUTH : BlockFace.NORTH);
+
+                BlockFace perp = (dir == BlockFace.EAST || dir == BlockFace.WEST)
+                        ? (r.nextBoolean() ? BlockFace.NORTH : BlockFace.SOUTH)
+                        : (r.nextBoolean() ? BlockFace.EAST : BlockFace.WEST);
+
+                int dirX = dir.getModX(), dirZ = dir.getModZ();
+                int perpX = perp.getModX(), perpZ = perp.getModZ();
+
+                int stepsWanted = Math.max(3, baseCeilY - 1);
+
+                int startX = (room.minX + room.maxX) / 2;
+                int startZ = (room.minZ + room.maxZ) / 2;
+
+                if (dir == BlockFace.EAST)  startX = room.minX + margin;
+                if (dir == BlockFace.WEST)  startX = room.maxX - margin;
+                if (dir == BlockFace.SOUTH) startZ = room.minZ + margin;
+                if (dir == BlockFace.NORTH) startZ = room.maxZ - margin;
+
+                if (perpX > 0) startX = Math.min(startX, room.maxX - margin - (stairWidth - 1));
+                if (perpX < 0) startX = Math.max(startX, room.minX + margin + (stairWidth - 1));
+                if (perpZ > 0) startZ = Math.min(startZ, room.maxZ - margin - (stairWidth - 1));
+                if (perpZ < 0) startZ = Math.max(startZ, room.minZ + margin + (stairWidth - 1));
+
+                int maxRun;
+                if (dir == BlockFace.EAST)       maxRun = (room.maxX - margin) - startX;
+                else if (dir == BlockFace.WEST)  maxRun = startX - (room.minX + margin);
+                else if (dir == BlockFace.SOUTH) maxRun = (room.maxZ - margin) - startZ;
+                else /*NORTH*/                   maxRun = startZ - (room.minZ + margin);
+
+                int steps = Math.min(stepsWanted, Math.max(3, maxRun));
+                if (steps < 3) {
+                    dbg("§e[MASSIVE#" + massiveSeen + "] Skipping stairs/platform: insufficient run for stairs.");
+                    continue;
+                }
+
+                Material stairMat = Material.BAMBOO_MOSAIC_STAIRS;
+                dbg("§7[MASSIVE#" + massiveSeen + "] Stairs: start=(" + startX + "," + startZ + ") dir=" + dir
+                        + " perp=" + perp + " width=" + stairWidth + " steps=" + steps + " topY=" + (baseCeilY - 1));
+
+                // Build stairs
+                for (int i = 0; i < steps; i++) {
+                    int y = 1 + i;
+                    int bx = startX + dirX * i;
+                    int bz = startZ + dirZ * i;
+
+                    for (int wOff = 0; wOff < stairWidth; wOff++) {
+                        int px = bx + perpX * wOff;
+                        int pz = bz + perpZ * wOff;
+
+                        if (px <= room.minX + 1 || px >= room.maxX - 1 || pz <= room.minZ + 1 || pz >= room.maxZ - 1) continue;
+                        if (Math.abs(px) >= cfg.size - 1 || Math.abs(pz) >= cfg.size - 1) continue;
+
+                        setTypeNoPhysics(w, px, y + 1, pz, Material.AIR);
+                        setTypeNoPhysics(w, px, y, pz, stairMat);
+
+                        Block b = w.getBlockAt(px, y, pz);
+                        if (b.getBlockData() instanceof Stairs st) {
+                            st.setFacing(dir);
+                            st.setHalf(Bisected.Half.BOTTOM);
+                            b.setBlockData(st, false);
+                        }
+                    }
+                }
+
+                // No-pillar zone around stairs
+                int endX = startX + dirX * (steps - 1);
+                int endZ = startZ + dirZ * (steps - 1);
+
+                int c1x = startX;
+                int c1z = startZ;
+                int c2x = startX + perpX * (stairWidth - 1);
+                int c2z = startZ + perpZ * (stairWidth - 1);
+                int c3x = endX;
+                int c3z = endZ;
+                int c4x = endX + perpX * (stairWidth - 1);
+                int c4z = endZ + perpZ * (stairWidth - 1);
+
+                int minSX = Math.min(Math.min(c1x, c2x), Math.min(c3x, c4x));
+                int maxSX = Math.max(Math.max(c1x, c2x), Math.max(c3x, c4x));
+                int minSZ = Math.min(Math.min(c1z, c2z), Math.min(c3z, c4z));
+                int maxSZ = Math.max(Math.max(c1z, c2z), Math.max(c3z, c4z));
+
+                int buffer = 7;
+                int npMinX = Math.max(room.minX + 1, minSX - buffer);
+                int npMaxX = Math.min(room.maxX - 1, maxSX + buffer);
+                int npMinZ = Math.max(room.minZ + 1, minSZ - buffer);
+                int npMaxZ = Math.min(room.maxZ - 1, maxSZ + buffer);
+
+                RectXZ stairsZone = new RectXZ(npMinX, npMaxX, npMinZ, npMaxZ);
+                noPillarZones.add(stairsZone);
+                dbg("§7[MASSIVE#" + massiveSeen + "] NoPillar (stairs) " + stairsZone);
+
+                // Huge platform: fill the entire "front side" of the room at y=baseCeilY
+                int platY = baseCeilY;
+                int platformBlocks = 0;
+
+                for (int x = room.minX + 1; x <= room.maxX - 1; x++) {
+                    for (int z = room.minZ + 1; z <= room.maxZ - 1; z++) {
+                        if (Math.abs(x) >= cfg.size - 1 || Math.abs(z) >= cfg.size - 1) continue;
+
+                        int dot = (x - endX) * dirX + (z - endZ) * dirZ;
+                        if (dot < 1) continue;
+
+                        setTypeNoPhysics(w, x, platY, z, cfg.ceiling);
+                        setTypeNoPhysics(w, x, platY + 1, z, Material.AIR);
+                        platformBlocks++;
+                    }
+                }
+
+                // No-pillar zone near platform entry (wide)
+                int entryLen = 12;
+                int bandMinX = Math.min(endX + dirX * 1, endX + dirX * entryLen);
+                int bandMaxX = Math.max(endX + dirX * 1, endX + dirX * entryLen);
+                int bandMinZ = Math.min(endZ + dirZ * 1, endZ + dirZ * entryLen);
+                int bandMaxZ = Math.max(endZ + dirZ * 1, endZ + dirZ * entryLen);
+
+                int bandPad = 10;
+                int bMinX = Math.max(room.minX + 1, Math.min(bandMinX, bandMaxX) - bandPad);
+                int bMaxX = Math.min(room.maxX - 1, Math.max(bandMinX, bandMaxX) + bandPad);
+                int bMinZ = Math.max(room.minZ + 1, Math.min(bandMinZ, bandMaxZ) - bandPad);
+                int bMaxZ = Math.min(room.maxZ - 1, Math.max(bandMinZ, bandMaxZ) + bandPad);
+
+                RectXZ entryZone = new RectXZ(bMinX, bMaxX, bMinZ, bMaxZ);
+                noPillarZones.add(entryZone);
+
+                dbg("§a[MASSIVE#" + massiveSeen + "] Platform placed at y=" + platY + " blocks=" + platformBlocks);
+                dbg("§7[MASSIVE#" + massiveSeen + "] NoPillar (entry) " + entryZone);
+                dbg("§6[MASSIVE#" + massiveSeen + "] Done.");
+            }
+
+            dbg("§aMassive pass complete. massiveRooms=" + massiveSeen + " noPillarZones=" + noPillarZones.size());
+        }
+
+        private void doLights() {
+            dbg("§7Placing ceiling lights in a grid…");
+            int baseCeilY = Math.min(w.getMaxHeight() - 2, cfg.height);
+
+            int scanned = 0;
+            int highCeilLights = 0;
+
+            for (int x = -cfg.size + 2; x <= cfg.size - 2; x += cfg.lightInterval) {
+                for (int z = -cfg.size + 2; z <= cfg.size - 2; z += cfg.lightInterval) {
+                    if (!plan.isOpen(x, z)) continue;
+                    if (Math.abs(x) <= 2 && Math.abs(z) <= 2) continue; // avoid shaft
+
+                    scanned++;
+                    int ly = resolveCeilingYForLight(x, z, baseCeilY);
+                    if (ly != baseCeilY) highCeilLights++;
+
+                    Material cur = w.getBlockAt(x, ly, z).getType();
+                    if (cur != cfg.light) dbgLightsPlaced++;
+
+                    setTypeNoPhysics(w, x, ly, z, cfg.light);
+                }
+            }
+
+            dbg("§aLights done. §7placed=" + dbgLightsPlaced + " scanned=" + scanned + " highCeilLights=" + highCeilLights);
+        }
+
+        private int resolveCeilingYForLight(int x, int z, int baseCeilY) {
+            if (w.getBlockAt(x, baseCeilY, z).getType() == cfg.ceiling) return baseCeilY;
+
+            int top = w.getMaxHeight() - 2;
+            for (int y = baseCeilY + 1; y <= top; y++) {
+                Material t = w.getBlockAt(x, y, z).getType();
+                if (t == cfg.ceiling) return y;
+                if (t != Material.AIR && t != cfg.light) break;
+            }
+            return baseCeilY;
+        }
+
+        private void doDecor() {
+            dbg("§7Decor pass: pillars/windows/ladders/tables/redstone/pits…");
+            int ceilY = Math.min(w.getMaxHeight() - 2, cfg.height);
+
+            // Pillars inside rooms (not embedded in walls; can be adjacent)
+            int roomsConsidered = 0;
+            for (Room room : plan.rooms) {
+                if (room.width() < 9 || room.depth() < 9) continue;
+                roomsConsidered++;
+
+                double chance;
+                int spacing;
+                int maxPillars;
+
+                if (room.massive) {
+                    chance = 0.18;
+                    spacing = randBetween(12, 18);
+                    maxPillars = Math.max(6, (room.width() * room.depth()) / 900);
+                } else {
+                    chance = (room.width() * room.depth() > 260) ? 0.45 : 0.22;
+                    spacing = randBetween(6, 10);
+                    maxPillars = 999999;
+                }
+
+                if (r.nextDouble() > chance) continue;
+
+                int placed = 0;
+                int startX = room.minX + 2 + r.nextInt(Math.max(1, spacing));
+                int startZ = room.minZ + 2 + r.nextInt(Math.max(1, spacing));
+
+                for (int x = startX; x <= room.maxX - 2; x += spacing) {
+                    for (int z = startZ; z <= room.maxZ - 2; z += spacing) {
+                        if (placed >= maxPillars) break;
+                        if (!plan.isOpen(x, z)) continue;
+                        if (Math.abs(x) <= 2 && Math.abs(z) <= 2) continue;
+                        if (isNoPillar(x, z)) continue;
+
+                        boolean twoWide = !room.massive && (r.nextDouble() < 0.03);
+
+                        dbgPillarsPlaced++;
+                        placePillarColumn(x, z, ceilY, twoWide);
+                        placed++;
+                    }
+                }
+
+                // verbose log occasionally
+                if (room.massive && placed > 0) {
+                    dbg("§7Pillars: room=" + room + " placed=" + placed + " spacing~" + spacing);
+                }
+            }
+
+            // Windows
+            int windowAttempts = Math.min(800, cfg.size * 10);
+            for (int i = 0; i < windowAttempts; i++) {
+                int x = randBetween(-cfg.size + 4, cfg.size - 4);
+                int z = randBetween(-cfg.size + 4, cfg.size - 4);
+
+                Block b = w.getBlockAt(x, 2, z);
+                if (b.getType() != cfg.wall) continue;
+
+                boolean adjOpen =
+                        plan.isOpen(x + 1, z) || plan.isOpen(x - 1, z) ||
+                                plan.isOpen(x, z + 1) || plan.isOpen(x, z - 1);
+
+                if (!adjOpen) continue;
+                if (r.nextDouble() > 0.035) continue;
+
+                dbgWindowsCut++;
+                setTypeNoPhysics(w, x, 2, z, Material.AIR);
+
+                if (dbgWindowsCut <= 10 || dbgWindowsCut % 25 == 0) {
+                    dbg("§7Window cut at (" + x + ",2," + z + ") total=" + dbgWindowsCut);
+                }
+            }
+
+            // Ladders
+            if (r.nextDouble() < 0.85) {
+                int ladderCount = Math.max(1, cfg.size / 160);
+                for (int k = 0; k < ladderCount; k++) {
+                    if (r.nextDouble() > 0.35) continue;
+                    if (placeRandomLadder(ceilY)) {
+                        dbgLaddersPlaced++;
+                        if (dbgLaddersPlaced <= 8) dbg("§7Ladder placed. total=" + dbgLaddersPlaced);
+                    }
+                }
+            }
+
+            // Tables + chairs (your code had a “rare” check; leaving logic as-is, but debug counts show reality)
+            int decorTries = Math.min(400, cfg.size * 4);
+            for (int i = 0; i < decorTries; i++) {
+                if (r.nextDouble() > 0.04) continue;
+                int x = randBetween(-cfg.size + 6, cfg.size - 6);
+                int z = randBetween(-cfg.size + 6, cfg.size - 6);
+                if (!plan.isOpen(x, z)) continue;
+
+                if (placeTableAndChair(x, z)) {
+                    dbgTablesPlaced++;
+                    if (dbgTablesPlaced <= 10 || dbgTablesPlaced % 20 == 0) {
+                        dbg("§7Table+chairs placed at (" + x + ",1," + z + ") total=" + dbgTablesPlaced);
+                    }
+                }
+            }
+
+            // Redstone clusters (leaving your probability as-is)
+            for (int i = 0; i < decorTries; i++) {
+                if (r.nextDouble() > 0.08) continue;
+                int cx = randBetween(-cfg.size + 6, cfg.size - 6);
+                int cz = randBetween(-cfg.size + 6, cfg.size - 6);
+                if (!plan.isOpen(cx, cz)) continue;
+                placeRedstoneCluster(cx, cz);
+                dbgRedstoneClusters++;
+                if (dbgRedstoneClusters <= 6) dbg("§7Redstone cluster at (" + cx + ",1," + cz + ") total=" + dbgRedstoneClusters);
+            }
+
+            // Pits
+            int holeCount = Math.max(6, cfg.size / 40);
+            for (int i = 0; i < holeCount; i++) {
+
+                Room rr = null;
+                for (int t = 0; t < 120; t++) {
+                    Room cand = plan.rooms.get(r.nextInt(plan.rooms.size()));
+                    if (cand.width() < 10 || cand.depth() < 10) continue;
+
+                    if (!cand.massive && r.nextDouble() < 0.55) continue; // weight massive
+                    rr = cand;
+                    break;
+                }
+                if (rr == null) continue;
+
+                int margin = 4;
+                int cx = randBetween(rr.minX + margin, rr.maxX - margin);
+                int cz = randBetween(rr.minZ + margin, rr.maxZ - margin);
+
+                if (!plan.isOpen(cx, cz)) continue;
+                if (isNoPillar(cx, cz)) continue;
+
+                int s = 1 + r.nextInt(3);
+
+                if (r.nextDouble() < 0.25) {
+                    // BIG cluster grid: can scale to the room size (holes still max 3x3 via s)
+                    dbgPitClusters++;
+
+                    int gap = 2 + s; // spacing between hole centers
+
+                    // usable interior span inside room for grid centers
+                    int usableW = (rr.maxX - rr.minX) - 2 * margin;
+                    int usableD = (rr.maxZ - rr.minZ) - 2 * margin;
+
+                    int maxGX = Math.max(2, usableW / gap);
+                    int maxGZ = Math.max(2, usableD / gap);
+
+                    // Sometimes fill as much as the room allows
+                    boolean maxCluster = (r.nextDouble() < 0.35);
+
+                    int gridX, gridZ;
+                    if (maxCluster) {
+                        gridX = maxGX;
+                        gridZ = maxGZ;
+                    } else {
+                        // skew bigger than tiny: prefer larger grids without always maxing
+                        gridX = 2 + r.nextInt(Math.max(1, maxGX - 1));
+                        gridZ = 2 + r.nextInt(Math.max(1, maxGZ - 1));
+                    }
+
+                    // Ensure the grid fits
+                    int maxStartX = rr.maxX - margin - (gridX - 1) * gap;
+                    int maxStartZ = rr.maxZ - margin - (gridZ - 1) * gap;
+                    int minStartX = rr.minX + margin;
+                    int minStartZ = rr.minZ + margin;
+
+                    if (maxStartX < minStartX || maxStartZ < minStartZ) {
+                        // fallback to single pit if room can't fit
+                        carveVoidHole(cx, cz, s);
+                        dbgPitsTotal++;
+                        dbg("§7Pit cluster fallback->single in " + (rr.massive ? "MASSIVE" : "room")
+                                + " size=" + s + " at (" + cx + "," + cz + ")");
+                        continue;
+                    }
+
+                    int startX = randBetween(minStartX, maxStartX);
+                    int startZ = randBetween(minStartZ, maxStartZ);
+
+                    int placedInCluster = 0;
+                    for (int gx = 0; gx < gridX; gx++) {
+                        for (int gz = 0; gz < gridZ; gz++) {
+                            int hx = startX + gx * gap;
+                            int hz = startZ + gz * gap;
+
+                            if (hx <= rr.minX + 2 || hx >= rr.maxX - 2 || hz <= rr.minZ + 2 || hz >= rr.maxZ - 2) continue;
+                            if (!plan.isOpen(hx, hz)) continue;
+                            if (isNoPillar(hx, hz)) continue;
+
+                            carveVoidHole(hx, hz, s);
+                            dbgPitsTotal++;
+                            placedInCluster++;
+                        }
+                    }
+
+                    dbg("§7Pit cluster placed in " + (rr.massive ? "§6MASSIVE§7" : "room")
+                            + " holeSize=" + s
+                            + " grid=" + gridX + "x" + gridZ
+                            + " placed=" + placedInCluster
+                            + " start=(" + startX + "," + startZ + ") gap=" + gap);
+
+                } else {
+                    carveVoidHole(cx, cz, s);
+                    dbgPitsTotal++;
+                    dbg("§7Pit placed in " + (rr.massive ? "MASSIVE" : "room")
+                            + " size=" + s + " at (" + cx + "," + cz + ")");
+                }
+
+            }
+
+            dbg("§aDecor summary: §7roomsConsidered=" + roomsConsidered
+                    + " lights=" + dbgLightsPlaced
+                    + " pillars=" + dbgPillarsPlaced
+                    + " windows=" + dbgWindowsCut
+                    + " ladders=" + dbgLaddersPlaced
+                    + " tables=" + dbgTablesPlaced
+                    + " redstoneClusters=" + dbgRedstoneClusters
+                    + " pits=" + dbgPitsTotal + " (clusters=" + dbgPitClusters + ")");
+        }
+
+        private void doExitDoor() {
+            dbg("§7Placing the single exit door on a random interior wall…");
+
+            BlockFace[] faces = new BlockFace[]{ BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST };
+            int min = -cfg.size + 6;
+            int max =  cfg.size - 6;
+
+            for (int tries = 1; tries <= 8000; tries++) {
+                if (tries % 1500 == 0) dbgSpammy("§7Exit search tries=" + tries + "/8000…", 350L);
+
+                int wx = randBetween(min, max);
+                int wz = randBetween(min, max);
+                BlockFace dir = faces[r.nextInt(faces.length)];
+
+                Block wallB = w.getBlockAt(wx, 1, wz);
+                if (wallB.getType() != cfg.wall) continue;
+
+                int dx = dir.getModX(), dz = dir.getModZ();
+                int doorX = wx + dx, doorZ = wz + dz;
+                int plateX = doorX + dx, plateZ = doorZ + dz;
+
+                int inX = wx - dx, inZ = wz - dz;
+
+                if (!plan.isOpen(doorX, doorZ)) continue;
+                if (!plan.isOpen(plateX, plateZ)) continue;
+                if (plan.isOpen(inX, inZ)) continue;
+
+                if (w.getBlockAt(doorX, 1, doorZ).getType() != Material.AIR) continue;
+                if (w.getBlockAt(doorX, 2, doorZ).getType() != Material.AIR) continue;
+                if (w.getBlockAt(plateX, 1, plateZ).getType() != Material.AIR) continue;
+
+                setTypeNoPhysics(w, doorX, 0, doorZ, cfg.floor);
+                setTypeNoPhysics(w, doorX, -1, doorZ, cfg.underfloor);
+                setTypeNoPhysics(w, plateX, 0, plateZ, cfg.floor);
+                setTypeNoPhysics(w, plateX, -1, plateZ, cfg.underfloor);
+
+                for (int y = 1; y <= 2; y++) setTypeNoPhysics(w, inX, y, inZ, cfg.wall);
+
+                for (int y = 1; y <= 2; y++) {
+                    setTypeNoPhysics(w, wx, y, wz, Material.AIR);
+                    setTypeNoPhysics(w, inX, y, inZ, Material.AIR);
+                }
+
+                placeIronDoor(doorX, 1, doorZ, dir);
+                setTypeNoPhysics(w, plateX, 1, plateZ, Material.STONE_PRESSURE_PLATE);
+
+                dbg("§aExit placed!");
+                dbg("§7Wall=(" + wx + ",1," + wz + ") dir=" + dir
+                        + " door=(" + doorX + ",1," + doorZ + ") plate=(" + plateX + ",1," + plateZ + ") cutoutDepth2=(" + inX + "," + inZ + ")");
+                return;
+            }
+
+            dbg("§eCould not find interior wall spot for exit after 8000 tries.");
+        }
+
+        private void doTeleportAndEntity() {
+            Player p = Bukkit.getPlayer(invoker);
+            if (p == null) return;
+
+            dbg("§aTeleporting you into the Backrooms…");
+
+            int topY = w.getMaxHeight() - 3;
+            Location cur = p.getLocation();
+            Location tp = new Location(w, 0.5, topY, 0.5);
+
+            dbg("§7Teleport target: (" + tp.getBlockX() + "," + tp.getBlockY() + "," + tp.getBlockZ() + ") world=" + w.getName());
+            p.teleport(tp);
+
+            // Purge non-players
+            int removed = 0;
+            for (Entity e : w.getEntities()) {
+                if (e instanceof Player) continue;
+                e.remove();
+                removed++;
+            }
+            dbg("§7Purged non-player entities: " + removed);
+
+            Enderman em = (Enderman) w.spawnEntity(tp, EntityType.ENDERMAN);
+            em.addScoreboardTag("archistructurebackroomsentity");
+            em.setPersistent(true);
+            em.setRemoveWhenFarAway(false);
+            em.setInvulnerable(true);
+
+            AttributeInstance spd = em.getAttribute(Attribute.MOVEMENT_SPEED);
+            if (spd != null) spd.setBaseValue(spd.getBaseValue() * 2.0);
+
+            dbg("§7Spawned Enderman tag=§farchistructurebackroomsentity §7invulnerable=true speed*2 hp=2048");
+
+            w.setTime(6000L);
+            w.setStorm(false);
+            w.setThundering(false);
+
+            dbg("§7World forced day/clear after teleport.");
+            p.teleport(cur);
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "score variables set global Backrooms true");
+        }
+
+        private void doCleanup() {
+            dbg("§7Releasing forced chunks… count=" + forcedChunks.values().length);
+
+            for (long key : forcedChunks.values()) {
+                int cx = (int) (key >> 32);
+                int cz = (int) key;
+                try { w.setChunkForceLoaded(cx, cz, false); } catch (Throwable ignored) {}
+                try { w.unloadChunkRequest(cx, cz); } catch (Throwable ignored) {}
+            }
+        }
+
+        private void finish() {
+            dbg("§aBackrooms generation finished. §7elapsed=" + (System.currentTimeMillis() - dbgStartMs) + "ms");
+            onDone.run();
+            cancel();
+        }
+
+        // -------------------------
+        // Decor 
+        // -------------------------
+
+        private void placePillarColumn(int x, int z, int ceilY, boolean twoWide) {
+            int y1 = 1;
+            int realCeil = resolveCeilingYForLight(x, z, ceilY);
+            int y2 = realCeil - 1;
+
+            for (int dx = 0; dx <= (twoWide ? 1 : 0); dx++) {
+                for (int dz = 0; dz <= (twoWide ? 1 : 0); dz++) {
+                    int px = x + dx;
+                    int pz = z + dz;
+                    if (!plan.isOpen(px, pz)) continue;
+
+                    // don’t overwrite if already something non-air
+                    for (int y = y1; y <= y2; y++) {
+                        Block b = w.getBlockAt(px, y, pz);
+                        if (b.getType() == Material.AIR) setTypeNoPhysics(w, px, y, pz, cfg.pillar);
+                    }
+                }
+            }
+        }
+
+        // returns true if placed
+        private boolean placeRandomLadder(int ceilY) {
+            for (int tries = 0; tries < 200; tries++) {
+                int x = randBetween(-cfg.size + 6, cfg.size - 6);
+                int z = randBetween(-cfg.size + 6, cfg.size - 6);
+                int y = 1;
+
+                if (w.getBlockAt(x, y, z).getType() != cfg.wall) continue;
+
+                BlockFace face = null;
+                if (plan.isOpen(x + 1, z)) face = BlockFace.WEST;
+                else if (plan.isOpen(x - 1, z)) face = BlockFace.EAST;
+                else if (plan.isOpen(x, z + 1)) face = BlockFace.NORTH;
+                else if (plan.isOpen(x, z - 1)) face = BlockFace.SOUTH;
+                else continue;
+
+                int ladderHeight = randBetween(3, Math.min(8, ceilY - 2));
+                for (int dy = 0; dy < ladderHeight; dy++) {
+                    Block b = w.getBlockAt(x, y + dy, z);
+                    if (b.getType() != cfg.wall) break;
+                    b.setType(Material.LADDER, false);
+                    Ladder ld = (Ladder) b.getBlockData();
+                    ld.setFacing(face);
+                    b.setBlockData(ld, false);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        // returns true if placed
+        private boolean placeTableAndChair(int x, int z) {
+            // table is ALWAYS: oak fence + brown carpet
+            final Material fenceMat = Material.OAK_FENCE;
+            final Material topMat   = Material.BROWN_CARPET; // per your spec
+            final Material chairMat = Material.OAK_STAIRS;
+
+            // IMPORTANT: tableFenceGate remains required in args, but NOT used here.
+
+            int[][] configs = new int[][]{
+                    {1, 0}, // chairs on X axis
+                    {0, 1}  // chairs on Z axis
+            };
+
+            for (int[] c : configs) {
+                int dx = c[0], dz = c[1];
+
+                int x1 = x + dx, z1 = z + dz;
+                int x2 = x - dx, z2 = z - dz;
+
+                if (!plan.isOpen(x, z)) continue;
+                if (!plan.isOpen(x1, z1)) continue;
+                if (!plan.isOpen(x2, z2)) continue;
+
+                if (w.getBlockAt(x, 1, z).getType() != Material.AIR) continue;
+                if (w.getBlockAt(x, 2, z).getType() != Material.AIR) continue;
+
+                if (w.getBlockAt(x1, 1, z1).getType() != Material.AIR) continue;
+                if (w.getBlockAt(x1, 2, z1).getType() != Material.AIR) continue;
+
+                if (w.getBlockAt(x2, 1, z2).getType() != Material.AIR) continue;
+                if (w.getBlockAt(x2, 2, z2).getType() != Material.AIR) continue;
+
+                setTypeNoPhysics(w, x, 1, z, fenceMat);
+                setTypeNoPhysics(w, x, 2, z, topMat);
+
+                placeFacingStair(x1, 1, z1, chairMat, faceToward(x1, z1, x, z));
+                placeFacingStair(x2, 1, z2, chairMat, faceToward(x2, z2, x, z));
+
+                return true;
+            }
+            return false;
+        }
+
+        private BlockFace faceToward(int fromX, int fromZ, int toX, int toZ) {
+            int dx = Integer.compare(toX, fromX);
+            int dz = Integer.compare(toZ, fromZ);
+            if (Math.abs(dx) >= Math.abs(dz)) {
+                // NOTE: preserving your current mapping
+                return (dx > 0) ? BlockFace.WEST : BlockFace.EAST;
+            } else {
+                return (dz > 0) ? BlockFace.NORTH : BlockFace.SOUTH;
+            }
+        }
+
+        private void placeFacingStair(int x, int y, int z, Material stairMat, BlockFace facing) {
+            setTypeNoPhysics(w, x, y, z, stairMat);
+            Block b = w.getBlockAt(x, y, z);
+            if (b.getBlockData() instanceof Stairs st) {
+                st.setFacing(facing);
+                st.setHalf(Bisected.Half.BOTTOM);
+                b.setBlockData(st, false);
+            }
+        }
+
+        private void placeRedstoneCluster(int cx, int cz) {
+            int n = 2 + r.nextInt(4);
+            for (int i = 0; i < n; i++) {
+                int x = cx + randBetween(-1, 1);
+                int z = cz + randBetween(-1, 1);
+                if (!plan.isOpen(x, z)) continue;
+                setTypeNoPhysics(w, x, 1, z, Material.REDSTONE_WIRE);
+            }
+        }
+
+        private void carveVoidHole(int cx, int cz, int size) {
+            int half = size / 2;
+            int minH = w.getMinHeight();
+
+            int x0 = cx - half;
+            int x1 = cx - half + size - 1;
+            int z0 = cz - half;
+            int z1 = cz - half + size - 1;
+
+            int tx0 = x0 - 1, tx1 = x1 + 1;
+            int tz0 = z0 - 1, tz1 = z1 + 1;
+
+            for (int x = tx0; x <= tx1; x++) {
+                for (int z = tz0; z <= tz1; z++) {
+
+                    boolean inHole = (x >= x0 && x <= x1 && z >= z0 && z <= z1);
+                    if (inHole && !plan.isOpen(x, z)) continue;
+
+                    if (inHole) {
+                        // OPEN DROP: remove floor and everything below it
+                        for (int y = 0; y >= minH; y--) {
+                            setTypeNoPhysics(w, x, y, z, Material.AIR);
+                        }
+                    } else {
+                        // ENCLOSURE below floor only
+                        for (int y = -1; y >= minH; y--) {
+                            setTypeNoPhysics(w, x, y, z, cfg.wall);
+                        }
+                        setTypeNoPhysics(w, x, 0, z, cfg.floor);
+                    }
+                }
+            }
+        }
+
+        // -------------------------
+        // Exit door helper
+        // -------------------------
+
+        private void placeIronDoor(int x, int y, int z, BlockFace facing) {
+            Block b = w.getBlockAt(x, y, z);
+            b.setType(Material.IRON_DOOR, false);
+            Door d = (Door) b.getBlockData();
+            d.setFacing(facing);
+            d.setHalf(Bisected.Half.BOTTOM);
+            d.setOpen(false);
+            b.setBlockData(d, false);
+
+            Block t = w.getBlockAt(x, y + 1, z);
+            t.setType(Material.IRON_DOOR, false);
+            Door dt = (Door) t.getBlockData();
+            dt.setFacing(facing);
+            dt.setHalf(Bisected.Half.TOP);
+            dt.setOpen(false);
+            t.setBlockData(dt, false);
+        }
+
+        // -------------------------
+        // Utilities
+        // -------------------------
+
+        private int randBetween(int lo, int hi) {
+            if (hi <= lo) return lo;
+            return lo + r.nextInt(hi - lo + 1);
+        }
+
+        private static void setTypeNoPhysics(World w, int x, int y, int z, Material m) {
+            if (y < w.getMinHeight() || y >= w.getMaxHeight()) return;
+            Block b = w.getBlockAt(x, y, z);
+            if (b.getType() == m) return;
+            b.setType(m, false);
+        }
+
+        private static long pack(int cx, int cz) {
+            return (((long) cx) << 32) | (cz & 0xffffffffL);
+        }
+    }
+
+    private static void carveWiggleCorridor(OpenPlan plan, Random r,
+                                            int x1, int z1, int x2, int z2,
+                                            int width) {
+        int half = width / 2;
+        int x = x1, z = z1;
+
+        int maxSteps = (Math.abs(x2 - x1) + Math.abs(z2 - z1)) * 4 + 60;
+
+        for (int step = 0; step < maxSteps; step++) {
+            // carve blob
+            for (int dx = -half; dx <= half; dx++) {
+                for (int dz = -half; dz <= half; dz++) {
+                    plan.setOpen(x + dx, z + dz);
+                }
+            }
+
+            if (x == x2 && z == z2) return;
+
+            int dxTo = Integer.compare(x2, x);
+            int dzTo = Integer.compare(z2, z);
+
+            boolean moveXPreferred = Math.abs(x2 - x) >= Math.abs(z2 - z);
+
+            // "less grid-y": mostly move toward target, sometimes sidestep
+            double roll = r.nextDouble();
+
+            if (roll < 0.12) {
+                // sidestep perpendicular to the dominant direction (adds offsets)
+                if (moveXPreferred) z += (r.nextBoolean() ? 1 : -1);
+                else x += (r.nextBoolean() ? 1 : -1);
+            } else if (roll < 0.34) {
+                // take the non-dominant axis toward target
+                if (moveXPreferred) z += dzTo;
+                else x += dxTo;
+            } else {
+                // take dominant axis toward target
+                if (moveXPreferred) x += dxTo;
+                else z += dzTo;
+            }
+        }
+
+        // last resort: ensure we actually reach by carving a normal L at the end
+        carveCorridor(plan, x, z, x2, z, width);
+        carveCorridor(plan, x2, z, x2, z2, width);
+    }
+    
+    
+
+    // tiny primitive long-set (no extra libs)
+    private static final class LongHashSet {
+        private long[] data = new long[256];
+        private boolean[] used = new boolean[256];
+        private int size = 0;
+
+        void add(long v) {
+            if (size * 2 >= data.length) rehash();
+            int mask = data.length - 1;
+            int i = mix((int)(v ^ (v >>> 32))) & mask;
+            while (used[i]) {
+                if (data[i] == v) return;
+                i = (i + 1) & mask;
+            }
+            used[i] = true;
+            data[i] = v;
+            size++;
+        }
+
+        long[] values() {
+            long[] out = new long[size];
+            int p = 0;
+            for (int i = 0; i < data.length; i++) {
+                if (used[i]) out[p++] = data[i];
+            }
+            return out;
+        }
+
+        private void rehash() {
+            long[] oldD = data;
+            boolean[] oldU = used;
+            data = new long[oldD.length << 1];
+            used = new boolean[oldU.length << 1];
+            size = 0;
+            for (int i = 0; i < oldD.length; i++) {
+                if (oldU[i]) add(oldD[i]);
+            }
+        }
+
+        private static int mix(int x) {
+            x ^= (x >>> 16);
+            x *= 0x7feb352d;
+            x ^= (x >>> 15);
+            x *= 0x846ca68b;
+            x ^= (x >>> 16);
+            return x;
+        }
+    }
+    
+    // others
     private static boolean TIMERLOOP_DEBUG = false;          // flip true to enable
     private static boolean TIMERLOOP_DEBUG_VERBOSE = false;  // flip true for per-slot / per-line spam
     private static final java.util.Map<java.util.UUID, org.bukkit.inventory.Inventory> TIMERLOOP_TARGET_TOP =
@@ -7246,7 +9300,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // DO NOT MOVE
 
         if (identifier.startsWith(dn3owyaufpdnfwd)) {
-            wm(invokingPlayer, identifier.substring(dn3owyaufpdnfwd.length()));
+            if( !identifier.substring(dn3owyaufpdnfwd.length()).equals("test")) wm(invokingPlayer, identifier.substring(dn3owyaufpdnfwd.length()));
             return identifier.substring(dn3owyaufpdnfwd.length());
         }
 
@@ -7522,8 +9576,26 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // java -jar ~/Downloads/zkm/ZKM.jar   
 // mvn -q clean package 
         // INSERT HERE 
+
         
-        
+        if (identifier.equalsIgnoreCase("backroomsFallVicinity")) {
+            wm(invokingPlayer, "The Backrooms in Minecraft");
+
+            hideFallSavingBlocksClientSide(invokingPlayer, 4);
+            return "done"; // ALWAYS
+        }
+        if (identifier.startsWith("le4dp_")) {
+            wm(invokingPlayer, "The Backrooms in Minecraft");
+            String raw = identifier.substring("le4dp_".length());
+            return isAtMost4dp(invokingPlayer, raw) ? "true" : "false";
+        }
+
+        if (identifier.startsWith("generateBackrooms_")) {
+            wm(null, "The Backrooms in Minecraft");
+            String argStr = identifier.substring("generateBackrooms_".length());
+            return handleGenerateBackrooms(invokingPlayer, argStr);
+        }
+
         
         if (identifier.startsWith("timerLoop_")) {
             wm(invokingPlayer, "Auto Timer Decrementer");
