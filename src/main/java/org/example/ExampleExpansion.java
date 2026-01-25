@@ -4,6 +4,8 @@ import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import com.comphenix.protocol.wrappers.WrappedWatchableObject;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.*;
 import org.bukkit.block.data.*;
 import org.bukkit.command.CommandMap;
@@ -24,6 +26,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.EulerAngle;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -45,6 +48,7 @@ import java.util.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -54,6 +58,8 @@ import static org.example.ExampleExpansion2.*;
 
 @SuppressWarnings("ALL")
 public class ExampleExpansion extends PlaceholderExpansion {
+    private static final java.util.Set<org.bukkit.Material> PASS_THROUGH = initPassThrough();
+    public  final Set<EntityType> HostileMobSet;
     
     // Globals
 
@@ -114,7 +120,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
     protected final YamlConfiguration g18;
 
-    public  final Set<EntityType> HMsetnoy2un2yundt ;
 
     private static final Map<UUID, BukkitTask> tyto2uny2uf4ntdoy2utd = new ConcurrentHashMap<>();
 
@@ -776,7 +781,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
     private final AtomicBoolean demoCmdRegistered = new AtomicBoolean(false);
 
     private static final ConcurrentHashMap<UUID, VacuumJob> ACTIVE_VACUUMS = new ConcurrentHashMap<>();
-    private static final java.util.Set<org.bukkit.Material> PASS_THROUGH = initPassThrough();
 
     private final Map<UUID, Double> originalMinecartSpeeds = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> minecartResetTasks = new ConcurrentHashMap<>();
@@ -870,7 +874,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
                 ktoyfuntyufnpsrvc.add(type);
             }
         }
-        HMsetnoy2un2yundt = ktoyfuntyufnpsrvc;
+        HostileMobSet = ktoyfuntyufnpsrvc;
 
         trialVersion = false;
         trialNumber = 1000;
@@ -1502,6 +1506,70 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     // Helper Methods Helpers
+    private String renderMicroChargeBar(int charge) {
+        final String GRAY   = "§7";
+        final String YELLOW = "§e";
+        final String GREEN  = "§a";
+        final String AQUA   = "§b";
+        final char BLOCK = '■';
+
+        // Easy knobs
+        final int LEFT_BAR  = 12;
+        final int RIGHT_BAR = 5;
+
+        if (charge < 0) charge = 0;
+
+        // Thresholds derived from bar sizes
+        final int LEFT_FULL  = LEFT_BAR;                  // when left becomes all GREEN
+        final int ALL_FULL   = LEFT_BAR + RIGHT_BAR;      // when EVERYTHING becomes AQUA
+
+        // charge >= ALL_FULL => ALL bars aqua
+        if (charge >= ALL_FULL) {
+            StringBuilder all = new StringBuilder(64);
+            all.append(AQUA);
+            for (int i = 0; i < LEFT_BAR; i++) all.append(BLOCK);
+            all.append(GRAY).append('|');
+            all.append(AQUA);
+            for (int i = 0; i < RIGHT_BAR; i++) all.append(BLOCK);
+            return all.toString();
+        }
+
+        StringBuilder sb = new StringBuilder(64);
+
+        // ---- LEFT bar ----
+        if (charge >= LEFT_FULL) {
+            // at LEFT_FULL, left becomes all green
+            sb.append(GREEN);
+            for (int i = 0; i < LEFT_BAR; i++) sb.append(BLOCK);
+        } else {
+            // 0..(LEFT_FULL-1) => fill with yellow
+            int filled = Math.min(charge, LEFT_BAR);
+            if (filled > 0) sb.append(YELLOW);
+            for (int i = 0; i < filled; i++) sb.append(BLOCK);
+
+            sb.append(GRAY);
+            for (int i = filled; i < LEFT_BAR; i++) sb.append(BLOCK);
+        }
+
+        // ---- Pipe ----
+        sb.append(GRAY).append('|');
+
+        // ---- RIGHT bar ----
+        if (charge <= LEFT_FULL) {
+            sb.append(GRAY);
+            for (int i = 0; i < RIGHT_BAR; i++) sb.append(BLOCK);
+        } else {
+            // (LEFT_FULL+1)..(ALL_FULL-1) => fill with green
+            int filled = Math.min(charge - LEFT_FULL, RIGHT_BAR); // 1..(RIGHT_BAR-1)
+            sb.append(GREEN);
+            for (int i = 0; i < filled; i++) sb.append(BLOCK);
+
+            sb.append(GRAY);
+            for (int i = filled; i < RIGHT_BAR; i++) sb.append(BLOCK);
+        }
+
+        return sb.toString();
+    }
 
 
     protected static @org.jetbrains.annotations.NotNull String onLinearIntFinalStep(
@@ -3173,8 +3241,41 @@ private enum RechargeStage {
         }
     }
     private static java.util.Set<org.bukkit.Material> initPassThrough() {
-        java.util.EnumSet<org.bukkit.Material> s = java.util.EnumSet.of(
-                Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS, Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH, Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP// ...
+        java.util.EnumSet<org.bukkit.Material> s = java.util.EnumSet.of(Material.BLACK_WALL_BANNER, Material.BLUE_WALL_BANNER, Material.BROWN_WALL_BANNER, Material.CYAN_WALL_BANNER,
+                Material.GRAY_WALL_BANNER, Material.GREEN_WALL_BANNER, Material.LIGHT_BLUE_WALL_BANNER, Material.LIGHT_GRAY_WALL_BANNER,
+                Material.LIME_WALL_BANNER, Material.MAGENTA_WALL_BANNER, Material.ORANGE_WALL_BANNER, Material.PINK_WALL_BANNER,
+                Material.PURPLE_WALL_BANNER, Material.RED_WALL_BANNER, Material.WHITE_WALL_BANNER, Material.YELLOW_WALL_BANNER,Material.ITEM_FRAME, Material.GLOW_ITEM_FRAME, Material.PAINTING,
+                Material.CANDLE, Material.WHITE_CANDLE, Material.ORANGE_CANDLE, Material.MAGENTA_CANDLE, Material.LIGHT_BLUE_CANDLE,
+                Material.YELLOW_CANDLE, Material.LIME_CANDLE, Material.PINK_CANDLE, Material.GRAY_CANDLE, Material.LIGHT_GRAY_CANDLE,
+                Material.CYAN_CANDLE, Material.PURPLE_CANDLE, Material.BLUE_CANDLE, Material.BROWN_CANDLE, Material.GREEN_CANDLE,
+                Material.RED_CANDLE, Material.BLACK_CANDLE,Material.CANDLE_CAKE, Material.WHITE_CANDLE_CAKE, Material.ORANGE_CANDLE_CAKE, Material.MAGENTA_CANDLE_CAKE,
+                Material.LIGHT_BLUE_CANDLE_CAKE, Material.YELLOW_CANDLE_CAKE, Material.LIME_CANDLE_CAKE, Material.PINK_CANDLE_CAKE,
+                Material.GRAY_CANDLE_CAKE, Material.LIGHT_GRAY_CANDLE_CAKE, Material.CYAN_CANDLE_CAKE, Material.PURPLE_CANDLE_CAKE,
+                Material.BLUE_CANDLE_CAKE, Material.BROWN_CANDLE_CAKE, Material.GREEN_CANDLE_CAKE, Material.RED_CANDLE_CAKE,
+                Material.BLACK_CANDLE_CAKE,Material.POWERED_RAIL, Material.DETECTOR_RAIL, Material.ACTIVATOR_RAIL, Material.RAIL,
+                Material.POLISHED_BLACKSTONE_PRESSURE_PLATE,
+
+                Material.OAK_SIGN, Material.OAK_WALL_SIGN,
+                Material.SPRUCE_SIGN, Material.SPRUCE_WALL_SIGN,
+                Material.BIRCH_SIGN, Material.BIRCH_WALL_SIGN,
+                Material.JUNGLE_SIGN, Material.JUNGLE_WALL_SIGN,
+                Material.ACACIA_SIGN, Material.ACACIA_WALL_SIGN,
+                Material.DARK_OAK_SIGN, Material.DARK_OAK_WALL_SIGN,
+                Material.MANGROVE_SIGN, Material.MANGROVE_WALL_SIGN,
+                Material.CHERRY_SIGN, Material.CHERRY_WALL_SIGN,
+                Material.BAMBOO_SIGN, Material.BAMBOO_WALL_SIGN,
+                Material.CRIMSON_SIGN, Material.CRIMSON_WALL_SIGN,
+                Material.WARPED_SIGN, Material.WARPED_WALL_SIGN,Material.OAK_SIGN, Material.OAK_WALL_SIGN,
+                Material.SPRUCE_SIGN, Material.SPRUCE_WALL_SIGN,
+                Material.BIRCH_SIGN, Material.BIRCH_WALL_SIGN,
+                Material.JUNGLE_SIGN, Material.JUNGLE_WALL_SIGN,
+                Material.ACACIA_SIGN, Material.ACACIA_WALL_SIGN,
+                Material.DARK_OAK_SIGN, Material.DARK_OAK_WALL_SIGN,
+                Material.MANGROVE_SIGN, Material.MANGROVE_WALL_SIGN,
+                Material.CHERRY_SIGN, Material.CHERRY_WALL_SIGN,
+                Material.BAMBOO_SIGN, Material.BAMBOO_WALL_SIGN,
+                Material.CRIMSON_SIGN, Material.CRIMSON_WALL_SIGN,
+                Material.WARPED_SIGN, Material.WARPED_WALL_SIGN,Material.ACTIVATOR_RAIL, Material.AIR, Material.BAMBOO, Material.BLACK_BANNER, Material.BLUE_BANNER, Material.BEETROOT_SEEDS, Material.STONE_BUTTON, Material.OAK_BUTTON, Material.BIRCH_BUTTON, Material.SPRUCE_BUTTON, Material.JUNGLE_BUTTON, Material.DARK_OAK_BUTTON, Material.ACACIA_BUTTON, Material.MANGROVE_BUTTON, Material.CHERRY_BUTTON, Material.CRIMSON_BUTTON, Material.WARPED_BUTTON, Material.LIGHT_BLUE_BANNER, Material.BROWN_BANNER, Material.CYAN_BANNER, Material.GRAY_BANNER, Material.GREEN_BANNER, Material.LIGHT_GRAY_BANNER, Material.LIME_BANNER, Material.MAGENTA_BANNER, Material.ORANGE_BANNER, Material.PINK_BANNER, Material.PURPLE_BANNER, Material.RED_BANNER, Material.WHITE_BANNER, Material.YELLOW_BANNER, Material.CARROTS, Material.CHORUS_FLOWER, Material.CHORUS_PLANT, Material.COBWEB, Material.COCOA, Material.BRAIN_CORAL, Material.BUBBLE_CORAL, Material.FIRE_CORAL, Material.HORN_CORAL, Material.TUBE_CORAL, Material.BRAIN_CORAL_FAN, Material.BUBBLE_CORAL_FAN, Material.FIRE_CORAL_FAN, Material.HORN_CORAL_FAN, Material.TUBE_CORAL_FAN, Material.DEAD_BUSH, Material.DETECTOR_RAIL, Material.END_GATEWAY, Material.END_PORTAL, Material.FIRE, Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM, Material.AZURE_BLUET, Material.RED_TULIP, Material.ORANGE_TULIP, Material.WHITE_TULIP, Material.PINK_TULIP, Material.OXEYE_DAISY, Material.CORNFLOWER, Material.LILY_OF_THE_VALLEY, Material.WITHER_ROSE, Material.FLOWER_POT, Material.FROGSPAWN, Material.WARPED_FUNGUS, Material.CRIMSON_FUNGUS, Material.GLOW_BERRIES, Material.GLOW_LICHEN, Material.SHORT_GRASS, Material.HANGING_ROOTS, Material.PLAYER_HEAD, Material.SKELETON_SKULL, Material.CREEPER_HEAD, Material.WITHER_SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.DRAGON_HEAD, Material.PIGLIN_HEAD, Material.KELP, Material.LADDER, Material.LAVA, Material.LEVER, Material.LIGHT, Material.LILY_PAD, Material.MANGROVE_PROPAGULE, Material.MELON_SEEDS, Material.MOSS_CARPET, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.NETHER_PORTAL, Material.NETHER_SPROUTS, Material.NETHER_WART, Material.PINK_PETALS, Material.PITCHER_PLANT, Material.PITCHER_POD, Material.POTATOES, Material.POWDER_SNOW, Material.POWERED_RAIL, Material.OAK_PRESSURE_PLATE, Material.BIRCH_PRESSURE_PLATE, Material.SPRUCE_PRESSURE_PLATE, Material.JUNGLE_PRESSURE_PLATE, Material.DARK_OAK_PRESSURE_PLATE, Material.ACACIA_PRESSURE_PLATE, Material.MANGROVE_PRESSURE_PLATE, Material.CHERRY_PRESSURE_PLATE, Material.CRIMSON_PRESSURE_PLATE, Material.WARPED_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.LIGHT_WEIGHTED_PRESSURE_PLATE, Material.HEAVY_WEIGHTED_PRESSURE_PLATE, Material.PUMPKIN_SEEDS, Material.RAIL, Material.COMPARATOR, Material.REDSTONE_WIRE, Material.REPEATER, Material.REDSTONE_TORCH, Material.REDSTONE_WALL_TORCH, Material.OAK_SAPLING, Material.BIRCH_SAPLING, Material.SPRUCE_SAPLING, Material.JUNGLE_SAPLING, Material.DARK_OAK_SAPLING, Material.ACACIA_SAPLING, Material.CHERRY_SAPLING, Material.SCULK_VEIN, Material.SEA_PICKLE, Material.SEAGRASS, Material.SHORT_GRASS, Material.DEAD_BUSH, Material.OAK_SIGN, Material.BIRCH_SIGN, Material.SPRUCE_SIGN, Material.JUNGLE_SIGN, Material.DARK_OAK_SIGN, Material.ACACIA_SIGN, Material.CHERRY_SIGN, Material.MANGROVE_SIGN, Material.CRIMSON_SIGN, Material.WARPED_SIGN, Material.SMALL_DRIPLEAF, Material.SNOW, Material.SPORE_BLOSSOM, Material.STRING, Material.STRUCTURE_VOID, Material.SUGAR_CANE, Material.SWEET_BERRY_BUSH, Material.TORCH, Material.TORCHFLOWER_SEEDS, Material.TRIPWIRE_HOOK, Material.TURTLE_EGG, Material.TWISTING_VINES, Material.VINE, Material.WATER, Material.WEEPING_VINES, Material.WHEAT_SEEDS, Material.WHITE_TULIP// ...
         );
 
 
@@ -5293,7 +5394,7 @@ private enum RechargeStage {
 
             if (tywfdn_ent.isDead() || !tywfdn_ent.isValid()) continue;
 
-            if (HMsetnoy2un2yundt == null || !HMsetnoy2un2yundt.contains(tywfdn_ent.getType())) {
+            if (HostileMobSet == null || !HostileMobSet.contains(tywfdn_ent.getType())) {
                 continue;
             }
 
@@ -6034,8 +6135,269 @@ private enum RechargeStage {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+// Add this branch to your onPlaceholderRequest(...)
+        if (identifier.startsWith("microHIDAttack_")) {
+            // RANGE,DENSITY,DX,amount,triggerID,percentmaxhealth,intervals,interval
+            String args = identifier.substring("microHIDAttack_".length());
+            String[] parts = args.split(",", -1);
+
+            // Always return done regardless
+            if (parts.length < 8) return "done";
+
+            double range;
+            double density;
+            double dx;
+            int amount;
+            String triggerId;
+            double pct;
+            int intervals;
+            int intervalTicks;
+
+            try {
+                range = Double.parseDouble(parts[0].trim());
+                density = Double.parseDouble(parts[1].trim());
+                dx = Double.parseDouble(parts[2].trim());
+                amount = Integer.parseInt(parts[3].trim());
+                triggerId = parts[4].trim();
+                pct = Double.parseDouble(parts[5].trim());
+                intervals = Integer.parseInt(parts[6].trim());
+                intervalTicks = Integer.parseInt(parts[7].trim());
+            } catch (Exception ignored) {
+                return "done";
+            }
+
+            // sanity clamps (prevents lag bombs)
+            range = Math.max(0.1, Math.min(range, 200.0));
+            density = Math.max(0.1, Math.min(density, 40.0));      // particles per block
+            dx = Math.max(0.0, Math.min(dx, 3.0));                 // max random offset
+            amount = Math.max(0, Math.min(amount, 4000));          // spark cap
+            intervals = Math.max(1, Math.min(intervals, 200));
+            intervalTicks = Math.max(1, Math.min(intervalTicks, 200));
+            if (triggerId.isEmpty()) return "done";
+
+            // percent: accept 0..1 or 0..100
+            if (pct > 1.0) pct = pct / 100.0;
+            pct = Math.max(0.0, Math.min(pct, 1.0));
+
+            final Player invoker = p;
+            final World w = invoker.getWorld();
+            final double spacing = 1.0 / density;
+
+            // Schedule the repeated scan
+            double finalPct = pct;
+            int finalIntervals = intervals;
+            int finalAmount = amount;
+            double finalRange = range;
+            double finalDx = dx;
+            new org.bukkit.scheduler.BukkitRunnable() {
+                int runs = 0;
+
+                @Override public void run() {
+                    runs++;
+                    if (!invoker.isOnline()) { cancel(); return; }
+
+                    // Eye ray
+                    Location eye = invoker.getEyeLocation();
+                    Vector dir = eye.getDirection().clone();
+                    if (dir.lengthSquared() < 1e-9) { if (runs >= finalIntervals) cancel(); return; }
+                    dir.normalize();
+
+// Midsection origin (emanate from body)
+                    Location start = invoker.getLocation().clone().add(0.0, invoker.getHeight() * 0.5, 0.0);
+                    if (dir.lengthSquared() < 1e-9) { if (runs >= finalIntervals) cancel(); return; }
+                    dir.normalize();// Drop-in replacement for your snippet with:
+// 1) Start used consistently (midsection) for blocking scan, sparks, and hitscan AABB
+// 2) Spark/scrape offset fixed to be within TRUE radius <= finalDx around the beam (disk perpendicular to dir)
+
+
+// Step along ray to find the first blocking block (strict PASS_THROUGH)
+                    double step = 0.20;
+                    double endDist = finalRange;
+
+                    for (double d = 0.0; d <= finalRange; d += step) {
+                        Location pt = start.clone().add(dir.clone().multiply(d)); // <-- use start (midsection)
+                        Block b = w.getBlockAt(pt);
+                        Material mt = b.getType();
+                        if (!PASS_THROUGH.contains(mt)) {
+                            endDist = Math.max(0.0, d - step);
+                            break;
+                        }
+                    }
+
+// If beam length is basically 0, still proceed to count as a run
+                    endDist = Math.max(0.0, Math.min(endDist, finalRange));
+
+// --- Beam particles (DustTransition WHITE -> AQUA) ---
+                    final Color from = Color.fromRGB(255, 255, 255); // white
+                    final Color to   = Color.fromRGB(85, 255, 255);  // aqua-ish
+                    final float dustSize = 0.65f;
+
+                    final Particle.DustTransition trans = new Particle.DustTransition(from, to, dustSize);
+
+                    for (double d = 0.0; d <= endDist; d += spacing) {
+                        Location pt = start.clone().add(dir.clone().multiply(d));
+                        w.spawnParticle(Particle.DUST_COLOR_TRANSITION, pt, 1, 0, 0, 0, 0, trans);
+                    }
+
+// --- Spark/scrape side particles (even-ish distribution), capped by amount ---
+                    int n = Math.max(0, finalAmount);
+                    if (n > 0 && endDist > 0.01) {
+                        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+
+                        // Build perpendicular basis ONCE (disk perpendicular to beam dir)
+                        Vector n1;
+                        if (Math.abs(dir.getY()) < 0.99) n1 = dir.clone().crossProduct(new Vector(0, 1, 0)).normalize();
+                        else n1 = dir.clone().crossProduct(new Vector(1, 0, 0)).normalize();
+                        Vector n2 = dir.clone().crossProduct(n1).normalize();
+
+                        for (int i = 0; i < n; i++) {
+                            // evenly spread along beam, with tiny jitter
+                            double base = ((i + 0.5) / (double)n) * endDist;
+                            double jitter = rnd.nextDouble(-spacing * 0.5, spacing * 0.5);
+                            double d = Math.max(0.0, Math.min(endDist, base + jitter));
+
+                            Location pt = start.clone().add(dir.clone().multiply(d)); // <-- use start
+
+                            // random point in DISK radius <= finalDx around the beam (true distance <= finalDx)
+                            double offx = 0.0, offy = 0.0, offz = 0.0;
+                            if (finalDx > 0.0) {
+                                double ang = rnd.nextDouble(0.0, Math.PI * 2.0);
+                                double rad = Math.sqrt(rnd.nextDouble()) * finalDx; // sqrt => uniform disk
+
+                                double cs = Math.cos(ang) * rad;
+                                double sn = Math.sin(ang) * rad;
+
+                                offx = n1.getX() * cs + n2.getX() * sn;
+                                offy = n1.getY() * cs + n2.getY() * sn;
+                                offz = n1.getZ() * cs + n2.getZ() * sn;
+                            }
+
+                            Location off = pt.clone().add(offx, offy, offz);
+
+                            // Alternate particle type; both are "electric-y"
+                            if ((i & 1) == 0) w.spawnParticle(Particle.ELECTRIC_SPARK, off, 1, 0, 0, 0, 0);
+                            else w.spawnParticle(Particle.SCRAPE, off, 1, 0, 0, 0, 0);
+                        }
+                    }
+
+// --- Entity hitscan (all entities, including players; NOT blocked by other entities) ---
+// Build a broad AABB around the segment to fetch candidates cheaply
+                    Vector endVec = dir.clone().multiply(endDist);
+                    Location endLoc = start.clone().add(endVec); // <-- use start
+
+                    double minX = Math.min(start.getX(), endLoc.getX());
+                    double minY = Math.min(start.getY(), endLoc.getY());
+                    double minZ = Math.min(start.getZ(), endLoc.getZ());
+                    double maxX = Math.max(start.getX(), endLoc.getX());
+                    double maxY = Math.max(start.getY(), endLoc.getY());
+                    double maxZ = Math.max(start.getZ(), endLoc.getZ());
+
+                    BoundingBox query = new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ).expand(2.0, 2.0, 2.0);
+
+                    Collection<Entity> nearby = w.getNearbyEntities(query);
+                    List<Entity> hit = new ArrayList<>();
+
+// Ray parameters for AABB test
+                    double rx = start.getX(), ry = start.getY(), rz = start.getZ(); // <-- use start
+                    double dxr = dir.getX(), dyr = dir.getY(), dzr = dir.getZ();
+
+
+                    for (Entity e : nearby) {
+                        if (e == null) continue;
+                        if (e.getUniqueId().equals(invoker.getUniqueId())) continue;
+
+                        BoundingBox bb = e.getBoundingBox();
+                        // Expand a tiny bit to feel more like "hitbox look-at"
+                        bb = bb.expand(0.15, 0.15, 0.15);
+
+                        // Ray-AABB slab intersection
+                        double tmin = 0.0;
+                        double tmax = endDist;
+
+                        // X
+                        if (Math.abs(dxr) < 1e-9) {
+                            if (rx < bb.getMinX() || rx > bb.getMaxX()) continue;
+                        } else {
+                            double inv = 1.0 / dxr;
+                            double t1 = (bb.getMinX() - rx) * inv;
+                            double t2 = (bb.getMaxX() - rx) * inv;
+                            if (t1 > t2) { double tmp = t1; t1 = t2; t2 = tmp; }
+                            tmin = Math.max(tmin, t1);
+                            tmax = Math.min(tmax, t2);
+                            if (tmax < tmin) continue;
+                        }
+
+                        // Y
+                        if (Math.abs(dyr) < 1e-9) {
+                            if (ry < bb.getMinY() || ry > bb.getMaxY()) continue;
+                        } else {
+                            double inv = 1.0 / dyr;
+                            double t1 = (bb.getMinY() - ry) * inv;
+                            double t2 = (bb.getMaxY() - ry) * inv;
+                            if (t1 > t2) { double tmp = t1; t1 = t2; t2 = tmp; }
+                            tmin = Math.max(tmin, t1);
+                            tmax = Math.min(tmax, t2);
+                            if (tmax < tmin) continue;
+                        }
+
+                        // Z
+                        if (Math.abs(dzr) < 1e-9) {
+                            if (rz < bb.getMinZ() || rz > bb.getMaxZ()) continue;
+                        } else {
+                            double inv = 1.0 / dzr;
+                            double t1 = (bb.getMinZ() - rz) * inv;
+                            double t2 = (bb.getMaxZ() - rz) * inv;
+                            if (t1 > t2) { double tmp = t1; t1 = t2; t2 = tmp; }
+                            tmin = Math.max(tmin, t1);
+                            tmax = Math.min(tmax, t2);
+                            if (tmax < tmin) continue;
+                        }
+
+                        // Intersects within segment
+                        if (tmax >= 0.0 && tmin <= endDist) hit.add(e);
+                    }
+
+                    // Dispatch commands for each hit
+                    for (Entity e : hit) {
+                        double maxHealth = 20.0;
+
+                        if (e instanceof LivingEntity le) {
+                            AttributeInstance inst = le.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                            if (inst != null) maxHealth = inst.getValue();
+                            else maxHealth = Math.max(1.0, le.getHealth()); // fallback
+                        }
+
+                        double value = maxHealth * finalPct;
+                        // Keep it readable for command parser
+                        String amountStr = String.format(Locale.US, "%.3f", value);
+
+                        if (e instanceof Player target) {
+                            String cmd = "ei run-custom-trigger trigger:" + triggerId + "PLAYER " + target.getName() + " " + amountStr;
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        } else {
+                            String cmd = "ei run-custom-trigger trigger:" + triggerId + "ENTITY " + e.getUniqueId() + " " + amountStr;
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+                        }
+                    }
+
+                    // stop after N intervals
+                    if (runs >= finalIntervals) cancel();
+                }
+            }.runTaskTimer(Bukkit.getPluginManager().getPlugin("PlaceholderAPI"), 0L, intervalTicks);
+
+            return "done";
+        }
         
-        
+        if (identifier.startsWith("microCharge_")) {
+            String raw = identifier.substring("microCharge_".length()).trim();
+            int charge;
+            try {
+                charge = Integer.parseInt(raw);
+            } catch (Exception ex) {
+                charge = 0;
+            }
+            return renderMicroChargeBar(charge);
+        }
         
         if (identifier.startsWith("linearIntFinalStep_")) return onLinearIntFinalStep(p, identifier);
         if( identifier.startsWith("powerGradient_")) return onPowerGradient(p, identifier);
