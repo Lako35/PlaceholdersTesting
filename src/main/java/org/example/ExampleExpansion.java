@@ -1506,6 +1506,59 @@ public class ExampleExpansion extends PlaceholderExpansion {
     }
     
     // Helper Methods Helpers
+
+    private void fillBoundingBoxFacesAqua(Entity e, float dustSize, double density) {
+        World w = e.getWorld();
+        BoundingBox bb = e.getBoundingBox().expand(0.03, 0.03, 0.03);
+
+        Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(85, 255, 255), dustSize);
+
+        double minX = bb.getMinX(), maxX = bb.getMaxX();
+        double minY = bb.getMinY(), maxY = bb.getMaxY();
+        double minZ = bb.getMinZ(), maxZ = bb.getMaxZ();
+
+        double step = 1.0 / density;
+
+        // XY faces at Z=minZ and Z=maxZ
+        fillPlaneXY(w, minX, maxX, minY, maxY, minZ, step, dust);
+        fillPlaneXY(w, minX, maxX, minY, maxY, maxZ, step, dust);
+
+        // XZ faces at Y=minY and Y=maxY
+        fillPlaneXZ(w, minX, maxX, minZ, maxZ, minY, step, dust);
+        fillPlaneXZ(w, minX, maxX, minZ, maxZ, maxY, step, dust);
+
+        // YZ faces at X=minX and X=maxX
+        fillPlaneYZ(w, minY, maxY, minZ, maxZ, minX, step, dust);
+        fillPlaneYZ(w, minY, maxY, minZ, maxZ, maxX, step, dust);
+    }
+
+    private void fillPlaneXY(World w, double minX, double maxX, double minY, double maxY,
+                             double zConst, double step, Particle.DustOptions dust) {
+        for (double x = minX; x <= maxX + 1e-9; x += step) {
+            for (double y = minY; y <= maxY + 1e-9; y += step) {
+                w.spawnParticle(Particle.DUST, x, y, zConst, 1, 0, 0, 0, 0, dust);
+            }
+        }
+    }
+
+    private void fillPlaneXZ(World w, double minX, double maxX, double minZ, double maxZ,
+                             double yConst, double step, Particle.DustOptions dust) {
+        for (double x = minX; x <= maxX + 1e-9; x += step) {
+            for (double z = minZ; z <= maxZ + 1e-9; z += step) {
+                w.spawnParticle(Particle.DUST, x, yConst, z, 1, 0, 0, 0, 0, dust);
+            }
+        }
+    }
+
+    private void fillPlaneYZ(World w, double minY, double maxY, double minZ, double maxZ,
+                             double xConst, double step, Particle.DustOptions dust) {
+        for (double y = minY; y <= maxY + 1e-9; y += step) {
+            for (double z = minZ; z <= maxZ + 1e-9; z += step) {
+                w.spawnParticle(Particle.DUST, xConst, y, z, 1, 0, 0, 0, 0, dust);
+            }
+        }
+    }
+    
     private String renderMicroChargeBar(int charge) {
         final String GRAY   = "§7";
         final String YELLOW = "§e";
@@ -1515,7 +1568,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
 
         // Easy knobs
         final int LEFT_BAR  = 12;
-        final int RIGHT_BAR = 5;
+        final int RIGHT_BAR = 7;
 
         if (charge < 0) charge = 0;
 
@@ -3253,7 +3306,7 @@ private enum RechargeStage {
                 Material.GRAY_CANDLE_CAKE, Material.LIGHT_GRAY_CANDLE_CAKE, Material.CYAN_CANDLE_CAKE, Material.PURPLE_CANDLE_CAKE,
                 Material.BLUE_CANDLE_CAKE, Material.BROWN_CANDLE_CAKE, Material.GREEN_CANDLE_CAKE, Material.RED_CANDLE_CAKE,
                 Material.BLACK_CANDLE_CAKE,Material.POWERED_RAIL, Material.DETECTOR_RAIL, Material.ACTIVATOR_RAIL, Material.RAIL,
-                Material.POLISHED_BLACKSTONE_PRESSURE_PLATE,
+                Material.POLISHED_BLACKSTONE_PRESSURE_PLATE,Material.FERN, Material.LARGE_FERN, 
 
                 Material.OAK_SIGN, Material.OAK_WALL_SIGN,
                 Material.SPRUCE_SIGN, Material.SPRUCE_WALL_SIGN,
@@ -3282,6 +3335,27 @@ private enum RechargeStage {
         // Strongly recommended: include the other air variants explicitly
         s.add(org.bukkit.Material.CAVE_AIR);
         s.add(org.bukkit.Material.VOID_AIR);
+        s.add(Material.SUNFLOWER);
+        s.add(Material.LILAC);
+        s.add(Material.ROSE_BUSH);
+        s.add(Material.PEONY);
+
+        s.add(Material.TALL_GRASS);
+        s.add(Material.TALL_SEAGRASS);
+
+        s.add(Material.TORCHFLOWER);
+        s.add(Material.TORCHFLOWER_CROP);
+
+        s.add(Material.PITCHER_CROP); // you already had PITCHER_PLANT + PITCHER_POD
+
+// Nether "grass/roots" style plants (commonly treated as pass-through)
+        s.add(Material.CRIMSON_ROOTS);
+        s.add(Material.WARPED_ROOTS);
+
+        s.add(Material.CAVE_VINES);
+        s.add(Material.CAVE_VINES_PLANT);
+        s.add(Material.TWISTING_VINES_PLANT);
+        s.add(Material.WEEPING_VINES_PLANT);
 
         // Future-proof hook (won’t crash compile): add by string if/when you want later
         // addIfExists(s, "SOME_NEW_BLOCK");
@@ -6135,6 +6209,41 @@ private enum RechargeStage {
         
         
         // INSERT HERE // if (checkCompatibility(p, "ProtocolLib")) return "§cProtocol Lib not installed!";
+
+
+
+
+
+
+        if (identifier.startsWith("boundingBoxAqua_")) {
+            String args = identifier.substring("boundingBoxAqua_".length());
+            String[] parts = args.split(",", -1);
+
+            if (parts.length < 3) return "done";
+
+            float size;
+            UUID uuid;
+            double density;
+
+            try {
+                size = Float.parseFloat(parts[0].trim());
+                uuid = UUID.fromString(parts[1].trim());
+                density = Double.parseDouble(parts[2].trim());
+            } catch (Exception ignored) {
+                return "done";
+            }
+
+            size = Math.max(0.1f, Math.min(size, 8.0f));
+            density = Math.max(0.25, Math.min(density, 60.0));
+
+            Entity e = Bukkit.getEntity(uuid);
+            if (e == null) return "done";
+
+            fillBoundingBoxFacesAqua(e, size, density);
+            return "done";
+        }
+
+
 // Add this branch to your onPlaceholderRequest(...)
         if (identifier.startsWith("microHIDAttack_")) {
             // RANGE,DENSITY,DX,amount,triggerID,percentmaxhealth,intervals,interval
