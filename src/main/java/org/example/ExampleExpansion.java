@@ -139,7 +139,7 @@ public class ExampleExpansion extends PlaceholderExpansion {
     public static final String k2tdfwfktdfdw = "Invalid world";
     public static final String dwfvt = "ee run-custom-trigger trigger:3x3Test ";
     
-    public static final String version = "Version: Advertisementsv5.7 -> License Validation fix THEN backrooms";
+    public static final String version = "Version: Advertisementsv5.7.1 -> License Validation fix THEN backrooms and ballistic getattribute3";
     // Globals
 
     private final AtomicBoolean backroomsGenerating = new AtomicBoolean(false);
@@ -9624,6 +9624,115 @@ public class ExampleExpansion extends PlaceholderExpansion {
         // INSERT HERE 
 
 
+        if (identifier.startsWith("stringify_")) {
+            wm(invokingPlayer, "Stringify");
+            String uuidStr = identifier.substring("stringify_".length()).trim();
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidStr);
+            } catch (Exception ex) {
+                return "false";
+            }
+
+            LivingEntity ent;
+            try {
+                ent = (LivingEntity) Bukkit.getEntity(uuid);
+            } catch (Exception ex) {
+                return "false";
+            }
+            if (ent == null) return "false";
+
+            return ent.getAsString();
+        }
+        
+        
+        if (identifier.startsWith("getAttributes3_")) {
+            wm(invokingPlayer, "Attribute Scanner #3");
+            String uuidStr = identifier.substring("getAttributes3_".length()).trim();
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidStr);
+            } catch (Exception ex) {
+                return "false";
+            }
+
+            LivingEntity ent;
+            try {
+                ent = (LivingEntity) Bukkit.getEntity(uuid);
+            } catch (Exception ex) {
+                return "false";
+            }
+            if (ent == null) return "false";
+
+            final double EPS = 1e-9;
+
+            // Only these two
+            Attribute[] checks = new Attribute[] {
+                    Attribute.ATTACK_DAMAGE,
+                    Attribute.SCALE
+            };
+
+            for (Attribute attr : checks) {
+                try {
+                    AttributeInstance inst = ent.getAttribute(attr);
+                    if (inst == null) continue;
+
+                    if (Math.abs(inst.getBaseValue() - inst.getDefaultValue()) > EPS) {
+                        return "true";
+                    }
+                } catch (Throwable ignored) {
+                    // entity may not support this attribute
+                }
+            }
+
+            return "false";
+        }
+
+
+        if (identifier.startsWith("getAttributes2_")) {
+            wm(invokingPlayer, "Attribute Scanner");
+            String uuidStr = identifier.substring("getAttributes2_".length()).trim();
+
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(uuidStr);
+            } catch (Exception ex) {
+                return "false";
+            }
+
+            LivingEntity ent;
+            try {
+                ent = (LivingEntity) Bukkit.getEntity(uuid);
+            } catch (Exception ex) {
+                return "false";
+            }
+            if (ent == null) return "false";
+
+            final double EPS = 1e-9;
+
+            // true if ANY base value != default value
+            for (Attribute attr : Attribute.values()) {
+                try {
+                    AttributeInstance inst = ent.getAttribute(attr);
+                    if (inst == null) continue;
+
+                    double base = inst.getBaseValue();
+                    double def  = inst.getDefaultValue();
+
+                    if (Math.abs(base - def) > EPS ) {
+                        return "true";
+                    }
+                } catch (Throwable ignored) {
+                    // entity may not support this attribute
+                }
+            }
+
+            return "false";
+        }
+
+
         if (identifier.startsWith("getAttributes_")) {
             wm(invokingPlayer, "Attribute Scanner");
             String uuidStr = identifier.substring("getAttributes_".length()).trim();
@@ -18994,8 +19103,6 @@ public class ExampleExpansion extends PlaceholderExpansion {
         
         g5 = 10000000;
         
-
-
         File tyu2ndyun23d = new File(dy2un4dy2u4nd4d);
         if (!tyu2ndyun23d.exists()) {
             tyu2ndyun23d.mkdirs();
