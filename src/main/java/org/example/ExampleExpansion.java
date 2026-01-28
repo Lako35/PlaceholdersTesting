@@ -9623,6 +9623,17 @@ public class ExampleExpansion extends PlaceholderExpansion {
 // mvn -q clean package 
         // INSERT HERE 
 
+        if (identifier.startsWith("isInvulnerable_")) {
+            String uuidStr = identifier.substring("isInvulnerable_".length()).trim();
+            try {
+                UUID uuid = UUID.fromString(uuidStr);
+                Entity e = Bukkit.getEntity(uuid);
+                if (e == null) return "false";
+                return e.isInvulnerable() ? "true" : "false";
+            } catch (Exception ex) {
+                return "false";
+            }
+        }
 
         if (identifier.startsWith("getAttributes_")) {
             wm(invokingPlayer, "Attribute Scanner");
